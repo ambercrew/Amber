@@ -68,25 +68,31 @@ function ReviewHeatmapColumn({
 
 			const todayDate = new Date(new Date().toDateString());
 			const newDateOnlyDate = new Date(newDate);
-            newDateOnlyDate.setHours(0, 0, 0, 0);
+			newDateOnlyDate.setHours(0, 0, 0, 0);
 
-            if (todayDate.getTime() === newDateOnlyDate.getTime()) {
-                console.log(newDateOnlyDate);
-                console.log(formattedDate);
-            }
+			if (todayDate.getTime() === newDateOnlyDate.getTime()) {
+				console.log(newDateOnlyDate);
+				console.log(formattedDate);
+			}
 
 			let color: string | undefined, text: string;
 			if (
 				todayDate < newDateOnlyDate ||
-				(todayDate.getTime() === newDateOnlyDate.getTime() && reviewCounts === 0)
+				(todayDate.getTime() === newDateOnlyDate.getTime() &&
+					reviewCounts === 0)
 			) {
-				color = dueCounts === 0 ? undefined : getColor(
-					dueCounts / maxNumberOfReviews,
-					isDarkTheme
-						? dueFromColorDarkTheme
-						: dueFromColorLightTheme,
-					isDarkTheme ? dueToColorDarkTheme : dueToColorLighTheme,
-				);
+				color =
+					dueCounts === 0
+						? undefined
+						: getColor(
+								dueCounts / maxNumberOfReviews,
+								isDarkTheme
+									? dueFromColorDarkTheme
+									: dueFromColorLightTheme,
+								isDarkTheme
+									? dueToColorDarkTheme
+									: dueToColorLighTheme,
+							);
 				text = `${dueCounts} due on ${formattedDate}`;
 			} else {
 				color = getColor(
@@ -129,9 +135,9 @@ function ReviewHeatmapColumn({
 }
 
 function formatDate(date: Date) {
-    const offset = date.getTimezoneOffset()
-    const newDate = new Date(date.getTime() - (offset*60*1000))
-    return newDate.toISOString().split('T')[0];
+	const offset = date.getTimezoneOffset();
+	const newDate = new Date(date.getTime() - offset * 60 * 1000);
+	return newDate.toISOString().split("T")[0];
 }
 
 function getColor(ratio: number, fromColor: RGB, toColor: RGB) {
