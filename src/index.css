@@ -113,7 +113,7 @@ body.dark {
 	--grey-background-color-shade-20: #0f0f0f;
 
 	--default-background-color: #282828;
-	--side-bar-background-color: var(--grey-background-color-shade-10);
+	--side-bar-background-color: rgb(52, 52, 52);
 
 	--new-color: var(--primary-color);
 	--learning-color: var(--red-color-light-10);
