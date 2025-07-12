@@ -38,7 +38,7 @@
 .bubble-menu {
 	background-color: var(--default-background-color);
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--darker-box-shadow);
+	box-shadow: var(--default-box-shadow);
 	padding: var(--default-padding);
 	display: flex;
 	flex-direction: row;

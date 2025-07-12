@@ -43,7 +43,7 @@
 
 	& button {
 		padding: var(--default-padding) var(--large-padding);
-		box-shadow: var(--light-box-shadow);
+		box-shadow: var(--default-box-shadow);
 	}
 
 	& .button-column {

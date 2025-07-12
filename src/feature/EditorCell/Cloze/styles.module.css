@@ -1,3 +1,4 @@
+/* TODO: cloze marks not showing until focusing the editor */
 .cloze-mark {
 	display: inline-block;
 	padding: var(--small-padding);
@@ -8,8 +9,8 @@
 
 .cloze-mark:before {
 	content: attr(index);
-	padding-right: var(--extra-small-padding);
-	margin-right: var(--extra-small-padding);
+	padding-right: 2px;
+	margin-right: 2px;
 	border-right: 1px solid var(--text-color);
 	font-weight: normal;
 	font-style: normal;

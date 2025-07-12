@@ -24,7 +24,7 @@
 	&.closed {
 		width: 62px;
 		overflow: hidden;
-		padding: var(--xl-padding) var(--medium-padding);
+		padding: var(--xl-padding) var(--default-padding);
 
 		& > * {
 			display: none;
@@ -94,7 +94,6 @@
 	& .toggle-button {
 		transition: 0s tansform;
 		transition: 0s width;
-		padding: var(--default-padding) var(--medium-padding);
 	}
 }
 
@@ -103,7 +102,7 @@
 	flex-direction: row;
 	gap: 4px;
 	width: 100%;
-	padding: var(--medium-padding);
+	padding: var(--default-padding);
 	margin-bottom: 4px;
 	align-items: center;
 }

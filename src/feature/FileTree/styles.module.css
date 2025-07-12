@@ -96,7 +96,7 @@
 	position: absolute;
 	top: 100%;
 	right: 0;
-	padding: var(--medium-padding);
+	padding: var(--default-padding);
 	border-radius: var(--default-border-radius);
 	background-color: var(--default-background-color);
 	box-shadow: var(--default-box-shadow);
@@ -109,7 +109,7 @@
 	width: 100%;
 	text-align: left;
 	display: grid;
-	grid-template-columns: 1fr 7fr 4.6rem;
+	grid-template-columns: 1fr 7fr 5.5rem;
 	gap: var(--small-padding);
 	align-items: center;
 }

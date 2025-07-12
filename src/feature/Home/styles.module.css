@@ -15,8 +15,8 @@
 	background: var(--default-background-color);
 	margin: 0 auto;
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--dark-box-shadow);
-	padding: var(--default-padding) var(--medium-padding);
+	box-shadow: var(--default-box-shadow);
+	padding: var(--default-padding);
 	overflow-x: auto;
 
 	& * {
@@ -34,7 +34,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--extra-small-padding);
+	padding: var(--small-padding);
 
 	& .buttons {
 		display: grid;
