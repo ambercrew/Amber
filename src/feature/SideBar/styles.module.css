@@ -1,6 +1,6 @@
+/*TODO: closing side bar fix! and small screen size*/
 .side-bar {
 	height: 100%;
-	padding: var(--xl-padding);
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
 	width: 26rem;
@@ -8,17 +8,13 @@
 	max-width: 100%;
 
 	& * {
-		font-size: 1.2rem;
+		font-size: 1.4rem;
 	}
 
 	& .title-row {
 		display: flex;
 		align-items: center;
 		gap: 4px;
-
-		& img {
-			width: 3.4rem;
-		}
 	}
 
 	&.closed {
@@ -82,40 +78,81 @@
 .header {
 	display: flex;
 	justify-content: space-between;
+    align-items: center;
 	border-bottom: 1px solid var(--hover-border-color);
 	margin-bottom: 1rem;
-	padding: var(--default-padding) 0;
+	padding: var(--xl-padding);
+    background: #f8fafc;
 
 	& h2 {
-		font-size: 1.8rem;
-		font-weight: 400;
+		font-size: 2rem;
+		font-weight: 600;
 	}
+
+    & img {
+        margin-right: var(--default-padding);
+        width: 2.8rem;
+
+        box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+    }
 
 	& .toggle-button {
 		transition: 0s tansform;
 		transition: 0s width;
+
+        & * {
+            /* TODO: move to a variable */
+            color: #6b7280;
+        }
 	}
 }
 
-.row {
-	display: flex;
-	flex-direction: row;
-	gap: 4px;
-	width: 100%;
-	padding: var(--default-padding);
-	margin-bottom: 4px;
-	align-items: center;
+.rows {
+    padding: var(--large-padding);
+    /* TODO: make it into a variable */
+	border-bottom: 1px solid var(--hover-border-color);
+
+    .row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        /* TODO: make into a variable, used also for input */
+        padding: 12px 20px;
+        margin-bottom: 4px;
+        border-left: 4px solid transparent;
+        transition: all var(--default-transition-time);
+
+        &:hover {
+            background-color: var(--grey-background-color);
+        }
+
+        &.active {
+            /* TODO: move to a variable, primary-color-light-30 */
+            background: #cee1f7;
+            border-left-color: var(--primary-color);
+            }
+
+        & * {
+            /* TODO: move to a variable */
+            color: #374151;
+        }
+    }
 }
 
-.search-input {
-	width: 100%;
-	background-color: inherit;
-	padding-top: var(--default-padding);
-	padding-bottom: var(--default-padding);
+.search-input-container {
+    padding: 12px 20px;
+	border-bottom: 1px solid var(--hover-border-color);
 
-	&:focus,
-	&:not(:placeholder-shown) {
-		background-color: var(--default-background-color);
-		border-color: var(--primary-color);
-	}
+    .search-input {
+        width: 100%;
+        background-color: inherit;
+
+        &:focus,
+        &:not(:placeholder-shown) {
+            background-color: var(--default-background-color);
+            border-color: var(--primary-color);
+        }
+    }
 }

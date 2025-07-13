@@ -18,9 +18,6 @@ html {
 		/* Around 1rem = 11px */
 		font-size: calc(var(--zoom-level) * 68.75%);
 	}
-	body {
-		font-size: 1.6rem;
-	}
 }
 
 /* Desktops */
@@ -29,9 +26,6 @@ html {
 		/* 1rem = 14px */
 		font-size: calc(var(--zoom-level) * 87.5%);
 	}
-	body {
-		font-size: 1.8rem;
-	}
 }
 
 /* Extra large desktops or 4K displays */
@@ -39,9 +33,6 @@ html {
 	html {
 		/* 1rem = 16px for larger screens */
 		font-size: calc(var(--zoom-level) * 100%);
-	}
-	body {
-		font-size: 2rem;
 	}
 }
 
@@ -65,7 +56,8 @@ body {
 
 	--text-color: #333333;
 	--border-color: #e0e0e0;
-	--hover-border-color: #b3b3b3;
+    /* TODO; better name*/
+	--hover-border-color: #e5e7eb;
 	--link-color: #387adf;
 	--link-color-shade-10: #27559c;
 	--link-color-shade-20: #2d62b2;
@@ -81,13 +73,12 @@ body {
 	--review-color: green;
 
 	/* Spaces */
-	--default-border-radius: 4px;
+	--default-border-radius: 6px;
 	--small-padding: 4px;
 	--default-padding: 8px;
-    /*TODO: fix large padding and other paddings*/
 	--large-padding: 16px;
-	--xl-padding: 16px;
-	--xxl-padding: 20px;
+	--xl-padding: 24px;
+	--xxl-padding: 32px;
 
 	/* Sizes */
 	--default-border-width: 2px;
@@ -201,7 +192,7 @@ button.primary * {
 }
 
 button.primary:not(:disabled):focus {
-	box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.3);
+	box-shadow: var(--default-box-shadow);
 }
 
 button.primary:active {

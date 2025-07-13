@@ -1,3 +1,8 @@
+.file-tree-container {
+    /* TODO: make into a variable */
+    padding: 12px 20px;
+}
+
 .file-item-outer-container {
 	padding: 1px;
 	border: 2px solid transparent;
@@ -23,7 +28,7 @@
 
 .file-tree-button {
 	width: 100%;
-	padding: 8px;
+	padding: 12px;
 
 	& p {
 		width: 80%;
@@ -46,7 +51,7 @@
 
 .file-tree-new-item-row input {
 	width: 100%;
-	padding: 2px var(--default-padding);
+	padding: var(--default-padding);
 	border-width: 1px;
 }
 
@@ -75,21 +80,21 @@
 }
 
 .file-tree-rename-input {
-	padding: 2px var(--default-padding);
+	padding: var(--default-padding);
 	color: var(--text-color) !important;
 	border-width: 1px;
 	width: 100%;
 }
 
 .file-tree-item-children {
-	margin-left: var(--default-padding);
-	padding-left: var(--default-padding);
-	border-left: 1px solid var(--border-color);
-	transition: var(--default-transition-time);
+    padding-left: var(--xl-padding);
+	transition: all var(--default-transition-time);
+    border-left: 1px solid var(--border-color);
 }
 
-.file-tree-item-children:hover {
-	border-left-color: var(--hover-border-color);
+.file-tree-item-children.root {
+    padding-left: 0;
+    border-left: none;
 }
 
 .actions-menu {

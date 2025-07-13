@@ -63,6 +63,6 @@
 	justify-content: flex-end;
 
 	& button {
-		padding: var(--default-padding) var(--large-padding);
+		padding: var(--default-padding);
 	}
 }
