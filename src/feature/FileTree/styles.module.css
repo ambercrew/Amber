@@ -4,7 +4,6 @@
 }
 
 .file-item-outer-container {
-	padding: 1px;
 	border: 2px solid transparent;
 	border-radius: var(--default-border-radius);
 
@@ -63,12 +62,17 @@
 	transform: translateY(-50%);
 	border: 1px solid transparent;
 	border-radius: var(--default-border-radius);
+
+    &:hover {
+        background-color: var(--grey-background-color);
+    }
+
+    &:active,
+    &:focus {
+        border-color: var(--primary-color);
+    }
 }
 
-.file-tree-dots:active,
-.file-tree-dots:focus {
-	border-color: var(--primary-color);
-}
 
 .file-tree-dots-selected * {
 	color: #fff;
@@ -87,7 +91,7 @@
 }
 
 .file-tree-item-children {
-    padding-left: var(--xl-padding);
+    padding-left: var(--large-padding);
 	transition: all var(--default-transition-time);
     border-left: 1px solid var(--border-color);
 }

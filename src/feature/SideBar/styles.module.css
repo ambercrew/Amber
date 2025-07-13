@@ -1,3 +1,5 @@
+/*TODO: dark theme */
+/*TODO: small screens */
 /*TODO: closing side bar fix! and small screen size*/
 .side-bar {
 	height: 100%;
@@ -6,9 +8,13 @@
 	width: 26rem;
 	transition: 0.15s all;
 	max-width: 100%;
+    /* Adding more space at the bottom for actions menus. */
+    padding-bottom: 10rem;
 
 	& * {
-		font-size: 1.4rem;
+		font-size: 1.6rem;
+        /* TODO: move to a variable */
+        /* color: #6b7280; */
 	}
 
 	& .title-row {
@@ -20,14 +26,15 @@
 	&.closed {
 		width: 62px;
 		overflow: hidden;
-		padding: var(--xl-padding) var(--default-padding);
 
 		& > * {
 			display: none;
 		}
 
 		& .header {
-			display: block;
+			display: flex;
+            padding: var(--xl-padding) 0;
+            justify-content: center;
 
 			& .title-row {
 				display: none;
@@ -35,19 +42,23 @@
 
 			& .toggle-button {
 				transform: rotate(180deg);
-				width: 100%;
 			}
 		}
 
-		& .row {
-			display: flex;
-			visibility: visible;
-			justify-content: center;
+        & .rows {
+            display: block;
+            padding: var(--large-padding) var(--default-padding);
 
-			& p {
-				display: none;
-			}
-		}
+            & .row {
+                padding: 12px var(--default-padding);
+                justify-content: center;
+
+                & p {
+                    display: none;
+                }
+            }
+        }
+
 	}
 }
 
@@ -118,25 +129,28 @@
         align-items: center;
         gap: 12px;
         width: 100%;
-        /* TODO: make into a variable, used also for input */
-        padding: 12px 20px;
+        /* TODO: make into a variable, used also for input, also for closed */
+        padding: var(--large-padding) 20px;
         margin-bottom: 4px;
         border-left: 4px solid transparent;
         transition: all var(--default-transition-time);
+        height: 4.2rem;
 
         &:hover {
             background-color: var(--grey-background-color);
+            & * {
+                color: #000;
+            }
         }
 
         &.active {
             /* TODO: move to a variable, primary-color-light-30 */
             background: #cee1f7;
             border-left-color: var(--primary-color);
-            }
 
-        & * {
-            /* TODO: move to a variable */
-            color: #374151;
+            & * {
+                color: #000;
+            }
         }
     }
 }

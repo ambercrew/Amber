@@ -113,7 +113,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
                     } ${styles.row}`}
                     title="Home (Ctrl + h)"
                     onClick={onHomeClick}>
-                    <Icon path={mdiHome} size={1} />
+                    <Icon path={mdiHome} size="1em" />
                     <p>Home</p>
                 </button>
 
@@ -125,7 +125,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
                     } ${styles.row}`}
                     title="Search (Ctrl + Shift + f)"
                     onClick={() => void navigate("/search")}>
-                    <Icon path={mdiMagnify} size={1} />
+                    <Icon path={mdiMagnify} size="1em" />
                     <p>Search</p>
                 </button>
 
@@ -133,7 +133,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
                     className={`${styles.row}`}
                     title="Settings (Ctrl + p)"
                     onClick={onSettingsClick}>
-                    <Icon path={mdiCog} size={1} />
+                    <Icon path={mdiCog} size="1em" />
                     <p>Settings</p>
                 </button>
 
@@ -141,7 +141,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
                     className={`${styles.row}`}
                     title="Help (F1)"
                     onClick={openHelpWebiste}>
-                    <Icon path={mdiHelp} size={1} />
+                    <Icon path={mdiHelp} size="1em" />
                     <p>Help</p>
                 </button>
             </div>
