@@ -24,7 +24,7 @@ describe(useOutsideClick, () => {
 
 		const cb = vi.fn();
 		renderHook(() =>
-			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+			useOutsideClick(ref as React.RefObject<HTMLElement>, cb),
 		);
 
 		// Act
@@ -55,7 +55,7 @@ describe(useOutsideClick, () => {
 
 		const cb = vi.fn();
 		renderHook(() =>
-			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+			useOutsideClick(ref as React.RefObject<HTMLElement>, cb),
 		);
 
 		// Act

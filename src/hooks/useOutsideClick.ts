@@ -5,9 +5,9 @@ import React, { useEffect } from "react";
  * the referenced component happens.
  */
 function useOutsideClick(
-	ref: React.MutableRefObject<HTMLElement>,
+	ref: React.RefObject<HTMLElement>,
 	cb: () => void,
-    event: "mousedown" | "mouseup" | "click"
+    event: "mousedown" | "mouseup" | "click" = "click"
 ) {
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {

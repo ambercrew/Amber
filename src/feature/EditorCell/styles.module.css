@@ -16,7 +16,7 @@
 
 		& button {
 			border: 2px solid var(--border-color);
-			transition: var(--default-transition-time) all;
+			transition: all var(--default-transition-time);
 			padding-top: var(--default-padding);
 
 			&:hover {

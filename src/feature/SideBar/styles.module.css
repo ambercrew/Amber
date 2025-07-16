@@ -3,7 +3,7 @@
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
 	width: 28rem;
-	transition: 0.15s all;
+	transition: var(--default-transition-time) all;
 	max-width: 100%;
 	/* Adding more space at the bottom for actions menus. */
 	padding-bottom: 10rem;
@@ -115,7 +115,7 @@
 		align-items: center;
 		gap: 12px;
 		width: 100%;
-        transition: all 0.25s;
+        transition: all var(--default-transition-time);
 		height: 4.2rem;
         margin-bottom: 4px;
 
