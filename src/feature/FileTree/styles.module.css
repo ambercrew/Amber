@@ -117,28 +117,30 @@
 }
 
 .actions-menu {
+    /*TODO: size in nested folders */
 	position: absolute;
 	top: 100%;
+    margin-top: var(--small-padding);
 	right: 0;
-	padding: var(--default-padding);
+	padding: var(--large-padding);
 	border-radius: var(--default-border-radius);
 	background-color: var(--default-background-color);
 	box-shadow: var(--default-box-shadow);
 	display: grid;
 	flex-direction: column;
 	z-index: 1;
-}
+    gap: var(--small-padding);
 
-.actions-menu button {
-	width: 100%;
-	text-align: left;
-	display: grid;
-	grid-template-columns: 1fr 7fr 7rem;
-	gap: var(--small-padding);
-	align-items: center;
-}
+    & button {
+        text-align: left;
+        display: grid;
+        grid-template-columns: 1fr 7fr 7rem;
+        gap: var(--default-padding);
+        align-items: center;
 
-.actions-menu button * {
-	text-overflow: ellipsis;
-	overflow: hidden;
+        & * {
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+    }
 }
