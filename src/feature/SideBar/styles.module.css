@@ -136,7 +136,12 @@
 
 	.search-input {
 		width: 100%;
-		background-color: inherit;
+        background-color: inherit;
+
+        &:hover {
+			background-color: var(--default-background-color);
+            border-color: var(--text-color);
+        }
 
 		&:focus,
 		&:not(:placeholder-shown) {

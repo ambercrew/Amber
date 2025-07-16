@@ -12,16 +12,18 @@ interface Props {
 	isDarkTheme: boolean;
 }
 
+// Primary color light-10 in RGB.
 const reviewFromColor: RGB = {
-	r: 206,
-	g: 225,
-	b: 247,
+    r: 21,
+	g: 163,
+	b: 152,
 };
 
+// Primary color shade-10 in RGB.
 const reviewToColor: RGB = {
-	r: 74,
-	g: 144,
-	b: 226,
+	r: 9,
+	g: 73,
+	b: 68,
 };
 
 const dueFromColorLightTheme: RGB = {

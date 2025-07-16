@@ -1,3 +1,5 @@
+/* TODO: logo color and its shade */
+/* TODO: background colors for dark mode and for editor */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 * {
@@ -22,10 +24,9 @@ body {
     color: var(--text-color);
 
 	/* Colors */
-	--primary-color-light-30: #cee1f7;
-	--primary-color: #4a90e2;
-	--primary-color-shade-10: #4382cb;
-	--primary-color-shade-50: #254871;
+	--primary-color: #0f766e;
+	--primary-color-shade-10: #094944;
+	--primary-color-shade-50: #000;
 	--secondary-color: #e29c4a;
 	--red-color: #d52726;
 	--red-color-light-10: #e04f4e;
