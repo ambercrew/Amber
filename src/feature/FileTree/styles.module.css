@@ -15,12 +15,18 @@
 .file-tree-row {
 	width: 100%;
 	font-size: 1.2rem;
-	transition: var(--default-transition-time);
+	transition: all var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
 
 	& form {
 		width: 100%;
+	}
+
+	&:hover > .file-tree-dots,
+    &:focus > .file-tree-dots,
+    &:focus-within > .file-tree-dots {
+		opacity: 1;
 	}
 }
 
@@ -53,14 +59,7 @@
 	border-width: 1px;
 }
 
-.file-tree-row {
-	&:hover > .file-tree-dots {
-		opacity: 1;
-	}
-}
-
 .file-tree-dots {
-	/* TODO: on hover for pirmary looks bad */
 	opacity: 0;
 	position: absolute;
 	width: fit-content;
@@ -80,18 +79,24 @@
 	}
 }
 
-.file-tree-dots-selected * {
-	color: #fff;
+.file-tree-dots-selected {
+    color: #fff;
+
+    &:hover {
+        background-color: var(--primary-color-shade-10);
+        color: #fff;
+    }
+
+    &:active,
+    &:focus {
+        border-color: var(--primary-color-shade-20);
+        color: #fff;
+    }
 }
 
-.file-tree-dots-selected:active,
-.file-tree-dots-selected:focus {
-	border-color: var(--primary-color-shade-50);
-}
 
 .file-tree-rename-input {
 	padding: var(--default-padding);
-	color: var(--text-color) !important;
 	border-width: 1px;
 	width: 100%;
 }
@@ -100,6 +105,10 @@
 	padding-left: var(--large-padding);
 	transition: all var(--default-transition-time);
 	border-left: 1px solid var(--border-color);
+
+    &:hover {
+        border-left-color: var(--hover-border-color);
+    }
 }
 
 .file-tree-item-children.root {

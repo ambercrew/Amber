@@ -23,6 +23,7 @@ function ActionsMenu({ onOutsideClick, actions }: Props) {
 			(() => {
 				/* Do nothing */
 			}),
+        "click",
 	);
 
 	return (

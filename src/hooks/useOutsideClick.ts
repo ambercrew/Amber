@@ -7,6 +7,7 @@ import React, { useEffect } from "react";
 function useOutsideClick(
 	ref: React.MutableRefObject<HTMLElement>,
 	cb: () => void,
+    event: "mousedown" | "mouseup" | "click"
 ) {
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {
@@ -14,12 +15,12 @@ function useOutsideClick(
 				cb();
 			}
 		}
-		document.addEventListener("mousedown", handleClickOutside);
+		document.addEventListener(event, handleClickOutside);
 
 		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
+			document.removeEventListener(event, handleClickOutside);
 		};
-	}, [ref, cb]);
+	}, [event, ref, cb]);
 }
 
 export default useOutsideClick;

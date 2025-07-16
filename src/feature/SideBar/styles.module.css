@@ -9,7 +9,7 @@
 	padding-bottom: 10rem;
 
 	--sidebar-inner-padding: 12px 20px;
-	--border-seperator: 1px solid var(--hover-border-color);
+	--border-seperator: 1px solid var(--border-color);
 
 	.header {
 		display: flex;
@@ -140,7 +140,6 @@
 
         &:hover {
 			background-color: var(--default-background-color);
-            border-color: var(--text-color);
         }
 
 		&:focus,
