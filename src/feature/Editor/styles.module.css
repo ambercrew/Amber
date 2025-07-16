@@ -37,7 +37,7 @@
 			border: 1px solid var(--border-color);
 			font-size: 1rem;
 			margin-right: 4px;
-			padding: var(--small-padding);
+			padding: var(--default-padding);
 
 			&:not(:disabled):hover {
 				border-color: var(--hover-border-color);

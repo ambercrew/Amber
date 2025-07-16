@@ -1,4 +1,3 @@
-/* TODO: background colors for dark mode and for editor */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 * {
@@ -19,7 +18,7 @@ body {
 	font-variation-settings: "wdth" 100;
 	font-weight: 300;
 	font-style: normal;
-	background-color: var(--grey-background-color);
+	background-color: var(--body-background-color);
     color: var(--text-color);
 
 	/* Colors */
@@ -32,7 +31,7 @@ body {
 
 	--text-color: #333333;
 	--border-color: #e0e0e0;
-	/* TODO; better name*/
+	/* TODO: better name*/
 	--hover-border-color: #e5e7eb;
 	--link-color: #387adf;
 	--link-color-shade-10: #27559c;
@@ -40,6 +39,7 @@ body {
 	--grey-background-color: #f2f2f2;
 	--grey-background-color-shade-10: #dadada;
 	--grey-background-color-shade-20: #c2c2c2;
+    --body-background-color: var(--grey-background-color);
 
 	--default-background-color: #fff;
 	--side-bar-background-color: #fafafa;
@@ -73,14 +73,16 @@ body.dark {
 	--text-color: #fff;
 	--border-color: #5b5b5b;
 	--hover-border-color: #757575;
+    --body-background-color: #1a1f23;
+    --default-background-color: #252b30;
+
 	--grey-background-color: #424242;
 	--grey-background-color-shade-10: #292929;
 	--grey-background-color-shade-20: #0f0f0f;
 
-	--default-background-color: #282828;
-	--side-bar-background-color: rgb(52, 52, 52);
+	--side-bar-background-color: #1e2428;
 
-	--new-color: var(--primary-color);
+	--new-color: var(--link-color);
 	--learning-color: var(--red-color-light-10);
 	--review-color: #0c0;
 

@@ -14,7 +14,7 @@ function ReviewHeatmap({ homeStatistics }: Props) {
 
 	useEffect(() => {
 		void (async () => setSettings(await getSettings()))();
-	});
+	}, []);
 
 	const weeksOfYear = useMemo(() => {
 		const dates = [];

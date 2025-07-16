@@ -39,15 +39,15 @@ const dueToColorLighTheme: RGB = {
 };
 
 const dueFromColorDarkTheme: RGB = {
-	r: 15,
-	g: 15,
-	b: 15,
+	r: 60,
+	g: 60,
+	b: 60,
 };
 
 const dueToColorDarkTheme: RGB = {
-	r: 0,
-	g: 0,
-	b: 0,
+	r: 6,
+	g: 6,
+	b: 6,
 };
 
 const maxNumberOfReviews = 200;
@@ -71,11 +71,6 @@ function ReviewHeatmapColumn({
 			const todayDate = new Date(new Date().toDateString());
 			const newDateOnlyDate = new Date(newDate);
 			newDateOnlyDate.setHours(0, 0, 0, 0);
-
-			if (todayDate.getTime() === newDateOnlyDate.getTime()) {
-				console.log(newDateOnlyDate);
-				console.log(formattedDate);
-			}
 
 			let color: string | null, text: string;
 			if (

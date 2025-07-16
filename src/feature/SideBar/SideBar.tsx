@@ -8,7 +8,7 @@ import {
 	selectRootFolder,
 } from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../../util/searchFolder";
 import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
@@ -18,14 +18,13 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 
-const SMALL_SCREEN_MAX_WIDTH = 600;
+const SMALL_SCREEN_MAX_WIDTH = 720;
 
 interface Props {
-	onHomeClick: () => void;
 	onSettingsClick: () => void;
 }
 
-function SideBar({ onHomeClick, onSettingsClick }: Props) {
+function SideBar({ onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
@@ -33,7 +32,6 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const isSmallScreen = useRef(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH);
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
@@ -42,18 +40,8 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	useEffect(() => {
-		window.addEventListener("resize", () => {
-			isSmallScreen.current = window.innerWidth <= SMALL_SCREEN_MAX_WIDTH;
-		});
-	}, []);
-
-	useEffect(() => {
-		if (!isSmallScreen.current) return;
-		if (location.pathname === "/") {
-			setIsExpanded(true);
-		} else {
-			setIsExpanded(false);
-		}
+		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH) return;
+        setIsExpanded(false);
 	}, [location]);
 
 	const openHelpWebiste = useCallback(() => {
@@ -71,14 +59,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	});
 
 	const handleToggleSidebarClick = () => {
-		if (isSmallScreen.current) {
-			void navigate({
-				pathname: "/",
-				search: searchParams.toString(),
-			});
-		} else {
-			setIsExpanded(!isExpanded);
-		}
+        setIsExpanded(!isExpanded);
 	};
 
 	return (
@@ -106,7 +87,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 						styles.active
 					} ${styles.row}`}
 					title="Home (Ctrl + h)"
-					onClick={onHomeClick}>
+					onClick={() => void navigate("/home")}>
 					<Icon path={mdiHome} size="1em" />
 					<p>Home</p>
 				</button>

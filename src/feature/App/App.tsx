@@ -88,9 +88,6 @@ function App() {
 		});
 	};
 
-	const handleHomeClick = () => {
-		void navigate("/home");
-	};
 
 	return (
 		<div className={`${styles.workspace}`}>
@@ -106,7 +103,6 @@ function App() {
 			)}
 
 			<SideBar
-				onHomeClick={handleHomeClick}
 				onSettingsClick={() => setShowSettings(true)}
 			/>
 
