@@ -1,4 +1,3 @@
-/* TODO: logo color and its shade */
 /* TODO: background colors for dark mode and for editor */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
@@ -138,6 +137,7 @@ select {
 .input:hover,
 input:hover,
 select:hover {
+    /* TODO: better color */
 	border-color: var(--hover-border-color);
 }
 
