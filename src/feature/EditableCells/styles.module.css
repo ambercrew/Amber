@@ -6,8 +6,6 @@
 	flex-direction: column;
 	align-items: center;
 	gap: 0.5rem;
-	padding: var(--large-padding);
-	padding-top: var(--xl-padding);
 	width: 100%;
 
 	& .add-button-container {

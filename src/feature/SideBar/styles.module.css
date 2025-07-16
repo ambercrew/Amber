@@ -1,6 +1,4 @@
-/*TODO: dark theme */
-/*TODO: small screens */
-/*TODO: closing side bar fix! and small screen size*/
+/* TODO: weired behavior on small screen */
 .side-bar {
 	height: 100%;
 	border-right: 1px solid var(--border-color);
@@ -8,13 +6,39 @@
 	width: 26rem;
 	transition: 0.15s all;
 	max-width: 100%;
-    /* Adding more space at the bottom for actions menus. */
-    padding-bottom: 10rem;
+	/* Adding more space at the bottom for actions menus. */
+	padding-bottom: 10rem;
+
+	--sidebar-inner-padding: 12px 20px;
+	--border-seperator: 1px solid var(--hover-border-color);
+
+	.header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid var(--hover-border-color);
+		padding: var(--xl-padding);
+
+		& h2 {
+			font-size: 2rem;
+			font-weight: 600;
+		}
+
+		& img {
+			margin-right: var(--default-padding);
+			width: 2.8rem;
+
+			box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+		}
+
+		& .toggle-button {
+			transition: 0s tansform;
+			transition: 0s width;
+		}
+	}
 
 	& * {
 		font-size: 1.6rem;
-        /* TODO: move to a variable */
-        /* color: #6b7280; */
 	}
 
 	& .title-row {
@@ -33,8 +57,8 @@
 
 		& .header {
 			display: flex;
-            padding: var(--xl-padding) 0;
-            justify-content: center;
+			padding: var(--xl-padding) 0;
+			justify-content: center;
 
 			& .title-row {
 				display: none;
@@ -45,20 +69,19 @@
 			}
 		}
 
-        & .rows {
-            display: block;
-            padding: var(--large-padding) var(--default-padding);
+		& .rows {
+			display: block;
+			padding: var(--large-padding) var(--default-padding);
 
-            & .row {
-                padding: 12px var(--default-padding);
-                justify-content: center;
+			& .row {
+				padding: 12px var(--default-padding);
+				justify-content: center;
 
-                & p {
-                    display: none;
-                }
-            }
-        }
-
+				& p {
+					display: none;
+				}
+			}
+		}
 	}
 }
 
@@ -72,9 +95,6 @@
 		}
 
 		&.closed {
-			padding: var(--xl-padding) var(--default-padding);
-			width: 52px;
-
 			.toggle-button {
 				display: block;
 			}
@@ -83,90 +103,45 @@
 }
 
 .error-box {
-	margin: 6px 0;
-}
-
-.header {
-	display: flex;
-	justify-content: space-between;
-    align-items: center;
-	border-bottom: 1px solid var(--hover-border-color);
-	margin-bottom: 1rem;
-	padding: var(--xl-padding);
-    background: #f8fafc;
-
-	& h2 {
-		font-size: 2rem;
-		font-weight: 600;
-	}
-
-    & img {
-        margin-right: var(--default-padding);
-        width: 2.8rem;
-
-        box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
-    }
-
-	& .toggle-button {
-		transition: 0s tansform;
-		transition: 0s width;
-
-        & * {
-            /* TODO: move to a variable */
-            color: #6b7280;
-        }
-	}
+	margin: 4px var(--default-padding);
 }
 
 .rows {
-    padding: var(--large-padding);
-    /* TODO: make it into a variable */
-	border-bottom: 1px solid var(--hover-border-color);
+	padding: var(--large-padding);
+	border-bottom: var(--border-seperator);
 
-    .row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        width: 100%;
-        /* TODO: make into a variable, used also for input, also for closed */
-        padding: var(--large-padding) 20px;
-        margin-bottom: 4px;
-        border-left: 4px solid transparent;
-        transition: all var(--default-transition-time);
-        height: 4.2rem;
+	.row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		transition: all var(--default-transition-time);
+		height: 4.2rem;
 
-        &:hover {
-            background-color: var(--grey-background-color);
-            & * {
-                color: #000;
-            }
-        }
+		&:hover {
+			background-color: var(--grey-background-color);
+		}
 
-        &.active {
-            /* TODO: move to a variable, primary-color-light-30 */
-            background: #cee1f7;
-            border-left-color: var(--primary-color);
-
-            & * {
-                color: #000;
-            }
-        }
-    }
+		&.active {
+			background: var(--primary-color);
+            color: #fff;
+		}
+	}
 }
 
 .search-input-container {
-    padding: 12px 20px;
-	border-bottom: 1px solid var(--hover-border-color);
+	padding: var(--sidebar-inner-padding);
+	border-bottom: var(--border-seperator);
 
-    .search-input {
-        width: 100%;
-        background-color: inherit;
+	.search-input {
+		width: 100%;
+		background-color: inherit;
 
-        &:focus,
-        &:not(:placeholder-shown) {
-            background-color: var(--default-background-color);
-            border-color: var(--primary-color);
-        }
-    }
+		&:focus,
+		&:not(:placeholder-shown) {
+			background-color: var(--default-background-color);
+			border-color: var(--primary-color);
+		}
+	}
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 * {
 	margin: 0;
@@ -7,45 +7,22 @@
 }
 
 html {
-	/* 10px = 1rem, rem size for screen sizes is defined in typescript settings! */
-	font-size: calc(var(--zoom-level) * 62.5%);
-}
-
-/* Small tablets (portrait) */
-@media (min-width: 600px) {
-	html {
-		/* Around 1rem = 11px */
-		font-size: calc(var(--zoom-level) * 68.75%);
-	}
-}
-
-/* Desktops */
-@media (min-width: 1100px) {
-	html {
-		/* 1rem = 14px */
-		font-size: calc(var(--zoom-level) * 87.5%);
-	}
-}
-
-/* Extra large desktops or 4K displays */
-@media (min-width: 1400px) {
-	html {
-		/* 1rem = 16px for larger screens */
-		font-size: calc(var(--zoom-level) * 100%);
-	}
+	font-size: calc(var(--zoom-level) * 12px);
 }
 
 body {
 	font-size: 1.6rem;
 	line-height: 1.5;
-    font-family: "Inter", sans-serif;
+	font-family: "Inter", sans-serif;
 	font-optical-sizing: auto;
 	font-variation-settings: "wdth" 100;
 	font-weight: 300;
 	font-style: normal;
 	background-color: var(--grey-background-color);
+    color: var(--text-color);
 
 	/* Colors */
+	--primary-color-light-30: #cee1f7;
 	--primary-color: #4a90e2;
 	--primary-color-shade-10: #4382cb;
 	--primary-color-shade-50: #254871;
@@ -55,7 +32,7 @@ body {
 
 	--text-color: #333333;
 	--border-color: #e0e0e0;
-    /* TODO; better name*/
+	/* TODO; better name*/
 	--hover-border-color: #e5e7eb;
 	--link-color: #387adf;
 	--link-color-shade-10: #27559c;
@@ -84,8 +61,9 @@ body {
 
 	/* Other */
 	--default-transition-time: 0.25s;
-	--default-box-shadow: inset 0 0 0.5px 1px hsla(0, 0%, 100%, 0.075),
-              0 0 4px 1px rgba(0, 0, 0, 0.20);
+	--default-box-shadow:
+		inset 0 0 0.5px 1px hsla(0, 0%, 100%, 0.075),
+		0 0 4px 1px rgba(0, 0, 0, 0.2);
 
 	--zoom-level: 1;
 }
@@ -114,6 +92,14 @@ body.dark {
 	max-width: 1200px;
 	margin: 0 auto;
 	padding: 0 2.4rem;
+}
+
+button,
+button:hover,
+input,
+select,
+a {
+    color: inherit;
 }
 
 a,

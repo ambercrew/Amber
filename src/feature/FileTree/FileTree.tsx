@@ -77,17 +77,17 @@ function FileTree({ folder }: Props) {
 				/>
 			)}
 
-            <div className={styles.fileTreeContainer}>
-                <FileTreeItem
-                    fullPath=""
-                    folder={folder}
-                    onMarkForDeletion={handleMarkForDeletion}
-                    id={0}
-                    isAnyItemDragged={isAnyItemDragged}
-                    onDragStart={() => setIsAnyItemDragged(true)}
-                    onDragEnd={() => setIsAnyItemDragged(false)}
-                />
-            </div>
+			<div className={styles.fileTreeContainer}>
+				<FileTreeItem
+					fullPath=""
+					folder={folder}
+					onMarkForDeletion={handleMarkForDeletion}
+					id={0}
+					isAnyItemDragged={isAnyItemDragged}
+					onDragStart={() => setIsAnyItemDragged(true)}
+					onDragEnd={() => setIsAnyItemDragged(false)}
+				/>
+			</div>
 		</>
 	);
 }

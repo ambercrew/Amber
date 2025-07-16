@@ -18,6 +18,7 @@ interface Props {
 	onError: (error: string) => void;
 }
 
+// TODO: updating settings make application stop
 function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLFormElement>(null);

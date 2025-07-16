@@ -42,7 +42,7 @@ describe(createCardFromRepetition, () => {
 				difficulty: 4,
 				elapsed_days: 5,
 				scheduled_days: 6,
-                learning_steps: 0,
+				learning_steps: 0,
 			};
 			const actual = createCardFromRepetition(repetition);
 			expect(actual).toStrictEqual(expected);

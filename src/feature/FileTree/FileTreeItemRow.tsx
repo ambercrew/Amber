@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import {
 	mdiDotsHorizontal,
 	mdiFileDocumentOutline,
-	mdiFileTreeOutline,
+	mdiFileTree,
 	mdiFolderOpenOutline,
 	mdiFolderOutline,
 } from "@mdi/js";
@@ -73,6 +73,7 @@ function FileTreeItemRow({
 		onRenameEnd();
 	};
 
+	/* Closing the actions menu using the same buttons to open it does not close it */
 	return (
 		<div
 			className={`${styles.fileTreeRow}`}
@@ -86,7 +87,7 @@ function FileTreeItemRow({
 				<Icon
 					path={
 						isRoot
-							? mdiFileTreeOutline
+							? mdiFileTree
 							: isFolder
 								? isExpanded
 									? mdiFolderOpenOutline

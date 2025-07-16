@@ -10,13 +10,7 @@ import {
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import searchFolder from "../../util/searchFolder";
-import {
-	mdiChevronLeft,
-	mdiCog,
-	mdiHelp,
-	mdiHome,
-	mdiMagnify,
-} from "@mdi/js";
+import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
@@ -91,7 +85,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
 				<div className={styles.titleRow}>
-                    <img src="icon.svg" />
+					<img src="icon.svg" />
 					<h2>Brainy</h2>
 				</div>
 
@@ -103,58 +97,58 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 				</button>
 			</div>
 
-            <div className={styles.rows}>
-                <button
-                    className={`${
-                        selectedFileId === 0 &&
-                        (location.pathname === "/" ||
-                            location.pathname.startsWith("/home"))
-                            && styles.active
-                    } ${styles.row}`}
-                    title="Home (Ctrl + h)"
-                    onClick={onHomeClick}>
-                    <Icon path={mdiHome} size="1em" />
-                    <p>Home</p>
-                </button>
+			<div className={styles.rows}>
+				<button
+					className={`${
+						selectedFileId === 0 &&
+						(location.pathname === "/" ||
+							location.pathname.startsWith("/home")) &&
+						styles.active
+					} ${styles.row}`}
+					title="Home (Ctrl + h)"
+					onClick={onHomeClick}>
+					<Icon path={mdiHome} size="1em" />
+					<p>Home</p>
+				</button>
 
-                <button
-                    className={`${
-                        selectedFileId === 0 &&
-                        location.pathname.startsWith("/search")
-                            && styles.active
-                    } ${styles.row}`}
-                    title="Search (Ctrl + Shift + f)"
-                    onClick={() => void navigate("/search")}>
-                    <Icon path={mdiMagnify} size="1em" />
-                    <p>Search</p>
-                </button>
+				<button
+					className={`${
+						selectedFileId === 0 &&
+						location.pathname.startsWith("/search") &&
+						styles.active
+					} ${styles.row}`}
+					title="Search (Ctrl + Shift + f)"
+					onClick={() => void navigate("/search")}>
+					<Icon path={mdiMagnify} size="1em" />
+					<p>Search</p>
+				</button>
 
-                <button
-                    className={`${styles.row}`}
-                    title="Settings (Ctrl + p)"
-                    onClick={onSettingsClick}>
-                    <Icon path={mdiCog} size="1em" />
-                    <p>Settings</p>
-                </button>
+				<button
+					className={`${styles.row}`}
+					title="Settings (Ctrl + p)"
+					onClick={onSettingsClick}>
+					<Icon path={mdiCog} size="1em" />
+					<p>Settings</p>
+				</button>
 
-                <button
-                    className={`${styles.row}`}
-                    title="Help (F1)"
-                    onClick={openHelpWebiste}>
-                    <Icon path={mdiHelp} size="1em" />
-                    <p>Help</p>
-                </button>
-            </div>
+				<button
+					className={`${styles.row}`}
+					title="Help (F1)"
+					onClick={openHelpWebiste}>
+					<Icon path={mdiHelp} size="1em" />
+					<p>Help</p>
+				</button>
+			</div>
 
-            <div className={styles.searchInputContainer}>
-                <InputWithIcon
-                    iconName={mdiMagnify}
-                    value={searchText ?? ""}
-                    onChange={e => setSearchText(e.target.value)}
-                    placeholder="Search"
-                    inputClassName={styles.searchInput}
-                />
-            </div>
+			<div className={styles.searchInputContainer}>
+				<InputWithIcon
+					iconName={mdiMagnify}
+					value={searchText ?? ""}
+					onChange={e => setSearchText(e.target.value)}
+					placeholder="Search"
+					inputClassName={styles.searchInput}
+				/>
+			</div>
 
 			{errorMessage && (
 				<ErrorBox

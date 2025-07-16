@@ -16,7 +16,16 @@
 
 .error-box button {
 	color: #fff;
-	font-weight: 700;
-	padding: 0 var(--default-border-radius);
+	font-weight: 600;
+	padding: var(--default-border-radius);
 	margin-left: 4px;
+	border: 1px solid transparent;
+
+	&:hover {
+		opacity: 0.8;
+	}
+
+	&:focus {
+		border-color: #fff;
+	}
 }

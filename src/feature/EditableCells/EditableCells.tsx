@@ -30,6 +30,7 @@ interface Props {
 	fileId?: number;
 	autoFocusEditor?: boolean;
 	enableFileSpecificFunctionality?: boolean;
+	className?: string;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
 	onEditButtonClick?: (fileId: number, cellId: number) => void;
@@ -43,6 +44,7 @@ function EditableCells({
 	editCellId,
 	autoFocusEditor,
 	enableFileSpecificFunctionality = true,
+	className,
 	onError,
 	onCellsUpdate,
 	onEditButtonClick,
@@ -243,7 +245,7 @@ function EditableCells({
 		: cells;
 
 	return (
-		<div className={styles.container} ref={containerRef}>
+		<div className={`${className} ${styles.container}`} ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
 			{filteredCells.map((cell, i) => (

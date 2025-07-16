@@ -75,7 +75,7 @@ function ReviewHeatmapColumn({
 				console.log(formattedDate);
 			}
 
-			let color: string | undefined, text: string;
+			let color: string | null, text: string;
 			if (
 				todayDate < newDateOnlyDate ||
 				(todayDate.getTime() === newDateOnlyDate.getTime() &&
@@ -83,7 +83,7 @@ function ReviewHeatmapColumn({
 			) {
 				color =
 					dueCounts === 0
-						? undefined
+						? null
 						: getColor(
 								dueCounts / maxNumberOfReviews,
 								isDarkTheme
@@ -118,7 +118,7 @@ function ReviewHeatmapColumn({
 				<React.Fragment key={i}>
 					<span
 						style={{
-							backgroundColor: obj.color,
+							backgroundColor: obj.color ?? undefined,
 						}}
 						className={`${styles.heatmapBox}
                 ${obj.date.getFullYear() !== currentYear || obj.date.getFullYear() > currentYear ? styles.hidden : ""}`}
@@ -141,7 +141,7 @@ function formatDate(date: Date) {
 }
 
 function getColor(ratio: number, fromColor: RGB, toColor: RGB) {
-	if (ratio === 0) return undefined;
+	if (ratio === 0) return null;
 	if (ratio > 1) ratio = 1;
 
 	const r = Math.ceil(fromColor.r + (toColor.r - fromColor.r) * ratio);

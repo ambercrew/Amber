@@ -1,6 +1,5 @@
 .file-tree-container {
-    /* TODO: make into a variable */
-    padding: 12px 20px;
+	padding: var(--sidebar-inner-padding);
 }
 
 .file-item-outer-container {
@@ -27,7 +26,7 @@
 
 .file-tree-button {
 	width: 100%;
-	padding: 12px;
+	padding: 10px;
 
 	& p {
 		width: 80%;
@@ -54,7 +53,15 @@
 	border-width: 1px;
 }
 
+.file-tree-row {
+	&:hover > .file-tree-dots {
+		opacity: 1;
+	}
+}
+
 .file-tree-dots {
+	/* TODO: on hover for pirmary looks bad */
+	opacity: 0;
 	position: absolute;
 	width: fit-content;
 	right: var(--small-padding);
@@ -63,16 +70,15 @@
 	border: 1px solid transparent;
 	border-radius: var(--default-border-radius);
 
-    &:hover {
-        background-color: var(--grey-background-color);
-    }
+	&:hover {
+		background-color: var(--grey-background-color);
+	}
 
-    &:active,
-    &:focus {
-        border-color: var(--primary-color);
-    }
+	&:active,
+	&:focus {
+		border-color: var(--primary-color);
+	}
 }
-
 
 .file-tree-dots-selected * {
 	color: #fff;
@@ -91,14 +97,14 @@
 }
 
 .file-tree-item-children {
-    padding-left: var(--large-padding);
+	padding-left: var(--large-padding);
 	transition: all var(--default-transition-time);
-    border-left: 1px solid var(--border-color);
+	border-left: 1px solid var(--border-color);
 }
 
 .file-tree-item-children.root {
-    padding-left: 0;
-    border-left: none;
+	padding-left: 0;
+	border-left: none;
 }
 
 .actions-menu {
@@ -118,7 +124,7 @@
 	width: 100%;
 	text-align: left;
 	display: grid;
-	grid-template-columns: 1fr 7fr 5.5rem;
+	grid-template-columns: 1fr 7fr 7rem;
 	gap: var(--small-padding);
 	align-items: center;
 }
