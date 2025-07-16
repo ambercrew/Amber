@@ -2,7 +2,7 @@
 	height: 100%;
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
-	width: 26rem;
+	width: 28rem;
 	transition: 0.15s all;
 	max-width: 100%;
 	/* Adding more space at the bottom for actions menus. */
