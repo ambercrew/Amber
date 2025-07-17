@@ -18,6 +18,7 @@ import {
 } from "../../api/cellApi";
 import errorToString from "../../util/errorToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import scrollUntilVisible from "../../util/scrollUntilVisible";
 
 const AUTO_SAVE_DELAY_IN_MILLI_SECONDS = 2000;
 export const CELL_ID_DRAG_FORMAT = "cell/id";
@@ -244,6 +245,14 @@ function EditableCells({
 			)
 		: cells;
 
+    
+    const handleSelect = (e: React.FocusEvent, cellId: number) => {
+        setSelectedCellId(cellId);
+        if (!containerRef.current) return;
+        // Using 100 offset to make sure that the whole element is visible.
+        scrollUntilVisible(containerRef.current, e.target, 100);
+    };
+
 	return (
 		<div className={`${className} ${styles.container}`} ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
@@ -260,7 +269,7 @@ function EditableCells({
 							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						cell={cell}
-						onSelect={setSelectedCellId}
+						onSelect={(e) => handleSelect(e, cell.id!)}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id!)}
 						autoFocusEditor={

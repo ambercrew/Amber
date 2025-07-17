@@ -20,7 +20,7 @@ interface Props {
 	autoFocusEditor?: boolean;
 	repetitions: Repetition[];
 	enableFileSpecificFunctionality: boolean;
-	onSelect: (id: number) => void;
+	onSelect: (e: React.FocusEvent<HTMLDivElement>) => void;
 	onClick: (id: number) => void;
 	onError: (error: string) => void;
 	onDrop: (e: React.DragEvent) => void;
@@ -106,7 +106,7 @@ function CellBlock(
 	return (
 		<div
 			ref={ref}
-			onFocus={() => onSelect(cell.id!)}
+			onFocus={onSelect}
 			onClick={handleClick}
 			onDragOver={handleDragOver}
 			onDragLeave={() => setIsDragOver(false)}
