@@ -30,7 +30,7 @@ describe(useOutsideClick, () => {
 		// Act
 
 		act(() => {
-			fireEvent.mouseDown(screen.getByText("First"));
+			fireEvent.click(screen.getByText("First"));
 		});
 
 		// Assert

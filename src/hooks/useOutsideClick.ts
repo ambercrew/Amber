@@ -4,11 +4,7 @@ import React, { useEffect } from "react";
  * Hook that is used to call a function when a click outside
  * the referenced component happens.
  */
-function useOutsideClick(
-	ref: React.RefObject<HTMLElement>,
-	cb: () => void,
-	deps: React.DependencyList = [],
-) {
+function useOutsideClick(ref: React.RefObject<HTMLElement>, cb: () => void) {
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {
 			if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -20,8 +16,7 @@ function useOutsideClick(
 		return () => {
 			document.removeEventListener("click", handleClickOutside);
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ref, cb, ...deps]);
+	}, [ref, cb]);
 }
 
 export default useOutsideClick;

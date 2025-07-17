@@ -97,7 +97,6 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		}
 		setIsSendingRequest(true);
 		try {
-			// TODO: https://github.com/open-spaced-repetition/ts-fsrs?tab=readme-ov-file#6-understanding-log-attributes
 			const card = schedulingCards[grade]?.card;
 			const newRepetition = createRepetitionFromCard(
 				card,

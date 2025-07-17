@@ -18,13 +18,14 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	box-shadow: var(--default-box-shadow);
+	border-bottom: 1px solid var(--border-color);
 
 	& .info {
 		display: flex;
 		align-content: center;
 		gap: 4px;
 		overflow-x: auto;
+		font-size: 1.4rem;
 
 		& .study-button {
 			display: flex;
@@ -57,7 +58,7 @@
 	}
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
 	.title-bar {
 		flex-direction: column;
 		align-items: start;

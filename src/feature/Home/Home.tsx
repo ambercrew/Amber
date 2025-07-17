@@ -11,6 +11,7 @@ import HomeStatistics from "../../type/backend/dto/homeStatistics";
 import errorToString from "../../util/errorToString";
 import secondsToLongString from "../../util/secondsToLongString";
 import { getHomeStatistics } from "../../api/reviewApi";
+import ParsedFile from "../../type/parsedFile";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
@@ -39,6 +40,20 @@ function Home({ onStudyClick, onError }: Props) {
 		})();
 	}, [onError]);
 
+	const handleStudyClick = (
+		fileIds: number[],
+		item: ParsedFolder | ParsedFile,
+	) => {
+		if (
+			item.repetitionCounts.new +
+			item.repetitionCounts.review +
+			item.repetitionCounts.learning +
+			item.repetitionCounts.relearning
+		) {
+			onStudyClick(fileIds);
+		}
+	};
+
 	const handleFolderClick = (folder: ParsedFolder) => {
 		const fileIds = [];
 		const folderQueue = [folder];
@@ -49,7 +64,7 @@ function Home({ onStudyClick, onError }: Props) {
 			}
 			folderQueue.push(...currentFolder.subFolders);
 		}
-		onStudyClick(fileIds);
+		handleStudyClick(fileIds, folder);
 	};
 
 	const secondsPerCard =
@@ -62,7 +77,7 @@ function Home({ onStudyClick, onError }: Props) {
 			<div className={styles.box}>
 				<div className={styles.row + " " + styles.header}>
 					<div className={styles.buttons}>
-						<span></span>
+						<span>{/* Empty to fill the first column */}</span>
 						<p>Files</p>
 					</div>
 					<div className={styles.columns}>
@@ -78,7 +93,7 @@ function Home({ onStudyClick, onError }: Props) {
 					<ReviewTree
 						folder={rootFolder}
 						indentationLevel={-1}
-						onFileClick={file => onStudyClick([file.id])}
+						onFileClick={file => handleStudyClick([file.id], file)}
 						onFolderClick={handleFolderClick}
 					/>
 				)}

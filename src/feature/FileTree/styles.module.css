@@ -116,11 +116,10 @@
 }
 
 .actions-menu {
-	/*TODO: size in nested folders */
 	position: absolute;
 	top: 100%;
 	margin-top: var(--small-padding);
-	right: 0;
+	left: 0;
 	padding: var(--large-padding);
 	border-radius: var(--default-border-radius);
 	background-color: var(--default-background-color);
@@ -129,6 +128,7 @@
 	flex-direction: column;
 	z-index: 1;
 	gap: var(--small-padding);
+	min-width: 26rem;
 
 	& button {
 		text-align: left;

@@ -18,7 +18,6 @@ use crate::{
     util::database_util::DateTimeToDate,
 };
 
-// TODO: test
 pub async fn get_home_statistics(db_conn: &DbConn) -> Result<HomeStatistics, String> {
     let start_of_today = Utc::now()
         .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
@@ -147,7 +146,7 @@ pub async fn register_review(
     }
 
     let review_active_entity = review::ActiveModel {
-        cell_id: Set(new_repetition.cell_id),
+        cell_id: Set(Some(new_repetition.cell_id)),
         date: Set(Utc::now().to_utc()),
         rating: Set(rating),
         study_time: Set(study_time),
@@ -176,7 +175,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn get_todays_review_statistics_no_reviews_returned_zero() {
+    async fn get_home_statistics_no_reviews_returned_zero() {
         // Arrange
 
         let db_conn = get_db().await;
@@ -192,7 +191,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_todays_review_statistics_with_reviews_returned_correct_statistics() {
+    async fn get_home_statistics_with_reviews_returned_correct_statistics() {
         // Arrange
 
         let db_conn = get_db().await;
@@ -228,7 +227,7 @@ mod tests {
             .await
             .unwrap();
         let review = review::ActiveModel {
-            cell_id: Set(cell_id),
+            cell_id: Set(Some(cell_id)),
             study_time: Set(12),
             date: Set(Utc::now().to_utc() - Duration::days(1)),
             rating: Set(Rating::Again),
@@ -312,7 +311,7 @@ mod tests {
         assert_eq!(actual_repetition.last_review, repetition.last_review);
 
         let actual_review = review::Entity::find().one(&db_conn).await.unwrap().unwrap();
-        assert_eq!(actual_review.cell_id, repetition.cell_id);
+        assert_eq!(actual_review.cell_id, Some(repetition.cell_id));
         assert!((actual_review.date - Utc::now().to_utc()).num_minutes() < 1);
         assert_eq!(actual_review.rating, Rating::Again);
         assert_eq!(actual_review.study_time, 10);

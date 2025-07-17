@@ -9,10 +9,6 @@
 	max-height: 100vh;
 }
 
-.workspace > * {
-	overflow: auto;
-}
-
 .error-dialog {
 	position: absolute;
 	z-index: 5;

@@ -25,7 +25,7 @@ pub enum Rating {
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub cell_id: i32,
+    pub cell_id: Option<i32>,
     pub study_time: i32,
     pub date: DateTimeUtc,
     pub rating: Rating,
@@ -42,7 +42,7 @@ impl RelationTrait for Relation {
             Self::Cell => Entity::belongs_to(super::cell::Entity)
                 .from(Column::CellId)
                 .to(super::cell::Column::Id)
-                .on_delete(ForeignKeyAction::NoAction)
+                .on_delete(ForeignKeyAction::SetNull)
                 .into(),
         }
     }
