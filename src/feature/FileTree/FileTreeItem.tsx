@@ -191,7 +191,7 @@ function FileTreeItem({
 	};
 
 	const handleShowActions = (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.stopPropagation();
+		if (!showActions) e.stopPropagation();
 		setShowActions(!showActions);
 	};
 

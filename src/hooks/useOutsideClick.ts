@@ -7,7 +7,7 @@ import React, { useEffect } from "react";
 function useOutsideClick(
 	ref: React.RefObject<HTMLElement>,
 	cb: () => void,
-    event: "mousedown" | "mouseup" | "click" = "click"
+	deps: React.DependencyList = [],
 ) {
 	useEffect(() => {
 		function handleClickOutside(e: MouseEvent) {
@@ -15,12 +15,13 @@ function useOutsideClick(
 				cb();
 			}
 		}
-		document.addEventListener(event, handleClickOutside);
+		document.addEventListener("click", handleClickOutside);
 
 		return () => {
-			document.removeEventListener(event, handleClickOutside);
+			document.removeEventListener("click", handleClickOutside);
 		};
-	}, [event, ref, cb]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ref, cb, ...deps]);
 }
 
 export default useOutsideClick;

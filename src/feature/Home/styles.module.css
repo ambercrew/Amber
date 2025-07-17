@@ -3,7 +3,7 @@
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	padding: 2.4rem 1.2rem;
+	padding: 3.2rem 1.2rem;
 	max-width: 700px;
 	width: 100%;
 	margin: 0 auto;
@@ -18,10 +18,6 @@
 	box-shadow: var(--default-box-shadow);
 	padding: var(--default-padding);
 	overflow-x: auto;
-
-	& * {
-		font-size: 1.2rem;
-	}
 }
 
 .header {
@@ -51,6 +47,7 @@
 	.file-name-button {
 		text-align: left;
 		padding: 0.4rem;
+		font-size: 1.4rem;
 	}
 
 	.expand-button:focus,
@@ -86,7 +83,7 @@
 
 .reviews-overview {
 	text-align: center;
-	font-size: 1.2rem;
+	margin: var(--default-padding);
 }
 
 .review-heatmap {
@@ -104,7 +101,7 @@
 
 		& .tooltip {
 			z-index: 2;
-			font-size: 1.2rem;
+			font-size: 1.4rem;
 		}
 
 		.heatmap-box {
@@ -125,9 +122,9 @@
 }
 
 :global(body.dark) .review-heatmap {
-    & .review-heatmap-column {
-        .heatmap-box {
-            background-color: var(--default-background-color);
-        }
-    }
+	& .review-heatmap-column {
+		.heatmap-box {
+			background-color: var(--default-background-color);
+		}
+	}
 }

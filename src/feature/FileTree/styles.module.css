@@ -24,8 +24,8 @@
 	}
 
 	&:hover > .file-tree-dots,
-    &:focus > .file-tree-dots,
-    &:focus-within > .file-tree-dots {
+	&:focus > .file-tree-dots,
+	&:focus-within > .file-tree-dots {
 		opacity: 1;
 	}
 }
@@ -80,20 +80,19 @@
 }
 
 .file-tree-dots-selected {
-    color: #fff;
+	color: #fff;
 
-    &:hover {
-        background-color: var(--primary-color-shade-10);
-        color: #fff;
-    }
+	&:hover {
+		background-color: var(--primary-color-shade-10);
+		color: #fff;
+	}
 
-    &:active,
-    &:focus {
-        border-color: var(--primary-color-shade-20);
-        color: #fff;
-    }
+	&:active,
+	&:focus {
+		border-color: var(--primary-color-shade-20);
+		color: #fff;
+	}
 }
-
 
 .file-tree-rename-input {
 	padding: var(--default-padding);
@@ -106,9 +105,9 @@
 	transition: all var(--default-transition-time);
 	border-left: 1px solid var(--border-color);
 
-    &:hover {
-        border-left-color: var(--hover-border-color);
-    }
+	&:hover {
+		border-left-color: var(--hover-border-color);
+	}
 }
 
 .file-tree-item-children.root {
@@ -117,10 +116,10 @@
 }
 
 .actions-menu {
-    /*TODO: size in nested folders */
+	/*TODO: size in nested folders */
 	position: absolute;
 	top: 100%;
-    margin-top: var(--small-padding);
+	margin-top: var(--small-padding);
 	right: 0;
 	padding: var(--large-padding);
 	border-radius: var(--default-border-radius);
@@ -129,18 +128,18 @@
 	display: grid;
 	flex-direction: column;
 	z-index: 1;
-    gap: var(--small-padding);
+	gap: var(--small-padding);
 
-    & button {
-        text-align: left;
-        display: grid;
-        grid-template-columns: 1fr 7fr 7rem;
-        gap: var(--default-padding);
-        align-items: center;
+	& button {
+		text-align: left;
+		display: grid;
+		grid-template-columns: 1fr 7fr 7rem;
+		gap: var(--default-padding);
+		align-items: center;
 
-        & * {
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-    }
+		& * {
+			text-overflow: ellipsis;
+			overflow: hidden;
+		}
+	}
 }

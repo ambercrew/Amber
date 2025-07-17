@@ -14,7 +14,7 @@ interface Props {
 
 // Primary color light-10 in RGB.
 const reviewFromColor: RGB = {
-    r: 21,
+	r: 21,
 	g: 163,
 	b: 152,
 };

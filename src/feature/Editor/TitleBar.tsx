@@ -52,7 +52,7 @@ function TitleBar({
 					onClick={onStudyButtonClick}
 					disabled={isStudyButtonDisabled}>
 					<Icon path={mdiPlayOutline} size={1} />
-					<span>Study</span>
+					<span className={styles.label}>Study</span>
 				</button>
 				<div>
 					<p>{selectedFile?.name}</p>
@@ -77,6 +77,7 @@ function TitleBar({
 				onChange={e => onSearchTextChange(e.target.value)}
 				containerClassName={styles.searchInputContainer}
 				ref={searchInputRef}
+				inputClassName={styles.searchInput}
 			/>
 		</div>
 	);

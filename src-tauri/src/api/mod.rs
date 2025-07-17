@@ -27,6 +27,4 @@ pub use export_import_api::{export, import};
 
 pub use settings_api::{get_settings, update_settings};
 
-pub use review_api::{
-    get_home_statistics, register_review,
-};
+pub use review_api::{get_home_statistics, register_review};

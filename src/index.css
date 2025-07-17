@@ -19,7 +19,7 @@ body {
 	font-weight: 300;
 	font-style: normal;
 	background-color: var(--body-background-color);
-    color: var(--text-color);
+	color: var(--text-color);
 
 	/* Colors */
 	--primary-color: #0f766e;
@@ -39,7 +39,7 @@ body {
 	--grey-background-color: #f2f2f2;
 	--grey-background-color-shade-10: #dadada;
 	--grey-background-color-shade-20: #c2c2c2;
-    --body-background-color: var(--grey-background-color);
+	--body-background-color: var(--grey-background-color);
 
 	--default-background-color: #fff;
 	--side-bar-background-color: #fafafa;
@@ -73,8 +73,8 @@ body.dark {
 	--text-color: #fff;
 	--border-color: #4a5258;
 	--hover-border-color: #6b7280;
-    --body-background-color: #1a1f23;
-    --default-background-color: #252b30;
+	--body-background-color: #1a1f23;
+	--default-background-color: #252b30;
 
 	--grey-background-color: #424242;
 	--grey-background-color-shade-10: #292929;
@@ -98,7 +98,7 @@ button:hover,
 input,
 select,
 a {
-    color: inherit;
+	color: inherit;
 }
 
 a,
@@ -204,7 +204,7 @@ button.grey-button:active {
 }
 
 button.grey-button:focus {
-	border-color: var(--link-color);
+	border-color: var(--primary-color);
 }
 
 body.dark button.grey-button {

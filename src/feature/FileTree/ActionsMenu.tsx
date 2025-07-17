@@ -18,14 +18,13 @@ interface Props {
 function ActionsMenu({ onOutsideClick, actions }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 
-    // TODO: still shown when clicking on other dots
+	// TODO: still shown when clicking on other dots
 	useOutsideClick(
 		containerRef as React.RefObject<HTMLElement>,
 		onOutsideClick ??
 			(() => {
 				/* Do nothing */
 			}),
-        "click",
 	);
 
 	return (

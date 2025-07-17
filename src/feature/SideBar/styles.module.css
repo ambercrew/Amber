@@ -115,9 +115,9 @@
 		align-items: center;
 		gap: 12px;
 		width: 100%;
-        transition: all var(--default-transition-time);
+		transition: all var(--default-transition-time);
 		height: 4.2rem;
-        margin-bottom: 4px;
+		margin-bottom: 4px;
 
 		&:hover {
 			background-color: var(--grey-background-color);
@@ -125,7 +125,7 @@
 
 		&.active {
 			background: var(--primary-color);
-            color: #fff;
+			color: #fff;
 		}
 	}
 }
@@ -136,11 +136,11 @@
 
 	.search-input {
 		width: 100%;
-        background-color: inherit;
+		background-color: inherit;
 
-        &:hover {
+		&:hover {
 			background-color: var(--default-background-color);
-        }
+		}
 
 		&:focus,
 		&:not(:placeholder-shown) {

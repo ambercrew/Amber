@@ -3,10 +3,6 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-
-	& * {
-		font-size: 1.4rem;
-	}
 }
 
 .editor {
@@ -35,9 +31,12 @@
 			flex-direction: column;
 			align-items: center;
 			border: 1px solid var(--border-color);
-			font-size: 1rem;
 			margin-right: 4px;
 			padding: var(--default-padding);
+
+			& .label {
+				font-size: 1.2rem;
+			}
 
 			&:not(:disabled):hover {
 				border-color: var(--hover-border-color);
@@ -51,6 +50,10 @@
 		font-size: 1.2rem;
 		justify-content: space-between;
 		gap: 4px;
+	}
+
+	& .search-input {
+		font-size: 1.2rem;
 	}
 }
 

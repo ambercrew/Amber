@@ -88,7 +88,6 @@ function App() {
 		});
 	};
 
-
 	return (
 		<div className={`${styles.workspace}`}>
 			<Updater />
@@ -102,9 +101,7 @@ function App() {
 				</div>
 			)}
 
-			<SideBar
-				onSettingsClick={() => setShowSettings(true)}
-			/>
+			<SideBar onSettingsClick={() => setShowSettings(true)} />
 
 			<div className={`${styles.workarea}`}>
 				<Routes>

@@ -73,6 +73,7 @@ function FileTreeItemRow({
 		onRenameEnd();
 	};
 
+	// TODO: add ref to button
 	/* Closing the actions menu using the same buttons to open it does not close it */
 	return (
 		<div

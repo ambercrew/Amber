@@ -38,6 +38,11 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 		onDrop(e);
 	};
 
+	const handleAddCellClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		setShowAddNewCellPopup(true);
+	};
+
 	return (
 		<>
 			<div
@@ -48,7 +53,7 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 				onDragLeave={() => setIsDragOver(false)}>
 				<button
 					className={`${styles.addButton} grey-button`}
-					onClick={() => setShowAddNewCellPopup(true)}>
+					onClick={handleAddCellClick}>
 					<Icon path={mdiPlus} size={1} />
 					<span title="(Ctrl + Enter)">Add Cell</span>
 				</button>

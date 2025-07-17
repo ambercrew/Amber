@@ -41,7 +41,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 	useEffect(() => {
 		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH) return;
-        setIsExpanded(false);
+		setIsExpanded(false);
 	}, [location]);
 
 	const openHelpWebiste = useCallback(() => {
@@ -58,8 +58,9 @@ function SideBar({ onSettingsClick }: Props) {
 		}
 	});
 
-	const handleToggleSidebarClick = () => {
-        setIsExpanded(!isExpanded);
+	const handleSettingsButtonClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		onSettingsClick();
 	};
 
 	return (
@@ -72,7 +73,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 				<button
 					className={`transparent center ${styles.toggleButton}`}
-					onClick={handleToggleSidebarClick}
+					onClick={() => setIsExpanded(!isExpanded)}
 					title="Expand/Collapse sidebar (Ctrl + \)">
 					<Icon path={mdiChevronLeft} size={1} />
 				</button>
@@ -107,7 +108,7 @@ function SideBar({ onSettingsClick }: Props) {
 				<button
 					className={`${styles.row}`}
 					title="Settings (Ctrl + p)"
-					onClick={onSettingsClick}>
+					onClick={handleSettingsButtonClick}>
 					<Icon path={mdiCog} size="1em" />
 					<p>Settings</p>
 				</button>

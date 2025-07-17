@@ -55,7 +55,8 @@ pub async fn get_home_statistics(db_conn: &DbConn) -> Result<HomeStatistics, Str
             review::Entity::find(),
             review::Column::Date,
             review::Column::Id,
-        ).await?,
+        )
+        .await?,
         due_counts: group_by_date_and_filter_this_year_and_get_counts(
             db_conn,
             repetition::Entity::find(),
