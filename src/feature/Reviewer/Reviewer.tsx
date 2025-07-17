@@ -18,6 +18,7 @@ import { getCellsForFiles } from "../../api/cellApi";
 import errorToString from "../../util/errorToString";
 import gradeToRating from "../../util/gradeToRating";
 import { registerReview } from "../../api/reviewApi";
+import sortReviewerRepetitions from "./sortReviewerRepetitions";
 
 interface Props {
 	fileIds: number[];
@@ -53,9 +54,12 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		})();
 	}, [fileIds, onError]);
 
-	const dueToday = repetitions.filter(
-		c => new Date(c.due) <= startTime.current,
-	);
+	const dueToday = useMemo(() => {
+		return sortReviewerRepetitions(
+			repetitions.filter(c => new Date(c.due) <= startTime.current),
+		);
+	}, [repetitions]);
+
 	const currentCard =
 		dueToday.length > 0
 			? createCardFromCellRepetition(dueToday[currentCellIndex])
