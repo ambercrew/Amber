@@ -1,5 +1,5 @@
 import { mergeAttributes, Mark } from "@tiptap/core";
-import styles from "./styles.module.css";
+import "./styles.module.css";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -36,7 +36,7 @@ const clozeMark = Mark.create({
 		return [
 			"cloze",
 			mergeAttributes(HTMLAttributes, {
-				class: styles.clozeMark,
+				class: "cloze-mark",
 			}),
 			0,
 		];

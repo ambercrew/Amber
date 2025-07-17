@@ -10,10 +10,6 @@ export function getStudyRepetitionCounts(
 	});
 }
 
-export function updateRepetition(repetition: Repetition) {
-	return invoke("update_repetition", { repetition });
-}
-
 export function getFileRepetitions(fileId: number): Promise<Repetition[]> {
 	return invoke("get_file_repetitions", {
 		fileId,

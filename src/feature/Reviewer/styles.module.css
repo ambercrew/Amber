@@ -31,7 +31,7 @@
 
 .bottom-bar {
 	background-color: var(--default-background-color);
-	padding: var(--large-padding);
+	padding: var(--default-padding) var(--large-padding);
 	padding-top: 0;
 	display: grid;
 	grid-template-columns: 1fr 2fr 1fr;
@@ -43,7 +43,7 @@
 
 	& button {
 		padding: var(--default-padding) var(--large-padding);
-		box-shadow: var(--light-box-shadow);
+		box-shadow: var(--default-box-shadow);
 	}
 
 	& .button-column {
@@ -92,7 +92,7 @@
 
 		& button {
 			box-shadow: none;
-			gap: 4px;
+			gap: var(--default-padding);
 		}
 	}
 
@@ -101,8 +101,12 @@
 		align-items: end;
 		justify-content: end;
 
+		& * {
+			font-size: 1.4rem;
+		}
+
 		& div {
-			gap: 4px;
+			gap: var(--default-padding);
 		}
 	}
 }

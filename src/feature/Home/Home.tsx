@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
@@ -6,18 +6,53 @@ import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
+import ReviewHeatmap from "./ReviewHeatmap";
+import HomeStatistics from "../../type/backend/dto/homeStatistics";
+import errorToString from "../../util/errorToString";
+import secondsToLongString from "../../util/secondsToLongString";
+import { getHomeStatistics } from "../../api/reviewApi";
+import ParsedFile from "../../type/parsedFile";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
+	onError: (message: string) => void;
 }
 
-function Home({ onStudyClick }: Props) {
+function Home({ onStudyClick, onError }: Props) {
+	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
+		null,
+	);
 	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
 	useEffect(() => {
 		void dispatch(fetchFiles());
 	}, [dispatch]);
+
+	useEffect(() => {
+		void (async () => {
+			try {
+				setHomeStatistics(await getHomeStatistics());
+			} catch (e) {
+				console.error(e);
+				onError(errorToString(e));
+			}
+		})();
+	}, [onError]);
+
+	const handleStudyClick = (
+		fileIds: number[],
+		item: ParsedFolder | ParsedFile,
+	) => {
+		if (
+			item.repetitionCounts.new +
+			item.repetitionCounts.review +
+			item.repetitionCounts.learning +
+			item.repetitionCounts.relearning
+		) {
+			onStudyClick(fileIds);
+		}
+	};
 
 	const handleFolderClick = (folder: ParsedFolder) => {
 		const fileIds = [];
@@ -29,15 +64,20 @@ function Home({ onStudyClick }: Props) {
 			}
 			folderQueue.push(...currentFolder.subFolders);
 		}
-		onStudyClick(fileIds);
+		handleStudyClick(fileIds, folder);
 	};
+
+	const secondsPerCard =
+		homeStatistics && homeStatistics.numberOfReviews > 0
+			? homeStatistics.totalTime / homeStatistics.numberOfReviews
+			: 0;
 
 	return (
 		<div className={styles.home}>
 			<div className={styles.box}>
 				<div className={styles.row + " " + styles.header}>
 					<div className={styles.buttons}>
-						<span></span>
+						<span>{/* Empty to fill the first column */}</span>
 						<p>Files</p>
 					</div>
 					<div className={styles.columns}>
@@ -53,11 +93,24 @@ function Home({ onStudyClick }: Props) {
 					<ReviewTree
 						folder={rootFolder}
 						indentationLevel={-1}
-						onFileClick={file => onStudyClick([file.id])}
+						onFileClick={file => handleStudyClick([file.id], file)}
 						onFolderClick={handleFolderClick}
 					/>
 				)}
 			</div>
+
+			{homeStatistics && (
+				<>
+					<p className={styles.reviewsOverview}>
+						Studied {homeStatistics.numberOfReviews} cards in
+						{" " +
+							secondsToLongString(homeStatistics.totalTime)}{" "}
+						today ({secondsPerCard.toFixed(1) + " "}
+						s/card)
+					</p>
+					<ReviewHeatmap homeStatistics={homeStatistics} />
+				</>
+			)}
 		</div>
 	);
 }

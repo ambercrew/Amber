@@ -5,22 +5,17 @@
 	padding: var(--large-padding) var(--xxl-padding);
 	border-radius: var(--default-border-radius);
 	background: var(--default-background-color);
-	width: 80%;
-	max-width: 45rem;
-	height: 30rem;
-
-	& * {
-		font-size: 1.2rem;
-	}
+	width: 48rem;
+	max-width: 80%;
+	height: 32rem;
 }
 
 .header {
-	& * {
-		font-size: 1.8rem;
-	}
-	gap: 6px;
+	font-size: 1.8rem;
+	gap: var(--default-padding);
 	border-bottom: 1px solid var(--border-color);
 	padding-bottom: var(--default-padding);
+	margin-bottom: var(--small-padding);
 }
 
 .settings-rows {
@@ -29,17 +24,32 @@
 	padding-top: var(--default-padding);
 	display: flex;
 	flex-direction: column;
-	gap: 0.8rem;
+	gap: var(--default-padding);
+	font-size: 1.6rem;
 
 	& .settings-row {
 		display: grid;
-		grid-template-columns: 12rem 1fr;
+		grid-template-columns: 16rem 1fr;
 		justify-content: center;
 		align-items: center;
+		gap: var(--small-padding);
 
-		& input {
+		& input,
+		& select,
+		& > div {
 			width: 100%;
-			height: 100%;
+			font-size: 1.4rem;
+		}
+	}
+}
+
+@media (max-width: 600px) {
+	.settings-rows {
+		& .settings-row {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			width: 100%;
 		}
 	}
 }
@@ -47,10 +57,11 @@
 .buttons {
 	padding-top: var(--default-padding);
 	display: flex;
-	gap: 4px;
+	gap: var(--default-padding);
 	justify-content: flex-end;
 
 	& button {
-		padding: var(--default-padding) var(--large-padding);
+		padding: var(--default-padding);
+		font-size: 1.6rem;
 	}
 }

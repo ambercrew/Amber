@@ -3,14 +3,13 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+}
 
-	& * {
-		font-size: 1.2rem;
-	}
+.editor {
+	padding: var(--large-padding);
 }
 
 .title-bar {
-	border-bottom: 1px solid var(--border-color);
 	padding: var(--large-padding) var(--xxl-padding);
 	background-color: var(--default-background-color);
 	position: sticky;
@@ -19,21 +18,26 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	border-bottom: 1px solid var(--border-color);
 
 	& .info {
 		display: flex;
 		align-content: center;
 		gap: 4px;
 		overflow-x: auto;
+		font-size: 1.4rem;
 
 		& .study-button {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 			border: 1px solid var(--border-color);
-			font-size: 1rem;
 			margin-right: 4px;
-			padding: var(--small-padding);
+			padding: var(--default-padding);
+
+			& .label {
+				font-size: 1.2rem;
+			}
 
 			&:not(:disabled):hover {
 				border-color: var(--hover-border-color);
@@ -48,9 +52,13 @@
 		justify-content: space-between;
 		gap: 4px;
 	}
+
+	& .search-input {
+		font-size: 1.2rem;
+	}
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) {
 	.title-bar {
 		flex-direction: column;
 		align-items: start;

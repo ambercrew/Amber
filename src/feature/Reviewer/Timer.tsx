@@ -3,13 +3,24 @@ import { mdiClockOutline } from "@mdi/js";
 import Icon from "@mdi/react";
 import { useEffect, useState } from "react";
 
-function Timer() {
+interface Props {
+	onTimeUpdate: (time: number) => void;
+}
+
+function Timer({ onTimeUpdate }: Props) {
 	const [time, setTime] = useState(0);
 
 	useEffect(() => {
-		const intervalId = setInterval(() => setTime(time => time + 1), 1000);
+		const intervalId = setInterval(
+			() =>
+				setTime(time => {
+					onTimeUpdate(time + 1);
+					return time + 1;
+				}),
+			1000,
+		);
 		return () => clearInterval(intervalId);
-	}, []);
+	}, [onTimeUpdate]);
 
 	return (
 		<div className={styles.timerContainer}>

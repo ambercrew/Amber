@@ -171,9 +171,9 @@ function FileTreeItem({
 		setShowActions(false);
 	}
 
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.stopPropagation();
+	const handleClick = () => {
 		if (isRenaming) return;
+		setShowActions(false);
 
 		if (folder) {
 			if (isRoot) {
@@ -188,11 +188,6 @@ function FileTreeItem({
 				search: searchParams.toString(),
 			});
 		}
-	};
-
-	const handleShowActions = (e: React.MouseEvent<HTMLButtonElement>) => {
-		e.stopPropagation();
-		setShowActions(!showActions);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -277,7 +272,7 @@ function FileTreeItem({
 					onDragStart={handleDragStart}
 					onRenameEnd={() => setIsRenaming(false)}
 					fullPath={fullPath}
-					onShowActionsClick={handleShowActions}
+					onShowActionsClick={() => setShowActions(!showActions)}
 					onClick={handleClick}
 					onHideActions={() => setShowActions(false)}
 					onStopRenaming={() => setIsRenaming(false)}

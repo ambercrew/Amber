@@ -6,8 +6,9 @@
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 1.2rem;
-	min-width: 36rem;
+	min-width: 48rem;
 	box-shadow: var(--default-box-shadow);
+	font-size: 1.6rem;
 }
 
 .box hr {
@@ -20,14 +21,15 @@
 	display: flex;
 	align-items: center;
 	gap: 4px;
-
-	& * {
-		font-size: 1.6rem;
-	}
 }
 
 .buttons-row {
 	display: flex;
 	justify-content: end;
 	gap: 6px;
+	margin-top: var(--default-padding);
+
+	& button {
+		font-size: 1.6rem;
+	}
 }

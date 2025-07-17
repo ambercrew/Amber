@@ -175,32 +175,6 @@ pub async fn get_file_repetitions(
     }
 }
 
-pub async fn update_repetition(
-    db_conn: &DbConn,
-    repetition: repetition::Model,
-) -> Result<(), String> {
-    let active_entity = repetition::ActiveModel {
-        id: Set(repetition.id),
-        file_id: Set(repetition.file_id),
-        cell_id: Set(repetition.cell_id),
-        due: Set(repetition.due),
-        stability: Set(repetition.stability),
-        difficulty: Set(repetition.difficulty),
-        elapsed_days: Set(repetition.elapsed_days),
-        scheduled_days: Set(repetition.scheduled_days),
-        reps: Set(repetition.reps),
-        lapses: Set(repetition.lapses),
-        state: Set(repetition.state),
-        last_review: Set(repetition.last_review),
-        additional_content: Set(repetition.additional_content),
-    };
-    let result = active_entity.update(db_conn).await;
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err.to_string()),
-    }
-}
-
 pub async fn get_repetitions_for_files(
     db_conn: &DbConn,
     file_ids: Vec<i32>,
@@ -244,8 +218,15 @@ mod tests {
     use chrono::Duration;
 
     use crate::{
+        entity::review::Rating,
         model::flash_card::FlashCard,
-        service::tests::{create_file_cell, create_file_cell_with_cell_type_and_content, get_db},
+        service::{
+            review_service::register_review,
+            tests::{
+                create_file_cell, create_file_cell_with_cell_type_and_content, get_db,
+                insert_repetitions,
+            },
+        },
     };
 
     use super::*;
@@ -427,72 +408,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn update_repetition_valid_input_updated_repetition() {
-        // Arrange
-
-        let db_conn = get_db().await;
-        let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
-        insert_repetitions(
-            &db_conn,
-            vec![repetition::ActiveModel {
-                file_id: Set(file_id),
-                cell_id: Set(cell_id),
-                ..Default::default()
-            }],
-        )
-        .await
-        .unwrap();
-        let repetition_id = repetition::Entity::find()
-            .one(&db_conn)
-            .await
-            .unwrap()
-            .unwrap()
-            .id;
-        let date = Utc::now().to_utc();
-        let repetition = repetition::Model {
-            id: repetition_id,
-            file_id,
-            cell_id,
-            due: date,
-            reps: 1,
-            stability: 2.1f32,
-            difficulty: 4.2f32,
-            elapsed_days: 5,
-            scheduled_days: 6,
-            lapses: 7,
-            state: State::New,
-            last_review: date,
-            additional_content: Some("".into()),
-        };
-
-        // Act
-
-        update_repetition(&db_conn, repetition.clone())
-            .await
-            .unwrap();
-
-        // Assert
-
-        let actual = repetition::Entity::find()
-            .one(&db_conn)
-            .await
-            .unwrap()
-            .unwrap();
-        assert_eq!(actual.id, repetition.id);
-        assert_eq!(actual.file_id, repetition.file_id);
-        assert_eq!(actual.cell_id, repetition.cell_id);
-        assert_eq!(actual.due, repetition.due);
-        assert_eq!(actual.reps, repetition.reps);
-        assert_eq!(actual.stability, repetition.stability);
-        assert_eq!(actual.difficulty, repetition.difficulty);
-        assert_eq!(actual.elapsed_days, repetition.elapsed_days);
-        assert_eq!(actual.scheduled_days, repetition.scheduled_days);
-        assert_eq!(actual.lapses, repetition.lapses);
-        assert_eq!(actual.state, repetition.state);
-        assert_eq!(actual.last_review, repetition.last_review);
-    }
-
-    #[tokio::test]
     async fn get_repetitions_for_files_valid_input_returned_repetitions() {
         // Arrange
 
@@ -556,7 +471,7 @@ mod tests {
         )
         .await;
         let repetition_id = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap()[0].id;
-        update_repetition(
+        register_review(
             &db_conn,
             repetition::Model {
                 id: repetition_id,
@@ -566,6 +481,8 @@ mod tests {
                 scheduled_days: 100,
                 ..Default::default()
             },
+            Rating::Again,
+            0,
         )
         .await
         .unwrap();
@@ -579,28 +496,5 @@ mod tests {
         let actual = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap();
         assert_eq!(State::New, actual[0].state);
         assert_eq!(0, actual[0].scheduled_days);
-    }
-
-    async fn insert_repetitions(
-        db_conn: &DbConn,
-        repetitions: Vec<repetition::ActiveModel>,
-    ) -> Result<(), String> {
-        let txn = match db_conn.begin().await {
-            Ok(txn) => txn,
-            Err(err) => return Err(err.to_string()),
-        };
-
-        for active_model in repetitions {
-            let result = repetition::Entity::insert(active_model).exec(&txn).await;
-            if let Err(err) = result {
-                return Err(err.to_string());
-            }
-        }
-
-        let result = txn.commit().await;
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
     }
 }

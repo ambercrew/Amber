@@ -1,21 +1,23 @@
 .home {
-	padding: 2.4rem 1.2rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 3.2rem 1.2rem;
+	max-width: 700px;
+	width: 100%;
+	margin: 0 auto;
+	gap: 1.2rem;
 }
 
 .box {
-	min-width: 30rem;
-	max-width: 600px;
 	width: 100%;
 	background: var(--default-background-color);
 	margin: 0 auto;
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--dark-box-shadow);
-	padding: var(--default-padding) var(--medium-padding);
+	box-shadow: var(--default-box-shadow);
+	padding: var(--default-padding);
 	overflow-x: auto;
-
-	& * {
-		font-size: 1.2rem;
-	}
 }
 
 .header {
@@ -28,7 +30,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--extra-small-padding);
+	padding: var(--small-padding);
 
 	& .buttons {
 		display: grid;
@@ -45,6 +47,7 @@
 	.file-name-button {
 		text-align: left;
 		padding: 0.4rem;
+		font-size: 1.4rem;
 	}
 
 	.expand-button:focus,
@@ -74,6 +77,54 @@
 		&:focus-within,
 		&:hover {
 			background-color: var(--grey-background-color);
+		}
+	}
+}
+
+.reviews-overview {
+	text-align: center;
+	margin: var(--default-padding);
+}
+
+.review-heatmap {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	margin: 0 auto;
+
+	& .review-heatmap-column {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 2px;
+		margin: 4px 0;
+
+		& .tooltip {
+			z-index: 2;
+			font-size: 1.4rem;
+		}
+
+		.heatmap-box {
+			padding: 4px;
+			border: 1px solid transparent;
+			background-color: var(--grey-background-color-shade-10);
+			position: relative;
+
+			&:hover {
+				border-color: var(--text-color);
+			}
+
+			&.hidden {
+				visibility: hidden;
+			}
+		}
+	}
+}
+
+:global(body.dark) .review-heatmap {
+	& .review-heatmap-column {
+		.heatmap-box {
+			background-color: var(--default-background-color);
 		}
 	}
 }

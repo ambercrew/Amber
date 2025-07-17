@@ -26,15 +26,6 @@ pub async fn get_file_repetitions(
 }
 
 #[tauri::command]
-pub async fn update_repetition(
-    db_conn: State<'_, Mutex<DbConn>>,
-    repetition: repetition::Model,
-) -> Result<(), String> {
-    let db_conn = db_conn.lock().await;
-    repetition_service::update_repetition(&db_conn, repetition).await
-}
-
-#[tauri::command]
 pub async fn get_repetitions_for_files(
     db_conn: State<'_, Mutex<DbConn>>,
     file_ids: Vec<i32>,

@@ -1,21 +1,38 @@
-use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema, sea_query::Index};
+use sea_orm::{
+    ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema, query::*, sea_query::Index,
+};
 
-use crate::entity::{cell, file, repetition};
+use crate::entity::{cell, file, repetition, review};
 
-pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
+pub async fn setup_schema(db_conn: &DatabaseConnection) -> Result<(), DbErr> {
     let schema = Schema::new(DbBackend::Sqlite);
+    let backend = db_conn.get_database_backend();
 
-    let mut stmt = schema.create_table_from_entity(file::Entity);
-    stmt.if_not_exists();
-    db.execute(db.get_database_backend().build(&stmt)).await?;
+    let txn = db_conn.begin().await?;
 
-    let mut stmt = schema.create_table_from_entity(cell::Entity);
-    stmt.if_not_exists();
-    db.execute(db.get_database_backend().build(&stmt)).await?;
+    let stmt = schema
+        .create_table_from_entity(file::Entity)
+        .if_not_exists()
+        .to_owned();
+    txn.execute(backend.build(&stmt)).await?;
 
-    let mut stmt = schema.create_table_from_entity(repetition::Entity);
-    stmt.if_not_exists();
-    db.execute(db.get_database_backend().build(&stmt)).await?;
+    let stmt = schema
+        .create_table_from_entity(cell::Entity)
+        .if_not_exists()
+        .to_owned();
+    txn.execute(backend.build(&stmt)).await?;
+
+    let stmt = schema
+        .create_table_from_entity(repetition::Entity)
+        .if_not_exists()
+        .to_owned();
+    txn.execute(backend.build(&stmt)).await?;
+
+    let stmt = schema
+        .create_table_from_entity(review::Entity)
+        .if_not_exists()
+        .to_owned();
+    txn.execute(backend.build(&stmt)).await?;
 
     let index = Index::create()
         .name("idx-path")
@@ -25,7 +42,7 @@ pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
         .unique()
         .if_not_exists()
         .to_owned();
-    db.execute(db.get_database_backend().build(&index)).await?;
+    txn.execute(backend.build(&index)).await?;
 
-    Ok(())
+    txn.commit().await
 }

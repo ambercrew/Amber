@@ -88,10 +88,6 @@ function App() {
 		});
 	};
 
-	const handleHomeClick = () => {
-		void navigate("/home");
-	};
-
 	return (
 		<div className={`${styles.workspace}`}>
 			<Updater />
@@ -105,10 +101,7 @@ function App() {
 				</div>
 			)}
 
-			<SideBar
-				onHomeClick={handleHomeClick}
-				onSettingsClick={() => setShowSettings(true)}
-			/>
+			<SideBar onSettingsClick={() => setShowSettings(true)} />
 
 			<div className={`${styles.workarea}`}>
 				<Routes>
@@ -117,7 +110,10 @@ function App() {
 							key={path}
 							path={path}
 							element={
-								<Home onStudyClick={handleHomeStudyClick} />
+								<Home
+									onStudyClick={handleHomeStudyClick}
+									onError={setErrorMessage}
+								/>
 							}
 						/>
 					))}

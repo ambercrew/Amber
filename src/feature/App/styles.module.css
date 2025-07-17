@@ -9,15 +9,11 @@
 	max-height: 100vh;
 }
 
-.workspace > * {
-	overflow: auto;
-}
-
 .error-dialog {
 	position: absolute;
 	z-index: 5;
 	right: 1rem;
 	top: 1rem;
-	width: 36rem;
+	width: 24rem;
 	padding: var(--large-padding);
 }

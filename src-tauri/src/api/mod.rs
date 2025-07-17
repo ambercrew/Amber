@@ -2,12 +2,13 @@ mod cell_api;
 mod export_import_api;
 mod file_api;
 mod repetition_api;
+mod review_api;
 mod search_api;
 mod settings_api;
 
 pub use repetition_api::{
     get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts,
-    reset_repetitions_for_cell, update_repetition,
+    reset_repetitions_for_cell,
 };
 
 pub use cell_api::{
@@ -25,3 +26,5 @@ pub use search_api::search_cells;
 pub use export_import_api::{export, import};
 
 pub use settings_api::{get_settings, update_settings};
+
+pub use review_api::{get_home_statistics, register_review};

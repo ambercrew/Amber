@@ -6,8 +6,6 @@
 	flex-direction: column;
 	align-items: center;
 	gap: 0.5rem;
-	padding: var(--large-padding);
-	padding-top: var(--xl-padding);
 	width: 100%;
 
 	& .add-button-container {
@@ -22,32 +20,33 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			gap: 2px;
+			gap: var(--small-padding);
+			font-size: 1.4rem;
 		}
 	}
 
 	.overlay-cell-selector {
-		width: 42rem;
+		width: 48rem;
 		max-width: 80%;
 	}
-}
-
-body:global(.dark) .focus-tools {
-	box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.25);
 }
 
 .new-cell-selector {
 	display: flex;
 	flex-direction: column;
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--darker-box-shadow);
-	padding: var(--large-padding) var(--medium-padding);
+	box-shadow: var(--default-box-shadow);
+	padding: var(--large-padding) var(--default-padding);
 	background: var(--default-background-color);
-	gap: 4px;
+	gap: var(--default-padding);
+
+	& * {
+		font-size: 1.4rem;
+	}
 
 	& label {
 		text-align: center;
-		font-size: 1.4rem;
+		font-size: 1.6rem;
 	}
 
 	& button {
@@ -58,7 +57,7 @@ body:global(.dark) .focus-tools {
 }
 
 .cell-block {
-	padding: var(--medium-padding);
+	padding: var(--default-padding);
 	border-radius: var(--default-border-radius);
 	border: 1px solid transparent;
 	position: relative;
@@ -66,7 +65,6 @@ body:global(.dark) .focus-tools {
 
 	&:hover {
 		border-color: var(--border-color);
-		box-shadow: var(--light-box-shadow);
 	}
 
 	& .focus-tools {
@@ -78,13 +76,9 @@ body:global(.dark) .focus-tools {
 		right: 1.2rem;
 		top: 0;
 		border-radius: var(--default-border-radius);
-		box-shadow: var(--dark-box-shadow);
+		box-shadow: var(--default-box-shadow);
 		transform: translateY(-20%);
 		display: flex;
-
-		& button {
-			padding: var(--small-padding);
-		}
 	}
 
 	& .delete * {
@@ -108,12 +102,11 @@ body:global(.dark) .focus-tools {
 		top: 34px;
 		right: 1.2rem;
 		z-index: 3;
-		max-width: 20rem;
+		max-width: 24rem;
 	}
 
 	&.selected-cell {
 		border-color: var(--primary-color);
-		box-shadow: var(--darker-box-shadow);
 	}
 
 	&.dragging {
@@ -121,8 +114,9 @@ body:global(.dark) .focus-tools {
 	}
 
 	& .cell-title {
+		font-size: 1.2rem;
 		text-transform: capitalize;
-		padding: var(--small-padding) var(--medium-padding);
+		padding: var(--default-padding);
 		border-radius: var(--default-border-radius);
 		background-color: var(--primary-color);
 		display: inline-flex;
@@ -155,35 +149,18 @@ body:global(.dark) .focus-tools {
 	flex-direction: column;
 	gap: 2px;
 	align-items: start;
-	min-width: 18rem;
+	width: 24rem;
 	border-radius: var(--default-border-radius);
 	text-align: left;
 
-	padding: var(--medium-padding);
+	padding: var(--default-padding);
 	background-color: var(--default-background-color);
-	box-shadow: var(--darker-box-shadow);
+	box-shadow: var(--default-box-shadow);
+	font-size: 1.4rem;
+	line-height: 1.5;
 
-	top: calc(100% + 13px);
+	top: calc(100% + 4px);
 	right: 0;
 	z-index: 1;
-}
-
-.repetitions-info-container::after {
-	content: "";
-	border: 12px solid var(--default-background-color);
-	position: absolute;
-	border-top-width: 0;
-	border-left-color: transparent;
-	border-right-color: transparent;
-	top: 0;
-	transform: translateY(-100%);
-	right: 4px;
-}
-
-.repetitions-info-box {
-	padding: 4px 0;
-}
-
-.repetitions-info-box:not(:last-child) {
-	border-bottom: 1px solid var(--hover-border-color);
+	padding: var(--large-padding);
 }

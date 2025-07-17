@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog.tsx";
 import useAppDispatch from "../../hooks/useAppDispatch.ts";
+import styles from "./styles.module.css";
 import {
 	deleteFile,
 	deleteFolder,
@@ -76,15 +77,17 @@ function FileTree({ folder }: Props) {
 				/>
 			)}
 
-			<FileTreeItem
-				fullPath=""
-				folder={folder}
-				onMarkForDeletion={handleMarkForDeletion}
-				id={0}
-				isAnyItemDragged={isAnyItemDragged}
-				onDragStart={() => setIsAnyItemDragged(true)}
-				onDragEnd={() => setIsAnyItemDragged(false)}
-			/>
+			<div className={styles.fileTreeContainer}>
+				<FileTreeItem
+					fullPath=""
+					folder={folder}
+					onMarkForDeletion={handleMarkForDeletion}
+					id={0}
+					isAnyItemDragged={isAnyItemDragged}
+					onDragStart={() => setIsAnyItemDragged(true)}
+					onDragEnd={() => setIsAnyItemDragged(false)}
+				/>
+			</div>
 		</>
 	);
 }

@@ -8,15 +8,9 @@ import {
 	selectRootFolder,
 } from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../../util/searchFolder";
-import {
-	mdiArrowCollapseLeft,
-	mdiCog,
-	mdiHelp,
-	mdiHome,
-	mdiMagnify,
-} from "@mdi/js";
+import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
@@ -24,14 +18,13 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 
-const SMALL_SCREEN_MAX_WIDTH = 600;
+const SMALL_SCREEN_MAX_WIDTH = 720;
 
 interface Props {
-	onHomeClick: () => void;
 	onSettingsClick: () => void;
 }
 
-function SideBar({ onHomeClick, onSettingsClick }: Props) {
+function SideBar({ onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
@@ -39,7 +32,6 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const isSmallScreen = useRef(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH);
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
@@ -48,18 +40,8 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	useEffect(() => {
-		window.addEventListener("resize", () => {
-			isSmallScreen.current = window.innerWidth <= SMALL_SCREEN_MAX_WIDTH;
-		});
-	}, []);
-
-	useEffect(() => {
-		if (!isSmallScreen.current) return;
-		if (location.pathname === "/") {
-			setIsExpanded(true);
-		} else {
-			setIsExpanded(false);
-		}
+		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH) return;
+		setIsExpanded(false);
 	}, [location]);
 
 	const openHelpWebiste = useCallback(() => {
@@ -76,82 +58,79 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 		}
 	});
 
-	const handleToggleSidebarClick = () => {
-		if (isSmallScreen.current) {
-			void navigate({
-				pathname: "/",
-				search: searchParams.toString(),
-			});
-		} else {
-			setIsExpanded(!isExpanded);
-		}
+	const handleSettingsButtonClick = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		onSettingsClick();
 	};
 
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
 				<div className={styles.titleRow}>
+					<img src="icon.svg" />
 					<h2>Brainy</h2>
 				</div>
 
 				<button
 					className={`transparent center ${styles.toggleButton}`}
-					onClick={handleToggleSidebarClick}
+					onClick={() => setIsExpanded(!isExpanded)}
 					title="Expand/Collapse sidebar (Ctrl + \)">
-					<Icon path={mdiArrowCollapseLeft} size={1} />
+					<Icon path={mdiChevronLeft} size={1} />
 				</button>
 			</div>
 
-			<button
-				className={`${
-					selectedFileId === 0 &&
-					(location.pathname === "/" ||
-						location.pathname.startsWith("/home"))
-						? "primary"
-						: "transparent"
-				} ${styles.row}`}
-				title="Home (Ctrl + h)"
-				onClick={onHomeClick}>
-				<Icon path={mdiHome} size={1} />
-				<p>Home</p>
-			</button>
+			<div className={styles.rows}>
+				<button
+					className={`${
+						selectedFileId === 0 &&
+						(location.pathname === "/" ||
+							location.pathname.startsWith("/home")) &&
+						styles.active
+					} ${styles.row}`}
+					title="Home (Ctrl + h)"
+					onClick={() => void navigate("/home")}>
+					<Icon path={mdiHome} size="1em" />
+					<p>Home</p>
+				</button>
 
-			<button
-				className={`${
-					selectedFileId === 0 &&
-					location.pathname.startsWith("/search")
-						? "primary"
-						: "transparent"
-				} ${styles.row}`}
-				title="Search (Ctrl + Shift + f)"
-				onClick={() => void navigate("/search")}>
-				<Icon path={mdiMagnify} size={1} />
-				<p>Search</p>
-			</button>
+				<button
+					className={`${
+						selectedFileId === 0 &&
+						location.pathname.startsWith("/search") &&
+						styles.active
+					} ${styles.row}`}
+					title="Search (Ctrl + Shift + f)"
+					onClick={() => void navigate("/search")}>
+					<Icon path={mdiMagnify} size="1em" />
+					<p>Search</p>
+				</button>
 
-			<button
-				className={`transparent ${styles.row}`}
-				title="Settings (Ctrl + p)"
-				onClick={onSettingsClick}>
-				<Icon path={mdiCog} size={1} />
-				<p>Settings</p>
-			</button>
+				<button
+					className={`${styles.row}`}
+					title="Settings (Ctrl + p)"
+					onClick={handleSettingsButtonClick}>
+					<Icon path={mdiCog} size="1em" />
+					<p>Settings</p>
+				</button>
 
-			<button
-				className={`transparent ${styles.row}`}
-				title="Help (F1)"
-				onClick={openHelpWebiste}>
-				<Icon path={mdiHelp} size={1} />
-				<p>Help</p>
-			</button>
+				<button
+					className={`${styles.row}`}
+					title="Help (F1)"
+					onClick={openHelpWebiste}>
+					<Icon path={mdiHelp} size="1em" />
+					<p>Help</p>
+				</button>
+			</div>
 
-			<InputWithIcon
-				iconName={mdiMagnify}
-				value={searchText ?? ""}
-				onChange={e => setSearchText(e.target.value)}
-				placeholder="Search"
-				inputClassName={styles.searchInput}
-			/>
+			<div className={styles.searchInputContainer}>
+				<InputWithIcon
+					iconName={mdiMagnify}
+					value={searchText ?? ""}
+					onChange={e => setSearchText(e.target.value)}
+					placeholder="Search"
+					inputClassName={styles.searchInput}
+				/>
+			</div>
 
 			{errorMessage && (
 				<ErrorBox

@@ -2,22 +2,25 @@
 	width: 100%;
 	height: 100%;
 	background-color: var(--default-background-color);
-	padding: var(--large-padding);
 
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: 4px;
+}
 
-	& * {
-		font-size: 1.2rem;
+.search-input-container {
+	padding: var(--large-padding);
+	border-bottom: 1px solid var(--border-color);
+
+	input {
+		font-size: 1.4rem;
 	}
 }
 
-.search-input {
-	padding: var(--default-padding);
+.editable-cells {
+	padding: var(--large-padding);
 }
 
 .no-search-label {
 	text-align: center;
-	margin-top: 1rem;
 }

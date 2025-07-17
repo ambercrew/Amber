@@ -56,7 +56,8 @@ function FileTreeItemChildren({
 	};
 
 	return (
-		<div className={`${styles.fileTreeItemChildren}`}>
+		<div
+			className={`${styles.fileTreeItemChildren} ${isRoot && styles.root}`}>
 			{(creatingNewFile || creatingNewFolder) && (
 				<form
 					className={styles.fileTreeNewItemRow}

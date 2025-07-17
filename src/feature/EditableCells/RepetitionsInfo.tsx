@@ -31,7 +31,7 @@ function RepetitionsInfo({ repetitions, cellType }: Props) {
 			className={styles.repetitionsInfoContainer}
 			onClick={e => e.stopPropagation()}>
 			{sortedRepetitions.map(repetition => (
-				<div key={repetition.id} className={styles.repetitionsInfoBox}>
+				<div key={repetition.id}>
 					{cellType === "Cloze" && (
 						<strong>
 							<p>Cloze Group: {repetition.additionalContent}</p>

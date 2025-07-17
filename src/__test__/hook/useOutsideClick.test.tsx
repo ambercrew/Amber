@@ -24,13 +24,13 @@ describe(useOutsideClick, () => {
 
 		const cb = vi.fn();
 		renderHook(() =>
-			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+			useOutsideClick(ref as React.RefObject<HTMLElement>, cb),
 		);
 
 		// Act
 
 		act(() => {
-			fireEvent.mouseDown(screen.getByText("First"));
+			fireEvent.click(screen.getByText("First"));
 		});
 
 		// Assert
@@ -55,7 +55,7 @@ describe(useOutsideClick, () => {
 
 		const cb = vi.fn();
 		renderHook(() =>
-			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+			useOutsideClick(ref as React.RefObject<HTMLElement>, cb),
 		);
 
 		// Act

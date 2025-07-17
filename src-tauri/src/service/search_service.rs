@@ -32,11 +32,11 @@ pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<SearchR
 #[cfg(test)]
 mod tests {
     use crate::{
-        entity::cell::CellType,
+        entity::{cell::CellType, review::Rating},
         model::flash_card::FlashCard,
         service::{
             cell_service::create_cell,
-            repetition_service::update_repetition,
+            review_service::register_review,
             tests::{create_file, get_db},
         },
     };
@@ -75,7 +75,7 @@ mod tests {
             crate::service::repetition_service::get_file_repetitions(&db_conn, file2_id)
                 .await
                 .unwrap();
-        update_repetition(
+        register_review(
             &db_conn,
             repetition::Model {
                 id: repetition[0].id,
@@ -84,6 +84,8 @@ mod tests {
                 state: repetition::State::Review,
                 ..Default::default()
             },
+            Rating::Again,
+            10,
         )
         .await
         .unwrap();

@@ -104,6 +104,9 @@ function TiptapEditor({
 					}
 					return false;
 				},
+				transformPastedText(text) {
+					return text.trim();
+				},
 			},
 		},
 		[],

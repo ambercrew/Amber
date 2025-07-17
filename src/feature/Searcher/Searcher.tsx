@@ -54,13 +54,14 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 
 	return (
 		<div className={styles.container}>
-			<form onSubmit={e => handleSubmit(e)}>
+			<form
+				className={styles.searchInputContainer}
+				onSubmit={e => handleSubmit(e)}>
 				<InputWithIcon
 					iconName={mdiMagnify}
 					placeholder="Search (Ctrl + f)"
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
-					inputClassName={styles.searchInput}
 					ref={searchInputRef}
 					autoFocus
 				/>
@@ -86,6 +87,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 					editCellId={null}
 					enableFileSpecificFunctionality={false}
 					onEditButtonClick={onEditButtonClick}
+					className={styles.editableCells}
 				/>
 			)}
 		</div>

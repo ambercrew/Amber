@@ -1,7 +1,6 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { useRef } from "react";
-import useOutsideClick from "../../hooks/useOutsideClick";
 
 export interface Action {
 	iconName: string;
@@ -12,18 +11,10 @@ export interface Action {
 
 interface Props {
 	actions: Action[];
-	onOutsideClick?: () => void;
 }
 
-function ActionsMenu({ onOutsideClick, actions }: Props) {
+function ActionsMenu({ actions }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
-	useOutsideClick(
-		containerRef as React.RefObject<HTMLElement>,
-		onOutsideClick ??
-			(() => {
-				/* Do nothing */
-			}),
-	);
 
 	return (
 		<div className={`${styles.actionsMenu}`} ref={containerRef}>

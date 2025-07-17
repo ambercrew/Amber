@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import ReviewerCell from "../ReviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
@@ -10,15 +10,14 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../type/backend/entity/repetition";
 import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
-import {
-	getRepetitionsForFiles,
-	updateRepetition,
-} from "../../api/repetitionApi";
+import { getRepetitionsForFiles } from "../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import FromRouteState from "../../type/fromRouteState";
 import { getCellsForFiles } from "../../api/cellApi";
 import errorToString from "../../util/errorToString";
+import gradeToRating from "../../util/gradeToRating";
+import { registerReview } from "../../api/reviewApi";
 
 interface Props {
 	fileIds: number[];
@@ -35,6 +34,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	const [isSendingRequest, setIsSendingRequest] = useState(true);
 	const [cells, setCells] = useState<Cell[]>([]);
 	const [repetitions, setRepetitions] = useState<Repetition[]>([]);
+	const studyTime = useRef(0);
 	const navigate = useNavigate();
 	const startTime = useRef(new Date());
 	const location = useLocation();
@@ -98,14 +98,19 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		setIsSendingRequest(true);
 		try {
 			const card = schedulingCards[grade]?.card;
-			const repetition = createRepetitionFromCard(
+			const newRepetition = createRepetitionFromCard(
 				card,
 				dueToday[currentCellIndex].id,
 				dueToday[currentCellIndex].fileId,
 				dueToday[currentCellIndex].cellId,
 				dueToday[currentCellIndex].additionalContent,
 			);
-			await updateRepetition(repetition);
+			await registerReview(
+				newRepetition,
+				gradeToRating(grade),
+				studyTime.current,
+			);
+			studyTime.current = 0;
 		} catch (e) {
 			onError("An error happened!");
 			console.error(e);
@@ -156,6 +161,11 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				break;
 		}
 	});
+
+	const handleTimeUpdate = useCallback(
+		(time: number) => (studyTime.current = time),
+		[],
+	);
 
 	return (
 		<div className={styles.reviewer}>
@@ -298,7 +308,10 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 					</div>
 				)}
 
-				<Timer />
+				<Timer
+					key={dueToday[currentCellIndex]?.id ?? 0}
+					onTimeUpdate={handleTimeUpdate}
+				/>
 			</div>
 		</div>
 	);

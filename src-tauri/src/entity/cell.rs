@@ -35,6 +35,7 @@ pub struct Model {
 pub enum Relation {
     File,
     Repetition,
+    Review,
 }
 
 impl RelationTrait for Relation {
@@ -46,6 +47,7 @@ impl RelationTrait for Relation {
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
             Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
+            Self::Review => Entity::has_many(super::review::Entity).into(),
         }
     }
 }

@@ -3,14 +3,14 @@ import styles from "./styles.module.css";
 import {
 	mdiDotsHorizontal,
 	mdiFileDocumentOutline,
-	mdiFileTreeOutline,
+	mdiFileTree,
 	mdiFolderOpenOutline,
 	mdiFolderOutline,
 } from "@mdi/js";
 import ActionsMenu from "./ActionsMenu";
 import { Action } from "./ActionsMenu";
 import getFileName from "../../util/getFileName";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	renameFile,
 	renameFolder,
@@ -18,6 +18,7 @@ import {
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
+import useOutsideClick from "../../hooks/useOutsideClick";
 
 interface Props {
 	isRoot: boolean;
@@ -59,6 +60,12 @@ function FileTreeItemRow({
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
+	const containerRef = useRef<HTMLDivElement>(null);
+
+	useOutsideClick(
+		containerRef as React.RefObject<HTMLElement>,
+		onHideActions,
+	);
 
 	useEffect(() => {
 		if (!isRenaming) setNewName(getFileName(fullPath));
@@ -78,7 +85,8 @@ function FileTreeItemRow({
 			className={`${styles.fileTreeRow}`}
 			draggable={!isRoot && !isRenaming}
 			onDragStart={onDragStart}
-			onDragEnd={onDragEnd}>
+			onDragEnd={onDragEnd}
+			ref={containerRef}>
 			<button
 				className={`${styles.fileTreeButton}
                 ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
@@ -86,7 +94,7 @@ function FileTreeItemRow({
 				<Icon
 					path={
 						isRoot
-							? mdiFileTreeOutline
+							? mdiFileTree
 							: isFolder
 								? isExpanded
 									? mdiFolderOpenOutline
@@ -123,9 +131,7 @@ function FileTreeItemRow({
 				</button>
 			)}
 
-			{showActions && (
-				<ActionsMenu onOutsideClick={onHideActions} actions={actions} />
-			)}
+			{showActions && <ActionsMenu actions={actions} />}
 		</div>
 	);
 }

@@ -2,14 +2,15 @@ pub mod cell_service;
 pub mod export_import_service;
 pub mod file_service;
 pub mod repetition_service;
+pub mod review_service;
 pub mod search_service;
 pub mod settings_service;
 
 #[cfg(test)]
 mod tests {
-    use sea_orm::{Database, DatabaseConnection, DbConn};
+    use sea_orm::{Database, DatabaseConnection, DbConn, entity::*, query::*};
 
-    use crate::entity::cell::CellType;
+    use crate::entity::{cell::CellType, repetition};
 
     use super::{cell_service, file_service};
 
@@ -42,5 +43,28 @@ mod tests {
             .await
             .unwrap();
         (file_id, cell_id)
+    }
+
+    pub async fn insert_repetitions(
+        db_conn: &DbConn,
+        repetitions: Vec<repetition::ActiveModel>,
+    ) -> Result<(), String> {
+        let txn = match db_conn.begin().await {
+            Ok(txn) => txn,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        for active_model in repetitions {
+            let result = repetition::Entity::insert(active_model).exec(&txn).await;
+            if let Err(err) = result {
+                return Err(err.to_string());
+            }
+        }
+
+        let result = txn.commit().await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
+        }
     }
 }
