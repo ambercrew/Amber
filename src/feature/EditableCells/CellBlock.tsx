@@ -1,5 +1,5 @@
 import styles from "./styles.module.css";
-import { ForwardedRef, forwardRef, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
 import Cell, {
 	CellType,
 	cellTypesDisplayNames,
@@ -60,11 +60,15 @@ function CellBlock(
 			if (isSelected) tipTapEditorRef.current?.commands.focus();
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
-			if (showInsertNewCell) tipTapEditorRef.current?.commands.focus();
 		} else if (e.ctrlKey && e.key === " ") {
 			if (isSelected) tipTapEditorRef.current?.commands.focus();
 		}
 	});
+
+	useEffect(() => {
+		// Hide show insert new cell when selection change.
+		setShowInsertNewCell(false);
+	}, [isSelected]);
 
 	const handleDragStart = (e: React.DragEvent) => {
 		e.stopPropagation();

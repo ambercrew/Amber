@@ -53,10 +53,12 @@ function RichTextEditor({ editable: initialEditable, ...props }: Props) {
 				{!initialEditable && !editable && (
 					<div className={`${styles.editor}`}>
 						<div
-                            tabIndex={0}
+							tabIndex={0}
 							dangerouslySetInnerHTML={{
-                                // Setting white space if content is emtpy so that the height is correct.
-								__html: props.initialContent ? props.initialContent : "&nbsp;",
+								// Setting white space if content is emtpy so that the height is correct.
+								__html: props.initialContent
+									? props.initialContent
+									: "&nbsp;",
 							}}
 							onMouseEnter={() => setEditable(true)}
 						/>
