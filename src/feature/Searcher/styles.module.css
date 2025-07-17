@@ -22,5 +22,6 @@
 }
 
 .no-search-label {
+    margin-top: var(--large-padding);
 	text-align: center;
 }

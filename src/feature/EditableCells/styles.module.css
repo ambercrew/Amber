@@ -9,7 +9,6 @@
 	width: 100%;
 
 	& .add-button-container {
-		padding: var(--default-padding);
 		width: 100%;
 		display: flex;
 		justify-content: center;
