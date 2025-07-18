@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     dto::update_settings_request::UpdateSettingsRequest,
-    model::settings::{Settings, Theme},
+    value_objects::settings::{Settings, Theme},
     util::database_util::load_database,
 };
 

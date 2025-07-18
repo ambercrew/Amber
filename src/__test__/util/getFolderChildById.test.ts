@@ -1,6 +1,6 @@
-import ParsedFile from "../../type/parsedFile";
-import ParsedFolder from "../../type/parsedFolder";
-import getFolderChildById from "../../util/getFolderChildById";
+import ParsedFile from "../../types/parsedFile";
+import ParsedFolder from "../../types/parsedFolder";
+import getFolderChildById from "../../utils/getFolderChildById";
 
 describe(getFolderChildById, () => {
 	it("Returns existing file", () => {

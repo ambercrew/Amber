@@ -8,7 +8,7 @@ use sea_orm::{DbConn, Set};
 
 use crate::entity::cell::CellType;
 use crate::entity::repetition::{self, State};
-use crate::model::file_repetitions_count::FileRepetitionCounts;
+use crate::value_objects::file_repetitions_count::FileRepetitionCounts;
 
 use sea_orm::{entity::*, query::*};
 
@@ -219,7 +219,7 @@ mod tests {
 
     use crate::{
         entity::review::Rating,
-        model::flash_card::FlashCard,
+        value_objects::flash_card::FlashCard,
         service::{
             review_service::register_review,
             tests::{

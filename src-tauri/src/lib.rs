@@ -2,7 +2,7 @@ mod api;
 mod dto;
 mod entity;
 mod migration;
-mod model;
+mod value_objects;
 mod service;
 mod util;
 

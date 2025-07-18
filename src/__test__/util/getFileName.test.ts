@@ -1,4 +1,4 @@
-import getFileName from "../../util/getFileName";
+import getFileName from "../../utils/getFileName";
 
 describe(getFileName, () => {
 	it("Works on full path", () => {

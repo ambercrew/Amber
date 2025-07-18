@@ -1,6 +1,6 @@
-import FileWithRepetitionCounts from "../../type/backend/dto/fileWithRepetitionCounts";
-import ParsedFolder from "../../type/parsedFolder";
-import parseGetFilesResponse from "../../util/parseGetFilesResponse";
+import FileWithRepetitionCounts from "../../types/backend/dto/fileWithRepetitionCounts";
+import ParsedFolder from "../../types/parsedFolder";
+import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 
 describe(parseGetFilesResponse, () => {
 	it("Parse file list correctly", () => {

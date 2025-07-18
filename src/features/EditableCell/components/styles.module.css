@@ -1,0 +1,57 @@
+.flash-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-padding);
+}
+
+.true-false {
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-padding);
+
+	& .buttons-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4px;
+
+		& button {
+			border: 2px solid var(--border-color);
+			transition: all var(--default-transition-time);
+			padding-top: var(--default-padding);
+
+			&:hover {
+				border-color: var(--hover-border-color);
+			}
+
+			&:focus {
+				box-shadow: var(--default-box-shadow);
+			}
+
+			&.checked {
+				border-color: var(--primary-color);
+				background-color: var(--primary-color);
+				color: #fff;
+			}
+		}
+	}
+}
+
+/* This should be a global class since the HTML is presisted on database,
+ * and the class name might change if we do not have it as global
+ */
+:global(.cloze-mark) {
+	display: inline-block;
+	padding: var(--small-padding);
+	border-radius: var(--default-border-radius);
+	border: 1px solid var(--text-color);
+	margin: 1px 2px;
+
+	&:before {
+		content: attr(index);
+		padding-right: 2px;
+		margin-right: 2px;
+		border-right: 1px solid var(--text-color);
+		font-weight: normal;
+		font-style: normal;
+	}
+}

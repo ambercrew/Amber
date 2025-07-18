@@ -1,5 +1,5 @@
 use crate::entity::repetition;
-use crate::model::file_repetitions_count::FileRepetitionCounts;
+use crate::value_objects::file_repetitions_count::FileRepetitionCounts;
 use crate::service::repetition_service;
 use sea_orm::DbConn;
 use tauri::State;

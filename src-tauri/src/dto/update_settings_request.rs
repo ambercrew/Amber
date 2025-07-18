@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::settings::Theme;
+use crate::value_objects::settings::Theme;
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

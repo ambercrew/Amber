@@ -210,7 +210,7 @@ mod tests {
     use super::*;
     use crate::{
         entity::cell::CellType,
-        model::{flash_card::FlashCard, true_false::TrueFalse},
+        value_objects::{flash_card::FlashCard, true_false::TrueFalse},
         service::{
             repetition_service,
             tests::{create_file_cell_with_cell_type_and_content, get_db},

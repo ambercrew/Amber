@@ -4,8 +4,8 @@ import {
 	mdiDotsHorizontal,
 	mdiNoteOutline,
 } from "@mdi/js";
-import getCellIcon from "../../util/getCellIcon";
-import { CellType } from "../../type/backend/entity/cell";
+import getCellIcon from "../../utils/getCellIcon";
+import { CellType } from "../../types/backend/entity/cell";
 
 describe(getCellIcon, () => {
 	it("Returns correct icon", () => {

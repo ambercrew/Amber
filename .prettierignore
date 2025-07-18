@@ -4,5 +4,5 @@ src-tauri
 # Ignoring configuration
 tsconfig.*
 
-# Edtiro
+# Editor
 .vscode

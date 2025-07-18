@@ -1,7 +1,7 @@
 use crate::{
     dto::update_cell_request::UpdateCellRequest,
     entity::cell::{self, CellType},
-    model::{flash_card::FlashCard, true_false::TrueFalse},
+    value_objects::{flash_card::FlashCard, true_false::TrueFalse},
 };
 
 use prelude::Expr;
