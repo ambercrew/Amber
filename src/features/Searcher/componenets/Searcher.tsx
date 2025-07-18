@@ -1,12 +1,12 @@
 import { mdiMagnify } from "@mdi/js";
-import InputWithIcon from "../../components/InputWithIcon/InputWithIcon";
+import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import useGlobalKey from "../../hooks/useGlobalKey";
-import errorToString from "../../utils/errorToString";
-import EditableCells from "../EditableCells/components/EditableCells";
-import SearchResult from "../../types/backend/dto/searchResult";
-import { searchCells } from "../../api/searchApi";
+import useGlobalKey from "../../../hooks/useGlobalKey";
+import errorToString from "../../../utils/errorToString";
+import EditableCells from "../../EditableCells/components/EditableCells";
+import SearchResult from "../../../types/backend/dto/searchResult";
+import { searchCells } from "../../../api/searchApi";
 import { useSearchParams } from "react-router";
 
 interface Props {

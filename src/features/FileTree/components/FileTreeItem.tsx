@@ -19,7 +19,7 @@ import {
 	moveFile,
 	moveFolder,
 } from "../../../stores/actions/fileSystemActions";
-import getFileName from "../../../utils/getFileName";
+import getFileName from "../utils/getFileName.ts";
 import { requestFailure } from "../../../stores/reducers/fileSystemReducers";
 import UiFolder from "../../../types/ui/uiFolder";
 import { exportItem } from "../../../api/exportImportApi";

@@ -8,6 +8,7 @@ function parseGetFilesResponse(
 	return parseGetFilesResponseHelper(files, "", 0);
 }
 
+// TODO: used?
 function parseGetFilesResponseHelper(
 	dtos: FileWithRepetitionCounts[],
 	folderName: string,

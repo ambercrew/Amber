@@ -9,7 +9,7 @@ import {
 } from "@mdi/js";
 import ActionsMenu from "./ActionsMenu";
 import { Action } from "../types/Action";
-import getFileName from "../../../utils/getFileName";
+import getFileName from "../utils/getFileName";
 import { useEffect, useRef, useState } from "react";
 import {
 	renameFile,

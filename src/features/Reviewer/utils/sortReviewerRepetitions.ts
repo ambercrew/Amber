@@ -1,4 +1,4 @@
-import Repetition from "../../types/backend/entity/repetition";
+import Repetition from "../../../types/backend/entity/repetition";
 
 /**
  * Sort the repetitions so that the new repetitions appear last while the rest

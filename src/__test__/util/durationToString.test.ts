@@ -1,4 +1,4 @@
-import durationToString from "../../utils/durationToString";
+import durationToString from "../../features/Reviewer/utils/durationToString";
 
 describe(durationToString, () => {
 	it("Displays minutes correctly", () => {

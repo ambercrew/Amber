@@ -9,7 +9,7 @@ import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import useBeforeUnload from "../../../hooks/useBeforeUnload";
 import UpdateCellRequest from "../../../types/backend/dto/updateCellRequest";
-import createDefaultCell from "../../../utils/createDefaultCell";
+import createDefaultCell from "../utils/createDefaultCell";
 import {
 	createCell,
 	deleteCell,
@@ -18,7 +18,7 @@ import {
 } from "../../../api/cellApi";
 import errorToString from "../../../utils/errorToString";
 import useGlobalKey from "../../../hooks/useGlobalKey";
-import scrollUntilVisible from "../../../utils/scrollUntilVisible";
+import scrollUntilVisible from "../utils/scrollUntilVisible";
 import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
 

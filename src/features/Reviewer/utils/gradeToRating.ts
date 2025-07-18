@@ -1,5 +1,5 @@
 import { Grade, Rating as FsrsRating } from "ts-fsrs";
-import { Rating } from "../types/backend/entity/rating";
+import { Rating } from "../../../types/backend/entity/rating";
 
 function gradeToRating(grade: Grade): Rating {
 	switch (grade) {

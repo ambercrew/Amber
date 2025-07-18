@@ -1,24 +1,22 @@
 import styles from "./styles.module.css";
-import ErrorBox from "../../components/ErrorBox/ErrorBox";
-import FileTree from "../FileTree/components/FileTree";
-import useAppSelector from "../../hooks/useAppSelector";
-import useAppDispatch from "../../hooks/useAppDispatch";
+import ErrorBox from "../../../components/ErrorBox/ErrorBox";
+import FileTree from "../../FileTree/components/FileTree";
+import useAppSelector from "../../../hooks/useAppSelector";
+import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	selectError,
 	selectRootFolder,
-} from "../../stores/selectors/fileSystemSelectors";
-import { setErrorMessage } from "../../stores/reducers/fileSystemReducers";
+} from "../../../stores/selectors/fileSystemSelectors";
+import { setErrorMessage } from "../../../stores/reducers/fileSystemReducers";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import searchFolder from "../../utils/searchFolder";
+import searchFolder from "../../../utils/searchFolder";
 import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
-import InputWithIcon from "../../components/InputWithIcon/InputWithIcon";
-import useGlobalKey from "../../hooks/useGlobalKey";
+import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
+import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import { fileIdQueryParameter } from "../../config/constants";
-
-const SMALL_SCREEN_MAX_WIDTH = 720;
+import { fileIdQueryParameter, SMALL_SCREEN_MAX_WIDTH } from "../../../config/constants";
 
 interface Props {
 	onSettingsClick: () => void;

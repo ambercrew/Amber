@@ -1,25 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-import ReviewerCell from "../ReviewerCell/ReviewerCell";
+import ReviewerCell from "../../ReviewerCell/componenets/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
-import createCardFromCellRepetition from "../../utils/createCardFromRepetition";
-import durationToString from "../../utils/durationToString";
-import useGlobalKey from "../../hooks/useGlobalKey";
-import Repetition from "../../types/backend/entity/repetition";
-import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
-import Cell from "../../types/backend/entity/cell";
-import { getRepetitionsForFiles } from "../../api/repetitionApi";
+import createCardFromCellRepetition from "../utils/createCardFromRepetition";
+import durationToString from "../utils/durationToString";
+import useGlobalKey from "../../../hooks/useGlobalKey";
+import Repetition from "../../../types/backend/entity/repetition";
+import createRepetitionFromCard from "../utils/createRepetitionFromCard";
+import Cell from "../../../types/backend/entity/cell";
+import { getRepetitionsForFiles } from "../../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
-import FromRouteState from "../../types/fromRouteState";
-import { getCellsForFiles } from "../../api/cellApi";
-import errorToString from "../../utils/errorToString";
-import gradeToRating from "../../utils/gradeToRating";
-import { registerReview } from "../../api/reviewApi";
-import sortReviewerRepetitions from "./sortReviewerRepetitions";
+import FromRouteState from "../../../types/fromRouteState";
+import { getCellsForFiles } from "../../../api/cellApi";
+import errorToString from "../../../utils/errorToString";
+import gradeToRating from "../utils/gradeToRating";
+import { registerReview } from "../../../api/reviewApi";
+import sortReviewerRepetitions from "../utils/sortReviewerRepetitions";
 
+// TODO: refactor
 interface Props {
 	fileIds: number[];
 	onEditButtonClick: (fileId: number, cellId: number) => void;

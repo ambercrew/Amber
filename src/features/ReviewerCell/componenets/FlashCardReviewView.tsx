@@ -1,5 +1,5 @@
-import Cell from "../../types/backend/entity/cell";
-import FlashCard from "../../types/cell/flashCard";
+import Cell from "../../../types/backend/entity/cell";
+import FlashCard from "../../../types/cell/flashCard";
 
 interface Props {
 	cell: Cell;

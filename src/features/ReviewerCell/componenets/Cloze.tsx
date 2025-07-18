@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import Cell from "../../types/backend/entity/cell";
-import Repetition from "../../types/backend/entity/repetition";
+import Cell from "../../../types/backend/entity/cell";
+import Repetition from "../../../types/backend/entity/repetition";
 import styles from "./styles.module.css";
 
 interface Props {

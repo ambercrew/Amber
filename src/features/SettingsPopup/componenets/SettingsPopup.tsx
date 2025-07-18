@@ -3,14 +3,14 @@ import styles from "./styles.module.css";
 import { mdiCog, mdiFolderOpenOutline } from "@mdi/js";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useRef, useState } from "react";
-import Settings, { Theme } from "../../types/backend/model/settings";
-import { getSettings, updateSettings } from "../../api/settingsApi";
-import useOutsideClick from "../../hooks/useOutsideClick";
-import useGlobalKey from "../../hooks/useGlobalKey";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { fetchFiles } from "../../stores/actions/fileSystemActions";
-import errorToString from "../../utils/errorToString";
-import applySettings from "../../utils/applySettings";
+import Settings, { Theme } from "../../../types/backend/model/settings";
+import { getSettings, updateSettings } from "../../../api/settingsApi";
+import useOutsideClick from "../../../hooks/useOutsideClick";
+import useGlobalKey from "../../../hooks/useGlobalKey";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { fetchFiles } from "../../../stores/actions/fileSystemActions";
+import errorToString from "../../../utils/errorToString";
+import applySettings from "../../../utils/applySettings";
 import { useNavigate } from "react-router";
 
 interface Props {

@@ -1,8 +1,11 @@
 import styles from "./styles.module.css";
 import { Tooltip } from "react-tooltip";
 import React, { useMemo } from "react";
-import HomeStatistics from "../../types/backend/dto/homeStatistics";
-import RGB from "../../types/ui/rgb";
+import HomeStatistics from "../../../types/backend/dto/homeStatistics";
+import { colors } from "../config/colors";
+import { reviewsDivisor } from "../config/constants";
+import { formatDateHeatmapTooltip } from "../utils/formatDateHeatmapTooltip";
+import { getColorAtRatio } from "../utils/getColorAtRatio";
 
 interface Props {
 	date: Date;
@@ -10,46 +13,6 @@ interface Props {
 	homeStatistics: HomeStatistics;
 	isDarkTheme: boolean;
 }
-
-// Primary color light-10 in RGB.
-const reviewFromColor: RGB = {
-	r: 21,
-	g: 163,
-	b: 152,
-};
-
-// Primary color shade-10 in RGB.
-const reviewToColor: RGB = {
-	r: 9,
-	g: 73,
-	b: 68,
-};
-
-const dueFromColorLightTheme: RGB = {
-	r: 180,
-	g: 180,
-	b: 180,
-};
-
-const dueToColorLighTheme: RGB = {
-	r: 60,
-	g: 60,
-	b: 60,
-};
-
-const dueFromColorDarkTheme: RGB = {
-	r: 60,
-	g: 60,
-	b: 60,
-};
-
-const dueToColorDarkTheme: RGB = {
-	r: 6,
-	g: 6,
-	b: 6,
-};
-
-const maxNumberOfReviews = 200;
 
 function ReviewHeatmapColumn({
 	date,
@@ -62,7 +25,7 @@ function ReviewHeatmapColumn({
 		return days.map(day => {
 			const newDate = new Date(date);
 			newDate.setDate(newDate.getDate() + day);
-			const formattedDate = formatDate(newDate);
+			const formattedDate = formatDateHeatmapTooltip(newDate);
 			const reviewCounts =
 				homeStatistics.reviewCounts[formattedDate] ?? 0;
 			const dueCounts = homeStatistics.dueCounts[formattedDate] ?? 0;
@@ -80,21 +43,21 @@ function ReviewHeatmapColumn({
 				color =
 					dueCounts === 0
 						? null
-						: getColor(
-								dueCounts / maxNumberOfReviews,
+						: getColorAtRatio(
+								dueCounts / reviewsDivisor,
 								isDarkTheme
-									? dueFromColorDarkTheme
-									: dueFromColorLightTheme,
+									? colors.dueFromColorDarkTheme
+									: colors.dueFromColorLightTheme,
 								isDarkTheme
-									? dueToColorDarkTheme
-									: dueToColorLighTheme,
+									? colors.dueToColorDarkTheme
+									: colors.dueToColorLighTheme,
 							);
 				text = `${dueCounts} due on ${formattedDate}`;
 			} else {
-				color = getColor(
-					reviewCounts / maxNumberOfReviews,
-					reviewFromColor,
-					reviewToColor,
+				color = getColorAtRatio(
+					reviewCounts / reviewsDivisor,
+					colors.reviewFromColor,
+					colors.reviewToColor,
 				);
 				text = `${reviewCounts} reviews on ${formattedDate}`;
 			}
@@ -128,23 +91,6 @@ function ReviewHeatmapColumn({
 			))}
 		</div>
 	);
-}
-
-function formatDate(date: Date) {
-	const offset = date.getTimezoneOffset();
-	const newDate = new Date(date.getTime() - offset * 60 * 1000);
-	return newDate.toISOString().split("T")[0];
-}
-
-function getColor(ratio: number, fromColor: RGB, toColor: RGB) {
-	if (ratio === 0) return null;
-	if (ratio > 1) ratio = 1;
-
-	const r = Math.ceil(fromColor.r + (toColor.r - fromColor.r) * ratio);
-	const g = Math.ceil(fromColor.g + (toColor.g - fromColor.g) * ratio);
-	const b = Math.ceil(fromColor.b + (toColor.b - fromColor.r) * ratio);
-
-	return `rgb(${r}, ${g}, ${b})`;
 }
 
 export default ReviewHeatmapColumn;

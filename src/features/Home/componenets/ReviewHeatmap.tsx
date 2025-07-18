@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import ReviewHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
-import HomeStatistics from "../../types/backend/dto/homeStatistics";
-import Settings from "../../types/backend/model/settings";
-import { getSettings } from "../../api/settingsApi";
+import HomeStatistics from "../../../types/backend/dto/homeStatistics";
+import Settings from "../../../types/backend/model/settings";
+import { getSettings } from "../../../api/settingsApi";
 
 interface Props {
 	homeStatistics: HomeStatistics;

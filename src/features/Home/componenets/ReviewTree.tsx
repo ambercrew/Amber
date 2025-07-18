@@ -1,7 +1,7 @@
 import { useState } from "react";
-import ParsedFolder from "../../types/parsedFolder";
+import ParsedFolder from "../../../types/parsedFolder";
 import styles from "./styles.module.css";
-import ParsedFile from "../../types/parsedFile";
+import ParsedFile from "../../../types/parsedFile";
 import Row from "./Row";
 
 interface Props {

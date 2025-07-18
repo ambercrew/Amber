@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import useAppSelector from "../../hooks/useAppSelector";
-import { fetchFiles } from "../../stores/actions/fileSystemActions";
-import { selectRootFolder } from "../../stores/selectors/fileSystemSelectors";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { fetchFiles } from "../../../stores/actions/fileSystemActions";
+import { selectRootFolder } from "../../../stores/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
-import ParsedFolder from "../../types/parsedFolder";
+import ParsedFolder from "../../../types/parsedFolder";
 import ReviewHeatmap from "./ReviewHeatmap";
-import HomeStatistics from "../../types/backend/dto/homeStatistics";
-import errorToString from "../../utils/errorToString";
-import secondsToLongString from "../../utils/secondsToLongString";
-import { getHomeStatistics } from "../../api/reviewApi";
-import ParsedFile from "../../types/parsedFile";
+import HomeStatistics from "../../../types/backend/dto/homeStatistics";
+import errorToString from "../../../utils/errorToString";
+import secondsToLongString from "../utils/secondsToLongString";
+import { getHomeStatistics } from "../../../api/reviewApi";
+import ParsedFile from "../../../types/parsedFile";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;

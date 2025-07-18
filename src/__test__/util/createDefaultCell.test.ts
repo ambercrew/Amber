@@ -1,4 +1,4 @@
-import createDefaultCell from "../../utils/createDefaultCell";
+import createDefaultCell from "../../features/EditableCells/utils/createDefaultCell";
 import Cell from "../../types/backend/entity/cell";
 
 describe(createDefaultCell, () => {

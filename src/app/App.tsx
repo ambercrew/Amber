@@ -2,12 +2,12 @@ import Editor from "../features/Editor/componenets/Editor";
 import styles from "./styles.module.css";
 import { useEffect, useRef, useState } from "react";
 import ErrorBox from "../components/ErrorBox/ErrorBox";
-import Reviewer from "../features/Reviewer/Reviewer";
-import Home from "../features/Home/Home";
+import Reviewer from "../features/Reviewer/components/Reviewer";
+import Home from "../features/Home/componenets/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { fetchFiles } from "../stores/actions/fileSystemActions";
-import SideBar from "../features/SideBar/SideBar";
-import SettingsPopup from "../features/SettingsPopup/SettingsPopup";
+import SideBar from "../features/SideBar/componenets/SideBar";
+import SettingsPopup from "../features/SettingsPopup/componenets/SettingsPopup";
 import { getSettings } from "../api/settingsApi";
 import applySettings from "../utils/applySettings";
 import useGlobalKey from "../hooks/useGlobalKey";
@@ -20,8 +20,8 @@ import {
 } from "react-router";
 import { fileIdQueryParameter } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
-import Searcher from "../features/Searcher/Searcher";
-import Updater from "../features/Updater/Updater";
+import Searcher from "../features/Searcher/componenets/Searcher";
+import Updater from "../features/Updater/componenets/Updater";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);

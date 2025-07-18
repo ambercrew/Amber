@@ -1,5 +1,5 @@
 import { Card, State } from "ts-fsrs";
-import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
+import createRepetitionFromCard from "../../features/Reviewer/utils/createRepetitionFromCard";
 import Repetition from "../../types/backend/entity/repetition";
 
 describe(createRepetitionFromCard, () => {
