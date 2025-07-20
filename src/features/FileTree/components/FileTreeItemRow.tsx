@@ -8,7 +8,7 @@ import {
 	mdiFolderOutline,
 } from "@mdi/js";
 import ActionsMenu from "./ActionsMenu";
-import { Action } from "../types/Action";
+import { Action } from "../types/action";
 import getFileName from "../utils/getFileName";
 import { useEffect, useRef, useState } from "react";
 import {

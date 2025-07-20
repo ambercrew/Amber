@@ -7,6 +7,7 @@
 	max-width: 100%;
 	/* Adding more space at the bottom for actions menus. */
 	padding-bottom: 10rem;
+    overflow-y: auto;
 
 	--sidebar-inner-padding: 12px 20px;
 	--border-seperator: 1px solid var(--border-color);

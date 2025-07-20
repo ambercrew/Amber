@@ -1,7 +1,7 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { useRef } from "react";
-import { Action } from "../types/Action";
+import { Action } from "../types/action";
 
 interface Props {
 	actions: Action[];

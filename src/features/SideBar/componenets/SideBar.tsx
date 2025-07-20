@@ -9,7 +9,7 @@ import {
 } from "../../../stores/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../../stores/reducers/fileSystemReducers";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import searchFolder from "../../../utils/searchFolder";
+import searchFolder from "../utils/searchFolder";
 import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";

@@ -128,7 +128,8 @@
 	flex-direction: column;
 	z-index: 1;
 	gap: var(--small-padding);
-	min-width: 26rem;
+    width: 100%;
+    overflow-x: auto;
 
 	& button {
 		text-align: left;

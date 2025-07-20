@@ -12,7 +12,7 @@ import {
 	mdiPencilOutline,
 } from "@mdi/js";
 import React, { useRef, useState } from "react";
-import { Action } from "../types/Action.ts";
+import { Action } from "../types/action.ts";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
 	importFile,
@@ -21,7 +21,7 @@ import {
 } from "../../../stores/actions/fileSystemActions";
 import getFileName from "../utils/getFileName.ts";
 import { requestFailure } from "../../../stores/reducers/fileSystemReducers";
-import UiFolder from "../../../types/ui/uiFolder";
+import UiFolder from "../../../types/ui/uiFolder.ts";
 import { exportItem } from "../../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";

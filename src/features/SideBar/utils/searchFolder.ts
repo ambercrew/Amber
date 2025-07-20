@@ -1,6 +1,6 @@
-import ParsedFolder from "../types/parsedFolder";
-import UiFile from "../types/ui/uiFile";
-import UiFolder from "../types/ui/uiFolder";
+import ParsedFolder from "../../../types/parsedFolder";
+import UiFile from "../../../types/ui/uiFile";
+import UiFolder from "../../../types/ui/uiFolder";
 
 function searchFolder(folder: ParsedFolder, searchText: string): UiFolder {
 	const subFolders = folder.subFolders.map(f => searchFolder(f, searchText));
