@@ -13,6 +13,7 @@ export const cellTypesDisplayNames: Record<CellType, string> = {
 };
 
 export default interface Cell {
+    // TODO: id should not be nullable
 	id?: number;
 	fileId: number;
 	content: string;

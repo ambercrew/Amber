@@ -245,10 +245,10 @@ function EditableCells({
 			)
 		: cells;
 
-	const handleSelect = (cellId: number) => {
+	const handleSelect = (e: React.FocusEvent<HTMLDivElement>, cellId: number) => {
 		setSelectedCellId(cellId);
-		if (!containerRef.current || !selectedCellRef.current) return;
-		scrollUntilVisible(containerRef.current, selectedCellRef.current);
+		if (!containerRef.current) return;
+		scrollUntilVisible(containerRef.current, e.currentTarget);
 	};
 
 	return (
@@ -267,7 +267,7 @@ function EditableCells({
 							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						cell={cell}
-						onSelect={() => handleSelect(cell.id!)}
+						onSelect={e => handleSelect(e, cell.id!)}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id!)}
 						autoFocusEditor={
