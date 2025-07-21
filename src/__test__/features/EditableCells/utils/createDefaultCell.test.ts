@@ -1,5 +1,5 @@
-import createDefaultCell from "../../features/EditableCells/utils/createDefaultCell";
-import Cell from "../../types/backend/entity/cell";
+import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
+import Cell from "../../../../types/backend/entity/cell";
 
 describe(createDefaultCell, () => {
 	it("Note", () => {
@@ -8,6 +8,7 @@ describe(createDefaultCell, () => {
 		const fileId = 2;
 		const index = 3;
 		const expected: Cell = {
+            id: 0,
 			cellType: "Note",
 			content: "",
 			searchableContent: "",

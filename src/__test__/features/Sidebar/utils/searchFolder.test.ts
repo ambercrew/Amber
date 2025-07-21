@@ -1,6 +1,6 @@
-import ParsedFolder from "../../types/parsedFolder";
-import UiFolder from "../../types/ui/uiFolder";
-import searchFolder from "../../features/SideBar/utils/searchFolder";
+import ParsedFolder from "../../../../types/parsedFolder";
+import UiFolder from "../../../../types/ui/uiFolder";
+import searchFolder from "../../../../features/SideBar/utils/searchFolder";
 
 describe(searchFolder, () => {
 	it("Searches folder correctly", () => {

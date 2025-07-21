@@ -1,8 +1,8 @@
 import { Card, State } from "ts-fsrs";
-import createCardFromRepetition from "../../features/Reviewer/utils/createCardFromRepetition";
+import createCardFromRepetition from "../../../../features/Reviewer/utils/createCardFromRepetition";
 import Repetition, {
 	RepetitionState,
-} from "../../types/backend/entity/repetition";
+} from "../../../../types/backend/entity/repetition";
 
 describe(createCardFromRepetition, () => {
 	it("Returns correct on all status", () => {

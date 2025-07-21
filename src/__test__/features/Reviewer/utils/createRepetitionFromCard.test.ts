@@ -1,6 +1,6 @@
 import { Card, State } from "ts-fsrs";
-import createRepetitionFromCard from "../../features/Reviewer/utils/createRepetitionFromCard";
-import Repetition from "../../types/backend/entity/repetition";
+import createRepetitionFromCard from "../../../../features/Reviewer/utils/createRepetitionFromCard";
+import Repetition from "../../../../types/backend/entity/repetition";
 
 describe(createRepetitionFromCard, () => {
 	it("Converts correctly", () => {
@@ -9,6 +9,7 @@ describe(createRepetitionFromCard, () => {
 		const dueDate = new Date();
 		const lastReviewDate = new Date();
 		const card: Card = {
+            learning_steps: 1,
 			due: dueDate,
 			state: State.New,
 			last_review: lastReviewDate,

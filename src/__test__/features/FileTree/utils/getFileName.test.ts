@@ -1,4 +1,4 @@
-import getFileName from "../../features/FileTree/utils/getFileName";
+import getFileName from "../../../../features/FileTree/utils/getFileName";
 
 describe(getFileName, () => {
 	it("Works on full path", () => {
