@@ -24,7 +24,6 @@
 		display: flex;
 		align-content: center;
 		gap: 4px;
-		overflow-x: auto;
 		font-size: 1.4rem;
 
 		& .study-button {

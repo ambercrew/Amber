@@ -73,7 +73,7 @@ function FocusTools({
 	const handleResetRepetitionsConfirm = async () => {
 		try {
 			setShowResetRepetitionsDialog(false);
-			await resetRepetitionsForCell(cell.id!);
+			await resetRepetitionsForCell(cell.id);
 			onResetRepetitions();
 		} catch (e) {
 			console.error(e);
@@ -93,7 +93,7 @@ function FocusTools({
 	});
 
 	const handleEditInFileClick = () => {
-		if (onEditButtonClick) onEditButtonClick(cell.fileId, cell.id!);
+		if (onEditButtonClick) onEditButtonClick(cell.fileId, cell.id);
 	};
 
 	return (
@@ -102,7 +102,7 @@ function FocusTools({
 				<ConfirmationDialog
 					text="Are you sure you want to delete the cell?"
 					title="Delete cell"
-                    icon={mdiDeleteOutline}
+					icon={mdiDeleteOutline}
 					onCancel={hideDeleteDialog}
 					onConfirm={() => void handleCellDeleteConfirm()}
 				/>
@@ -112,7 +112,7 @@ function FocusTools({
 				<ConfirmationDialog
 					text="Are you sure you want to reset all repetitions related to this cell?"
 					title="Reset repetitions"
-                    icon={mdiRestore}
+					icon={mdiRestore}
 					onCancel={() => setShowResetRepetitionsDialog(false)}
 					onConfirm={() => void handleResetRepetitionsConfirm()}
 				/>

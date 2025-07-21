@@ -17,6 +17,7 @@
 	transition: all var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
+	margin-bottom: var(--small-padding);
 
 	& form {
 		width: 100%;
@@ -71,15 +72,11 @@
 	&:hover {
 		background-color: var(--grey-background-color);
 	}
-
-	&:active,
-	&:focus {
-		border-color: var(--primary-color);
-	}
 }
 
 .file-tree-dots-selected {
 	color: #fff;
+	outline-color: transparent;
 
 	&:hover {
 		background-color: var(--primary-color-shade-10);
@@ -126,7 +123,7 @@
 	flex-direction: column;
 	z-index: 1;
 	gap: var(--small-padding);
-    overflow-x: auto;
+	overflow-x: auto;
 
 	& button {
 		text-align: left;

@@ -10,11 +10,11 @@ function scrollUntilVisible(
 	const childRect = childElement.getBoundingClientRect();
 
 	if (0 > childRect.top - parentRect.top) {
-        childElement.scrollIntoView(true);
+		childElement.scrollIntoView(true);
 	}
 
 	if (0 < childRect.bottom - parentRect.bottom) {
-        childElement.scrollIntoView(false);
+		childElement.scrollIntoView(false);
 	}
 }
 

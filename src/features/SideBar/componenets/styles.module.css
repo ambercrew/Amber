@@ -7,9 +7,9 @@
 	max-width: 100%;
 	/* Adding more space at the bottom for actions menus. */
 	padding-bottom: 10rem;
-    overflow-y: auto;
-    position: relative;
-    font-size: 1.6rem;
+	overflow-y: auto;
+	position: relative;
+	font-size: 1.6rem;
 
 	--sidebar-inner-horizontal-padding: 20px;
 	--sidebar-inner-padding: 12px var(--sidebar-inner-horizontal-padding);
@@ -108,6 +108,9 @@
 .rows {
 	padding: var(--large-padding);
 	border-bottom: var(--border-seperator);
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-padding);
 
 	.row {
 		display: flex;
@@ -116,8 +119,7 @@
 		gap: 12px;
 		width: 100%;
 		transition: all var(--default-transition-time);
-		height: 4.2rem;
-		margin-bottom: 4px;
+		padding: 12px;
 
 		&:hover {
 			background-color: var(--grey-background-color);

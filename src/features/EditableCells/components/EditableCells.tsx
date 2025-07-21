@@ -52,7 +52,7 @@ function EditableCells({
 }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
 		if (cells.some(c => c.id === editCellId)) return editCellId;
-		else if (cells.length > 0) return cells[0].id!;
+		else if (cells.length > 0) return cells[0].id;
 		return null;
 	});
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -83,14 +83,14 @@ function EditableCells({
 				c => c.id === selectedCellId,
 			);
 			setSelectedCellId(
-				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id!,
+				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id,
 			);
 		} else if (e.ctrlKey && e.code == "ArrowUp") {
 			e.preventDefault();
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
+			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id);
 		} else if (e.ctrlKey && e.key === " ") {
 			selectedCellRef.current?.scrollIntoView();
 		}
@@ -185,9 +185,9 @@ function EditableCells({
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		if (cellIndex > 0) {
-			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
-			setSelectedCellId(cells[1].id!);
+			setSelectedCellId(cells[1].id);
 		} else {
 			setSelectedCellId(null);
 		}
@@ -221,7 +221,7 @@ function EditableCells({
 			await saveChanges();
 			await executeRequest(async () => {
 				await moveCell(
-					cells[selectedCellIndex].id!,
+					cells[selectedCellIndex].id,
 					selectedCellIndex + (number > 0 ? number + 1 : number),
 				);
 			});
@@ -245,7 +245,10 @@ function EditableCells({
 			)
 		: cells;
 
-	const handleSelect = (e: React.FocusEvent<HTMLDivElement>, cellId: number) => {
+	const handleSelect = (
+		e: React.FocusEvent<HTMLDivElement>,
+		cellId: number,
+	) => {
 		setSelectedCellId(cellId);
 		if (!containerRef.current) return;
 		scrollUntilVisible(containerRef.current, e.currentTarget);
@@ -267,9 +270,9 @@ function EditableCells({
 							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						cell={cell}
-						onSelect={e => handleSelect(e, cell.id!)}
+						onSelect={e => handleSelect(e, cell.id)}
 						isSelected={selectedCellId === cell.id}
-						onClick={() => setSelectedCellId(cell.id!)}
+						onClick={() => setSelectedCellId(cell.id)}
 						autoFocusEditor={
 							autoFocusEditor && selectedCellId === cell.id
 						}
@@ -278,7 +281,7 @@ function EditableCells({
 						)}
 						onError={onError}
 						onDrop={e => void handleDrop(e, i)}
-						onUpdate={content => handleUpdate(content, cell.id!)}
+						onUpdate={content => handleUpdate(content, cell.id)}
 						onDelete={() => void handleCellDeleteConfirm()}
 						onInsertNewCell={cellType =>
 							void insertNewCell(cellType, i + 1)

@@ -4,7 +4,12 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-    font-size: inherit;
+	outline: 2px solid transparent;
+	outline-offset: 2px;
+}
+
+*:focus {
+	outline-color: var(--primary-color);
 }
 
 html {
@@ -147,9 +152,9 @@ select:focus {
 }
 
 button {
+    font-size: 1.6rem;
 	border-radius: var(--default-border-radius);
 	padding: var(--default-padding);
-	outline: none;
 	cursor: pointer;
 	transition: var(--default-transition-time);
 	font-weight: 400;
@@ -186,10 +191,6 @@ button.primary:active {
 
 button.transparent:not(:disabled):hover {
 	background-color: var(--grey-background-color);
-}
-
-button.transparent:not(:disabled):focus {
-	border-color: var(--primary-color);
 }
 
 button.transparent:not(:disabled):active {

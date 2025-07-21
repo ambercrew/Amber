@@ -73,7 +73,7 @@ function FileTree({ folder }: Props) {
 						fileMarkedForDeletionId ? "file" : "folder"
 					}?`}
 					title={`Delete ${fileMarkedForDeletionId ? "file" : "folder"}`}
-                    icon={mdiDeleteOutline}
+					icon={mdiDeleteOutline}
 					onCancel={handleDeleteCancel}
 					onConfirm={() => void handleDelete()}
 				/>

@@ -72,7 +72,7 @@ function CellBlock(
 
 	const handleDragStart = (e: React.DragEvent) => {
 		e.stopPropagation();
-		e.dataTransfer.setData(CELL_ID_DRAG_FORMAT, cell.id!.toString());
+		e.dataTransfer.setData(CELL_ID_DRAG_FORMAT, cell.id.toString());
 		setIsDragging(true);
 	};
 
@@ -99,7 +99,7 @@ function CellBlock(
 		if (isSelected && tipTapEditorRef.current) {
 			tipTapEditorRef.current.commands.focus();
 		}
-		onClick(cell.id!);
+		onClick(cell.id);
 	};
 
 	const handleInsertNewCell = (cellType: CellType) => {

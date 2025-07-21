@@ -28,7 +28,11 @@ import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../../utils/errorToString";
 import { fileIdQueryParameter } from "../../../config/constants";
 import { useNavigate, useSearchParams } from "react-router";
-import { dragFormatForFile, dragFormatForFolder, jsonFileFilter } from "../config/constants.ts";
+import {
+	dragFormatForFile,
+	dragFormatForFolder,
+	jsonFileFilter,
+} from "../config/constants.ts";
 
 interface Props {
 	folder: UiFolder | null;

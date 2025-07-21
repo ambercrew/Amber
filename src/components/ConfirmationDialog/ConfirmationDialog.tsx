@@ -6,12 +6,18 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 interface Props {
 	title: string;
 	text: string;
-    icon?: string;
+	icon?: string;
 	onCancel: () => void;
 	onConfirm: () => void;
 }
 
-function ConfirmationDialog({ title, text, icon = mdiExclamationThick, onCancel, onConfirm }: Props) {
+function ConfirmationDialog({
+	title,
+	text,
+	icon = mdiExclamationThick,
+	onCancel,
+	onConfirm,
+}: Props) {
 	useGlobalKey(handleKeyUp);
 
 	function handleKeyUp(e: KeyboardEvent) {

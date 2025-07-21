@@ -16,7 +16,10 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
-import { fileIdQueryParameter, SMALL_SCREEN_MAX_WIDTH } from "../../../config/constants";
+import {
+	fileIdQueryParameter,
+	SMALL_SCREEN_MAX_WIDTH,
+} from "../../../config/constants";
 
 interface Props {
 	onSettingsClick: () => void;
