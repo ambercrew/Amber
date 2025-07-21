@@ -81,6 +81,7 @@ function FileTreeItemRow({
 	};
 
 	return (
+        <>
 		<div
 			className={`${styles.fileTreeRow}`}
 			draggable={!isRoot && !isRenaming}
@@ -131,8 +132,10 @@ function FileTreeItemRow({
 				</button>
 			)}
 
-			{showActions && <ActionsMenu actions={actions} />}
 		</div>
+        {showActions && <ActionsMenu actions={actions} />}
+
+</>
 	);
 }
 

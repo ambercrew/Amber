@@ -11,16 +11,12 @@
 	font-size: 1.6rem;
 }
 
-.box hr {
-	background-color: var(--text-color);
-	height: 1px;
-	border: 0;
-}
-
 .title-bar {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: var(--default-padding);
+    font-size: 2.4rem;
+    font-weight: 300;
 }
 
 .buttons-row {

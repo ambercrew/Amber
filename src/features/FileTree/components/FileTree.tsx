@@ -13,6 +13,7 @@ import { fileIdQueryParameter } from "../../../config/constants.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectFolderById } from "../../../stores/selectors/fileSystemSelectors.ts";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";
+import { mdiDeleteOutline } from "@mdi/js";
 
 interface Props {
 	folder: UiFolder;
@@ -71,7 +72,8 @@ function FileTree({ folder }: Props) {
 					text={`Are you sure you want to delete the selected ${
 						fileMarkedForDeletionId ? "file" : "folder"
 					}?`}
-					title="Delete"
+					title={`Delete ${fileMarkedForDeletionId ? "file" : "folder"}`}
+                    icon={mdiDeleteOutline}
 					onCancel={handleDeleteCancel}
 					onConfirm={() => void handleDelete()}
 				/>

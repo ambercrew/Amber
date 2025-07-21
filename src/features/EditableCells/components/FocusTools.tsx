@@ -102,6 +102,7 @@ function FocusTools({
 				<ConfirmationDialog
 					text="Are you sure you want to delete the cell?"
 					title="Delete cell"
+                    icon={mdiDeleteOutline}
 					onCancel={hideDeleteDialog}
 					onConfirm={() => void handleCellDeleteConfirm()}
 				/>
@@ -111,6 +112,7 @@ function FocusTools({
 				<ConfirmationDialog
 					text="Are you sure you want to reset all repetitions related to this cell?"
 					title="Reset repetitions"
+                    icon={mdiRestore}
 					onCancel={() => setShowResetRepetitionsDialog(false)}
 					onConfirm={() => void handleResetRepetitionsConfirm()}
 				/>

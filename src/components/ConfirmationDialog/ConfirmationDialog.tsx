@@ -6,11 +6,12 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 interface Props {
 	title: string;
 	text: string;
+    icon?: string;
 	onCancel: () => void;
 	onConfirm: () => void;
 }
 
-function ConfirmationDialog({ title, text, onCancel, onConfirm }: Props) {
+function ConfirmationDialog({ title, text, icon = mdiExclamationThick, onCancel, onConfirm }: Props) {
 	useGlobalKey(handleKeyUp);
 
 	function handleKeyUp(e: KeyboardEvent) {
@@ -28,10 +29,9 @@ function ConfirmationDialog({ title, text, onCancel, onConfirm }: Props) {
 			}}>
 			<div className={`${styles.box}`} onClick={e => e.stopPropagation()}>
 				<div className={`${styles.titleBar}`}>
-					<Icon path={mdiExclamationThick} size={1.4} />
+					<Icon path={icon} size={1.4} />
 					<p>{title}</p>
 				</div>
-				<hr />
 				<p>{text}</p>
 				<div className={`${styles.buttonsRow}`}>
 					<button className="transparent" onClick={onConfirm}>

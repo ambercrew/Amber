@@ -14,7 +14,6 @@
 
 .file-tree-row {
 	width: 100%;
-	font-size: 1.2rem;
 	transition: all var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
@@ -117,9 +116,8 @@
 
 .actions-menu {
 	position: absolute;
-	top: 100%;
-	margin-top: var(--small-padding);
-	left: 0;
+	left: var(--sidebar-inner-horizontal-padding);
+	right: var(--sidebar-inner-horizontal-padding);
 	padding: var(--large-padding);
 	border-radius: var(--default-border-radius);
 	background-color: var(--default-background-color);
@@ -128,7 +126,6 @@
 	flex-direction: column;
 	z-index: 1;
 	gap: var(--small-padding);
-    width: 100%;
     overflow-x: auto;
 
 	& button {

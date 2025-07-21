@@ -8,8 +8,11 @@
 	/* Adding more space at the bottom for actions menus. */
 	padding-bottom: 10rem;
     overflow-y: auto;
+    position: relative;
+    font-size: 1.6rem;
 
-	--sidebar-inner-padding: 12px 20px;
+	--sidebar-inner-horizontal-padding: 20px;
+	--sidebar-inner-padding: 12px var(--sidebar-inner-horizontal-padding);
 	--border-seperator: 1px solid var(--border-color);
 
 	.header {
@@ -35,10 +38,6 @@
 			transition: 0s tansform;
 			transition: 0s width;
 		}
-	}
-
-	& * {
-		font-size: 1.6rem;
 	}
 
 	& .title-row {
