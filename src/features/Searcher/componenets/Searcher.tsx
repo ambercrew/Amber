@@ -82,7 +82,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 					cells={searchResult.cells}
 					onError={onError}
 					autoFocusEditor={true}
-					onCellsUpdate={retrieveSearchResult}
+					onCellsUpdateSave={retrieveSearchResult}
 					repetitions={searchResult.repetitions}
 					editCellId={null}
 					enableFileSpecificFunctionality={false}

@@ -152,7 +152,7 @@ select:focus {
 }
 
 button {
-    font-size: 1.6rem;
+	font-size: 1.6rem;
 	border-radius: var(--default-border-radius);
 	padding: var(--default-padding);
 	cursor: pointer;

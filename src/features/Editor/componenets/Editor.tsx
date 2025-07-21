@@ -115,7 +115,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					onError={onError}
 					editCellId={editCellId}
 					fileId={selectedFileId}
-					onCellsUpdate={handleCellsUpdate}
+					onCellsUpdateSave={handleCellsUpdate}
 					autoFocusEditor={
 						document.activeElement !== searchInputRef.current
 					}

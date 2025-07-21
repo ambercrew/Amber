@@ -5,22 +5,13 @@ import AddCellContainer from "./AddCellContainer";
 import styles from "./styles.module.css";
 import CellBlock from "./CellBlock";
 import Repetition from "../../../types/backend/entity/repetition";
-import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import useBeforeUnload from "../../../hooks/useBeforeUnload";
-import UpdateCellRequest from "../../../types/backend/dto/updateCellRequest";
 import createDefaultCell from "../utils/createDefaultCell";
-import {
-	createCell,
-	deleteCell,
-	moveCell,
-	updateCellsContents,
-} from "../../../api/cellApi";
+import { createCell, deleteCell, moveCell } from "../../../api/cellApi";
 import errorToString from "../../../utils/errorToString";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import scrollUntilVisible from "../utils/scrollUntilVisible";
-import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
+import useAutoSave from "../hooks/useAutoSave";
 
 interface Props {
 	cells: Cell[];
@@ -32,11 +23,10 @@ interface Props {
 	enableFileSpecificFunctionality?: boolean;
 	className?: string;
 	onError: (error: string) => void;
-	onCellsUpdate: () => Promise<void>;
+	onCellsUpdateSave: () => Promise<void>;
 	onEditButtonClick?: (fileId: number, cellId: number) => void;
 }
 
-// TODO: refactor using hooks for auto saving
 function EditableCells({
 	cells,
 	searchText,
@@ -47,7 +37,7 @@ function EditableCells({
 	enableFileSpecificFunctionality = true,
 	className,
 	onError,
-	onCellsUpdate,
+	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
@@ -57,17 +47,15 @@ function EditableCells({
 	});
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
-	// This ref is only used for keeping updated cells that are not yet saved.
-	const updatedCells = useRef(cells);
-	const autoSaveTimeoutId = useRef<number>(null);
-	// Used to store the ids of the changed cells so that we update them all
-	// together instead of updating one by one.
-	const changedCellsIds = useRef(new Set<number>());
+
+	const { saveChanges, onCellContentUpdate, ignoreCell } = useAutoSave({
+		cells,
+		onCellsUpdateSave,
+		onError,
+	});
 
 	useEffect(() => {
-		if (!searchText) {
-			selectedCellRef.current?.scrollIntoView();
-		}
+		if (!searchText) selectedCellRef.current?.scrollIntoView();
 	}, [searchText]);
 
 	useGlobalKey(e => {
@@ -96,11 +84,6 @@ function EditableCells({
 		}
 	}, "keydown");
 
-	useBeforeUnload(e => {
-		void saveChanges();
-		if (changedCellsIds.current.size > 0) e.preventDefault();
-	});
-
 	const executeRequest = useCallback(
 		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
 			try {
@@ -114,74 +97,17 @@ function EditableCells({
 		[onError],
 	);
 
-	const saveChanges = useCallback(async () => {
-		if (autoSaveTimeoutId.current !== null) {
-			clearTimeout(autoSaveTimeoutId.current);
-			autoSaveTimeoutId.current = null;
-		}
-
-		if (changedCellsIds.current.size === 0) return;
-
-		await executeRequest(async () => {
-			const requests: UpdateCellRequest[] = [];
-
-			for (const id of changedCellsIds.current) {
-				const cell = updatedCells.current.find(c => c.id === id);
-				if (!cell) continue;
-				requests.push({
-					cellId: id,
-					content: cell.content,
-				});
-			}
-
-			await updateCellsContents(requests);
-			changedCellsIds.current.clear();
-		});
-
-		await onCellsUpdate();
-	}, [executeRequest, onCellsUpdate]);
-
-	useEffect(() => {
-		updatedCells.current = cells;
-
-		return () => void saveChanges();
-	}, [cells, saveChanges]);
-
-	useEffect(() => {
-		let unlisten: UnlistenFn;
-
-		void (async () => {
-			unlisten = await getCurrentWindow().listen(
-				TauriEvent.WINDOW_CLOSE_REQUESTED,
-				() => {
-					if (changedCellsIds.current.size > 0) {
-						void (async () => {
-							await saveChanges();
-							await getCurrentWindow().destroy();
-						})();
-					} else {
-						void getCurrentWindow().destroy();
-					}
-				},
-			);
-		})();
-
-		return () => {
-			if (unlisten) void unlisten();
-		};
-	}, [saveChanges]);
-
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId!, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
 		if (cellId) setSelectedCellId(cellId);
 		else return;
 		await saveChanges();
-		await onCellsUpdate();
+		await onCellsUpdateSave();
 	};
 
 	const handleCellDeleteConfirm = async () => {
-		changedCellsIds.current.delete(selectedCellId!);
+		ignoreCell(selectedCellId!);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		if (cellIndex > 0) {
@@ -192,22 +118,7 @@ function EditableCells({
 			setSelectedCellId(null);
 		}
 		await saveChanges();
-		await onCellsUpdate();
-	};
-
-	const handleUpdate = (content: string, id: number) => {
-		changedCellsIds.current.add(id);
-		const newCells = [...updatedCells.current];
-		newCells.find(c => c.id === id)!.content = content;
-		updatedCells.current = newCells;
-
-		if (autoSaveTimeoutId.current !== null) {
-			clearTimeout(autoSaveTimeoutId.current);
-			autoSaveTimeoutId.current = null;
-		}
-		autoSaveTimeoutId.current = setTimeout(() => {
-			void saveChanges();
-		}, AUTO_SAVE_DELAY_IN_MILLI_SECONDS);
+		await onCellsUpdateSave();
 	};
 
 	const moveSelectedCellByNumber = async (number: number) => {
@@ -225,7 +136,7 @@ function EditableCells({
 					selectedCellIndex + (number > 0 ? number + 1 : number),
 				);
 			});
-			await onCellsUpdate();
+			await onCellsUpdateSave();
 		}
 	};
 
@@ -236,7 +147,7 @@ function EditableCells({
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await saveChanges();
-		await onCellsUpdate();
+		await onCellsUpdateSave();
 	};
 
 	const filteredCells = searchText
@@ -281,14 +192,16 @@ function EditableCells({
 						)}
 						onError={onError}
 						onDrop={e => void handleDrop(e, i)}
-						onUpdate={content => handleUpdate(content, cell.id)}
+						onUpdate={content =>
+							onCellContentUpdate(cell.id, content)
+						}
 						onDelete={() => void handleCellDeleteConfirm()}
 						onInsertNewCell={cellType =>
 							void insertNewCell(cellType, i + 1)
 						}
 						onResetRepetitions={() => {
 							void saveChanges();
-							void onCellsUpdate();
+							void onCellsUpdateSave();
 						}}
 						enableFileSpecificFunctionality={
 							enableFileSpecificFunctionality
