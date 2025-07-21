@@ -245,11 +245,10 @@ function EditableCells({
 			)
 		: cells;
 
-	const handleSelect = (e: React.FocusEvent, cellId: number) => {
+	const handleSelect = (cellId: number) => {
 		setSelectedCellId(cellId);
-		if (!containerRef.current) return;
-		// Using 100 offset to make sure that the whole element is visible.
-		scrollUntilVisible(containerRef.current, e.target, 100);
+		if (!containerRef.current || !selectedCellRef.current) return;
+		scrollUntilVisible(containerRef.current, selectedCellRef.current);
 	};
 
 	return (
@@ -268,7 +267,7 @@ function EditableCells({
 							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						cell={cell}
-						onSelect={e => handleSelect(e, cell.id!)}
+						onSelect={() => handleSelect(cell.id!)}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id!)}
 						autoFocusEditor={

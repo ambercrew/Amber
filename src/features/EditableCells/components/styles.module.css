@@ -1,5 +1,5 @@
 .container {
-	overflow-y: scroll;
+	overflow-y: auto;
 	height: 100%;
 	background-color: var(--default-background-color);
 	display: flex;

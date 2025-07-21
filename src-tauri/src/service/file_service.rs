@@ -246,6 +246,7 @@ pub async fn rename_folder(
     update_path(db_conn, folder_id, new_path.clone()).await?;
     create_folder_recursively(db_conn, &get_folder_path(&new_path)).await?;
 
+    // Moving child elements.
     for child in folder_children {
         let new_row_path = new_path.clone()
             + child
