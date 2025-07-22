@@ -2,8 +2,7 @@ use std::fs::{self, File};
 
 use sea_orm::{DbConn, query::*};
 
-use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
-
+use crate::value_objects::exported_item::{ExportedItemType, ExportedCell, ExportedItem};
 use super::{cell_service, file_service};
 use lol_html::html_content::Element;
 use lol_html::{RewriteStrSettings, element, rewrite_str};
