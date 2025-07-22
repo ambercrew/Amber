@@ -27,7 +27,6 @@ pub async fn update_repetitions_for_cell(
     let mut repetitions_to_insert: Vec<repetition::ActiveModel> = vec![];
     let mut repetitions_to_remove: Vec<i32> = vec![];
 
-    // TODO: can be a common trait
     match cell_type {
         CellType::Note => (),
         CellType::FlashCard | CellType::TrueFalse => {
