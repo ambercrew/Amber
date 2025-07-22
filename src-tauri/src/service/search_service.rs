@@ -33,12 +33,12 @@ pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<SearchR
 mod tests {
     use crate::{
         entity::{cell::CellType, review::Rating},
-        value_objects::flash_card::FlashCard,
         service::{
             cell_service::create_cell,
             review_service::register_review,
             tests::{create_file, get_db},
         },
+        value_objects::flash_card::FlashCard,
     };
 
     use super::*;

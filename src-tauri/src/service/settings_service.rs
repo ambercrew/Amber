@@ -8,8 +8,8 @@ use tokio::sync::Mutex;
 
 use crate::{
     dto::update_settings_request::UpdateSettingsRequest,
-    value_objects::settings::{Settings, Theme},
     util::database_util::load_database,
+    value_objects::settings::{Settings, Theme},
 };
 
 #[cfg(not(dev))]

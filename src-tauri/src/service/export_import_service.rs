@@ -2,8 +2,8 @@ use std::fs::{self, File};
 
 use sea_orm::{DbConn, query::*};
 
-use crate::value_objects::exported_item::{ExportedItemType, ExportedCell, ExportedItem};
 use super::{cell_service, file_service};
+use crate::value_objects::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 use lol_html::html_content::Element;
 use lol_html::{RewriteStrSettings, element, rewrite_str};
 
@@ -209,11 +209,11 @@ mod tests {
     use super::*;
     use crate::{
         entity::cell::CellType,
-        value_objects::{flash_card::FlashCard, true_false::TrueFalse},
         service::{
             repetition_service,
             tests::{create_file_cell_with_cell_type_and_content, get_db},
         },
+        value_objects::{flash_card::FlashCard, true_false::TrueFalse},
     };
     use rand::prelude::*;
 

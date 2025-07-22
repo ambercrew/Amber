@@ -219,7 +219,6 @@ mod tests {
 
     use crate::{
         entity::review::Rating,
-        value_objects::flash_card::FlashCard,
         service::{
             review_service::register_review,
             tests::{
@@ -227,6 +226,7 @@ mod tests {
                 insert_repetitions,
             },
         },
+        value_objects::flash_card::FlashCard,
     };
 
     use super::*;

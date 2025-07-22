@@ -3,8 +3,8 @@ use tauri::State;
 use tokio::sync::Mutex;
 
 use crate::{
-    dto::update_settings_request::UpdateSettingsRequest, value_objects::settings::Settings,
-    service::settings_service,
+    dto::update_settings_request::UpdateSettingsRequest, service::settings_service,
+    value_objects::settings::Settings,
 };
 
 #[tauri::command]

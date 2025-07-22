@@ -139,7 +139,7 @@
 	.search-input {
 		width: 100%;
 		background-color: inherit;
-        font-size: 1.6rem;
+		font-size: 1.6rem;
 
 		&:hover {
 			background-color: var(--default-background-color);

@@ -2,9 +2,9 @@ mod api;
 mod dto;
 mod entity;
 mod migration;
-mod value_objects;
 mod service;
 mod util;
+mod value_objects;
 
 use service::settings_service;
 use tauri::Manager;
