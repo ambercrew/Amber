@@ -30,14 +30,14 @@ const renderAutoSave = () => {
 };
 
 describe(useAutoSave, () => {
-    beforeAll(() => {
-        // Mocking this to not get errors.
+	beforeAll(() => {
+		// Mocking this to not get errors.
 		const getCurrentWindowMock = vi.fn();
 		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
 		getCurrentWindowMock.mockReturnValue({
-            listen: vi.fn(),
+			listen: vi.fn(),
 		});
-    });
+	});
 
 	it("Saves automatically after delay", async () => {
 		// Arrange
@@ -80,13 +80,13 @@ describe(useAutoSave, () => {
 
 		// Act
 
-        const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 		await act(() => fireEvent(window, event));
 
 		// Assert
 
-        expect(preventDefaultSpy).toBeCalled();
+		expect(preventDefaultSpy).toBeCalled();
 		expect(onCellsUpdateSaveCb).toBeCalled();
 	});
 
@@ -115,7 +115,7 @@ describe(useAutoSave, () => {
 
 		// Waiting for all promises, including the ones in useEffect.
 		await Promise.resolve();
-        // Ensuring that the call back for useEffect is called.
+		// Ensuring that the call back for useEffect is called.
 		returnValue.unmount();
 
 		// Assert

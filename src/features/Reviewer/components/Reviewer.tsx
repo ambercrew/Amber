@@ -5,7 +5,6 @@ import Icon from "@mdi/react";
 import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
 import createCardFromCellRepetition from "../utils/createCardFromRepetition";
-import durationToString from "../utils/durationToString";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import Repetition from "../../../types/backend/entity/repetition";
 import createRepetitionFromCard from "../utils/createRepetitionFromCard";
@@ -19,8 +18,9 @@ import errorToString from "../../../utils/errorToString";
 import gradeToRating from "../utils/gradeToRating";
 import { registerReview } from "../../../api/reviewApi";
 import sortReviewerRepetitions from "../utils/sortReviewerRepetitions";
+import ButtonRow from "./ButtonRow";
+import accumulateRepetitionsCounts from "../utils/accumulateRepetitionsCounts";
 
-// TODO: refactor
 interface Props {
 	fileIds: number[];
 	onEditButtonClick: (fileId: number, cellId: number) => void;
@@ -61,16 +61,14 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		);
 	}, [repetitions]);
 
-	const currentCard =
-		dueToday.length > 0
-			? createCardFromCellRepetition(dueToday[currentCellIndex])
-			: null;
+	const recordLog: RecordLog | null = useMemo(() => {
+		if (dueToday.length == 0) return null;
+		const currentCard = createCardFromCellRepetition(
+			dueToday[currentCellIndex],
+		);
 
-	const schedulingCards: RecordLog | null = useMemo(
-		() =>
-			currentCard ? fsrs.repeat(currentCard, startTime.current) : null,
-		[currentCard, startTime],
-	);
+		return fsrs.repeat(currentCard, startTime.current);
+	}, [dueToday, startTime, currentCellIndex]);
 
 	useGlobalKey(e => {
 		if (e.key === " ") {
@@ -97,12 +95,12 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	});
 
 	const handleGradeSubmit = async (grade: Grade) => {
-		if (isSendingRequest || !schedulingCards) {
+		if (isSendingRequest || !recordLog) {
 			return;
 		}
 		setIsSendingRequest(true);
 		try {
-			const card = schedulingCards[grade]?.card;
+			const card = recordLog[grade]?.card;
 			const newRepetition = createRepetitionFromCard(
 				card,
 				dueToday[currentCellIndex].id,
@@ -123,12 +121,13 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 			setIsSendingRequest(false);
 		}
 		setShowAnswer(false);
+
 		if (currentCellIndex + 1 === dueToday.length) {
-			const state = location.state as FromRouteState;
+			const locationState = location.state as FromRouteState;
 			await navigate(
 				{
-					pathname: state?.from ?? "/home",
-					search: state?.fromSearch,
+					pathname: locationState?.from ?? "/home",
+					search: locationState?.fromSearch,
 				},
 				{ replace: true },
 			);
@@ -144,28 +143,13 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		dueToday[currentCellIndex]?.state === "Relearning";
 	const isCurrentCellReview = dueToday[currentCellIndex]?.state === "Review";
 
-	const counts = {
-		new: 0,
-		learning: 0,
-		review: 0,
-	};
-	dueToday.forEach((c, i) => {
-		if (i < currentCellIndex) {
-			return;
-		}
-		switch (c.state) {
-			case "New":
-				counts.new += 1;
-				break;
-			case "Learning":
-			case "Relearning":
-				counts.learning += 1;
-				break;
-			case "Review":
-				counts.review += 1;
-				break;
-		}
-	});
+	const reptitionsCounts = useMemo(
+		() =>
+			accumulateRepetitionsCounts(
+				dueToday.filter((_, i) => i >= currentCellIndex),
+			),
+		[dueToday, currentCellIndex],
+	);
 
 	const handleTimeUpdate = useCallback(
 		(time: number) => (studyTime.current = time),
@@ -216,19 +200,19 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 							<p
 								className={`new-color
                                 ${isCurrentCellNew && styles.underline}`}>
-								{counts.new}
+								{reptitionsCounts.new}
 							</p>
 							<p>+</p>
 							<p
 								className={`learning-color
                                 ${isCurrentCellLearning && styles.underline}`}>
-								{counts.learning}
+								{reptitionsCounts.learning}
 							</p>
 							<p>+</p>
 							<p
 								className={`review-color
                                 ${isCurrentCellReview && styles.underline}`}>
-								{counts.review}
+								{reptitionsCounts.review}
 							</p>
 						</div>
 						<button
@@ -240,77 +224,13 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 					</div>
 				)}
 
-				{showAnswer && schedulingCards && (
-					<div className={styles.buttonRow}>
-						<div className={styles.buttonColumn}>
-							<p>
-								{durationToString(
-									startTime.current,
-									schedulingCards[Rating.Again].card.due,
-								)}
-							</p>
-							<button
-								className={styles.againButton}
-								onClick={() =>
-									void handleGradeSubmit(Rating.Again)
-								}
-								disabled={isSendingRequest}
-								title="(1)">
-								Again
-							</button>
-						</div>
-						<div className={styles.buttonColumn}>
-							<p>
-								{durationToString(
-									startTime.current,
-									schedulingCards[Rating.Hard].card.due,
-								)}
-							</p>
-							<button
-								className={styles.hardButton}
-								onClick={() =>
-									void handleGradeSubmit(Rating.Hard)
-								}
-								disabled={isSendingRequest}
-								title="(2)">
-								Hard
-							</button>
-						</div>
-						<div className={styles.buttonColumn}>
-							<p>
-								{durationToString(
-									startTime.current,
-									schedulingCards[Rating.Good].card.due,
-								)}
-							</p>
-							<button
-								className={styles.goodButton}
-								onClick={() =>
-									void handleGradeSubmit(Rating.Good)
-								}
-								disabled={isSendingRequest}
-								title="(3)">
-								Good
-							</button>
-						</div>
-						<div className={styles.buttonColumn}>
-							<p>
-								{durationToString(
-									startTime.current,
-									schedulingCards[Rating.Easy].card.due,
-								)}
-							</p>
-							<button
-								className={styles.easyButton}
-								onClick={() =>
-									void handleGradeSubmit(Rating.Easy)
-								}
-								disabled={isSendingRequest}
-								title="(4)">
-								Easy
-							</button>
-						</div>
-					</div>
+				{showAnswer && recordLog && (
+					<ButtonRow
+						startTime={startTime.current}
+						disabled={isSendingRequest}
+						onClick={() => void handleGradeSubmit(Rating.Good)}
+						recordLog={recordLog}
+					/>
 				)}
 
 				<Timer
