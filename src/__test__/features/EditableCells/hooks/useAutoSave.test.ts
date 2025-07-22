@@ -30,7 +30,16 @@ const renderAutoSave = () => {
 };
 
 describe(useAutoSave, () => {
-	it("Saves automatically", async () => {
+    beforeAll(() => {
+        // Mocking this to not get errors.
+		const getCurrentWindowMock = vi.fn();
+		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
+		getCurrentWindowMock.mockReturnValue({
+            listen: vi.fn(),
+		});
+    });
+
+	it("Saves automatically after delay", async () => {
 		// Arrange
 
 		vi.useFakeTimers();
@@ -66,20 +75,19 @@ describe(useAutoSave, () => {
 	it("Stops before unload", async () => {
 		// Arrange
 
-		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
-
 		const event = new Event("beforeunload");
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
 
 		// Act
 
+        const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 		await act(() => fireEvent(window, event));
 
 		// Assert
 
+        expect(preventDefaultSpy).toBeCalled();
 		expect(onCellsUpdateSaveCb).toBeCalled();
-		expect(preventDefaultSpy).toBeCalled();
 	});
 
 	it("Saves on window close request", async () => {
@@ -104,8 +112,10 @@ describe(useAutoSave, () => {
 		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 		(listenMock.mock.calls[0][1] as () => void)();
+
 		// Waiting for all promises, including the ones in useEffect.
 		await Promise.resolve();
+        // Ensuring that the call back for useEffect is called.
 		returnValue.unmount();
 
 		// Assert
