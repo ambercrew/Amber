@@ -124,7 +124,7 @@ function FileTreeItem({
 				setShowActions(false);
 				const savePath = await openSaveDialog({
 					filters: [jsonFileFilter],
-					defaultPath: getFileName(fullPath),
+					defaultPath: getFileName(fullPath) + ".json",
 				});
 				if (!savePath) return;
 				try {
