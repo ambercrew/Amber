@@ -9,6 +9,10 @@ pub async fn export(
     item_id: i32,
     export_path: String,
 ) -> Result<(), String> {
+    let mut export_path = export_path;
+    if !export_path.ends_with(".json") {
+        export_path = format!("{export_path}.json").to_string();
+    }
     let db_conn = db_conn.lock().await;
     export_import_service::export(&db_conn, item_id, export_path).await
 }
