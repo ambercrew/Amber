@@ -25,7 +25,6 @@ interface ReturnValue {
  * then save all the changes in one request. All this happen automatically
  * with a delay.
  */
-// TODO: test: autosave, before unload, on close, 
 function useAutoSave({
 	cells,
 	onCellsUpdateSave,

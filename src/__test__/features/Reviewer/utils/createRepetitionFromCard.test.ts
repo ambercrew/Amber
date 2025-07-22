@@ -9,7 +9,7 @@ describe(createRepetitionFromCard, () => {
 		const dueDate = new Date();
 		const lastReviewDate = new Date();
 		const card: Card = {
-            learning_steps: 1,
+			learning_steps: 1,
 			due: dueDate,
 			state: State.New,
 			last_review: lastReviewDate,
