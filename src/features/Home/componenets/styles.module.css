@@ -50,11 +50,6 @@
 		font-size: 1.4rem;
 	}
 
-	.expand-button:focus,
-	.file-name-button:focus {
-		border-color: var(--primary-color);
-	}
-
 	& .columns {
 		display: grid;
 		grid-template-columns: repeat(3, 5rem);
