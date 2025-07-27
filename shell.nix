@@ -10,6 +10,8 @@ pkgs.mkShell {
     cargo-tauri
     nodejs
     rustc
+    cargo-expand
+    cargo-nextest
   ];
 
   buildInputs = with pkgs; [
