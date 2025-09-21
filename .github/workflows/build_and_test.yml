@@ -22,6 +22,7 @@ jobs:
             - name: Build Rust Project
               run: |
                   cd src-tauri
+                  echo "1" | bash tools.bash
                   cargo build --verbose
             - name: Run Rust Tests
               run: |

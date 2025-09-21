@@ -18,8 +18,9 @@ interface Props {
 	editCellId: string | null;
 	fileId?: string;
 	autoFocusEditor?: boolean;
-	enableFileSpecificFunctionality?: boolean;
 	className?: string;
+	/** Indicates whether the editor is showing the cells for a single or multiple files. */
+	fileMode: "single" | "global search";
 	onError: (error: string) => void;
 	onCellsUpdateSave: () => Promise<void>;
 	onEditButtonClick?: (fileId: string, cellId: string) => void;
@@ -31,8 +32,8 @@ function EditableCells({
 	fileId,
 	editCellId,
 	autoFocusEditor,
-	enableFileSpecificFunctionality = true,
 	className,
+	fileMode,
 	onError,
 	onCellsUpdateSave,
 	onEditButtonClick,
@@ -44,6 +45,8 @@ function EditableCells({
 	});
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
+	const enableFileSpecificFunctionality =
+		fileMode === "single" && !searchText;
 
 	const { saveChanges, onCellContentUpdate, ignoreCell } = useAutoSave({
 		cells,
@@ -149,7 +152,9 @@ function EditableCells({
 
 	const filteredCells = searchText
 		? cells.filter(c =>
-				c.searchableContent.includes(searchText.toLowerCase()),
+				c.searchableContent
+					.toLowerCase()
+					.includes(searchText.toLowerCase()),
 			)
 		: cells;
 
@@ -178,6 +183,7 @@ function EditableCells({
 							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						cell={cell}
+						fileMode={fileMode}
 						onSelect={e => handleSelect(e, cell.id)}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id)}

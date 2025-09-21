@@ -22,6 +22,7 @@ interface Props {
 	repetitions: Repetition[];
 	cell: Cell;
 	enableFileSpecificFunctionality: boolean;
+	fileMode: "single" | "global search";
 	onInsertClick: (e: React.MouseEvent) => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
@@ -37,6 +38,7 @@ function FocusTools({
 	repetitions,
 	cell,
 	enableFileSpecificFunctionality,
+	fileMode,
 	onInsertClick,
 	onDragStart,
 	onDragEnd,
@@ -121,7 +123,7 @@ function FocusTools({
 			<div
 				className={styles.focusTools}
 				onClick={e => e.stopPropagation()}>
-				{!enableFileSpecificFunctionality && (
+				{fileMode === "global search" && (
 					<button
 						className="transparent"
 						title="Edit in file"

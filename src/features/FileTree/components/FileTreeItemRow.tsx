@@ -108,7 +108,7 @@ function FileTreeItemRow({
 					{isRenaming && (
 						<form onSubmit={e => void handleRenameSubmit(e)}>
 							<CancellableInput
-                                onCancel={onStopRenaming}
+								onCancel={onStopRenaming}
 								type="text"
 								value={newName}
 								onChange={e => setNewName(e.target.value)}

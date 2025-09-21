@@ -29,7 +29,7 @@ create_env_file_apply_migration() {
 }
 
 show_menu
-echo -n "Please select an option (1-3): "
+echo -n "Please select an option: "
 read -r choice
 
 case $choice in
@@ -40,7 +40,7 @@ case $choice in
         exit 0
         ;;
     *)
-        echo "❌ Invalid option. Please select 1, or 2"
+        echo "❌ Invalid option."
         echo
         ;;
 esac

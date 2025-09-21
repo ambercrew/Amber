@@ -20,6 +20,7 @@ interface Props {
 	autoFocusEditor?: boolean;
 	repetitions: Repetition[];
 	enableFileSpecificFunctionality: boolean;
+	fileMode: "single" | "global search";
 	onSelect: (e: React.FocusEvent<HTMLDivElement>) => void;
 	onClick: (id: string) => void;
 	onError: (error: string) => void;
@@ -38,6 +39,7 @@ function CellBlock(
 		autoFocusEditor,
 		repetitions,
 		enableFileSpecificFunctionality,
+		fileMode,
 		onError,
 		onSelect,
 		onClick,
@@ -133,6 +135,7 @@ function CellBlock(
 					onDeleteDialogHide={() =>
 						tipTapEditorRef.current?.commands.focus()
 					}
+					fileMode={fileMode}
 					enableFileSpecificFunctionality={
 						enableFileSpecificFunctionality
 					}

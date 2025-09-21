@@ -84,7 +84,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 					autoFocusEditor={true}
 					onCellsUpdateSave={retrieveSearchResult}
 					editCellId={null}
-					enableFileSpecificFunctionality={false}
+					fileMode="global search"
 					onEditButtonClick={onEditButtonClick}
 					className={styles.editableCells}
 				/>

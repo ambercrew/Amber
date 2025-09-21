@@ -108,11 +108,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					editCellId={editCellId}
 					fileId={selectedFileId}
 					onCellsUpdateSave={handleCellsUpdate}
+					fileMode="single"
 					autoFocusEditor={
 						document.activeElement !== searchInputRef.current
-					}
-					enableFileSpecificFunctionality={
-						searchText !== null && searchText.length === 0
 					}
 					className={styles.editor}
 				/>
