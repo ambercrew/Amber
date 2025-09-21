@@ -19,8 +19,8 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		border-bottom: 1px solid var(--hover-border-color);
 		padding: var(--xl-padding);
+        padding-bottom: var(--large-padding);
 
 		& h2 {
 			font-size: 2rem;
