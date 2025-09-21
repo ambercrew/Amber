@@ -2,7 +2,7 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiMagnify, mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { selectFileById } from "../../../stores/selectors/fileSystemSelectors";
+import { selectFileById } from "../../../stores/fileSystem/fileSystemSelectors";
 import FileRepetitionCounts from "../../../types/backend/model/fileRepetitionCounts";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../../config/constants";
@@ -25,9 +25,9 @@ function TitleBar({
 	onStudyButtonClick,
 }: Props) {
 	const [searchParams] = useSearchParams();
-	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
+	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const selectedFile = useAppSelector(state =>
-		selectFileById(state, selectedFileId),
+		selectFileById(state, selectedFileId!),
 	);
 
 	const isStudyButtonDisabled =

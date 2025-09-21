@@ -1,16 +1,18 @@
 import { useState } from "react";
-import ParsedFolder from "../../../types/parsedFolder";
 import styles from "./styles.module.css";
-import ParsedFile from "../../../types/parsedFile";
 import Row from "./Row";
+import {
+	ReviewTreeFile,
+	ReviewTreeFolder,
+} from "../../../types/backend/dto/reviewTreeFolder";
 
 interface Props {
-	folder?: ParsedFolder;
-	file?: ParsedFile;
+	folder?: ReviewTreeFolder;
+	file?: ReviewTreeFile;
 	name?: string;
 	indentationLevel: number;
-	onFileClick: (file: ParsedFile) => void;
-	onFolderClick: (folder: ParsedFolder) => void;
+	onFileClick: (file: ReviewTreeFile) => void;
+	onFolderClick: (folder: ReviewTreeFolder) => void;
 }
 
 function ReviewTree({
@@ -52,7 +54,7 @@ function ReviewTree({
 			)}
 
 			{isExpanded &&
-				folder?.subFolders.map(f => (
+				folder?.subfolders.map(f => (
 					<ReviewTree
 						key={f.id}
 						name={f.name}

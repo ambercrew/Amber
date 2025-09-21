@@ -8,21 +8,23 @@ function createCardFromRepetition(repetition: Repetition): Card {
 	card.lapses = repetition.lapses;
 	card.difficulty = repetition.difficulty;
 	card.elapsed_days = repetition.elapsedDays;
-	card.last_review = new Date(repetition.lastReview);
+	card.last_review = repetition.lastReview
+		? new Date(repetition.lastReview)
+		: undefined;
 	card.stability = repetition.stability;
 	card.scheduled_days = repetition.scheduledDays;
 
 	switch (repetition.state) {
-		case "New":
+		case "new":
 			card.state = State.New;
 			break;
-		case "Learning":
+		case "learning":
 			card.state = State.Learning;
 			break;
-		case "Relearning":
+		case "relearning":
 			card.state = State.Relearning;
 			break;
-		case "Review":
+		case "review":
 			card.state = State.Review;
 			break;
 	}

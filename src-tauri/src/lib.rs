@@ -1,23 +1,35 @@
 mod api;
 mod dto;
-mod entity;
-mod migration;
-mod service;
-mod util;
-mod value_objects;
 
-use service::settings_service;
+use std::sync::Arc;
+
+use brainy_core::{
+    cells::cell_service::CellService,
+    common::{
+        sqlite_repositories_context::SqliteRepositoriesContext,
+        traits::repositories_context::RepositoriesContext,
+    },
+    file_system::file_system_service::FileSystemService,
+    settings::Settings,
+};
 use tauri::Manager;
 
 use api::*;
 use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
-use util::database_util::load_database;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), String> {
-    settings_service::init_settings();
-    let db_conn = load_database(&settings_service::get_settings().database_location).await;
+    simple_logger::init_with_level(log::Level::Info).unwrap();
+
+    let settings = &Settings::init_settings_and_get().await.unwrap();
+
+    let repositories_context = SqliteRepositoriesContext::new_with_migration(&format!(
+        "sqlite:///{}",
+        settings.database_location
+    ))
+    .await
+    .unwrap();
 
     let mut tauri_builder = tauri::Builder::default();
 
@@ -41,8 +53,22 @@ pub async fn run() -> Result<(), String> {
         )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .setup(|app| {
-            app.manage(Mutex::new(db_conn));
+        .setup(move |app| {
+            let cell_service = Arc::new(CellService::new(
+                repositories_context.cell_repository(),
+                repositories_context.review_repository(),
+            ));
+            app.manage(cell_service.clone());
+
+            app.manage(Arc::new(FileSystemService::new(
+                cell_service,
+                repositories_context.folder_repository(),
+                repositories_context.file_repository(),
+                repositories_context.cell_repository(),
+            )));
+            app.manage(
+                Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
+            );
             #[cfg(dev)]
             {
                 let _ = app
@@ -62,19 +88,17 @@ pub async fn run() -> Result<(), String> {
             update_cells_contents,
             // Search
             search_cells,
-            // Files & Folders
+            // File System
             create_file,
             create_folder,
             delete_file,
             delete_folder,
-            get_files,
+            get_review_tree_folder_for_root,
             move_file,
             move_folder,
             rename_file,
             rename_folder,
             // Repetitions
-            get_file_repetitions,
-            get_repetitions_for_files,
             get_study_repetition_counts,
             reset_repetitions_for_cell,
             // Review
@@ -84,7 +108,8 @@ pub async fn run() -> Result<(), String> {
             get_settings,
             update_settings,
             // Export/Import
-            export,
+            export_file,
+            export_folder,
             import,
         ])
         .run(tauri::generate_context!())

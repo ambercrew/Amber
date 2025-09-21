@@ -6,8 +6,8 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	selectError,
 	selectRootFolder,
-} from "../../../stores/selectors/fileSystemSelectors";
-import { setErrorMessage } from "../../../stores/reducers/fileSystemReducers";
+} from "../../../stores/fileSystem/fileSystemSelectors";
+import { setErrorMessage } from "../../../stores/fileSystem/fileSystemReducers";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";

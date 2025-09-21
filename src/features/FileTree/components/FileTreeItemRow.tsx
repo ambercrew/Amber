@@ -14,15 +14,16 @@ import { useEffect, useRef, useState } from "react";
 import {
 	renameFile,
 	renameFolder,
-} from "../../../stores/actions/fileSystemActions";
+} from "../../../stores/fileSystem/fileSystemActions";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../../config/constants";
 import useOutsideClick from "../../../hooks/useOutsideClick";
+import CancellableInput from "../../../components/CancellableInput/CancellableInput";
 
 interface Props {
 	isRoot: boolean;
-	id: number;
+	id: string;
 	isFolder: boolean;
 	isRenaming: boolean;
 	isExpanded: boolean;
@@ -57,7 +58,7 @@ function FileTreeItemRow({
 }: Props) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const [searchParams] = useSearchParams();
-	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
+	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -106,14 +107,14 @@ function FileTreeItemRow({
 					/>
 					{isRenaming && (
 						<form onSubmit={e => void handleRenameSubmit(e)}>
-							<input
+							<CancellableInput
+                                onCancel={onStopRenaming}
 								type="text"
 								value={newName}
 								onChange={e => setNewName(e.target.value)}
 								onFocus={e => e.target.select()}
 								autoFocus
 								className={`${styles.fileTreeRenameInput}`}
-								onBlur={onStopRenaming}
 							/>
 						</form>
 					)}

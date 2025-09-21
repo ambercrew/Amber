@@ -18,28 +18,31 @@ import {
 	importFile,
 	moveFile,
 	moveFolder,
-} from "../../../stores/actions/fileSystemActions";
+} from "../../../stores/fileSystem/fileSystemActions.ts";
 import getFileName from "../utils/getFileName.ts";
-import { requestFailure } from "../../../stores/reducers/fileSystemReducers";
+import { requestFailure } from "../../../stores/fileSystem/fileSystemReducers.ts";
 import UiFolder from "../../../types/ui/uiFolder.ts";
-import { exportItem } from "../../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../../utils/errorToString";
-import { fileIdQueryParameter } from "../../../config/constants";
+import {
+	fileIdQueryParameter,
+	ROOT_FOLDER_ID,
+} from "../../../config/constants";
 import { useNavigate, useSearchParams } from "react-router";
 import {
 	dragFormatForFile,
 	dragFormatForFolder,
 	jsonFileFilter,
 } from "../config/constants.ts";
+import { exportFile, exportFolder } from "../../../api/exportImportApi.ts";
 
 interface Props {
 	folder: UiFolder | null;
 	fullPath: string;
-	id: number;
+	id: string;
 	isAnyItemDragged: boolean;
-	onMarkForDeletion: (id: number, isFolder: boolean) => void;
+	onMarkForDeletion: (id: string, isFolder: boolean) => void;
 	onDragStart: () => void;
 	onDragEnd: () => void;
 }
@@ -57,7 +60,7 @@ function FileTreeItem({
 	onDragStart,
 	onDragEnd,
 }: Props) {
-	const isRoot = fullPath === "";
+	const isRoot = id === ROOT_FOLDER_ID;
 	const [showActions, setShowActions] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
@@ -128,7 +131,9 @@ function FileTreeItem({
 				});
 				if (!savePath) return;
 				try {
-					await exportItem(id, savePath);
+					await (folder
+						? exportFolder(id, savePath)
+						: exportFile(id, savePath));
 				} catch (e) {
 					console.error(e);
 					dispatch(requestFailure(errorToString(e)));
@@ -196,8 +201,6 @@ function FileTreeItem({
 			showCreateNewFileInput();
 		} else if (e.key === "Escape") {
 			setShowActions(false);
-			setCreatingNewFile(false);
-			setCreatingNewFolder(false);
 		}
 	};
 
@@ -241,9 +244,9 @@ function FileTreeItem({
 		const fileId = e.dataTransfer.getData(dragFormatForFile);
 		const folderId = e.dataTransfer.getData(dragFormatForFolder);
 		if (fileId) {
-			await dispatch(moveFile(Number(fileId), id));
+			await dispatch(moveFile(fileId, id));
 		} else if (folderId) {
-			await dispatch(moveFolder(Number(folderId), id));
+			await dispatch(moveFolder(folderId, id));
 		}
 	};
 

@@ -4,25 +4,20 @@ import styles from "./styles.module.css";
 import Cell from "../../../types/backend/entity/cell";
 import FileRepetitionCounts from "../../../types/backend/model/fileRepetitionCounts";
 import { getFileCellsOrderedByIndex } from "../../../api/cellApi";
-import {
-	getFileRepetitions,
-	getStudyRepetitionCounts,
-} from "../../../api/repetitionApi";
+import { getStudyRepetitionCounts } from "../../../api/repetitionApi";
 import errorToString from "../../../utils/errorToString";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../../config/constants";
-import Repetition from "../../../types/backend/entity/repetition";
 import EditableCells from "../../EditableCells/components/EditableCells";
 
 interface Props {
-	editCellId: number | null;
+	editCellId: string | null;
 	onError: (error: string) => void;
 	onStudyStart: () => void;
 }
 
 function Editor({ editCellId, onError, onStudyStart }: Props) {
-	const [repetitions, setRepetitions] = useState<Repetition[]>([]);
 	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
@@ -35,7 +30,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [searchParams] = useSearchParams();
 	const isCellsLoaded = useRef(false);
 	const searchInputRef = useRef<HTMLInputElement>(null);
-	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
+	const selectedFileId = searchParams.get(fileIdQueryParameter)!;
 
 	useGlobalKey(e => {
 		if (e.code === "F5") {
@@ -68,9 +63,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		return await executeRequest(async () => {
 			const fetchedCells =
 				await getFileCellsOrderedByIndex(selectedFileId);
-			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
 			setCells(fetchedCells);
-			setRepetitions(fetchedRepetitions);
 		});
 	}, [executeRequest, selectedFileId]);
 
@@ -111,7 +104,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				<EditableCells
 					cells={cells}
 					searchText={searchText}
-					repetitions={repetitions}
 					onError={onError}
 					editCellId={editCellId}
 					fileId={selectedFileId}

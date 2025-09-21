@@ -21,14 +21,14 @@ interface Props {
 	repetitions: Repetition[];
 	enableFileSpecificFunctionality: boolean;
 	onSelect: (e: React.FocusEvent<HTMLDivElement>) => void;
-	onClick: (id: number) => void;
+	onClick: (id: string) => void;
 	onError: (error: string) => void;
 	onDrop: (e: React.DragEvent) => void;
 	onUpdate: (content: string) => void;
 	onDelete: () => void;
 	onInsertNewCell: (cellType: CellType) => void;
 	onResetRepetitions: () => void;
-	onEditButtonClick?: (fileId: number, cellId: number) => void;
+	onEditButtonClick?: (fileId: string, cellId: string) => void;
 }
 
 function CellBlock(
@@ -77,7 +77,7 @@ function CellBlock(
 	};
 
 	const handleDragOver = (e: React.DragEvent) => {
-		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
+		const dragCellId = e.dataTransfer.getData(CELL_ID_DRAG_FORMAT);
 		if (dragCellId === null || cell.id === dragCellId) {
 			return;
 		}

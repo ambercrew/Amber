@@ -1,6 +1,6 @@
-import ParsedFolder from "../../../../types/parsedFolder";
 import UiFolder from "../../../../types/ui/uiFolder";
 import searchFolder from "../../../../features/SideBar/utils/searchFolder";
+import { ReviewTreeFolder } from "../../../../types/backend/dto/reviewTreeFolder";
 
 describe(searchFolder, () => {
 	it("Searches folder correctly", () => {
@@ -13,29 +13,29 @@ describe(searchFolder, () => {
 			review: 0,
 		};
 
-		const folder: ParsedFolder = {
-			id: 0,
+		const folder: ReviewTreeFolder = {
+			id: "0",
 			name: "",
 			files: [
 				{
-					id: 1,
+					id: "1",
 					name: "search",
 					repetitionCounts,
 				},
 				{
-					id: 2,
+					id: "2",
 					name: "not visible",
 					repetitionCounts,
 				},
 			],
-			subFolders: [
+			subfolders: [
 				{
-					id: 3,
+					id: "3",
 					name: "test",
-					subFolders: [],
+					subfolders: [],
 					files: [
 						{
-							id: 4,
+							id: "4",
 							name: "search file",
 							repetitionCounts,
 						},
@@ -44,10 +44,10 @@ describe(searchFolder, () => {
 					repetitionCounts,
 				},
 				{
-					id: 4,
+					id: "4",
 					// Should not be visible since none of its files include "search".
 					name: "search",
-					subFolders: [],
+					subfolders: [],
 					files: [],
 					repetitionCounts,
 				},
@@ -55,32 +55,32 @@ describe(searchFolder, () => {
 			repetitionCounts,
 		};
 		const expected: UiFolder = {
-			id: 0,
+			id: "0",
 			name: "",
 			isVisible: true,
 			files: [
 				{
-					id: 1,
+					id: "1",
 					name: "search",
 					isVisible: true,
 					repetitionCounts,
 				},
 				{
-					id: 2,
+					id: "2",
 					name: "not visible",
 					isVisible: false,
 					repetitionCounts,
 				},
 			],
-			subFolders: [
+			subfolders: [
 				{
-					id: 3,
+					id: "3",
 					name: "test",
-					subFolders: [],
+					subfolders: [],
 					isVisible: true,
 					files: [
 						{
-							id: 4,
+							id: "4",
 							name: "search file",
 							isVisible: true,
 							repetitionCounts,
@@ -89,10 +89,10 @@ describe(searchFolder, () => {
 					repetitionCounts,
 				},
 				{
-					id: 4,
+					id: "4",
 					// Should not be visible since none of its files include "search".
 					name: "search",
-					subFolders: [],
+					subfolders: [],
 					files: [],
 					isVisible: false,
 					repetitionCounts,

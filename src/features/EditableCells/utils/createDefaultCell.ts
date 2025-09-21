@@ -2,14 +2,15 @@ import Cell, { CellType } from "../../../types/backend/entity/cell";
 import FlashCard from "../../../types/backend/value_objects/flashCard";
 import TrueFalse from "../../../types/backend/value_objects/trueFalse";
 
-function createDefaultCell(cellType: CellType, fileId: number, index: number) {
+function createDefaultCell(cellType: CellType, fileId: string, index: number) {
 	const cell: Cell = {
-		id: 0,
+		id: "",
 		fileId,
 		content: "",
 		searchableContent: "",
 		cellType,
 		index,
+		repetitions: [],
 	};
 
 	switch (cellType) {

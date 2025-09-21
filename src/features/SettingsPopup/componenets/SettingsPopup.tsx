@@ -8,7 +8,7 @@ import { getSettings, updateSettings } from "../../../api/settingsApi";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { fetchFiles } from "../../../stores/actions/fileSystemActions";
+import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import errorToString from "../../../utils/errorToString";
 import applySettings from "../../../utils/applySettings";
 import { useNavigate } from "react-router";
@@ -63,7 +63,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 				...settings!,
 			});
 			applySettings(settings!);
-			await dispatch(fetchFiles());
+			await dispatch(getReviewTreeFolderForRoot());
 			void navigate("/");
 			onClose();
 		} catch (e) {

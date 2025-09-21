@@ -8,3 +8,6 @@
 
 # Testing
 temp/*
+
+.env
+temp.db

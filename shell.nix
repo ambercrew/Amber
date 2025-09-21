@@ -3,15 +3,16 @@ let
 in
 pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
-    pkg-config
-    gobject-introspection
     cargo
-    clippy
-    cargo-tauri
-    nodejs
-    rustc
     cargo-expand
-    cargo-nextest
+    cargo-tauri
+    clippy
+    gobject-introspection
+    nodejs
+    pkg-config
+    rustc
+    sqlx-cli
+    vscode-extensions.vadimcn.vscode-lldb
   ];
 
   buildInputs = with pkgs; [

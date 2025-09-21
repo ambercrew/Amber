@@ -1,9 +1,9 @@
-export type RepetitionState = "New" | "Learning" | "Relearning" | "Review";
+export type RepetitionState = "new" | "learning" | "relearning" | "review";
 
 export default interface Repetition {
-	id: number;
-	fileId: number;
-	cellId: number;
+	id: string;
+	fileId: string;
+	cellId: string;
 	due: string;
 	stability: number;
 	difficulty: number;
@@ -12,6 +12,6 @@ export default interface Repetition {
 	reps: number;
 	lapses: number;
 	state: RepetitionState;
-	lastReview: string;
-	additionalContent?: string;
+	lastReview: string | null;
+	additionalContent: string | null;
 }

@@ -5,7 +5,7 @@ import ErrorBox from "../components/ErrorBox/ErrorBox";
 import Reviewer from "../features/Reviewer/components/Reviewer";
 import Home from "../features/Home/componenets/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
-import { fetchFiles } from "../stores/actions/fileSystemActions";
+import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
 import SideBar from "../features/SideBar/componenets/SideBar";
 import SettingsPopup from "../features/SettingsPopup/componenets/SettingsPopup";
 import { getSettings } from "../api/settingsApi";
@@ -27,15 +27,15 @@ function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchParams] = useSearchParams();
-	const studyFileIds = useRef<number[]>([]);
-	const editCellId = useRef<number | null>(null);
-	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
+	const studyFileIds = useRef<string[]>([]);
+	const editCellId = useRef<string | null>(null);
+	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const location = useLocation();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
 	const handleEditorStudyClick = () => {
-		studyFileIds.current = [selectedFileId];
+		studyFileIds.current = [selectedFileId!];
 		void navigate("/reviewer", {
 			state: {
 				from: location.pathname,
@@ -44,13 +44,13 @@ function App() {
 		});
 	};
 
-	const handleHomeStudyClick = (fileIds: number[]) => {
+	const handleHomeStudyClick = (fileIds: string[]) => {
 		studyFileIds.current = fileIds;
 		void navigate("/reviewer");
 	};
 
 	useEffect(() => {
-		void dispatch(fetchFiles());
+		void dispatch(getReviewTreeFolderForRoot());
 		void (async () => {
 			const settings = await getSettings();
 			applySettings(settings);
@@ -79,9 +79,9 @@ function App() {
 		}
 	}, "keydown");
 
-	const handleEditButtonClick = (fileId: number, cellId: number) => {
+	const handleEditButtonClick = (fileId: string, cellId: string) => {
 		editCellId.current = cellId;
-		searchParams.set(fileIdQueryParameter, fileId.toString());
+		searchParams.set(fileIdQueryParameter, fileId);
 		void navigate({
 			pathname: "editor",
 			search: searchParams.toString(),

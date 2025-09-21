@@ -9,10 +9,10 @@ describe(createCardFromRepetition, () => {
 		// Arrange
 
 		const statePairs = [
-			["New", State.New],
-			["Learning", State.Learning],
-			["Relearning", State.Relearning],
-			["Review", State.Review],
+			["new", State.New],
+			["learning", State.Learning],
+			["relearning", State.Relearning],
+			["review", State.Review],
 		];
 
 		// Act & Assert
@@ -21,7 +21,7 @@ describe(createCardFromRepetition, () => {
 			const repetition: Repetition = {
 				due: "2000/12/12",
 				state: statePair[0] as RepetitionState,
-				id: 1,
+				id: "1",
 				lastReview: "2005/5/5",
 				reps: 1,
 				lapses: 2,
@@ -29,8 +29,9 @@ describe(createCardFromRepetition, () => {
 				difficulty: 4,
 				elapsedDays: 5,
 				scheduledDays: 6,
-				cellId: 99,
-				fileId: 99,
+				cellId: "99",
+				fileId: "99",
+				additionalContent: null,
 			};
 			const expected: Card = {
 				due: new Date("2000/12/12"),

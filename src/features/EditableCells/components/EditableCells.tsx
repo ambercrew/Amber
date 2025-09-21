@@ -4,7 +4,6 @@ import RenderIfVisible from "../../../components/RenderIfVisible/RenderIfVisible
 import AddCellContainer from "./AddCellContainer";
 import styles from "./styles.module.css";
 import CellBlock from "./CellBlock";
-import Repetition from "../../../types/backend/entity/repetition";
 import createDefaultCell from "../utils/createDefaultCell";
 import { createCell, deleteCell, moveCell } from "../../../api/cellApi";
 import errorToString from "../../../utils/errorToString";
@@ -16,21 +15,19 @@ import useAutoSave from "../hooks/useAutoSave";
 interface Props {
 	cells: Cell[];
 	searchText?: string;
-	repetitions: Repetition[];
-	editCellId: number | null;
-	fileId?: number;
+	editCellId: string | null;
+	fileId?: string;
 	autoFocusEditor?: boolean;
 	enableFileSpecificFunctionality?: boolean;
 	className?: string;
 	onError: (error: string) => void;
 	onCellsUpdateSave: () => Promise<void>;
-	onEditButtonClick?: (fileId: number, cellId: number) => void;
+	onEditButtonClick?: (fileId: string, cellId: string) => void;
 }
 
 function EditableCells({
 	cells,
 	searchText,
-	repetitions,
 	fileId,
 	editCellId,
 	autoFocusEditor,
@@ -40,7 +37,7 @@ function EditableCells({
 	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
-	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
+	const [selectedCellId, setSelectedCellId] = useState<string | null>(() => {
 		if (cells.some(c => c.id === editCellId)) return editCellId;
 		else if (cells.length > 0) return cells[0].id;
 		return null;
@@ -141,7 +138,7 @@ function EditableCells({
 	};
 
 	const handleDrop = async (e: React.DragEvent, index: number) => {
-		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
+		const dragCellId = e.dataTransfer.getData(CELL_ID_DRAG_FORMAT);
 		if (dragCellId === null) return;
 		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 		if (index === draggedCellIndex) return;
@@ -158,7 +155,7 @@ function EditableCells({
 
 	const handleSelect = (
 		e: React.FocusEvent<HTMLDivElement>,
-		cellId: number,
+		cellId: string,
 	) => {
 		setSelectedCellId(cellId);
 		if (!containerRef.current) return;
@@ -187,9 +184,7 @@ function EditableCells({
 						autoFocusEditor={
 							autoFocusEditor && selectedCellId === cell.id
 						}
-						repetitions={repetitions.filter(
-							r => r.cellId === cell.id,
-						)}
+						repetitions={cell.repetitions}
 						onError={onError}
 						onDrop={e => void handleDrop(e, i)}
 						onUpdate={content =>

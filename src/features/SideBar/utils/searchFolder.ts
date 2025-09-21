@@ -1,9 +1,9 @@
-import ParsedFolder from "../../../types/parsedFolder";
+import { ReviewTreeFolder } from "../../../types/backend/dto/reviewTreeFolder";
 import UiFile from "../../../types/ui/uiFile";
 import UiFolder from "../../../types/ui/uiFolder";
 
-function searchFolder(folder: ParsedFolder, searchText: string): UiFolder {
-	const subFolders = folder.subFolders.map(f => searchFolder(f, searchText));
+function searchFolder(folder: ReviewTreeFolder, searchText: string): UiFolder {
+	const subFolders = folder.subfolders.map(f => searchFolder(f, searchText));
 	const files: UiFile[] = folder.files.map(f => ({
 		...f,
 		isVisible: f.name.toLowerCase().includes(searchText.toLowerCase()),
@@ -17,7 +17,7 @@ function searchFolder(folder: ParsedFolder, searchText: string): UiFolder {
 	return {
 		...folder,
 		isVisible,
-		subFolders,
+		subfolders: subFolders,
 		files,
 	};
 }

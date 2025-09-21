@@ -8,14 +8,14 @@ function accumulateRepetitionsCounts(repetitions: Repetition[]) {
 	};
 	repetitions.forEach(c => {
 		switch (c.state) {
-			case "New":
+			case "new":
 				counts.new += 1;
 				break;
-			case "Learning":
-			case "Relearning":
+			case "learning":
+			case "relearning":
 				counts.learning += 1;
 				break;
-			case "Review":
+			case "review":
 				counts.review += 1;
 				break;
 		}

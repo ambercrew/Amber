@@ -1,13 +1,15 @@
-import ParsedFile from "../../types/parsedFile";
-import ParsedFolder from "../../types/parsedFolder";
+import {
+	ReviewTreeFile,
+	ReviewTreeFolder,
+} from "../../types/backend/dto/reviewTreeFolder";
 import getFolderChildById from "../../utils/getFolderChildById";
 
 describe(getFolderChildById, () => {
 	it("Returns existing file", () => {
 		// Arrange
 
-		const expectedFile: ParsedFile = {
-			id: 2,
+		const expectedFile: ReviewTreeFile = {
+			id: "2",
 			name: "test",
 			repetitionCounts: {
 				new: 0,
@@ -16,11 +18,11 @@ describe(getFolderChildById, () => {
 				review: 0,
 			},
 		};
-		const folder: ParsedFolder = {
-			id: 1,
+		const folder: ReviewTreeFolder = {
+			id: "1",
 			name: "",
 			files: [expectedFile],
-			subFolders: [],
+			subfolders: [],
 			repetitionCounts: {
 				new: 0,
 				learning: 0,
@@ -41,10 +43,10 @@ describe(getFolderChildById, () => {
 	it("Returns existing folder", () => {
 		// Arrange
 
-		const expectedFolder: ParsedFolder = {
-			id: 2,
+		const expectedFolder: ReviewTreeFolder = {
+			id: "2",
 			name: "test",
-			subFolders: [],
+			subfolders: [],
 			files: [],
 			repetitionCounts: {
 				new: 0,
@@ -53,11 +55,11 @@ describe(getFolderChildById, () => {
 				review: 0,
 			},
 		};
-		const folder: ParsedFolder = {
-			id: 1,
+		const folder: ReviewTreeFolder = {
+			id: "1",
 			name: "",
 			files: [],
-			subFolders: [expectedFolder],
+			subfolders: [expectedFolder],
 			repetitionCounts: {
 				new: 0,
 				learning: 0,
@@ -78,11 +80,11 @@ describe(getFolderChildById, () => {
 	it("Non existing file", () => {
 		// Arrange
 
-		const folder: ParsedFolder = {
-			id: 1,
+		const folder: ReviewTreeFolder = {
+			id: "1",
 			name: "",
 			files: [],
-			subFolders: [],
+			subfolders: [],
 			repetitionCounts: {
 				new: 0,
 				learning: 0,
@@ -93,7 +95,7 @@ describe(getFolderChildById, () => {
 
 		// Act
 
-		const actual = getFolderChildById(folder, 4);
+		const actual = getFolderChildById(folder, "4");
 
 		// Assert
 

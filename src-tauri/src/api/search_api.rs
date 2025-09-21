@@ -1,13 +1,18 @@
-use crate::{dto::search_result::SearchResult, service::search_service};
-use sea_orm::DbConn;
+use std::sync::Arc;
+
+use crate::api::ApiError;
+use brainy_core::{
+    cells::entities::cell::Cell, common::traits::repositories_context::RepositoriesContext,
+};
 use tauri::State;
 use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn search_cells(
-    db_conn: State<'_, Mutex<DbConn>>,
+    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
     search_text: String,
-) -> Result<SearchResult, String> {
-    let db_conn = db_conn.lock().await;
-    search_service::search_cells(&db_conn, &search_text).await
+) -> Result<Vec<Cell>, ApiError> {
+    let context = context.lock().await;
+    let cells = context.cell_repository().search_cells(&search_text).await?;
+    Ok(cells)
 }

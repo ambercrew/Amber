@@ -20,15 +20,15 @@ describe(createRepetitionFromCard, () => {
 			elapsed_days: 5,
 			scheduled_days: 7,
 		};
-		const id = 8;
-		const fileId = 9;
-		const cellId = 10;
+		const id = "8";
+		const fileId = "9";
+		const cellId = "10";
 		const expected: Repetition = {
 			cellId,
 			fileId,
 			id,
 			due: dueDate.toISOString(),
-			state: "New",
+			state: "new",
 			lastReview: lastReviewDate.toISOString(),
 			reps: 1,
 			lapses: 2,

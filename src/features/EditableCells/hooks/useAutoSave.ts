@@ -16,8 +16,8 @@ interface Input {
 
 interface ReturnValue {
 	saveChanges: () => Promise<void>;
-	onCellContentUpdate: (id: number, content: string) => void;
-	ignoreCell: (id: number) => void;
+	onCellContentUpdate: (id: string, content: string) => void;
+	ignoreCell: (id: string) => void;
 }
 
 /**
@@ -35,7 +35,7 @@ function useAutoSave({
 	const autoSaveTimeoutId = useRef<number>(null);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
-	const changedCellsIds = useRef(new Set<number>());
+	const changedCellsIds = useRef(new Set<string>());
 
 	const saveChanges = useCallback(async () => {
 		if (autoSaveTimeoutId.current !== null) {
@@ -51,7 +51,7 @@ function useAutoSave({
 				const cell = updatedCells.current.find(c => c.id === id);
 				if (!cell) continue;
 				requests.push({
-					cellId: id,
+					id,
 					content: cell.content,
 				});
 			}
@@ -65,7 +65,7 @@ function useAutoSave({
 		await onCellsUpdateSave();
 	}, [onError, onCellsUpdateSave]);
 
-	const handleCellContentUpdate = (id: number, content: string) => {
+	const handleCellContentUpdate = (id: string, content: string) => {
 		changedCellsIds.current.add(id);
 		const newCells = [...updatedCells.current];
 		newCells.find(c => c.id === id)!.content = content;

@@ -1,11 +1,11 @@
-import { Rating, RecordLog } from "ts-fsrs";
+import { Grade, Rating, RecordLog } from "ts-fsrs";
 import durationToString from "../utils/durationToString";
 import styles from "./styles.module.css";
 
 interface IProps {
 	startTime: Date;
 	disabled: boolean;
-	onClick: (rating: Rating) => void;
+	onClick: (grade: Grade) => void;
 	recordLog: RecordLog;
 }
 

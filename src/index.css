@@ -5,7 +5,7 @@
 	padding: 0;
 	box-sizing: border-box;
 	outline: 2px solid transparent;
-	outline-offset: 2px;
+	outline-offset: 1px;
 }
 
 *:focus {

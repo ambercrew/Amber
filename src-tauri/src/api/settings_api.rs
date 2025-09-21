@@ -1,22 +1,36 @@
-use sea_orm::DbConn;
-use tauri::State;
-use tokio::sync::Mutex;
+use brainy_core::settings::Settings;
+use tauri::AppHandle;
 
-use crate::{
-    dto::update_settings_request::UpdateSettingsRequest, service::settings_service,
-    value_objects::settings::Settings,
-};
+use crate::{api::ApiError, dto::update_settings_request::UpdateSettingsRequest};
 
 #[tauri::command]
-pub async fn get_settings() -> Result<Settings, ()> {
-    Ok(settings_service::get_settings())
+pub async fn get_settings() -> Result<Settings, ApiError> {
+    Ok(Settings::init_settings_and_get().await?)
 }
 
 #[tauri::command]
 pub async fn update_settings(
-    db_conn: State<'_, Mutex<DbConn>>,
+    app_handle: AppHandle,
     new_settings: UpdateSettingsRequest,
-) -> Result<(), String> {
-    settings_service::update_settings(new_settings, &db_conn).await;
+) -> Result<(), ApiError> {
+    let mut settings = Settings::init_settings_and_get().await?;
+    let mut restart = false;
+    if let Some(database_location) = new_settings.database_location
+        && settings.database_location != database_location
+    {
+        settings.database_location = database_location;
+        restart = true;
+    }
+    if let Some(theme) = new_settings.theme {
+        settings.theme = theme;
+    }
+    if let Some(zoom_percentage) = new_settings.zoom_percentage {
+        settings.zoom_percentage = zoom_percentage;
+    }
+    settings.save_to_disk().await?;
+
+    if restart {
+        app_handle.request_restart();
+    }
     Ok(())
 }

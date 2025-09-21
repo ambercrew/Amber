@@ -6,10 +6,8 @@ import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
 import createCardFromCellRepetition from "../utils/createCardFromRepetition";
 import useGlobalKey from "../../../hooks/useGlobalKey";
-import Repetition from "../../../types/backend/entity/repetition";
 import createRepetitionFromCard from "../utils/createRepetitionFromCard";
 import Cell from "../../../types/backend/entity/cell";
-import { getRepetitionsForFiles } from "../../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import FromRouteState from "../../../types/fromRouteState";
@@ -22,8 +20,8 @@ import ButtonRow from "./ButtonRow";
 import accumulateRepetitionsCounts from "../utils/accumulateRepetitionsCounts";
 
 interface Props {
-	fileIds: number[];
-	onEditButtonClick: (fileId: number, cellId: number) => void;
+	fileIds: string[];
+	onEditButtonClick: (fileId: string, cellId: string) => void;
 	onError: (message: string) => void;
 }
 
@@ -35,7 +33,6 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(true);
 	const [cells, setCells] = useState<Cell[]>([]);
-	const [repetitions, setRepetitions] = useState<Repetition[]>([]);
 	const studyTime = useRef(0);
 	const navigate = useNavigate();
 	const startTime = useRef(new Date());
@@ -46,7 +43,6 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 			try {
 				setIsSendingRequest(true);
 				setCells(await getCellsForFiles(fileIds));
-				setRepetitions(await getRepetitionsForFiles(fileIds));
 				setIsSendingRequest(false);
 			} catch (e) {
 				console.error(e);
@@ -57,9 +53,12 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 
 	const dueToday = useMemo(() => {
 		return sortReviewerRepetitions(
-			repetitions.filter(c => new Date(c.due) <= startTime.current),
+			cells
+				.map(c => c.repetitions)
+				.flat()
+				.filter(r => new Date(r.due) <= startTime.current),
 		);
-	}, [repetitions]);
+	}, [cells]);
 
 	const recordLog: RecordLog | null = useMemo(() => {
 		if (dueToday.length == 0) return null;
@@ -137,11 +136,11 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		}
 	};
 
-	const isCurrentCellNew = dueToday[currentCellIndex]?.state === "New";
+	const isCurrentCellNew = dueToday[currentCellIndex]?.state === "new";
 	const isCurrentCellLearning =
-		dueToday[currentCellIndex]?.state === "Learning" ||
-		dueToday[currentCellIndex]?.state === "Relearning";
-	const isCurrentCellReview = dueToday[currentCellIndex]?.state === "Review";
+		dueToday[currentCellIndex]?.state === "learning" ||
+		dueToday[currentCellIndex]?.state === "relearning";
+	const isCurrentCellReview = dueToday[currentCellIndex]?.state === "review";
 
 	const reptitionsCounts = useMemo(
 		() =>
@@ -228,7 +227,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 					<ButtonRow
 						startTime={startTime.current}
 						disabled={isSendingRequest}
-						onClick={() => void handleGradeSubmit(Rating.Good)}
+						onClick={grade => void handleGradeSubmit(grade)}
 						recordLog={recordLog}
 					/>
 				)}

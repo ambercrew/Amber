@@ -6,11 +6,11 @@ import Repetition from "../../../types/backend/entity/repetition";
  */
 function sortReviewerRepetitions(repetitions: Repetition[]) {
 	return repetitions.sort((a, b) => {
-		if (a.state === "New" && b.state === "New") {
+		if (a.state === "new" && b.state === "new") {
 			return 0;
-		} else if (a.state === "New") {
+		} else if (a.state === "new") {
 			return 1;
-		} else if (b.state === "New") {
+		} else if (b.state === "new") {
 			return -1;
 		} else {
 			return 0;

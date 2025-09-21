@@ -8,7 +8,8 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	createFile,
 	createFolder,
-} from "../../../stores/actions/fileSystemActions";
+} from "../../../stores/fileSystem/fileSystemActions";
+import CancellableInput from "../../../components/CancellableInput/CancellableInput";
 
 interface Props {
 	creatingNewFolder: boolean;
@@ -17,7 +18,7 @@ interface Props {
 	fullPath: string;
 	isRoot: boolean;
 	isAnyItemDragged: boolean;
-	onMarkForDeletion: (id: number, isFolder: boolean) => void;
+	onMarkForDeletion: (id: string, isFolder: boolean) => void;
 	onCreatingNewItemEnd: () => void;
 	onCreateNewFileClick: () => void;
 	onDragStart: () => void;
@@ -45,11 +46,10 @@ function FileTreeItemChildren({
 		e: React.FormEvent<HTMLFormElement>,
 	) => {
 		e.preventDefault();
-		const newItemPath = isRoot ? newItemName : fullPath + "/" + newItemName;
 		if (creatingNewFolder) {
-			await dispatch(createFolder(newItemPath));
+			await dispatch(createFolder(newItemName, folder.id));
 		} else if (creatingNewFile) {
-			await dispatch(createFile(newItemPath));
+			await dispatch(createFile(newItemName, folder.id));
 		}
 		setNewItemName("");
 		onCreatingNewItemEnd();
@@ -70,18 +70,18 @@ function FileTreeItemChildren({
 						}
 						size={1}
 					/>
-					<input
+					<CancellableInput
 						type="text"
 						value={newItemName}
 						onChange={e => setNewItemName(e.target.value)}
 						placeholder="Enter the name"
 						autoFocus
-						onBlur={onCreatingNewItemEnd}
+						onCancel={onCreatingNewItemEnd}
 					/>
 				</form>
 			)}
 
-			{folder.subFolders.length + folder.files.length === 0 &&
+			{folder.subfolders.length + folder.files.length === 0 &&
 				!creatingNewFolder &&
 				!creatingNewFile && (
 					<p>
@@ -92,7 +92,7 @@ function FileTreeItemChildren({
 					</p>
 				)}
 
-			{folder.subFolders.map(subFolder => (
+			{folder.subfolders.map(subFolder => (
 				<FileTreeItem
 					key={subFolder.id}
 					folder={subFolder}

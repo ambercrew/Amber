@@ -5,10 +5,10 @@ import createDefaultCell from "../../../../features/EditableCells/utils/createDe
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { TauriEvent } from "@tauri-apps/api/event";
 
-const cellId = 1;
+const cellId = "1";
 
 const renderAutoSave = () => {
-	const cell = createDefaultCell("FlashCard", 0, 0);
+	const cell = createDefaultCell("FlashCard", "0", 0);
 	cell.id = cellId;
 
 	const onCellsUpdateSaveCb = vi.fn();

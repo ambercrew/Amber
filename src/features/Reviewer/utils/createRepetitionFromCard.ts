@@ -5,24 +5,24 @@ import Repetition, {
 
 function createRepetitionFromCard(
 	card: Card,
-	id: number,
-	fileId: number,
-	cellId: number,
-	additionalContent?: string,
+	id: string,
+	fileId: string,
+	cellId: string,
+	additionalContent: string | null,
 ): Repetition {
 	let state: RepetitionState;
 	switch (card.state) {
 		case State.New:
-			state = "New";
+			state = "new";
 			break;
 		case State.Learning:
-			state = "Learning";
+			state = "learning";
 			break;
 		case State.Relearning:
-			state = "Relearning";
+			state = "relearning";
 			break;
 		case State.Review:
-			state = "Review";
+			state = "review";
 			break;
 	}
 
@@ -36,7 +36,7 @@ function createRepetitionFromCard(
 		lapses: card.lapses,
 		stability: card.stability,
 		difficulty: card.difficulty,
-		lastReview: card.last_review!.toISOString(),
+		lastReview: card.last_review?.toISOString() ?? null,
 		elapsedDays: card.elapsed_days,
 		scheduledDays: card.scheduled_days,
 		additionalContent: additionalContent,

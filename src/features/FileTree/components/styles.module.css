@@ -57,6 +57,7 @@
 	width: 100%;
 	padding: var(--default-padding);
 	border-width: 1px;
+	font-size: 1.6rem;
 }
 
 .file-tree-dots {
@@ -94,6 +95,7 @@
 	padding: var(--default-padding);
 	border-width: 1px;
 	width: 100%;
+	font-size: 1.6rem;
 }
 
 .file-tree-item-children {

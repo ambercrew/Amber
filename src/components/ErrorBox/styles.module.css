@@ -1,12 +1,12 @@
 .error-box {
-	font-size: 1.2rem;
+	font-size: 1.4rem;
 	background-color: var(--red-color);
 	color: #fff;
 	padding: var(--default-padding) var(--large-padding);
 	border-radius: var(--default-border-radius);
 	display: flex;
 	justify-content: space-between;
-	align-items: center;
+	align-items: start;
 	flex-direction: row !important;
 }
 
@@ -17,15 +17,19 @@
 .error-box button {
 	color: #fff;
 	font-weight: 600;
-	padding: var(--default-border-radius);
+	padding: var(--smalll-padding);
 	margin-left: 4px;
+	margin-top: var(--default-padding);
 	border: 1px solid transparent;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	&:hover {
 		opacity: 0.8;
 	}
 
 	&:focus {
-		border-color: #fff;
+		outline-color: #fff;
 	}
 }

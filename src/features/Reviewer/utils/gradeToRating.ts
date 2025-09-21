@@ -6,7 +6,7 @@ function gradeToRating(grade: Grade): Rating {
 		case FsrsRating.Again:
 			return "Again";
 		case FsrsRating.Hard:
-			return "Again";
+			return "Hard";
 		case FsrsRating.Good:
 			return "Good";
 		case FsrsRating.Easy:

@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import fileSystemReducer from "./reducers/fileSystemReducers";
+import fileSystemReducer from "./fileSystem/fileSystemReducers";
 
 const reducers = combineReducers({
 	fileSystem: fileSystemReducer,

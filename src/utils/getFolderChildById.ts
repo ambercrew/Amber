@@ -1,10 +1,12 @@
-import ParsedFile from "../types/parsedFile";
-import ParsedFolder from "../types/parsedFolder";
+import {
+	ReviewTreeFile,
+	ReviewTreeFolder,
+} from "../types/backend/dto/reviewTreeFolder";
 
 function getFolderChildById(
-	folder: ParsedFolder,
-	id: number,
-): ParsedFile | ParsedFolder | null {
+	folder: ReviewTreeFolder,
+	id: string,
+): ReviewTreeFolder | ReviewTreeFile | null {
 	let queue = [folder];
 
 	while (queue.length > 0) {
@@ -14,7 +16,7 @@ function getFolderChildById(
 		for (const file of folder.files) {
 			if (file.id === id) return file;
 		}
-		queue = [...queue, ...folder.subFolders];
+		queue = [...queue, ...folder.subfolders];
 	}
 
 	return null;

@@ -74,6 +74,7 @@
 
 			& .row {
 				padding: 12px var(--default-padding);
+				margin-bottom: 4px;
 				justify-content: center;
 
 				& p {

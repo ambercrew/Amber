@@ -1,3 +1,5 @@
+import Repetition from "./repetition";
+
 export type CellType = "FlashCard" | "Note" | "Cloze" | "TrueFalse";
 export const allCellTypes: CellType[] = [
 	"Cloze",
@@ -13,10 +15,11 @@ export const cellTypesDisplayNames: Record<CellType, string> = {
 };
 
 export default interface Cell {
-	id: number;
-	fileId: number;
+	id: string;
+	fileId: string;
 	content: string;
 	searchableContent: string;
 	cellType: CellType;
 	index: number;
+	repetitions: Repetition[];
 }
