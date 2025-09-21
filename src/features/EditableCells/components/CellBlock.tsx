@@ -60,7 +60,7 @@ function CellBlock(
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			if (isSelected) tipTapEditorRef.current?.commands.focus();
-		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
+		} else if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
 		} else if (e.ctrlKey && e.key === " ") {
 			if (isSelected) tipTapEditorRef.current?.commands.focus();

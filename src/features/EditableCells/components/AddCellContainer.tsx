@@ -19,7 +19,7 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
-		} else if (e.ctrlKey && !e.shiftKey && e.code === "Enter") {
+		} else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
 			setShowAddNewCellPopup(true);
 		}
 	}, "keydown");

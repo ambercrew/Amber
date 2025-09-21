@@ -89,7 +89,7 @@ function FocusTools({
 	};
 
 	useGlobalKey(e => {
-		if (e.altKey && e.code === "Delete") {
+		if (e.altKey && e.key === "Delete") {
 			setShowDeleteDialog(true);
 		}
 	});

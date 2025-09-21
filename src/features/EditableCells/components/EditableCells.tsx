@@ -59,13 +59,13 @@ function EditableCells({
 	}, [searchText]);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
+		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(1);
-		} else if (e.ctrlKey && e.altKey && e.code == "ArrowUp") {
+		} else if (e.ctrlKey && e.altKey && e.key == "ArrowUp") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(-1);
-		} else if (e.ctrlKey && e.code == "ArrowDown") {
+		} else if (e.ctrlKey && e.key == "ArrowDown") {
 			e.preventDefault();
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
@@ -73,7 +73,7 @@ function EditableCells({
 			setSelectedCellId(
 				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id,
 			);
-		} else if (e.ctrlKey && e.code == "ArrowUp") {
+		} else if (e.ctrlKey && e.key == "ArrowUp") {
 			e.preventDefault();
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,

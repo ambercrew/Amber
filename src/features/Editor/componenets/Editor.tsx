@@ -33,7 +33,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const selectedFileId = searchParams.get(fileIdQueryParameter)!;
 
 	useGlobalKey(e => {
-		if (e.code === "F5") {
+		if (e.key === "F5") {
 			onStudyStart();
 		}
 	}, "keydown");

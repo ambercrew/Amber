@@ -103,7 +103,7 @@ function TiptapEditor({
 			editorProps: {
 				handleKeyDown: (_, e) => {
 					// Do not insert new lines when clicking Ctrl + Enter.
-					if (e.ctrlKey && e.code === "Enter") {
+					if (e.ctrlKey && e.key === "Enter") {
 						return true;
 					}
 					return false;

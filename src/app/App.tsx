@@ -61,7 +61,7 @@ function App() {
 		});
 
 		document.addEventListener("keydown", e => {
-			if ((e.ctrlKey && e.key.toLowerCase() === "r") || e.code === "F5") {
+			if ((e.ctrlKey && e.key.toLowerCase() === "r") || e.key === "F5") {
 				e.preventDefault();
 			}
 		});
@@ -74,7 +74,7 @@ function App() {
 		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
 			e.preventDefault();
 			void navigate("/home");
-		} else if (e.code === "F5") {
+		} else if (e.key === "F5") {
 			e.preventDefault();
 		}
 	}, "keydown");
