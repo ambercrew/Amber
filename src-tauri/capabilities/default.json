@@ -10,6 +10,7 @@
     "dialog:default",
     "core:window:allow-close",
     "core:window:allow-destroy",
+    "core:webview:allow-set-webview-zoom",
     "updater:default",
     {
         "identifier": "opener:allow-open-url",

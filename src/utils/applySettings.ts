@@ -1,6 +1,7 @@
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Settings from "../types/backend/model/settings";
 
-function applySettings(settings: Settings) {
+async function applySettings(settings: Settings) {
 	if (
 		settings.theme === "Dark" ||
 		(settings.theme === "FollowSystem" &&
@@ -12,10 +13,7 @@ function applySettings(settings: Settings) {
 		document.body.classList.remove("dark");
 	}
 
-	document.documentElement.style.setProperty(
-		"--zoom-level",
-		(settings.zoomPercentage / 100).toString(),
-	);
+    await getCurrentWebview().setZoom(settings.zoomPercentage / 100);
 }
 
 export default applySettings;

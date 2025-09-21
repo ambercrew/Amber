@@ -53,7 +53,7 @@ function App() {
 		void dispatch(getReviewTreeFolderForRoot());
 		void (async () => {
 			const settings = await getSettings();
-			applySettings(settings);
+			await applySettings(settings);
 		})();
 
 		document.addEventListener("contextmenu", e => {

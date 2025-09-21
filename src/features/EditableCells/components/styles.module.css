@@ -130,6 +130,12 @@
 	}
 }
 
+:global(body.dark) .cell-block {
+	& .focus-tools {
+        background-color: var(--light-default-background-color);
+	}
+}
+
 .cell-block.drag-over,
 .add-button-container.drag-over {
 	border-top-color: var(--primary-color);
@@ -162,4 +168,8 @@
 	right: 0;
 	z-index: 1;
 	padding: var(--large-padding);
+}
+
+:global(body.dark) .repetitions-info-container {
+    background-color: var(--light-default-background-color);
 }

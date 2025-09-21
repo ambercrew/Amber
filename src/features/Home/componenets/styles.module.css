@@ -119,7 +119,7 @@
 :global(body.dark) .review-heatmap {
 	& .review-heatmap-column {
 		.heatmap-box {
-			background-color: var(--default-background-color);
+			background-color: var(--light-default-background-color);
 		}
 	}
 }

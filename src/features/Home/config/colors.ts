@@ -28,14 +28,14 @@ export const colors = {
 	} as RGB,
 
 	dueFromColorDarkTheme: {
-		r: 60,
-		g: 60,
-		b: 60,
+		r: 100,
+		g: 100,
+		b: 100,
 	} as RGB,
 
 	dueToColorDarkTheme: {
-		r: 6,
-		g: 6,
-		b: 6,
+		r: 50,
+		g: 50,
+		b: 50,
 	} as RGB,
 };

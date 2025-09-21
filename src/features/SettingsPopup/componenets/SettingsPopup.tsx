@@ -62,7 +62,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 			await updateSettings({
 				...settings!,
 			});
-			applySettings(settings!);
+			await applySettings(settings!);
 			await dispatch(getReviewTreeFolderForRoot());
 			void navigate("/");
 			onClose();
