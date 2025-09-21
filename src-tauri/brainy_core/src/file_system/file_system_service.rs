@@ -318,8 +318,7 @@ impl FileSystemService {
             ExportedItemType::File => {
                 log::info!("Importing file with name {}.", exported_item.name);
 
-                let file = File::new(None, Some(import_into_folder_id), exported_item.name);
-                self.file_repository.create(&file).await?;
+                let file_id = self.create_file(Some(import_into_folder_id), exported_item.name).await?;
 
                 for (i, cell) in exported_item
                     .cells
@@ -329,18 +328,17 @@ impl FileSystemService {
                 {
                     let purified_html = purify_html(&cell.content);
                     self.cell_service
-                        .create_cell(file.id(), purified_html, cell.cell_type, i as u32)
+                        .create_cell(file_id, purified_html, cell.cell_type, i as u32)
                         .await?;
                 }
             }
             ExportedItemType::Folder => {
                 log::info!("Importing folder with name {}.", exported_item.name);
 
-                let folder = Folder::new(None, Some(import_into_folder_id), exported_item.name);
-                self.folder_repository.create(&folder).await?;
+                let folder_id = self.create_folder(Some(import_into_folder_id), exported_item.name).await?;
 
                 for child in exported_item.children.unwrap_or_default() {
-                    Box::pin(self.import_exported_item(folder.id(), child)).await?;
+                    Box::pin(self.import_exported_item(folder_id, child)).await?;
                 }
             }
         }

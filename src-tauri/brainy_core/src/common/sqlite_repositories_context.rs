@@ -51,7 +51,7 @@ impl SqliteRepositoriesContext {
         sqlx::migrate!("./db/").run(&pool).await?;
 
         let arc_pool = Arc::new(pool);
-        let tx = Arc::new(Mutex::new(create_transactoin(arc_pool.clone()).await));
+        let tx = Arc::new(Mutex::new(create_transaction(arc_pool.clone()).await));
 
         Ok(Self {
             pool: arc_pool.clone(),
@@ -94,7 +94,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
         log::info!("Saving changes");
         let mut guard = self.tx.lock().await;
 
-        let new_tx = create_transactoin(self.pool.clone()).await;
+        let new_tx = create_transaction(self.pool.clone()).await;
         let old_tx = std::mem::replace(&mut *guard, new_tx);
 
         if let Err(err) = old_tx.commit().await {
@@ -104,7 +104,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
     }
 }
 
-async fn create_transactoin(pool: Arc<SqlitePool>) -> Transaction<'static, Sqlite> {
+async fn create_transaction(pool: Arc<SqlitePool>) -> Transaction<'static, Sqlite> {
     log::info!("Starting new transaction");
     pool.begin().await.expect("Cannot create a new transaction")
 }

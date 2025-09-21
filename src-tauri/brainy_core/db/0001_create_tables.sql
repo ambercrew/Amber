@@ -1,3 +1,6 @@
+-- Since there is a single client, we can allow read uncommitted.
+PRAGMA read_uncommitted = TRUE;
+
 CREATE TABLE folders(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     name                        TEXT        NOT NULL,
