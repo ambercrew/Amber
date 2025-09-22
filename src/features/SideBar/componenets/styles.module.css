@@ -20,7 +20,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: var(--xl-padding);
-        padding-bottom: var(--large-padding);
+		padding-bottom: var(--large-padding);
 
 		& h2 {
 			font-size: 2rem;

@@ -1,10 +1,10 @@
-import { useState } from "react";
 import styles from "./styles.module.css";
 import Row from "./Row";
 import {
 	ReviewTreeFile,
 	ReviewTreeFolder,
 } from "../../../types/backend/dto/reviewTreeFolder";
+import useLocalStorage from "../../../hooks/useLocalStorage";
 
 interface Props {
 	folder?: ReviewTreeFolder;
@@ -23,7 +23,10 @@ function ReviewTree({
 	onFileClick,
 	onFolderClick,
 }: Props) {
-	const [isExpanded, setIsExpanded] = useState(!name);
+	const [isExpanded, setIsExpanded] = useLocalStorage(
+		`is-review-tree-expanded-${file?.id ?? folder?.id}`,
+		!name,
+	);
 	const newCount = file
 		? file.repetitionCounts.new
 		: folder!.repetitionCounts.new;

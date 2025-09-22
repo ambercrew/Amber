@@ -36,6 +36,7 @@ import {
 	jsonFileFilter,
 } from "../config/constants.ts";
 import { exportFile, exportFolder } from "../../../api/exportImportApi.ts";
+import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 
 interface Props {
 	folder: UiFolder | null;
@@ -66,7 +67,10 @@ function FileTreeItem({
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useLocalStorage(
+		`is-file-tree-item-open-${id}`,
+		false,
+	);
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();

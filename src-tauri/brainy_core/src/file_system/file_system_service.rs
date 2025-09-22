@@ -318,7 +318,9 @@ impl FileSystemService {
             ExportedItemType::File => {
                 log::info!("Importing file with name {}.", exported_item.name);
 
-                let file_id = self.create_file(Some(import_into_folder_id), exported_item.name).await?;
+                let file_id = self
+                    .create_file(Some(import_into_folder_id), exported_item.name)
+                    .await?;
 
                 for (i, cell) in exported_item
                     .cells
@@ -335,7 +337,9 @@ impl FileSystemService {
             ExportedItemType::Folder => {
                 log::info!("Importing folder with name {}.", exported_item.name);
 
-                let folder_id = self.create_folder(Some(import_into_folder_id), exported_item.name).await?;
+                let folder_id = self
+                    .create_folder(Some(import_into_folder_id), exported_item.name)
+                    .await?;
 
                 for child in exported_item.children.unwrap_or_default() {
                     Box::pin(self.import_exported_item(folder_id, child)).await?;

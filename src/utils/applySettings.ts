@@ -13,7 +13,7 @@ async function applySettings(settings: Settings) {
 		document.body.classList.remove("dark");
 	}
 
-    await getCurrentWebview().setZoom(settings.zoomPercentage / 100);
+	await getCurrentWebview().setZoom(settings.zoomPercentage / 100);
 }
 
 export default applySettings;

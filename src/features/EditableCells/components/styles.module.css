@@ -132,7 +132,7 @@
 
 :global(body.dark) .cell-block {
 	& .focus-tools {
-        background-color: var(--light-default-background-color);
+		background-color: var(--light-default-background-color);
 	}
 }
 
@@ -171,5 +171,5 @@
 }
 
 :global(body.dark) .repetitions-info-container {
-    background-color: var(--light-default-background-color);
+	background-color: var(--light-default-background-color);
 }

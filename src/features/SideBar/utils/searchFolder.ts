@@ -10,7 +10,7 @@ function searchFolder(folder: ReviewTreeFolder, searchText: string): UiFolder {
 	}));
 
 	const isVisible =
-        folder.name.toLowerCase().includes(searchText.toLowerCase()) ||
+		folder.name.toLowerCase().includes(searchText.toLowerCase()) ||
 		searchText.length === 0 ||
 		files.some(f => f.isVisible) ||
 		subFolders.some(f => f.isVisible);
