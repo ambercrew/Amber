@@ -85,7 +85,8 @@
 	}
 }
 
-@media (max-width: 720px) {
+/* This must be synced with SMALL_SCREEN_MAX_WIDTH_IN_PX constant */
+@media (max-width: 46rem) {
 	.side-bar {
 		width: 100vw;
 		transition: none;

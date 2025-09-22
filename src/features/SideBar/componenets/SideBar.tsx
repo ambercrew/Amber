@@ -18,7 +18,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import {
 	fileIdQueryParameter,
-	SMALL_SCREEN_MAX_WIDTH,
+    SMALL_SCREEN_MAX_WIDTH_IN_PX,
 } from "../../../config/constants";
 
 interface Props {
@@ -41,7 +41,7 @@ function SideBar({ onSettingsClick }: Props) {
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	useEffect(() => {
-		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH) return;
+		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH_IN_PX) return;
 		setIsExpanded(false);
 	}, [location]);
 
