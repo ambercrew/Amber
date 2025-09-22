@@ -88,7 +88,7 @@ function SideBar({ onSettingsClick }: Props) {
 							location.pathname.startsWith("/home")) &&
 						styles.active
 					} ${styles.row}`}
-					title="Home (Ctrl + h)"
+					title="Home (Ctrl + H)"
 					onClick={() => void navigate("/home")}>
 					<Icon path={mdiHome} size="1em" />
 					<p>Home</p>
@@ -100,7 +100,7 @@ function SideBar({ onSettingsClick }: Props) {
 						location.pathname.startsWith("/search") &&
 						styles.active
 					} ${styles.row}`}
-					title="Search (Ctrl + Shift + f)"
+					title="Search (Ctrl + Shift + F)"
 					onClick={() => void navigate("/search")}>
 					<Icon path={mdiMagnify} size="1em" />
 					<p>Search</p>
@@ -108,7 +108,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 				<button
 					className={`${styles.row}`}
-					title="Settings (Ctrl + p)"
+					title="Settings (Ctrl + P)"
 					onClick={handleSettingsButtonClick}>
 					<Icon path={mdiCog} size="1em" />
 					<p>Settings</p>

@@ -72,7 +72,7 @@ function TitleBar({
 
 			<InputWithIcon
 				iconName={mdiMagnify}
-				placeholder="Search (Ctrl + f)"
+				placeholder="Search (Ctrl + F)"
 				value={searchText}
 				onChange={e => onSearchTextChange(e.target.value)}
 				containerClassName={styles.searchInputContainer}

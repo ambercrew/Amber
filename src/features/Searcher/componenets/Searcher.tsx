@@ -59,7 +59,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 				onSubmit={e => handleSubmit(e)}>
 				<InputWithIcon
 					iconName={mdiMagnify}
-					placeholder="Search (Ctrl + f)"
+					placeholder="Search (Ctrl + F)"
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
 					ref={searchInputRef}

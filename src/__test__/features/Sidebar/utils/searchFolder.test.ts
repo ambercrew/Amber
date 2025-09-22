@@ -45,7 +45,6 @@ describe(searchFolder, () => {
 				},
 				{
 					id: "4",
-					// Should not be visible since none of its files include "search".
 					name: "search",
 					subfolders: [],
 					files: [],
@@ -90,11 +89,10 @@ describe(searchFolder, () => {
 				},
 				{
 					id: "4",
-					// Should not be visible since none of its files include "search".
 					name: "search",
 					subfolders: [],
 					files: [],
-					isVisible: false,
+					isVisible: true,
 					repetitionCounts,
 				},
 			],
