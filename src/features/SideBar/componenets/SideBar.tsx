@@ -1,13 +1,17 @@
 import styles from "./styles.module.css";
-import ErrorBox from "../../../components/ErrorBox/ErrorBox";
+import Alert from "../../../components/Alert/Alert";
 import FileTree from "../../FileTree/components/FileTree";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
-	selectError,
+	selectErrorMessage,
 	selectRootFolder,
+	selectSuccessMessage,
 } from "../../../stores/fileSystem/fileSystemSelectors";
-import { setErrorMessage } from "../../../stores/fileSystem/fileSystemReducers";
+import {
+	setErrorMessage,
+	setSuccessMessage,
+} from "../../../stores/fileSystem/fileSystemReducers";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import { mdiChevronLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
@@ -15,11 +19,8 @@ import Icon from "@mdi/react";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useLocation, useNavigate, useSearchParams } from "react-router";
-import {
-	fileIdQueryParameter,
-    SMALL_SCREEN_MAX_WIDTH_IN_PX,
-} from "../../../config/constants";
+import { useLocation, useNavigate } from "react-router";
+import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 
 interface Props {
 	onSettingsClick: () => void;
@@ -29,7 +30,8 @@ function SideBar({ onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
-	const errorMessage = useAppSelector(selectError);
+	const errorMessage = useAppSelector(selectErrorMessage);
+	const successMessage = useAppSelector(selectSuccessMessage);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -37,8 +39,6 @@ function SideBar({ onSettingsClick }: Props) {
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
-	const [searchParams] = useSearchParams();
-	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	useEffect(() => {
 		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH_IN_PX) return;
@@ -83,7 +83,6 @@ function SideBar({ onSettingsClick }: Props) {
 			<div className={styles.rows}>
 				<button
 					className={`${
-						selectedFileId === 0 &&
 						(location.pathname === "/" ||
 							location.pathname.startsWith("/home")) &&
 						styles.active
@@ -96,9 +95,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 				<button
 					className={`${
-						selectedFileId === 0 &&
-						location.pathname.startsWith("/search") &&
-						styles.active
+						location.pathname.startsWith("/search") && styles.active
 					} ${styles.row}`}
 					title="Search (Ctrl + Shift + F)"
 					onClick={() => void navigate("/search")}>
@@ -134,10 +131,20 @@ function SideBar({ onSettingsClick }: Props) {
 			</div>
 
 			{errorMessage && (
-				<ErrorBox
+				<Alert
 					className={styles.errorBox}
 					message={errorMessage}
 					onClose={() => dispatch(setErrorMessage(""))}
+					type="error"
+				/>
+			)}
+
+			{successMessage && (
+				<Alert
+					className={styles.errorBox}
+					message={successMessage}
+					onClose={() => dispatch(setSuccessMessage(""))}
+					type="primary"
 				/>
 			)}
 

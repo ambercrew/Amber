@@ -15,12 +15,15 @@ import React, { useRef, useState } from "react";
 import { Action } from "../types/action.ts";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
-	importFile,
+	getReviewTreeFolderForRoot,
 	moveFile,
 	moveFolder,
 } from "../../../stores/fileSystem/fileSystemActions.ts";
 import getFileName from "../utils/getFileName.ts";
-import { requestFailure } from "../../../stores/fileSystem/fileSystemReducers.ts";
+import {
+	requestFailure,
+	setSuccessMessage,
+} from "../../../stores/fileSystem/fileSystemReducers.ts";
 import UiFolder from "../../../types/ui/uiFolder.ts";
 import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
@@ -35,7 +38,11 @@ import {
 	dragFormatForFolder,
 	jsonFileFilter,
 } from "../config/constants.ts";
-import { exportFile, exportFolder } from "../../../api/exportImportApi.ts";
+import {
+	exportFile,
+	exportFolder,
+	importExportedItem,
+} from "../../../api/exportImportApi.ts";
 import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 
 interface Props {
@@ -138,6 +145,7 @@ function FileTreeItem({
 					await (folder
 						? exportFolder(id, savePath)
 						: exportFile(id, savePath));
+					dispatch(setSuccessMessage("Item exported!"));
 				} catch (e) {
 					console.error(e);
 					dispatch(requestFailure(errorToString(e)));
@@ -152,12 +160,19 @@ function FileTreeItem({
 			text: "Import",
 			onClick: () => {
 				void (async () => {
-					setShowActions(false);
-					const openPath = await openOpenDialog({
-						filters: [jsonFileFilter],
-					});
-					if (!openPath) return;
-					await dispatch(importFile(openPath, id));
+					try {
+						setShowActions(false);
+						const openPath = await openOpenDialog({
+							filters: [jsonFileFilter],
+						});
+						if (!openPath) return;
+						await importExportedItem(openPath, id);
+						await dispatch(getReviewTreeFolderForRoot());
+						dispatch(setSuccessMessage("Item imported!"));
+					} catch (e) {
+						console.error(e);
+						dispatch(requestFailure(errorToString(e)));
+					}
 				})();
 			},
 		});

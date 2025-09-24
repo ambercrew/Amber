@@ -1,7 +1,7 @@
 import Editor from "../features/Editor/componenets/Editor";
 import styles from "./styles.module.css";
 import { useEffect, useRef, useState } from "react";
-import ErrorBox from "../components/ErrorBox/ErrorBox";
+import Alert from "../components/Alert/Alert";
 import Reviewer from "../features/Reviewer/components/Reviewer";
 import Home from "../features/Home/componenets/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
@@ -94,8 +94,9 @@ function App() {
 
 			{errorMessage && (
 				<div className={styles.errorDialog}>
-					<ErrorBox
+					<Alert
 						message={errorMessage}
+						type="error"
 						onClose={() => setErrorMessage(null)}
 					/>
 				</div>

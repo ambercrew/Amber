@@ -6,7 +6,10 @@ import {
 	ReviewTreeFolder,
 } from "../../types/backend/dto/reviewTreeFolder";
 
-export const selectError = (state: RootState) => state.fileSystem.error;
+export const selectErrorMessage = (state: RootState) =>
+	state.fileSystem.errorMessage;
+export const selectSuccessMessage = (state: RootState) =>
+	state.fileSystem.successMessage;
 
 export const selectRootFolder = (state: RootState) =>
 	state.fileSystem.rootFolder;

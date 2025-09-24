@@ -14,7 +14,10 @@ export function exportFile(fileId: string, exportPath: string) {
 	});
 }
 
-export function importFile(importItemPath: string, importIntoFolderId: string) {
+export function importExportedItem(
+	importItemPath: string,
+	importIntoFolderId: string,
+) {
 	return invoke("import", {
 		importItemPath,
 		importIntoFolderId,

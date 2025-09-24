@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+/** Provides state that is automatically persisted and retrieved from local storage.
+ */
 export default function useLocalStorage<T>(
 	key: string,
 	defaultValue: T,

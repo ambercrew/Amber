@@ -3,12 +3,14 @@ import { ROOT_FOLDER_ID } from "../../config/constants";
 import { ReviewTreeFolder } from "../../types/backend/dto/reviewTreeFolder";
 
 interface FileSystemState {
-	error: string | null;
+	errorMessage: string | null;
+	successMessage: string | null;
 	rootFolder: ReviewTreeFolder;
 }
 
 const initialState: FileSystemState = {
-	error: null,
+	errorMessage: null,
+	successMessage: null,
 	rootFolder: {
 		id: ROOT_FOLDER_ID,
 		files: [],
@@ -28,22 +30,32 @@ export const fileSystemSlice = createSlice({
 	initialState,
 	reducers: {
 		requestStart: state => {
-			state.error = null;
+			state.errorMessage = null;
+			state.successMessage = null;
 		},
 		requestSuccess: (state, payload: PayloadAction<ReviewTreeFolder>) => {
-			state.error = null;
+			state.errorMessage = null;
+			state.successMessage = null;
 			state.rootFolder = payload.payload;
 		},
 		requestFailure: (state, payload: PayloadAction<string>) => {
-			state.error = payload.payload;
+			state.errorMessage = payload.payload;
 		},
 		setErrorMessage: (state, payload: PayloadAction<string>) => {
-			state.error = payload.payload;
+			state.errorMessage = payload.payload;
+		},
+		setSuccessMessage: (state, payload: PayloadAction<string>) => {
+			state.successMessage = payload.payload;
 		},
 	},
 });
 
 export default fileSystemSlice.reducer;
 
-export const { requestStart, requestSuccess, requestFailure, setErrorMessage } =
-	fileSystemSlice.actions;
+export const {
+	requestStart,
+	requestSuccess,
+	requestFailure,
+	setErrorMessage,
+	setSuccessMessage,
+} = fileSystemSlice.actions;

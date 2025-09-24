@@ -15,7 +15,6 @@ import {
 	getReviewTreeFolderForRoot as getReviewTreeFolderForRootApi,
 	renameFolder as renameFolderApi,
 } from "../../api/fileSystemApi";
-import { importFile as importFileApi } from "../../api/exportImportApi";
 import { AppDispatch, RootState } from "../store";
 import errorToString from "../../utils/errorToString";
 
@@ -53,12 +52,6 @@ export function moveFile(fileId: string, destinationFolderId: string) {
 
 export function moveFolder(folderId: string, destinationFolderId: string) {
 	return executeRequest(() => moveFolderApi(folderId, destinationFolderId));
-}
-
-export function importFile(importItemPath: string, importIntoFolderId: string) {
-	return executeRequest(() =>
-		importFileApi(importItemPath, importIntoFolderId),
-	);
 }
 
 function executeRequest<T>(

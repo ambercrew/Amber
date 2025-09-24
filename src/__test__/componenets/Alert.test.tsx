@@ -1,12 +1,12 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
-import ErrorBox from "../../components/ErrorBox/ErrorBox";
+import Alert from "../../components/Alert/Alert";
 
-describe(ErrorBox, () => {
+describe(Alert, () => {
 	it("Calls function on close", async () => {
 		// Arrange
 
 		const fn = vi.fn();
-		render(<ErrorBox message="Error" onClose={fn} />);
+		render(<Alert message="Error" type="error" onClose={fn} />);
 
 		// Act
 

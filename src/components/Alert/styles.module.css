@@ -1,0 +1,29 @@
+.alert {
+	font-size: 1.4rem;
+	color: #fff;
+	padding: var(--default-padding) var(--large-padding);
+	border-radius: var(--default-border-radius);
+	display: flex;
+	justify-content: space-between;
+	align-items: start;
+
+	&.error {
+		background-color: var(--red-color);
+	}
+	&.primary {
+		background-color: var(--primary-color);
+	}
+
+	& button {
+		padding: var(--default-padding) var(--smalll-padding);
+		margin-top: var(--small-padding);
+
+		&:hover {
+			opacity: 0.8;
+		}
+
+		&:focus {
+			outline-color: #fff;
+		}
+	}
+}
