@@ -103,8 +103,8 @@
 	}
 }
 
-.error-box {
-	margin: 4px var(--default-padding);
+.alert {
+	margin: 4px var(--large-padding);
 }
 
 .rows {

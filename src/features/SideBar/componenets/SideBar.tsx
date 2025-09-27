@@ -132,7 +132,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 			{errorMessage && (
 				<Alert
-					className={styles.errorBox}
+					className={styles.alert}
 					message={errorMessage}
 					onClose={() => dispatch(setErrorMessage(""))}
 					type="error"
@@ -141,7 +141,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 			{successMessage && (
 				<Alert
-					className={styles.errorBox}
+					className={styles.alert}
 					message={successMessage}
 					onClose={() => dispatch(setSuccessMessage(""))}
 					type="primary"
