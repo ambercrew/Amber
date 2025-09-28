@@ -2,6 +2,7 @@ pub mod cells;
 pub mod common;
 pub mod file_system;
 pub mod settings;
+pub mod sync;
 
 pub type Guid = uuid::Uuid;
 

@@ -2,16 +2,14 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiCog, mdiFolderOpenOutline } from "@mdi/js";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Settings, { Theme } from "../../../types/backend/model/settings";
 import { getSettings, updateSettings } from "../../../api/settingsApi";
-import useOutsideClick from "../../../hooks/useOutsideClick";
-import useGlobalKey from "../../../hooks/useGlobalKey";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import errorToString from "../../../utils/errorToString";
 import applySettings from "../../../utils/applySettings";
-import { useNavigate } from "react-router";
+import Dialog from "../../../components/Dialog/Dialog";
 
 interface Props {
 	onClose: () => void;
@@ -20,11 +18,7 @@ interface Props {
 
 function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
-	const boxRef = useRef<HTMLFormElement>(null);
 	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
-
-	useOutsideClick(boxRef as React.RefObject<HTMLElement>, onClose);
 
 	useEffect(() => {
 		void (async () => {
@@ -64,7 +58,6 @@ function SettingsPopup({ onClose, onError }: Props) {
 			});
 			await applySettings(settings!);
 			await dispatch(getReviewTreeFolderForRoot());
-			void navigate("/");
 			onClose();
 		} catch (e) {
 			console.error(e);
@@ -72,17 +65,9 @@ function SettingsPopup({ onClose, onError }: Props) {
 		}
 	};
 
-	useGlobalKey((e: KeyboardEvent) => {
-		if (e.key === "Escape") {
-			onClose();
-		}
-	});
-
 	return (
-		<div className="overlay">
+		<Dialog className={styles.box} onHide={onClose}>
 			<form
-				className={styles.box}
-				ref={boxRef}
 				onSubmit={e => void handleSubmit(e)}>
 				<div className={`row ${styles.header}`}>
 					<Icon path={mdiCog} size={1.2} />
@@ -151,7 +136,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 					</button>
 				</div>
 			</form>
-		</div>
+		</Dialog>
 	);
 }
 

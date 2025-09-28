@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CellType } from "../../../types/backend/entity/cell";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
+import Dialog from "../../../components/Dialog/Dialog";
 
 interface Props {
 	onDrop: (e: React.DragEvent) => void;
@@ -60,16 +61,17 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 			</div>
 
 			{showAddNewCellPopup && (
-				<div className="overlay">
+				<Dialog
+					className={styles.addCellDialog}
+					onHide={() => setShowAddNewCellPopup(false)}>
 					<NewCellTypeSelector
-						className={styles.overlayCellSelector}
 						onClick={cellType => {
 							onAddNewCell(cellType);
 							setShowAddNewCellPopup(false);
 						}}
 						onHide={() => setShowAddNewCellPopup(false)}
 					/>
-				</div>
+				</Dialog>
 			)}
 		</>
 	);

@@ -1,17 +1,7 @@
 .box {
-	padding: var(--xl-padding);
-	background: var(--default-background-color);
-	border-radius: var(--default-border-radius);
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 1.2rem;
 	min-width: 36rem;
-	box-shadow: var(--default-box-shadow);
-}
-
-.box hr {
-	background-color: var(--text-color);
-	height: 1px;
-	border: 0;
 }

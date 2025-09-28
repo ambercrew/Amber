@@ -24,9 +24,9 @@
 		}
 	}
 
-	.overlay-cell-selector {
+	& .add-cell-dialog {
+		padding: 0;
 		width: 48rem;
-		max-width: 80%;
 	}
 }
 

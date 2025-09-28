@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
+import Dialog from "../../../components/Dialog/Dialog";
 
 function Updater() {
 	const [isUpdating, setIsUpdating] = useState(false);
@@ -47,7 +48,7 @@ function Updater() {
 	return (
 		<>
 			{isUpdating && (
-				<div className="overlay">
+				<Dialog>
 					<div
 						className={`${styles.box}`}
 						onClick={e => e.stopPropagation()}>
@@ -56,7 +57,7 @@ function Updater() {
 							please wait...
 						</p>
 					</div>
-				</div>
+				</Dialog>
 			)}
 		</>
 	);

@@ -1,14 +1,9 @@
 .box {
-	padding: var(--xl-padding);
-	background: var(--default-background-color);
-	border-radius: var(--default-border-radius);
+	min-width: 48rem;
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
+    justify-content: space-between;
 	gap: 1.2rem;
-	min-width: 48rem;
-	box-shadow: var(--default-box-shadow);
-	font-size: 1.6rem;
 }
 
 .title-bar {

@@ -1,7 +1,7 @@
 import { mdiExclamationThick } from "@mdi/js";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
-import useGlobalKey from "../../hooks/useGlobalKey";
+import Dialog from "../Dialog/Dialog";
 
 interface Props {
 	title: string;
@@ -18,37 +18,22 @@ function ConfirmationDialog({
 	onCancel,
 	onConfirm,
 }: Props) {
-	useGlobalKey(handleKeyUp);
-
-	function handleKeyUp(e: KeyboardEvent) {
-		if (e.key === "Escape") {
-			onCancel();
-		}
-	}
-
 	return (
-		<div
-			className="overlay"
-			onClick={e => {
-				e.stopPropagation();
-				onCancel();
-			}}>
-			<div className={`${styles.box}`} onClick={e => e.stopPropagation()}>
-				<div className={`${styles.titleBar}`}>
-					<Icon path={icon} size={1.4} />
-					<p>{title}</p>
-				</div>
-				<p>{text}</p>
-				<div className={`${styles.buttonsRow}`}>
-					<button className="transparent" onClick={onConfirm}>
-						Yes
-					</button>
-					<button className="primary" onClick={onCancel} autoFocus>
-						No
-					</button>
-				</div>
+		<Dialog onHide={onCancel} className={styles.box}>
+			<div className={`${styles.titleBar}`}>
+				<Icon path={icon} size={1.4} />
+				<p>{title}</p>
 			</div>
-		</div>
+			<p>{text}</p>
+			<div className={`${styles.buttonsRow}`}>
+				<button className="transparent" onClick={onConfirm}>
+					Yes
+				</button>
+				<button className="primary" onClick={onCancel} autoFocus>
+					No
+				</button>
+			</div>
+		</Dialog>
 	);
 }
 

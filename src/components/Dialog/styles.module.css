@@ -1,0 +1,22 @@
+.overlay {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.2);
+	z-index: 9999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.box {
+	padding: var(--xl-padding);
+	background: var(--default-background-color);
+	border-radius: var(--default-border-radius);
+	box-shadow: var(--default-box-shadow);
+    max-width: 80%;
+}

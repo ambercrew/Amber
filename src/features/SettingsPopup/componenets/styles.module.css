@@ -2,12 +2,8 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-	padding: var(--large-padding) var(--xxl-padding);
-	border-radius: var(--default-border-radius);
-	background: var(--default-background-color);
 	width: 48rem;
 	max-width: 80%;
-	height: 32rem;
 }
 
 .header {
@@ -24,7 +20,7 @@
 	padding-top: var(--default-padding);
 	display: flex;
 	flex-direction: column;
-	gap: var(--default-padding);
+	gap: var(--large-padding);
 	font-size: 1.6rem;
 
 	& .settings-row {
@@ -55,7 +51,7 @@
 }
 
 .buttons {
-	padding-top: var(--default-padding);
+	margin-top: var(--xxl-padding);
 	display: flex;
 	gap: var(--default-padding);
 	justify-content: flex-end;

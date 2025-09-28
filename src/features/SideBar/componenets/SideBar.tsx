@@ -21,6 +21,7 @@ import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
+import LoginDialog from "../../LoginDialog/LoginDialog";
 
 interface Props {
 	onSettingsClick: () => void;
@@ -64,6 +65,8 @@ function SideBar({ onSettingsClick }: Props) {
 		onSettingsClick();
 	};
 
+	// TODO: show and hide login dialog based on whether the user is authenticated or not
+	// TODO: add show login dialog button
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
@@ -149,6 +152,8 @@ function SideBar({ onSettingsClick }: Props) {
 			)}
 
 			<FileTree folder={rootUiFolder} />
+
+			{/*<LoginDialog /> */}
 		</div>
 	);
 }
