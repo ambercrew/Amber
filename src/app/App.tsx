@@ -22,10 +22,13 @@ import { fileIdQueryParameter } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/componenets/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
+import LoginDialog from "../features/LoginDialog/components/LoginDialog";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    // TODO: maybe move login dialog to somewhere else, and its showing state
+	const [showLoginDialog, setShowLoginDialog] = useState(false);
 	const [searchParams] = useSearchParams();
 	const studyFileIds = useRef<string[]>([]);
 	const editCellId = useRef<string | null>(null);
@@ -88,6 +91,7 @@ function App() {
 		});
 	};
 
+	// TODO: show and hide login dialog based on whether the user is authenticated or not
 	return (
 		<div className={`${styles.workspace}`}>
 			<Updater />
@@ -156,6 +160,8 @@ function App() {
 					onError={setErrorMessage}
 				/>
 			)}
+
+			{showLoginDialog && <LoginDialog onClose={() => setShowLoginDialog(false)} />}
 		</div>
 	);
 }

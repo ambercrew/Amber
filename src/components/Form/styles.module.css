@@ -1,0 +1,49 @@
+.form {
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	font-size: 1.8rem;
+	gap: var(--default-padding);
+	border-bottom: 1px solid var(--border-color);
+	padding-bottom: var(--default-padding);
+	margin-bottom: var(--small-padding);
+}
+
+.rows {
+	height: 100%;
+	overflow: auto;
+	padding-top: var(--default-padding);
+	display: flex;
+	flex-direction: column;
+	gap: var(--large-padding);
+	font-size: 1.6rem;
+
+	& .row {
+		display: grid;
+		grid-template-columns: 16rem 1fr;
+		justify-content: center;
+		align-items: center;
+		gap: var(--small-padding);
+
+		& input,
+		& select,
+		& > div {
+			width: 100%;
+			font-size: 1.4rem;
+		}
+	}
+}
+
+.buttons {
+	margin-top: var(--xxl-padding);
+	display: flex;
+	gap: var(--default-padding);
+	justify-content: flex-end;
+
+	& button {
+		padding: var(--default-padding);
+		font-size: 1.6rem;
+	}
+}

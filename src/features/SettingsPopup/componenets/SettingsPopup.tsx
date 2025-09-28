@@ -10,6 +10,11 @@ import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSyste
 import errorToString from "../../../utils/errorToString";
 import applySettings from "../../../utils/applySettings";
 import Dialog from "../../../components/Dialog/Dialog";
+import Form, {
+	FormButtons,
+	FormHeader,
+	FormRows,
+} from "../../../components/Form/Form";
 
 interface Props {
 	onClose: () => void;
@@ -67,75 +72,83 @@ function SettingsPopup({ onClose, onError }: Props) {
 
 	return (
 		<Dialog className={styles.box} onHide={onClose}>
-			<form
-				onSubmit={e => void handleSubmit(e)}>
-				<div className={`row ${styles.header}`}>
-					<Icon path={mdiCog} size={1.2} />
-					<p>Settings</p>
-				</div>
-				<div className={styles.settingsRows}>
-					<div className={styles.settingsRow}>
-						<p>Database Location:</p>
-						<div className="row">
-							<input
-								type="text"
-								value={settings?.databaseLocation ?? ""}
-								readOnly
-								autoFocus
-							/>
-							<button
-								className="transparent"
-								type="button"
-								onClick={() =>
-									void handleChangeDatabaseLocationClick()
-								}>
-								<Icon path={mdiFolderOpenOutline} size={1} />
-							</button>
-						</div>
-					</div>
-					<div className={styles.settingsRow}>
-						<p>Theme:</p>
-						<select
-							value={settings?.theme}
-							onChange={e =>
-								setSettings({
-									...settings!,
-									theme: e.target.value as Theme,
-								})
-							}>
-							<option value="FollowSystem">Follow system</option>
-							<option value="Light">Light</option>
-							<option value="Dark">Dark</option>
-						</select>
-					</div>
-					<div className={styles.settingsRow}>
-						<p>Zoom (%):</p>
-						<input
-							type="number"
-							value={settings?.zoomPercentage ?? ""}
-							onChange={e =>
-								setSettings({
-									...settings!,
-									zoomPercentage: Number(e.target.value),
-								})
-							}
-							min={50}
-							max={400}
-						/>
-					</div>
-				</div>
-				<div className={styles.buttons}>
-					<button
-						className="transparent"
-						type="button"
-						onClick={onClose}>
-						Cancel
-					</button>
-					<button className="primary" type="submit">
-						Save
-					</button>
-				</div>
-			</form>
+			<Form onSubmit={e => void handleSubmit(e)}>
+				<FormHeader icon={mdiCog} title="Settings" />
+				<FormRows
+					rows={[
+						{
+							label: "Database Location:",
+							labelHtmlFor: "database-location",
+							children: (
+								<div className="row">
+									<input
+										id="database-location"
+										type="text"
+										value={settings?.databaseLocation ?? ""}
+										readOnly
+										autoFocus
+									/>
+									<button
+										className="transparent"
+										type="button"
+										onClick={() =>
+											void handleChangeDatabaseLocationClick()
+										}>
+										<Icon
+											path={mdiFolderOpenOutline}
+											size={1}
+										/>
+									</button>
+								</div>
+							),
+						},
+						{
+							label: "Theme:",
+							labelHtmlFor: "theme",
+							children: (
+								<select
+									value={settings?.theme}
+									id="theme"
+									onChange={e =>
+										setSettings({
+											...settings!,
+											theme: e.target.value as Theme,
+										})
+									}>
+									<option value="FollowSystem">
+										Follow system
+									</option>
+									<option value="Light">Light</option>
+									<option value="Dark">Dark</option>
+								</select>
+							),
+						},
+						{
+							label: "Zoom (%):",
+							labelHtmlFor: "zoom",
+							children: (
+								<input
+									id="zoom"
+									type="number"
+									value={settings?.zoomPercentage ?? ""}
+									onChange={e =>
+										setSettings({
+											...settings!,
+											zoomPercentage: Number(
+												e.target.value,
+											),
+										})
+									}
+									min={50}
+									max={400}
+								/>
+							),
+						},
+					]}
+				/>
+
+				<FormButtons onClose={onClose} submitText="Save" />
+			</Form>
 		</Dialog>
 	);
 }
