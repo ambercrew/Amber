@@ -81,6 +81,7 @@ function FileTreeItemRow({
 		onRenameEnd();
 	};
 
+	// TODO: fix actions menu position when scrolling (fix: set top-y from tsx, take ref for button position)
 	return (
 		<>
 			<div

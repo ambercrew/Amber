@@ -8,10 +8,11 @@ import Form, {
 } from "../../../components/Form/Form";
 
 interface IProps {
-    onClose: () => void;
+	onClose: () => void;
 }
 
-export default function LoginDialog({onClose}: IProps) {
+// TODO: add registion from here
+export default function LoginDialog({ onClose }: IProps) {
 	return (
 		<Dialog className={styles.box} onHide={onClose}>
 			<Form>
@@ -26,8 +27,8 @@ export default function LoginDialog({onClose}: IProps) {
 									id="username"
 									type="text"
 									placeholder="Enter your username..."
-                                    maxLength={30}
-                                    minLength={3}
+									maxLength={30}
+									minLength={3}
 									autoFocus
 								/>
 							),
@@ -40,7 +41,7 @@ export default function LoginDialog({onClose}: IProps) {
 									id="password"
 									type="password"
 									placeholder="Enter your password..."
-                                    minLength={8}
+									minLength={8}
 								/>
 							),
 						},

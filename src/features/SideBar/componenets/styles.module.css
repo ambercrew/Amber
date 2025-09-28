@@ -1,19 +1,23 @@
 .side-bar {
-	height: 100%;
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
 	width: 28rem;
 	transition: var(--default-transition-time) all;
 	max-width: 100%;
-	/* Adding more space at the bottom for actions menus. */
-	padding-bottom: 10rem;
-	overflow-y: auto;
 	position: relative;
 	font-size: 1.6rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100vh;
 
 	--sidebar-inner-horizontal-padding: 20px;
 	--sidebar-inner-padding: 12px var(--sidebar-inner-horizontal-padding);
 	--border-seperator: 1px solid var(--border-color);
+
+	& .side-bar-top-container {
+		overflow-y: auto;
+	}
 
 	.header {
 		display: flex;
@@ -50,7 +54,7 @@
 		width: 62px;
 		overflow: hidden;
 
-		& > * {
+		& .side-bar-top-container > * {
 			display: none;
 		}
 
@@ -81,6 +85,10 @@
 					display: none;
 				}
 			}
+		}
+
+		& .bottom-button p {
+			display: none;
 		}
 	}
 }
@@ -153,4 +161,14 @@
 			border-color: var(--primary-color);
 		}
 	}
+}
+
+.bottom-button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: var(--default-padding);
+	padding: var(--large-padding);
+	border-radius: 0;
+	border-top: 1px solid var(--border-color);
 }

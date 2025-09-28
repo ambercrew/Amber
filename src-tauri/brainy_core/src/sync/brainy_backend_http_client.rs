@@ -30,5 +30,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 }
 
 mod models {
+    pub struct LoginDto {
 
+    }
 }
