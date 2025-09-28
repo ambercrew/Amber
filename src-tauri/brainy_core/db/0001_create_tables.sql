@@ -102,3 +102,14 @@ CREATE TABLE reviews(
     rating                      TEXT        NOT NULL,
     FOREIGN KEY(cell_id) REFERENCES cells(id) ON DELETE SET NULL
 );
+
+-------------------------------------------------------------------------
+
+CREATE TABLE deleted_entities(
+    entity_name                 TEXT        NOT NULL,
+    entity_id                   TEXT        NOT NULL,
+    delete_date                 DATETIME    DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX deleted_entities_entity_name_and_id_index ON deleted_entities(entity_name, entity_id);
+CREATE INDEX deleted_entities_delete_date_index ON deleted_entities(delete_date);

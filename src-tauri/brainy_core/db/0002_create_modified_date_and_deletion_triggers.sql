@@ -7,6 +7,13 @@ BEGIN
     WHERE id = NEW.id;
 END;
 
+CREATE TRIGGER folders_add_to_deleted_entities_after_delete
+    AFTER DELETE ON folders
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, delete_date)
+    VALUES ('folders', OLD.id, CURRENT_TIMESTAMP);
+END;
+
 -------------------------------------------------------------------------
 
 CREATE TRIGGER files_update_modified_date_after_update
@@ -16,6 +23,13 @@ BEGIN
     UPDATE files 
     SET modified_date = CURRENT_TIMESTAMP 
     WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER files_add_to_deleted_entities_after_delete
+    AFTER DELETE ON files
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, delete_date)
+    VALUES ('files', OLD.id, CURRENT_TIMESTAMP);
 END;
 
 -------------------------------------------------------------------------
@@ -29,6 +43,13 @@ BEGIN
     WHERE id = NEW.id;
 END;
 
+CREATE TRIGGER cells_add_to_deleted_entities_after_delete
+    AFTER DELETE ON cells
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, delete_date)
+    VALUES ('cells', OLD.id, CURRENT_TIMESTAMP);
+END;
+
 -------------------------------------------------------------------------
 
 CREATE TRIGGER repetitions_update_modified_date_after_update
@@ -40,6 +61,13 @@ BEGIN
     WHERE id = NEW.id;
 END;
 
+CREATE TRIGGER repetitions_add_to_deleted_entities_after_delete
+    AFTER DELETE ON repetitions
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, delete_date)
+    VALUES ('repetitions', OLD.id, CURRENT_TIMESTAMP);
+END;
+
 -------------------------------------------------------------------------
 
 CREATE TRIGGER reviews_update_modified_date_after_update
@@ -49,5 +77,12 @@ BEGIN
     UPDATE reviews 
     SET modified_date = CURRENT_TIMESTAMP 
     WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER reviews_add_to_deleted_entities_after_delete
+    AFTER DELETE ON reviews
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, delete_date)
+    VALUES ('reviews', OLD.id, CURRENT_TIMESTAMP);
 END;
 
