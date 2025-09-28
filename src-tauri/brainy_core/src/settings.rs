@@ -96,7 +96,6 @@ impl Settings {
 }
 
 async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
-    // TODO: use tauri built in paths instead!
     let dir_path = match dirs::config_dir() {
         Some(dir) => dir.join("Brainy"),
         None => return Err(SettingsError::NoConfigDirectory),
