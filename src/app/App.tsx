@@ -88,7 +88,6 @@ function App() {
 		});
 	};
 
-	// TODO: show and hide login dialog based on whether the user is authenticated or not
 	return (
 		<div className={`${styles.workspace}`}>
 			<Updater />

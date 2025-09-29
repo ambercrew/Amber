@@ -80,7 +80,7 @@ body.dark {
 	--hover-border-color: #6b7280;
 	--body-background-color: #1a1f23;
 	--default-background-color: #252b30;
-	--light-default-background-color: #30373d;
+	--light-default-background-color: rgb(52, 59, 65);
 
 	--grey-background-color: #424242;
 	--grey-background-color-shade-10: #292929;

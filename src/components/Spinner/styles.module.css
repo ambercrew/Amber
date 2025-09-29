@@ -1,0 +1,30 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.spinner {
+    border: 4px solid var(--grey-background-color-shade-20);
+    border-bottom-color: var(--primary-color);
+    border-radius: 50%;
+    display: inline-block;
+    animation: rotation 1s linear infinite;
+}
+
+:global(.dark) {
+
+    & .spinner {
+        border-color: var(--light-default-background-color);
+        border-bottom-color: var(--primary-color);
+    }
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

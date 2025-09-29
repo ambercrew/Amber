@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::sync::{
-    models::{LoginDto, UserInformnationDto, UserRegistrationDto},
+    models::{LoginDto, ProblemDetails, UserInformnationDto, UserRegistrationDto},
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
@@ -80,7 +80,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
 
-        ensure_success_response(response)?;
+        ensure_success_response(response).await?;
         self.persist_cookies();
         Ok(())
     }
@@ -103,7 +103,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
 
-        ensure_success_response(response)?;
+        ensure_success_response(response).await?;
         self.persist_cookies();
 
         Ok(())
@@ -116,10 +116,11 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
 
-        let response = ensure_success_response(response)?;
-        // TODO: error handling, and convert to common code
-        let result = response.json::<UserInformnationDto>().await.unwrap();
-        Ok(result)
+        let response = ensure_success_response(response).await?;
+        match response.json::<UserInformnationDto>().await {
+            Ok(result) => Ok(result),
+            Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
+        }
     }
 }
 
@@ -141,7 +142,9 @@ impl BrainyBackendHttpClient {
 /// Ensures that there was no error sending the response and that
 /// the status code of the response is 200, otherwise convert to an
 /// appropriate error.
-fn ensure_success_response(
+/// On 400 response it tries to parse the problem details and return it in a 
+/// an appropriate error.
+async fn ensure_success_response(
     response: Result<Response, reqwest::Error>,
 ) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
@@ -159,6 +162,13 @@ fn ensure_success_response(
     match response.status() {
         StatusCode::UNAUTHORIZED => Err(BrainyBackendClientError::InvalidCredentials),
         StatusCode::OK => Ok(response),
+        StatusCode::BAD_REQUEST => {
+            if let Ok(problem_details) = response.json::<ProblemDetails>().await {
+                Err(BrainyBackendClientError::BadRequest(problem_details.detail))
+            } else {
+                Err(BrainyBackendClientError::UnexpectedResponse)
+            }
+        },
         _ => Err(BrainyBackendClientError::UnexpectedResponse),
     }
 }

@@ -2,15 +2,15 @@ import styles from "./styles.module.css";
 import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { selectLoginError } from "../../../stores/user/userSelectors";
+import { selectSignupError } from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
 	FormRows,
 } from "../../../components/Form/Form";
 import { mdiAccountPlusOutline } from "@mdi/js";
-import { login } from "../../../stores/user/userActions";
 import Alert from "../../../components/Alert/Alert";
+import { signup } from "../../../stores/user/userActions";
 
 interface IProps {
 	onCancel: () => void;
@@ -23,17 +23,15 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	// TODO: show registration error
-	const loginErrorMessage = useAppSelector(selectLoginError);
+	const signupErrorMessage = useAppSelector(selectSignupError);
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		// TODO: signup
-		await dispatch(login(username, password));
+		await dispatch(signup(username, password, email, firstName, lastName));
 	};
 
-	// TODO: confirm password and other fields
+	// TODO: confirm password
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
 			<FormHeader icon={mdiAccountPlusOutline} title="Signup" />
@@ -116,9 +114,9 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 				]}
 			/>
 
-			{loginErrorMessage && (
+			{signupErrorMessage && (
 				<Alert
-					message={loginErrorMessage}
+					message={signupErrorMessage}
 					className={styles.errorAlert}
 					type="error"
 				/>

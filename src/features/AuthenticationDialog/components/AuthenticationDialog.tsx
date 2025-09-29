@@ -8,7 +8,6 @@ interface IProps {
 	onCancel: () => void;
 }
 
-// TODO: add registration form and ability to navigate back to login
 export default function AuthenticationDialog({ onCancel }: IProps) {
 	const [typeOfForm, setTypeOfForm] = useState<"login" | "signup">("login");
 

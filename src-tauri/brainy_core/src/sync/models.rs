@@ -4,6 +4,12 @@ use crate::Guid;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ProblemDetails {
+    pub detail: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LoginDto {
     pub username: String,
     pub password: String,

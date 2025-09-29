@@ -13,11 +13,12 @@ pub enum BrainyBackendClientError {
     UnknownError(String),
     #[error("Error deserializing the response received.")]
     DeserializationError(String),
+    #[error("{0}")]
+    BadRequest(String),
 }
 
 #[async_trait]
 pub trait BrainyBackendClient: Send + Sync {
-    // TODO: use dto as input instead of listing all parameters
     async fn login(
         &self,
         username: String,

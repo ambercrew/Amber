@@ -4,6 +4,7 @@ import { UserInformationDto } from "../../types/backend/dto/userInformnationDto"
 interface UserState {
 	isSignedIn: boolean;
 	loginError: string | null;
+	signupError: string | null;
 	userInformation: UserInformationDto | null;
 	// TODO: use it with loading spinner
 	isSendingRequest: boolean;
@@ -12,14 +13,10 @@ interface UserState {
 const initialState: UserState = {
 	isSignedIn: false,
 	loginError: null,
+    signupError: null,
 	userInformation: null,
 	isSendingRequest: false,
 };
-
-interface LoginSuccessPayload {
-	isSignedIn: boolean;
-	userInformation: UserInformationDto | null;
-}
 
 export const userSlice = createSlice({
 	name: "user",
@@ -36,12 +33,15 @@ export const userSlice = createSlice({
 		requestFailure: state => {
 			state.isSendingRequest = false;
 		},
-		loginSuccess: (state, payload: PayloadAction<LoginSuccessPayload>) => {
-			state.isSignedIn = payload.payload.isSignedIn;
-			state.userInformation = payload.payload.userInformation;
+		loginSuccess: (state, payload: PayloadAction<UserInformationDto>) => {
+			state.isSignedIn = true;
+			state.userInformation = payload.payload;
 		},
 		loginFailure: (state, payload: PayloadAction<string>) => {
 			state.loginError = payload.payload;
+		},
+		signupFailure: (state, payload: PayloadAction<string>) => {
+			state.signupError = payload.payload;
 		},
 	},
 });
@@ -54,4 +54,5 @@ export const {
 	requestSuccess,
 	loginFailure,
 	requestFailure,
+    signupFailure
 } = userSlice.actions;
