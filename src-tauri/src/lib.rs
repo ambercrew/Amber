@@ -11,7 +11,12 @@ use brainy_core::{
     },
     file_system::file_system_service::FileSystemService,
     settings::Settings,
+    sync::{
+        brainy_backend_http_client::BrainyBackendHttpClient,
+        traits::brainy_backend_client::BrainyBackendClient,
+    },
 };
+use reqwest::Url;
 use tauri::Manager;
 
 use api::*;
@@ -32,6 +37,10 @@ pub async fn run() -> Result<(), String> {
     .unwrap();
 
     let mut tauri_builder = tauri::Builder::default();
+
+    let backend_url = Url::parse("http://localhost:5078").unwrap();
+    let backend_client =
+        BrainyBackendHttpClient::new(backend_url).expect("Cannot create backend client");
 
     #[cfg(desktop)]
     {
@@ -69,6 +78,9 @@ pub async fn run() -> Result<(), String> {
             app.manage(
                 Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
             );
+
+            app.manage(Box::new(backend_client) as Box<dyn BrainyBackendClient>);
+
             #[cfg(dev)]
             {
                 let _ = app
@@ -111,6 +123,9 @@ pub async fn run() -> Result<(), String> {
             export_file,
             export_folder,
             import,
+            // Auth
+            login,
+            get_user_information,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

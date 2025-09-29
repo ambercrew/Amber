@@ -1,3 +1,7 @@
 .box {
 	width: 48rem;
 }
+
+.error-alert {
+    margin-top: var(--default-padding);
+}

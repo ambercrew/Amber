@@ -34,8 +34,6 @@ export const fileSystemSlice = createSlice({
 			state.successMessage = null;
 		},
 		requestSuccess: (state, payload: PayloadAction<ReviewTreeFolder>) => {
-			state.errorMessage = null;
-			state.successMessage = null;
 			state.rootFolder = payload.payload;
 		},
 		requestFailure: (state, payload: PayloadAction<string>) => {

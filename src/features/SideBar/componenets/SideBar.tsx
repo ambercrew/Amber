@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
+    mdiAccount,
 	mdiChevronLeft,
 	mdiCog,
 	mdiHelp,
@@ -29,6 +30,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 import LoginDialog from "../../LoginDialog/components/LoginDialog";
+import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 
 interface Props {
 	onSettingsClick: () => void;
@@ -43,6 +45,7 @@ function SideBar({ onSettingsClick }: Props) {
 	const successMessage = useAppSelector(selectSuccessMessage);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+    const isSignedIn = useAppSelector(selectIsSignedIn);
 	const location = useLocation();
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
@@ -73,7 +76,6 @@ function SideBar({ onSettingsClick }: Props) {
 		onSettingsClick();
 	};
 
-	// TODO: add show login dialog button
 	return (
 		<aside className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.sideBarTopContainer}>
@@ -164,11 +166,12 @@ function SideBar({ onSettingsClick }: Props) {
 			</div>
 
 			<button className={`transparent ${styles.bottomButton}`} onClick={() => setShowLoginDialog(true)}>
-				<Icon path={mdiLogin} size={1} /> <p>Login</p>
+                {!isSignedIn && (<><Icon path={mdiLogin} size={1} /> <p>Login</p></>)}
+                {isSignedIn && (<><Icon path={mdiAccount} size={1} /> <p>Profile</p></>)}
 			</button>
 
 
-			{showLoginDialog && (
+			{!isSignedIn && showLoginDialog && (
 				<LoginDialog onClose={() => setShowLoginDialog(false)} />
 			)}
 		</aside>

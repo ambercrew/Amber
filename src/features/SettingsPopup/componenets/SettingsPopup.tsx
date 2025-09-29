@@ -77,7 +77,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 				<FormRows
 					rows={[
 						{
-							label: "Database Location:",
+							label: "Database Location",
 							labelHtmlFor: "database-location",
 							children: (
 								<div className="row">
@@ -103,7 +103,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 							),
 						},
 						{
-							label: "Theme:",
+							label: "Theme",
 							labelHtmlFor: "theme",
 							children: (
 								<select
@@ -124,7 +124,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 							),
 						},
 						{
-							label: "Zoom (%):",
+							label: "Zoom (%)",
 							labelHtmlFor: "zoom",
 							children: (
 								<input

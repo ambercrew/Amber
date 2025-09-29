@@ -1,3 +1,4 @@
+mod auth_api;
 mod cell_api;
 mod export_import_api;
 mod file_system_api;
@@ -28,6 +29,8 @@ use serde::Serialize;
 pub use settings_api::{get_settings, update_settings};
 
 pub use review_api::{get_home_statistics, register_review};
+
+pub use auth_api::{login, get_user_information};
 
 #[derive(Serialize)]
 pub struct ApiError(String);
