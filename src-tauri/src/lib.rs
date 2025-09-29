@@ -125,6 +125,7 @@ pub async fn run() -> Result<(), String> {
             import,
             // Auth
             login,
+            signup,
             get_user_information,
         ])
         .run(tauri::generate_context!())

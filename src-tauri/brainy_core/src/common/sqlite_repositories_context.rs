@@ -105,6 +105,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
 }
 
 async fn create_transaction(pool: Arc<SqlitePool>) -> Transaction<'static, Sqlite> {
+    #[cfg(debug_assertions)]
     log::info!("Starting new transaction");
     pool.begin().await.expect("Cannot create a new transaction")
 }

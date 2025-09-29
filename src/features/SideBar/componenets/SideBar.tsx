@@ -15,7 +15,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
-    mdiAccount,
+	mdiAccount,
 	mdiChevronLeft,
 	mdiCog,
 	mdiHelp,
@@ -29,7 +29,7 @@ import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
-import LoginDialog from "../../LoginDialog/components/LoginDialog";
+import AuthenticationDialog from "../../AuthenticationDialog/components/AuthenticationDialog";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 
 interface Props {
@@ -39,13 +39,14 @@ interface Props {
 function SideBar({ onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [isExpanded, setIsExpanded] = useState(true);
-	const [showLoginDialog, setShowLoginDialog] = useState(false);
+	const [showAuthenticationDialog, setShowAuthenticationDialog] =
+		useState(false);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectErrorMessage);
 	const successMessage = useAppSelector(selectSuccessMessage);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-    const isSignedIn = useAppSelector(selectIsSignedIn);
+	const isSignedIn = useAppSelector(selectIsSignedIn);
 	const location = useLocation();
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
@@ -165,14 +166,25 @@ function SideBar({ onSettingsClick }: Props) {
 				<FileTree folder={rootUiFolder} />
 			</div>
 
-			<button className={`transparent ${styles.bottomButton}`} onClick={() => setShowLoginDialog(true)}>
-                {!isSignedIn && (<><Icon path={mdiLogin} size={1} /> <p>Login</p></>)}
-                {isSignedIn && (<><Icon path={mdiAccount} size={1} /> <p>Profile</p></>)}
+			<button
+				className={`transparent ${styles.bottomButton}`}
+				onClick={() => setShowAuthenticationDialog(true)}>
+				{!isSignedIn && (
+					<>
+						<Icon path={mdiLogin} size={1} /> <p>Login/Signup</p>
+					</>
+				)}
+				{isSignedIn && (
+					<>
+						<Icon path={mdiAccount} size={1} /> <p>Profile</p>
+					</>
+				)}
 			</button>
 
-
-			{!isSignedIn && showLoginDialog && (
-				<LoginDialog onClose={() => setShowLoginDialog(false)} />
+			{!isSignedIn && showAuthenticationDialog && (
+				<AuthenticationDialog
+					onCancel={() => setShowAuthenticationDialog(false)}
+				/>
 			)}
 		</aside>
 	);

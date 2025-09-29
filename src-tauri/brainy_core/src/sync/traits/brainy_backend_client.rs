@@ -17,10 +17,20 @@ pub enum BrainyBackendClientError {
 
 #[async_trait]
 pub trait BrainyBackendClient: Send + Sync {
+    // TODO: use dto as input instead of listing all parameters
     async fn login(
         &self,
         username: String,
         password: String,
+    ) -> Result<(), BrainyBackendClientError>;
+
+    async fn signup(
+        &self,
+        username: String,
+        password: String,
+        email: String,
+        first_name: String,
+        last_name: String
     ) -> Result<(), BrainyBackendClientError>;
 
     async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError>;

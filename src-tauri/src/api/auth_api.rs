@@ -1,4 +1,6 @@
-use brainy_core::sync::{models::UserInformnationDto, traits::brainy_backend_client::BrainyBackendClient};
+use brainy_core::sync::{
+    models::UserInformnationDto, traits::brainy_backend_client::BrainyBackendClient,
+};
 use tauri::State;
 
 use crate::api::ApiError;
@@ -10,6 +12,21 @@ pub async fn login(
     password: String,
 ) -> Result<(), ApiError> {
     backend_client.login(username, password).await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn signup(
+    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+    username: String,
+    password: String,
+    email: String,
+    first_name: String,
+    last_name: String,
+) -> Result<(), ApiError> {
+    backend_client
+        .signup(username, password, email, first_name, last_name)
+        .await?;
     Ok(())
 }
 

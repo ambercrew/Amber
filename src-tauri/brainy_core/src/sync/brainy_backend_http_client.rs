@@ -4,7 +4,8 @@ use std::{
 };
 
 use crate::sync::{
-    models::{LoginDto, UserInformnationDto}, traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError}
+    models::{LoginDto, UserInformnationDto, UserRegistrationDto},
+    traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
 use keyring::Entry;
@@ -84,6 +85,30 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
+    async fn signup(
+        &self,
+        username: String,
+        password: String,
+        email: String,
+        first_name: String,
+        last_name: String
+    ) -> Result<(), BrainyBackendClientError> {
+        let dto = UserRegistrationDto { first_name, last_name, email, password, username };
+
+        log::info!("Signing up...");
+        let response = self
+            .reqwest_client
+            .post(self.backend_url.join("/api/auth/signup").unwrap())
+            .json(&dto)
+            .send()
+            .await;
+
+        ensure_success_response(response)?;
+        self.persist_cookies();
+
+        Ok(())
+    }
+
     async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError> {
         let response = self
             .reqwest_client
@@ -113,10 +138,12 @@ impl BrainyBackendHttpClient {
     }
 }
 
-/// Ensures that there was no error sending the response and that 
-/// the status code of the response is 200, otherwise convert to an 
+/// Ensures that there was no error sending the response and that
+/// the status code of the response is 200, otherwise convert to an
 /// appropriate error.
-fn ensure_success_response(response: Result<Response, reqwest::Error>) -> Result<Response, BrainyBackendClientError> {
+fn ensure_success_response(
+    response: Result<Response, reqwest::Error>,
+) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
         return Err(BrainyBackendClientError::UnknownError(err.to_string()));
     }

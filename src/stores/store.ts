@@ -4,7 +4,7 @@ import userReducer from "./user/userReducer";
 
 const reducers = combineReducers({
 	fileSystem: fileSystemReducer,
-    user: userReducer,
+	user: userReducer,
 });
 
 export const store = configureStore({

@@ -3,7 +3,24 @@ import { UserInformationDto } from "../types/backend/dto/userInformnationDto";
 
 export function login(username: string, password: string): Promise<void> {
 	return invoke("login", {
-        username, password
+		username,
+		password,
+	});
+}
+
+export function signup(
+    username: string,
+    password: string,
+    email: string,
+    firstName: string,
+    lastName: string
+): Promise<void> {
+	return invoke("signup", {
+		username,
+		password,
+        email,
+        firstName,
+        lastName
 	});
 }
 
