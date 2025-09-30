@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::sync::{
-    models::{LoginDto, ProblemDetails, UserInformnationDto, UserRegistrationDto},
+    models::{LoginDto, ProblemDetails, UpdateUserInformationDto, UserInformnationDto, UserRegistrationDto},
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
@@ -139,6 +139,26 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         }
 
         false
+    }
+
+    async fn update_user_information(
+        &self,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> Result<(), BrainyBackendClientError> {
+        let dto = UpdateUserInformationDto { first_name, last_name };
+        
+        log::info!("Updating user information...");
+        let response = self
+            .reqwest_client
+            .patch(self.backend_url.join("/api/user").unwrap())
+            .json(&dto)
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+
+        Ok(())
     }
 }
 

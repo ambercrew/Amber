@@ -24,8 +24,6 @@ export default function ProfileForm({onCancel}: IProps) {
     const userInformation = useAppSelector(selectUserInformation)!;
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
-	const [username, setUsername] = useState(userInformation.username);
-	const [email, setEmail] = useState(userInformation.email);
 	const signupErrorMessage = useAppSelector(selectSignupError);
 	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
 
@@ -79,8 +77,8 @@ export default function ProfileForm({onCancel}: IProps) {
 								type="text"
 								maxLength={30}
 								minLength={3}
-								value={username}
-								onChange={e => setUsername(e.target.value)}
+								value={userInformation.username}
+                                readOnly
 								required
 							/>
 						),
@@ -93,8 +91,8 @@ export default function ProfileForm({onCancel}: IProps) {
 								id="email"
 								type="text"
 								maxLength={50}
-								value={email}
-								onChange={e => setEmail(e.target.value)}
+								value={userInformation.email}
+                                readOnly
 								required
 							/>
 						),

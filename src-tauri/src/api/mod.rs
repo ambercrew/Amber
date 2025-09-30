@@ -30,7 +30,7 @@ pub use settings_api::{get_settings, update_settings};
 
 pub use review_api::{get_home_statistics, register_review};
 
-pub use auth_api::{get_user_information, login, signup, is_signed_in};
+pub use auth_api::{get_user_information, login, signup, is_signed_in, update_user_information};
 
 #[derive(Serialize)]
 pub struct ApiError(String);

@@ -128,6 +128,7 @@ pub async fn run() -> Result<(), String> {
             signup,
             get_user_information,
             is_signed_in,
+            update_user_information,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

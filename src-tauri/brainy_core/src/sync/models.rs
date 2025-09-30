@@ -34,3 +34,10 @@ pub struct UserRegistrationDto {
     pub first_name: String,
     pub last_name: String,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUserInformationDto {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+}
