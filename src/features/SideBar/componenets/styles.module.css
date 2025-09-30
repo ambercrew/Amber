@@ -24,7 +24,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: var(--xl-padding);
-		padding-bottom: var(--large-padding);
+		padding-bottom: var(--default-padding);
 
 		& h2 {
 			font-size: 2rem;
@@ -34,8 +34,7 @@
 		& img {
 			margin-right: var(--default-padding);
 			width: 2.8rem;
-
-			box-shadow: 0 0 12px rgba(15, 118, 110, 0.3);
+			box-shadow: 0 0 12px rgba(15, 118, 110, 0.25);
 		}
 
 		& .toggle-button {
@@ -60,7 +59,8 @@
 
 		& .header {
 			display: flex;
-			padding: var(--xl-padding) 0;
+			padding-right: 0;
+			padding-left: 0;
 			justify-content: center;
 
 			& .title-row {

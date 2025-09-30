@@ -9,18 +9,18 @@ export function login(username: string, password: string): Promise<void> {
 }
 
 export function signup(
-    username: string,
-    password: string,
-    email: string,
-    firstName: string,
-    lastName: string
+	username: string,
+	password: string,
+	email: string,
+	firstName: string,
+	lastName: string,
 ): Promise<void> {
 	return invoke("signup", {
 		username,
 		password,
-        email,
-        firstName,
-        lastName
+		email,
+		firstName,
+		lastName,
 	});
 }
 

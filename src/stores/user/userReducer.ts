@@ -13,7 +13,7 @@ interface UserState {
 const initialState: UserState = {
 	isSignedIn: false,
 	loginError: null,
-    signupError: null,
+	signupError: null,
 	userInformation: null,
 	isSendingRequest: false,
 };
@@ -54,5 +54,5 @@ export const {
 	requestSuccess,
 	loginFailure,
 	requestFailure,
-    signupFailure
+	signupFailure,
 } = userSlice.actions;

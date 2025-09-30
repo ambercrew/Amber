@@ -1,4 +1,8 @@
-import { getUserInformation, login as loginApi, signup as signupApi } from "../../api/authApi";
+import {
+	getUserInformation,
+	login as loginApi,
+	signup as signupApi,
+} from "../../api/authApi";
 import errorToString from "../../utils/errorToString";
 import { AppDispatch, RootState } from "../store";
 import {
@@ -7,7 +11,7 @@ import {
 	requestFailure,
 	requestStart,
 	requestSuccess,
-    signupFailure,
+	signupFailure,
 } from "./userReducer";
 
 export function login(username: string, password: string) {
@@ -15,28 +19,24 @@ export function login(username: string, password: string) {
 		async dispatch => {
 			await loginApi(username, password);
 			const userInformation = await getUserInformation();
-			dispatch(
-				loginSuccess(userInformation),
-			);
+			dispatch(loginSuccess(userInformation));
 		},
 		(e, dispatch) => dispatch(loginFailure(e)),
 	);
 }
 
 export function signup(
-    username: string,
-    password: string,
-    email: string,
-    firstName: string,
-    lastName: string
+	username: string,
+	password: string,
+	email: string,
+	firstName: string,
+	lastName: string,
 ) {
 	return executeRequest(
 		async dispatch => {
 			await signupApi(username, password, email, firstName, lastName);
 			const userInformation = await getUserInformation();
-			dispatch(
-				loginSuccess(userInformation),
-			);
+			dispatch(loginSuccess(userInformation));
 		},
 		(e, dispatch) => dispatch(signupFailure(e)),
 	);

@@ -1,17 +1,38 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { useRef } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { Action } from "../types/action";
 
 interface Props {
 	actions: Action[];
+	fileTreeItemRowContainer: RefObject<HTMLDivElement | null>;
 }
 
-function ActionsMenu({ actions }: Props) {
+function ActionsMenu({ fileTreeItemRowContainer, actions }: Props) {
+	const [topPosition, setTopPosition] = useState(0);
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	useEffect(() => {
+		if (!fileTreeItemRowContainer.current || !containerRef.current) return;
+
+		const containerRect = containerRef.current.getBoundingClientRect();
+		const itemTreeRect =
+			fileTreeItemRowContainer.current.getBoundingClientRect();
+		let newTopPosition = itemTreeRect.top + itemTreeRect.height;
+
+		if (newTopPosition + containerRect.height > window.innerHeight) {
+			newTopPosition -= itemTreeRect.height ?? 0;
+			newTopPosition -= containerRect.height ?? 0;
+		}
+
+		setTopPosition(newTopPosition);
+	}, [fileTreeItemRowContainer, containerRef]);
+
 	return (
-		<div className={`${styles.actionsMenu}`} ref={containerRef}>
+		<div
+			className={`${styles.actionsMenu}`}
+			style={{ top: topPosition + "px" }}
+			ref={containerRef}>
 			{actions.length > 0 &&
 				actions.map((action, i) => (
 					<button

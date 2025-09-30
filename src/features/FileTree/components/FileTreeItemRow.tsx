@@ -10,7 +10,7 @@ import {
 import ActionsMenu from "./ActionsMenu";
 import { Action } from "../types/action";
 import getFileName from "../utils/getFileName";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
 	renameFile,
 	renameFolder,
@@ -18,10 +18,11 @@ import {
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../../config/constants";
-import useOutsideClick from "../../../hooks/useOutsideClick";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
+import useOutsideClick from "../../../hooks/useOutsideClick";
+import useOutsideContextMenu from "../../../hooks/useOutsideContextMenu";
 
-interface Props {
+interface IProps {
 	isRoot: boolean;
 	id: string;
 	isFolder: boolean;
@@ -33,13 +34,13 @@ interface Props {
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
-	onShowActionsClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+	onShowActions: () => void;
 	onHideActions: () => void;
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 	onStopRenaming: () => void;
 }
 
-function FileTreeItemRow({
+export default function FileTreeItemRow({
 	isRoot,
 	id,
 	isFolder,
@@ -51,11 +52,11 @@ function FileTreeItemRow({
 	onDragStart,
 	onDragEnd,
 	onRenameEnd,
-	onShowActionsClick,
+	onShowActions,
 	onClick,
 	onHideActions,
 	onStopRenaming,
-}: Props) {
+}: IProps) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const [searchParams] = useSearchParams();
 	const selectedFileId = searchParams.get(fileIdQueryParameter);
@@ -68,9 +69,22 @@ function FileTreeItemRow({
 		onHideActions,
 	);
 
+	useOutsideContextMenu(
+		containerRef as React.RefObject<HTMLElement>,
+		onHideActions,
+	);
+
 	useEffect(() => {
 		if (!isRenaming) setNewName(getFileName(fullPath));
 	}, [isRenaming, fullPath]);
+
+	useEffect(() => {
+		window.addEventListener("scroll", onHideActions, true);
+
+		return () => {
+			document.removeEventListener("scroll", onHideActions, true);
+		};
+	}, [onHideActions]);
 
 	const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -81,8 +95,12 @@ function FileTreeItemRow({
 		onRenameEnd();
 	};
 
-	// TODO: fix actions menu position when scrolling (fix: set top-y from tsx, take ref for button position)
-	// TODO: show actions menu on right button click
+	const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+		if (isRenaming) return;
+		e.preventDefault();
+		onShowActions();
+	};
+
 	return (
 		<>
 			<div
@@ -90,6 +108,7 @@ function FileTreeItemRow({
 				draggable={!isRoot && !isRenaming}
 				onDragStart={onDragStart}
 				onDragEnd={onDragEnd}
+				onContextMenu={handleContextMenu}
 				ref={containerRef}>
 				<button
 					className={`${styles.fileTreeButton}
@@ -128,16 +147,19 @@ function FileTreeItemRow({
 				{!isRenaming && (
 					<button
 						title="Actions"
-						onClick={onShowActionsClick}
+						onClick={showActions ? onHideActions : onShowActions}
 						className={`${styles.fileTreeDots}
                         ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
 						<Icon path={mdiDotsHorizontal} size={1} />
 					</button>
 				)}
 			</div>
-			{showActions && <ActionsMenu actions={actions} />}
+			{showActions && (
+				<ActionsMenu
+					actions={actions}
+					fileTreeItemRowContainer={containerRef}
+				/>
+			)}
 		</>
 	);
 }
-
-export default FileTreeItemRow;

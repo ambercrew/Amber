@@ -46,7 +46,7 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 								type="text"
 								maxLength={50}
 								minLength={1}
-                                value={firstName}
+								value={firstName}
 								onChange={e => setFirstName(e.target.value)}
 								autoFocus
 								required
@@ -62,7 +62,7 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 								type="text"
 								maxLength={50}
 								minLength={1}
-                                value={lastName}
+								value={lastName}
 								onChange={e => setLastName(e.target.value)}
 								required
 							/>
@@ -91,7 +91,7 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 								id="email"
 								type="text"
 								maxLength={50}
-                                value={email}
+								value={email}
 								onChange={e => setEmail(e.target.value)}
 								required
 							/>
