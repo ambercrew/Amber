@@ -23,15 +23,21 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
 	const signupErrorMessage = useAppSelector(selectSignupError);
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
 		await dispatch(signup(username, password, email, firstName, lastName));
 	};
 
-	// TODO: confirm password
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
 			<FormHeader icon={mdiAccountPlusOutline} title="Signup" />
@@ -106,6 +112,20 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 								type="password"
 								value={password}
 								onChange={e => setPassword(e.target.value)}
+								minLength={8}
+								required
+							/>
+						),
+					},
+					{
+						label: "Confirm password",
+						labelHtmlFor: "confirm-password",
+						children: (
+							<input
+								id="confirm-password"
+								type="password"
+								value={confirmPassword}
+								onChange={e => setConfirmPassword(e.target.value)}
 								minLength={8}
 								required
 							/>
