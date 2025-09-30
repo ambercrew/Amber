@@ -31,7 +31,7 @@ pub trait BrainyBackendClient: Send + Sync {
         password: String,
         email: String,
         first_name: String,
-        last_name: String
+        last_name: String,
     ) -> Result<(), BrainyBackendClientError>;
 
     async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError>;

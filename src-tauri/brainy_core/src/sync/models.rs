@@ -32,5 +32,5 @@ pub struct UserRegistrationDto {
     pub password: String,
     pub email: String,
     pub first_name: String,
-    pub last_name: String
+    pub last_name: String,
 }

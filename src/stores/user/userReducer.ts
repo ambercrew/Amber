@@ -6,7 +6,6 @@ interface UserState {
 	loginError: string | null;
 	signupError: string | null;
 	userInformation: UserInformationDto | null;
-	// TODO: use it with loading spinner
 	isSendingRequest: boolean;
 }
 

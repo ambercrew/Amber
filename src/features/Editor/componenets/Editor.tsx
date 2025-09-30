@@ -18,7 +18,6 @@ interface Props {
 }
 
 function Editor({ editCellId, onError, onStudyStart }: Props) {
-    // TODO: make searchbar toggleable in small screen
 	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({

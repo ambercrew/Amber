@@ -11,3 +11,10 @@
 	text-align: left;
 	margin-top: var(--xl-padding);
 }
+
+.spinner {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: var(--xl-padding);
+}

@@ -91,9 +91,15 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         password: String,
         email: String,
         first_name: String,
-        last_name: String
+        last_name: String,
     ) -> Result<(), BrainyBackendClientError> {
-        let dto = UserRegistrationDto { first_name, last_name, email, password, username };
+        let dto = UserRegistrationDto {
+            first_name,
+            last_name,
+            email,
+            password,
+            username,
+        };
 
         log::info!("Signing up...");
         let response = self
@@ -142,7 +148,7 @@ impl BrainyBackendHttpClient {
 /// Ensures that there was no error sending the response and that
 /// the status code of the response is 200, otherwise convert to an
 /// appropriate error.
-/// On 400 response it tries to parse the problem details and return it in a 
+/// On 400 response it tries to parse the problem details and return it in a
 /// an appropriate error.
 async fn ensure_success_response(
     response: Result<Response, reqwest::Error>,
@@ -168,7 +174,7 @@ async fn ensure_success_response(
             } else {
                 Err(BrainyBackendClientError::UnexpectedResponse)
             }
-        },
+        }
         _ => Err(BrainyBackendClientError::UnexpectedResponse),
     }
 }

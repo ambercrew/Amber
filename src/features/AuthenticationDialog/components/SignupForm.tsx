@@ -2,7 +2,10 @@ import styles from "./styles.module.css";
 import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { selectSignupError } from "../../../stores/user/userSelectors";
+import {
+	selectSignupError,
+	selectUserIsSendingRequest,
+} from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
@@ -11,6 +14,7 @@ import Form, {
 import { mdiAccountPlusOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
 import { signup } from "../../../stores/user/userActions";
+import Spinner from "../../../components/Spinner/Spinner";
 
 interface IProps {
 	onCancel: () => void;
@@ -25,15 +29,16 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const signupErrorMessage = useAppSelector(selectSignupError);
+	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
-        if (password !== confirmPassword) {
-            alert("Passwords do not match!");
-            return;
-        }
+		if (password !== confirmPassword) {
+			alert("Passwords do not match!");
+			return;
+		}
 
 		await dispatch(signup(username, password, email, firstName, lastName));
 	};
@@ -125,7 +130,9 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 								id="confirm-password"
 								type="password"
 								value={confirmPassword}
-								onChange={e => setConfirmPassword(e.target.value)}
+								onChange={e =>
+									setConfirmPassword(e.target.value)
+								}
 								minLength={8}
 								required
 							/>
@@ -142,14 +149,22 @@ export default function SignupForm({ onCancel, onLoginClick }: IProps) {
 				/>
 			)}
 
-			<button
-				className={`link ${styles.signupButtonLink}`}
-				type="button"
-				onClick={onLoginClick}>
-				Alreday have an account? Login instead
-			</button>
+			{isSendingRequest && (
+				<Spinner containerClassName={styles.spinner} />
+			)}
 
-			<FormButtons onClose={onCancel} submitText="Signup" />
+			{!isSendingRequest && (
+				<>
+					<button
+						className={`link ${styles.signupButtonLink}`}
+						type="button"
+						onClick={onLoginClick}>
+						Alreday have an account? Login instead
+					</button>
+
+					<FormButtons onClose={onCancel} submitText="Signup" />
+				</>
+			)}
 		</Form>
 	);
 }
