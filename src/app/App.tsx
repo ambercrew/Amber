@@ -22,6 +22,7 @@ import { fileIdQueryParameter } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/componenets/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
+import { loadInitialStateUser } from "../stores/user/userActions";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -51,6 +52,7 @@ function App() {
 
 	useEffect(() => {
 		void dispatch(getReviewTreeFolderForRoot());
+        void dispatch(loadInitialStateUser());
 		void (async () => {
 			const settings = await getSettings();
 			await applySettings(settings);

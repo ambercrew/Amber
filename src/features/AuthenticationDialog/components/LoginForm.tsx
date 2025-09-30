@@ -17,11 +17,11 @@ import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
 
 interface IProps {
-	onCancel: () => void;
+	onClose: () => void;
 	onSignupClick: () => void;
 }
 
-export default function LoginForm({ onCancel, onSignupClick }: IProps) {
+export default function LoginForm({ onClose , onSignupClick }: IProps) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const loginErrorMessage = useAppSelector(selectLoginError);
@@ -31,6 +31,7 @@ export default function LoginForm({ onCancel, onSignupClick }: IProps) {
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		await dispatch(login(username, password));
+        onClose();
 	};
 
 	return (
@@ -92,7 +93,7 @@ export default function LoginForm({ onCancel, onSignupClick }: IProps) {
 						Don&apos;t have an account? Signup instead
 					</button>
 
-					<FormButtons onClose={onCancel} submitText="Login" />
+					<FormButtons onClose={onClose} submitText="Login" />
 				</>
 			)}
 		</Form>

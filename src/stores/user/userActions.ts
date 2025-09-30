@@ -1,5 +1,6 @@
 import {
 	getUserInformation,
+	isSignedIn as isSignedInApi,
 	login as loginApi,
 	signup as signupApi,
 } from "../../api/authApi";
@@ -13,6 +14,16 @@ import {
 	requestSuccess,
 	signupFailure,
 } from "./userReducer";
+
+export function loadInitialStateUser() {
+    return executeRequest(async dispatch => {
+        const isSignedIn = await isSignedInApi();
+        if (!isSignedIn) return;
+
+        const userInformation = await getUserInformation();
+        dispatch(loginSuccess(userInformation));
+    }, () => {/* Empty */});
+}
 
 export function login(username: string, password: string) {
 	return executeRequest(

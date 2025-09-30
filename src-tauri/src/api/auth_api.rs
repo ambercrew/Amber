@@ -37,3 +37,10 @@ pub async fn get_user_information(
     let result = backend_client.get_user_information().await?;
     Ok(result)
 }
+
+#[tauri::command]
+pub fn is_signed_in(
+    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+) -> bool {
+    backend_client.is_signed_in()
+}

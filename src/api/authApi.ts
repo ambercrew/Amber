@@ -27,3 +27,7 @@ export function signup(
 export function getUserInformation(): Promise<UserInformationDto> {
 	return invoke("get_user_information");
 }
+
+export function isSignedIn(): Promise<boolean> {
+	return invoke("is_signed_in");
+}

@@ -1,9 +1,9 @@
 import styles from "./styles.module.css";
 import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
-import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	selectSignupError,
+	selectUserInformation,
 	selectUserIsSendingRequest,
 } from "../../../stores/user/userSelectors";
 import Form, {
@@ -11,42 +11,32 @@ import Form, {
 	FormHeader,
 	FormRows,
 } from "../../../components/Form/Form";
-import { mdiAccountPlusOutline } from "@mdi/js";
+import { mdiAccountOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
-import { signup } from "../../../stores/user/userActions";
 import Spinner from "../../../components/Spinner/Spinner";
 
 interface IProps {
-	onClose: () => void;
-	onLoginClick: () => void;
+	onCancel: () => void;
 }
 
-export default function SignupForm({ onClose, onLoginClick }: IProps) {
-	const [firstName, setFirstName] = useState("");
-	const [lastName, setLastName] = useState("");
-	const [username, setUsername] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const [confirmPassword, setConfirmPassword] = useState("");
+// TODO: add signout button
+export default function ProfileForm({onCancel}: IProps) {
+    const userInformation = useAppSelector(selectUserInformation)!;
+	const [firstName, setFirstName] = useState(userInformation.firstName);
+	const [lastName, setLastName] = useState(userInformation.lastName);
+	const [username, setUsername] = useState(userInformation.username);
+	const [email, setEmail] = useState(userInformation.email);
 	const signupErrorMessage = useAppSelector(selectSignupError);
 	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
-	const dispatch = useAppDispatch();
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-
-		if (password !== confirmPassword) {
-			alert("Passwords do not match!");
-			return;
-		}
-
-		await dispatch(signup(username, password, email, firstName, lastName));
-        onClose();
+        // TODO:
 	};
 
 	return (
-		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiAccountPlusOutline} title="Signup" />
+		<Form onSubmit={e => handleSubmit(e)}>
+			<FormHeader icon={mdiAccountOutline} title="Profile" />
 			<FormRows
 				rows={[
 					{
@@ -109,36 +99,6 @@ export default function SignupForm({ onClose, onLoginClick }: IProps) {
 							/>
 						),
 					},
-					{
-						label: "Password",
-						labelHtmlFor: "password",
-						children: (
-							<input
-								id="password"
-								type="password"
-								value={password}
-								onChange={e => setPassword(e.target.value)}
-								minLength={8}
-								required
-							/>
-						),
-					},
-					{
-						label: "Confirm password",
-						labelHtmlFor: "confirm-password",
-						children: (
-							<input
-								id="confirm-password"
-								type="password"
-								value={confirmPassword}
-								onChange={e =>
-									setConfirmPassword(e.target.value)
-								}
-								minLength={8}
-								required
-							/>
-						),
-					},
 				]}
 			/>
 
@@ -155,17 +115,9 @@ export default function SignupForm({ onClose, onLoginClick }: IProps) {
 			)}
 
 			{!isSendingRequest && (
-				<>
-					<button
-						className={`link ${styles.signupButtonLink}`}
-						type="button"
-						onClick={onLoginClick}>
-						Alreday have an account? Login instead
-					</button>
-
-					<FormButtons onClose={onClose} submitText="Signup" />
-				</>
+                <FormButtons onClose={onCancel} submitText="Update" />
 			)}
 		</Form>
 	);
+
 }

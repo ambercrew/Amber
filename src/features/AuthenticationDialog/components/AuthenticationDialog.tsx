@@ -4,33 +4,38 @@ import LoginForm from "./LoginForm";
 import { useState } from "react";
 import SignupForm from "./SignupForm";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { selectUserIsSendingRequest } from "../../../stores/user/userSelectors";
+import { selectIsSignedIn, selectUserIsSendingRequest } from "../../../stores/user/userSelectors";
+import ProfileForm from "./ProfileForm";
 
 interface IProps {
-	onCancel: () => void;
+	onClose: () => void;
 }
 
-export default function AuthenticationDialog({ onCancel }: IProps) {
+// TODO: change name
+export default function AuthenticationDialog({ onClose }: IProps) {
 	const [typeOfForm, setTypeOfForm] = useState<"login" | "signup">("login");
 	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
+    const isSignedIn = useAppSelector(selectIsSignedIn);
 
-	const handleCancel = () => {
-		if (!isSendingRequest) onCancel();
+	const handleClose = () => {
+		if (!isSendingRequest) onClose();
 	};
 
 	return (
-		<Dialog className={styles.box} onHide={handleCancel}>
-			{typeOfForm == "login" ? (
+		<Dialog className={styles.box} onHide={handleClose}>
+            {!isSignedIn && (typeOfForm == "login" ? (
 				<LoginForm
-					onCancel={handleCancel}
+					onClose={handleClose}
 					onSignupClick={() => setTypeOfForm("signup")}
 				/>
 			) : (
 				<SignupForm
-					onCancel={handleCancel}
+					onClose={handleClose}
 					onLoginClick={() => setTypeOfForm("login")}
 				/>
-			)}
+			))}
+
+            {isSignedIn && <ProfileForm onCancel={handleClose} />}
 		</Dialog>
 	);
 }

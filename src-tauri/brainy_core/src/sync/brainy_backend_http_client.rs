@@ -128,6 +128,18 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
         }
     }
+
+    fn is_signed_in(&self) -> bool {
+        let store = self.cookie_store.lock().unwrap();
+
+        for cookie in store.iter_unexpired() {
+            if cookie.name() == ".AspNetCore.Cookies" {
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
 impl BrainyBackendHttpClient {

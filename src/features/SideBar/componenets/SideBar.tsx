@@ -181,9 +181,9 @@ function SideBar({ onSettingsClick }: Props) {
 				)}
 			</button>
 
-			{!isSignedIn && showAuthenticationDialog && (
+			{showAuthenticationDialog && (
 				<AuthenticationDialog
-					onCancel={() => setShowAuthenticationDialog(false)}
+					onClose={() => setShowAuthenticationDialog(false)}
 				/>
 			)}
 		</aside>

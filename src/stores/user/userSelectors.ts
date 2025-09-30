@@ -5,3 +5,6 @@ export const selectLoginError = (state: RootState) => state.user.loginError;
 export const selectSignupError = (state: RootState) => state.user.signupError;
 export const selectUserIsSendingRequest = (state: RootState) =>
 	state.user.isSendingRequest;
+
+export const selectUserInformation = (state: RootState) =>
+	state.user.userInformation;
