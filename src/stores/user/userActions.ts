@@ -19,7 +19,6 @@ export function loadInitialStateUser() {
     return executeRequest(async dispatch => {
         const isSignedIn = await isSignedInApi();
         if (!isSignedIn) return;
-
         const userInformation = await getUserInformation();
         dispatch(loginSuccess(userInformation));
     }, () => {/* Empty */});

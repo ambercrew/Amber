@@ -2,7 +2,6 @@ import styles from "./styles.module.css";
 import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import {
-	selectSignupError,
 	selectUserInformation,
 	selectUserIsSendingRequest,
 } from "../../../stores/user/userSelectors";
@@ -14,26 +13,45 @@ import Form, {
 import { mdiAccountOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { getUserInformation, updateUserInformation } from "../../../api/authApi";
+import { setUserInformation } from "../../../stores/user/userReducer";
+import errorToString from "../../../utils/errorToString";
 
 interface IProps {
-	onCancel: () => void;
+	onClose: () => void;
 }
 
 // TODO: add signout button
-export default function ProfileForm({onCancel}: IProps) {
+export default function ProfileForm({onClose}: IProps) {
     const userInformation = useAppSelector(selectUserInformation)!;
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
-	const signupErrorMessage = useAppSelector(selectSignupError);
+    const [errorMessage, setErrorMessage] = useState("");
 	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
+    const dispatch = useAppDispatch();
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-        // TODO:
+
+        if (userInformation.firstName == firstName && userInformation.lastName == lastName) {
+            onClose();
+            return;
+        }
+
+        try {
+            await updateUserInformation(firstName, lastName);
+            const userInformation = await getUserInformation();
+            dispatch(setUserInformation(userInformation));
+            onClose();
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(errorToString(e));
+        }
 	};
 
 	return (
-		<Form onSubmit={e => handleSubmit(e)}>
+		<Form onSubmit={e => void handleSubmit(e)}>
 			<FormHeader icon={mdiAccountOutline} title="Profile" />
 			<FormRows
 				rows={[
@@ -100,9 +118,9 @@ export default function ProfileForm({onCancel}: IProps) {
 				]}
 			/>
 
-			{signupErrorMessage && (
+			{errorMessage && (
 				<Alert
-					message={signupErrorMessage}
+					message={errorMessage}
 					className={styles.errorAlert}
 					type="error"
 				/>
@@ -113,7 +131,7 @@ export default function ProfileForm({onCancel}: IProps) {
 			)}
 
 			{!isSendingRequest && (
-                <FormButtons onClose={onCancel} submitText="Update" />
+                <FormButtons onClose={onClose} submitText="Update" />
 			)}
 		</Form>
 	);

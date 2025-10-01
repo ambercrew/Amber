@@ -31,3 +31,7 @@ export function getUserInformation(): Promise<UserInformationDto> {
 export function isSignedIn(): Promise<boolean> {
 	return invoke("is_signed_in");
 }
+
+export function updateUserInformation(firstName: string | null, lastName: string | null): Promise<void> {
+    return invoke("update_user_information", {firstName, lastName});
+}

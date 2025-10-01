@@ -2,6 +2,7 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { UserInformationDto } from "../../types/backend/dto/userInformnationDto";
 
 interface UserState {
+    // TODO: move logic for signing in and out such as error messages
 	isSignedIn: boolean;
 	loginError: string | null;
 	signupError: string | null;
@@ -23,10 +24,10 @@ export const userSlice = createSlice({
 	reducers: {
 		requestStart: state => {
 			state.loginError = null;
+            state.signupError = null;
 			state.isSendingRequest = true;
 		},
 		requestSuccess: state => {
-			state.loginError = null;
 			state.isSendingRequest = false;
 		},
 		requestFailure: state => {
@@ -42,6 +43,10 @@ export const userSlice = createSlice({
 		signupFailure: (state, payload: PayloadAction<string>) => {
 			state.signupError = payload.payload;
 		},
+        setUserInformation: (state, payload: PayloadAction<UserInformationDto>) => {
+			state.isSignedIn = true;
+			state.userInformation = payload.payload;
+		}
 	},
 });
 
@@ -54,4 +59,5 @@ export const {
 	loginFailure,
 	requestFailure,
 	signupFailure,
+    setUserInformation,
 } = userSlice.actions;

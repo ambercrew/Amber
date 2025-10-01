@@ -29,7 +29,7 @@ import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
-import AuthenticationDialog from "../../AuthenticationDialog/components/AuthenticationDialog";
+import UserDialog from "../../UserDialog/components/UserDialog";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 
 interface Props {
@@ -182,7 +182,7 @@ function SideBar({ onSettingsClick }: Props) {
 			</button>
 
 			{showAuthenticationDialog && (
-				<AuthenticationDialog
+				<UserDialog
 					onClose={() => setShowAuthenticationDialog(false)}
 				/>
 			)}

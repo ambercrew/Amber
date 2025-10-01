@@ -11,8 +11,7 @@ interface IProps {
 	onClose: () => void;
 }
 
-// TODO: change name
-export default function AuthenticationDialog({ onClose }: IProps) {
+export default function UserDialog({ onClose }: IProps) {
 	const [typeOfForm, setTypeOfForm] = useState<"login" | "signup">("login");
 	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
     const isSignedIn = useAppSelector(selectIsSignedIn);
@@ -35,7 +34,7 @@ export default function AuthenticationDialog({ onClose }: IProps) {
 				/>
 			))}
 
-            {isSignedIn && <ProfileForm onCancel={handleClose} />}
+            {isSignedIn && <ProfileForm onClose={handleClose} />}
 		</Dialog>
 	);
 }
