@@ -1,5 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import { UserInformationDto } from "../types/backend/dto/userInformnationDto";
 
 export function login(username: string, password: string): Promise<void> {
 	return invoke("login", {
@@ -24,14 +23,6 @@ export function signup(
 	});
 }
 
-export function getUserInformation(): Promise<UserInformationDto> {
-	return invoke("get_user_information");
-}
-
 export function isSignedIn(): Promise<boolean> {
 	return invoke("is_signed_in");
-}
-
-export function updateUserInformation(firstName: string | null, lastName: string | null): Promise<void> {
-    return invoke("update_user_information", {firstName, lastName});
 }

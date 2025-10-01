@@ -1,37 +1,49 @@
 import styles from "./styles.module.css";
 import { useState } from "react";
-import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import {
-	selectLoginError,
-	selectUserIsSendingRequest,
-} from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
 	FormRows,
 } from "../../../components/Form/Form";
 import { mdiLogin } from "@mdi/js";
-import { login } from "../../../stores/user/userActions";
 import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
+import { setUserInformation } from "../../../stores/user/userReducer";
+import errorToString from "../../../utils/errorToString";
+import { getUserInformation } from "../../../api/userApi";
+import { login } from "../../../api/authApi";
 
 interface IProps {
+    isSendingRequest: boolean,
+    onRequestStart: () => void;
+    onRequestEnd: () => void;
 	onClose: () => void;
 	onSignupClick: () => void;
 }
 
-export default function LoginForm({ onClose , onSignupClick }: IProps) {
+export default function LoginForm({ isSendingRequest, onRequestStart, onRequestEnd, onClose , onSignupClick }: IProps) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
-	const loginErrorMessage = useAppSelector(selectLoginError);
-	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
+    const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		await dispatch(login(username, password));
-        onClose();
+        setErrorMessage("");
+
+        try {
+            onRequestStart();
+			await login(username, password);
+			const userInformation = await getUserInformation();
+			dispatch(setUserInformation(userInformation));
+            onClose();
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(errorToString(e));
+        } finally {
+            onRequestEnd();
+        }
 	};
 
 	return (
@@ -72,9 +84,9 @@ export default function LoginForm({ onClose , onSignupClick }: IProps) {
 				]}
 			/>
 
-			{loginErrorMessage && (
+			{errorMessage && (
 				<Alert
-					message={loginErrorMessage}
+					message={errorMessage}
 					className={styles.errorAlert}
 					type="error"
 				/>

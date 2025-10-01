@@ -3,7 +3,6 @@ import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import {
 	selectUserInformation,
-	selectUserIsSendingRequest,
 } from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
@@ -14,25 +13,28 @@ import { mdiAccountOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { getUserInformation, updateUserInformation } from "../../../api/authApi";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import errorToString from "../../../utils/errorToString";
+import { getUserInformation, updateUserInformation } from "../../../api/userApi";
 
 interface IProps {
+    isSendingRequest: boolean,
+    onRequestStart: () => void;
+    onRequestEnd: () => void;
 	onClose: () => void;
 }
 
 // TODO: add signout button
-export default function ProfileForm({onClose}: IProps) {
+export default function ProfileForm({isSendingRequest, onRequestStart, onRequestEnd, onClose}: IProps) {
     const userInformation = useAppSelector(selectUserInformation)!;
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
     const [errorMessage, setErrorMessage] = useState("");
-	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
     const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+        setErrorMessage("");
 
         if (userInformation.firstName == firstName && userInformation.lastName == lastName) {
             onClose();
@@ -40,6 +42,7 @@ export default function ProfileForm({onClose}: IProps) {
         }
 
         try {
+            onRequestStart();
             await updateUserInformation(firstName, lastName);
             const userInformation = await getUserInformation();
             dispatch(setUserInformation(userInformation));
@@ -47,6 +50,8 @@ export default function ProfileForm({onClose}: IProps) {
         } catch (e) {
             console.error(e);
             setErrorMessage(errorToString(e));
+        } finally {
+            onRequestEnd();
         }
 	};
 

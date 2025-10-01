@@ -4,7 +4,7 @@ import LoginForm from "./LoginForm";
 import { useState } from "react";
 import SignupForm from "./SignupForm";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { selectIsSignedIn, selectUserIsSendingRequest } from "../../../stores/user/userSelectors";
+import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import ProfileForm from "./ProfileForm";
 
 interface IProps {
@@ -13,7 +13,7 @@ interface IProps {
 
 export default function UserDialog({ onClose }: IProps) {
 	const [typeOfForm, setTypeOfForm] = useState<"login" | "signup">("login");
-	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
+    const [isSendingRequest, setIsSendingRequest] = useState(false);
     const isSignedIn = useAppSelector(selectIsSignedIn);
 
 	const handleClose = () => {
@@ -24,17 +24,27 @@ export default function UserDialog({ onClose }: IProps) {
 		<Dialog className={styles.box} onHide={handleClose}>
             {!isSignedIn && (typeOfForm == "login" ? (
 				<LoginForm
+                    isSendingRequest={isSendingRequest}
+                    onRequestStart={() => setIsSendingRequest(true)}
+                    onRequestEnd={() => setIsSendingRequest(false)}
 					onClose={handleClose}
 					onSignupClick={() => setTypeOfForm("signup")}
 				/>
 			) : (
 				<SignupForm
+                    isSendingRequest={isSendingRequest}
+                    onRequestStart={() => setIsSendingRequest(true)}
+                    onRequestEnd={() => setIsSendingRequest(false)}
 					onClose={handleClose}
 					onLoginClick={() => setTypeOfForm("login")}
 				/>
 			))}
 
-            {isSignedIn && <ProfileForm onClose={handleClose} />}
+            {isSignedIn && <ProfileForm
+                isSendingRequest={isSendingRequest}
+                onRequestStart={() => setIsSendingRequest(true)}
+                onRequestEnd={() => setIsSendingRequest(false)}
+                onClose={handleClose} />}
 		</Dialog>
 	);
 }

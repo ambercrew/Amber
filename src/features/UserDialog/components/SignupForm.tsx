@@ -1,11 +1,6 @@
 import styles from "./styles.module.css";
 import { useState } from "react";
-import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import {
-	selectSignupError,
-	selectUserIsSendingRequest,
-} from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
@@ -13,35 +8,51 @@ import Form, {
 } from "../../../components/Form/Form";
 import { mdiAccountPlusOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
-import { signup } from "../../../stores/user/userActions";
 import Spinner from "../../../components/Spinner/Spinner";
+import { signup } from "../../../api/authApi";
+import errorToString from "../../../utils/errorToString";
+import { setUserInformation } from "../../../stores/user/userReducer";
+import { getUserInformation } from "../../../api/userApi";
 
 interface IProps {
+    isSendingRequest: boolean,
+    onRequestStart: () => void;
+    onRequestEnd: () => void;
 	onClose: () => void;
 	onLoginClick: () => void;
 }
 
-export default function SignupForm({ onClose, onLoginClick }: IProps) {
+export default function SignupForm({ isSendingRequest, onRequestStart, onRequestEnd, onClose, onLoginClick }: IProps) {
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-	const signupErrorMessage = useAppSelector(selectSignupError);
-	const isSendingRequest = useAppSelector(selectUserIsSendingRequest);
+    const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+        setErrorMessage("");
 
 		if (password !== confirmPassword) {
 			alert("Passwords do not match!");
 			return;
 		}
 
-		await dispatch(signup(username, password, email, firstName, lastName));
-        onClose();
+        try {
+            onRequestStart();
+			await signup(username, password, email, firstName, lastName);
+            const userInformation = await getUserInformation();
+            dispatch(setUserInformation(userInformation));
+            onClose();
+        } catch (e) {
+            console.error(e);
+            setErrorMessage(errorToString(e));
+        } finally {
+            onRequestEnd();
+        }
 	};
 
 	return (
@@ -142,9 +153,9 @@ export default function SignupForm({ onClose, onLoginClick }: IProps) {
 				]}
 			/>
 
-			{signupErrorMessage && (
+			{errorMessage && (
 				<Alert
-					message={signupErrorMessage}
+					message={errorMessage}
 					className={styles.errorAlert}
 					type="error"
 				/>

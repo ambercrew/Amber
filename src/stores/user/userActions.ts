@@ -1,70 +1,22 @@
 import {
-	getUserInformation,
 	isSignedIn as isSignedInApi,
-	login as loginApi,
-	signup as signupApi,
 } from "../../api/authApi";
-import errorToString from "../../utils/errorToString";
-import { AppDispatch, RootState } from "../store";
+import { getUserInformation } from "../../api/userApi";
+import { AppDispatch } from "../store";
 import {
-	loginFailure,
-	loginSuccess,
-	requestFailure,
-	requestStart,
-	requestSuccess,
-	signupFailure,
+    setUserInformation,
 } from "./userReducer";
 
 export function loadInitialStateUser() {
-    return executeRequest(async dispatch => {
-        const isSignedIn = await isSignedInApi();
-        if (!isSignedIn) return;
-        const userInformation = await getUserInformation();
-        dispatch(loginSuccess(userInformation));
-    }, () => {/* Empty */});
-}
-
-export function login(username: string, password: string) {
-	return executeRequest(
-		async dispatch => {
-			await loginApi(username, password);
-			const userInformation = await getUserInformation();
-			dispatch(loginSuccess(userInformation));
-		},
-		(e, dispatch) => dispatch(loginFailure(e)),
-	);
-}
-
-export function signup(
-	username: string,
-	password: string,
-	email: string,
-	firstName: string,
-	lastName: string,
-) {
-	return executeRequest(
-		async dispatch => {
-			await signupApi(username, password, email, firstName, lastName);
-			const userInformation = await getUserInformation();
-			dispatch(loginSuccess(userInformation));
-		},
-		(e, dispatch) => dispatch(signupFailure(e)),
-	);
-}
-
-function executeRequest<T>(
-	cb: (dispatch: AppDispatch, state: RootState) => Promise<T>,
-	onError: (e: string, dispatch: AppDispatch, state: RootState) => void,
-) {
-	return async function (dispatch: AppDispatch, getState: () => RootState) {
+	return async function (dispatch: AppDispatch) {
 		try {
-			dispatch(requestStart());
-			await cb(dispatch, getState());
-			dispatch(requestSuccess());
+            const isSignedIn = await isSignedInApi();
+            if (!isSignedIn) return;
+            const userInformation = await getUserInformation();
+            dispatch(setUserInformation(userInformation));
 		} catch (e) {
-			dispatch(requestFailure());
 			console.error(e);
-			onError(errorToString(e), dispatch, getState());
+            // Do nothing, and assume that the user is not logged in
 		}
 	};
 }
