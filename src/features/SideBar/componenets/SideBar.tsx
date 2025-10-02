@@ -171,7 +171,7 @@ function SideBar({ onSettingsClick }: Props) {
 				onClick={() => setShowAuthenticationDialog(true)}>
 				{!isSignedIn && (
 					<>
-						<Icon path={mdiLogin} size={1} /> <p>Login/Signup</p>
+						<Icon path={mdiLogin} size={1} /> <p>Sign-in/up</p>
 					</>
 				)}
 				{isSignedIn && (

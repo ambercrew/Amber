@@ -10,7 +10,7 @@ pub struct ProblemDetails {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginDto {
+pub struct SignInDto {
     pub username: String,
     pub password: String,
 }
@@ -27,7 +27,7 @@ pub struct UserInformnationDto {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UserRegistrationDto {
+pub struct SignUpDto {
     pub username: String,
     pub password: String,
     pub email: String,

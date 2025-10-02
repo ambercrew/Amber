@@ -1,9 +1,7 @@
 import styles from "./styles.module.css";
 import { useState } from "react";
 import useAppSelector from "../../../hooks/useAppSelector";
-import {
-	selectUserInformation,
-} from "../../../stores/user/userSelectors";
+import { selectUserInformation } from "../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
@@ -15,44 +13,55 @@ import Spinner from "../../../components/Spinner/Spinner";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import errorToString from "../../../utils/errorToString";
-import { getUserInformation, updateUserInformation } from "../../../api/userApi";
+import {
+	getUserInformation,
+	updateUserInformation,
+} from "../../../api/userApi";
 
 interface IProps {
-    isSendingRequest: boolean,
-    onRequestStart: () => void;
-    onRequestEnd: () => void;
+	isSendingRequest: boolean;
+	onRequestStart: () => void;
+	onRequestEnd: () => void;
 	onClose: () => void;
 }
 
 // TODO: add signout button
-export default function ProfileForm({isSendingRequest, onRequestStart, onRequestEnd, onClose}: IProps) {
-    const userInformation = useAppSelector(selectUserInformation)!;
+export default function ProfileForm({
+	isSendingRequest,
+	onRequestStart,
+	onRequestEnd,
+	onClose,
+}: IProps) {
+	const userInformation = useAppSelector(selectUserInformation)!;
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
-    const [errorMessage, setErrorMessage] = useState("");
-    const dispatch = useAppDispatch();
+	const [errorMessage, setErrorMessage] = useState("");
+	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-        setErrorMessage("");
+		setErrorMessage("");
 
-        if (userInformation.firstName == firstName && userInformation.lastName == lastName) {
-            onClose();
-            return;
-        }
+		if (
+			userInformation.firstName == firstName &&
+			userInformation.lastName == lastName
+		) {
+			onClose();
+			return;
+		}
 
-        try {
-            onRequestStart();
-            await updateUserInformation(firstName, lastName);
-            const userInformation = await getUserInformation();
-            dispatch(setUserInformation(userInformation));
-            onClose();
-        } catch (e) {
-            console.error(e);
-            setErrorMessage(errorToString(e));
-        } finally {
-            onRequestEnd();
-        }
+		try {
+			onRequestStart();
+			await updateUserInformation(firstName, lastName);
+			const userInformation = await getUserInformation();
+			dispatch(setUserInformation(userInformation));
+			onClose();
+		} catch (e) {
+			console.error(e);
+			setErrorMessage(errorToString(e));
+		} finally {
+			onRequestEnd();
+		}
 	};
 
 	return (
@@ -101,7 +110,7 @@ export default function ProfileForm({isSendingRequest, onRequestStart, onRequest
 								maxLength={30}
 								minLength={3}
 								value={userInformation.username}
-                                readOnly
+								readOnly
 								required
 							/>
 						),
@@ -115,9 +124,18 @@ export default function ProfileForm({isSendingRequest, onRequestStart, onRequest
 								type="text"
 								maxLength={50}
 								value={userInformation.email}
-                                readOnly
+								readOnly
 								required
 							/>
+						),
+					},
+					{
+						label: "",
+						labelHtmlFor: "",
+						children: (
+							<button className="red" type="button">
+								Sign-out
+							</button>
 						),
 					},
 				]}
@@ -136,9 +154,8 @@ export default function ProfileForm({isSendingRequest, onRequestStart, onRequest
 			)}
 
 			{!isSendingRequest && (
-                <FormButtons onClose={onClose} submitText="Update" />
+				<FormButtons onClose={onClose} submitText="Update" />
 			)}
 		</Form>
 	);
-
 }

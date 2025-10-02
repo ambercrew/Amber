@@ -1,20 +1,20 @@
 import { invoke } from "@tauri-apps/api/core";
 
-export function login(username: string, password: string): Promise<void> {
-	return invoke("login", {
+export function signIn(username: string, password: string): Promise<void> {
+	return invoke("sign_in", {
 		username,
 		password,
 	});
 }
 
-export function signup(
+export function signUp(
 	username: string,
 	password: string,
 	email: string,
 	firstName: string,
 	lastName: string,
 ): Promise<void> {
-	return invoke("signup", {
+	return invoke("sign_up", {
 		username,
 		password,
 		email,

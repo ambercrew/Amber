@@ -12,43 +12,49 @@ import Spinner from "../../../components/Spinner/Spinner";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import errorToString from "../../../utils/errorToString";
 import { getUserInformation } from "../../../api/userApi";
-import { login } from "../../../api/authApi";
+import { signIn } from "../../../api/authApi";
 
 interface IProps {
-    isSendingRequest: boolean,
-    onRequestStart: () => void;
-    onRequestEnd: () => void;
+	isSendingRequest: boolean;
+	onRequestStart: () => void;
+	onRequestEnd: () => void;
 	onClose: () => void;
-	onSignupClick: () => void;
+	onSignUpClick: () => void;
 }
 
-export default function LoginForm({ isSendingRequest, onRequestStart, onRequestEnd, onClose , onSignupClick }: IProps) {
+export default function SignInForm({
+	isSendingRequest,
+	onRequestStart,
+	onRequestEnd,
+	onClose,
+	onSignUpClick,
+}: IProps) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-        setErrorMessage("");
+		setErrorMessage("");
 
-        try {
-            onRequestStart();
-			await login(username, password);
+		try {
+			onRequestStart();
+			await signIn(username, password);
 			const userInformation = await getUserInformation();
 			dispatch(setUserInformation(userInformation));
-            onClose();
-        } catch (e) {
-            console.error(e);
-            setErrorMessage(errorToString(e));
-        } finally {
-            onRequestEnd();
-        }
+			onClose();
+		} catch (e) {
+			console.error(e);
+			setErrorMessage(errorToString(e));
+		} finally {
+			onRequestEnd();
+		}
 	};
 
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiLogin} title="Login" />
+			<FormHeader icon={mdiLogin} title="Sign-in" />
 			<FormRows
 				rows={[
 					{
@@ -99,13 +105,13 @@ export default function LoginForm({ isSendingRequest, onRequestStart, onRequestE
 			{!isSendingRequest && (
 				<>
 					<button
-						className={`link ${styles.signupButtonLink}`}
+						className={`link ${styles.buttonLink}`}
 						type="button"
-						onClick={onSignupClick}>
-						Don&apos;t have an account? Signup instead
+						onClick={onSignUpClick}>
+						Don&apos;t have an account? Sign-up instead
 					</button>
 
-					<FormButtons onClose={onClose} submitText="Login" />
+					<FormButtons onClose={onClose} submitText="Sign-in" />
 				</>
 			)}
 		</Form>

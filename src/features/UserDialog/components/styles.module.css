@@ -6,7 +6,7 @@
 	margin-top: var(--default-padding);
 }
 
-.signup-button-link {
+.button-link {
 	font-size: 1.4rem;
 	text-align: left;
 	margin-top: var(--xl-padding);

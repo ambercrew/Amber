@@ -1,22 +1,18 @@
-import {
-	isSignedIn as isSignedInApi,
-} from "../../api/authApi";
+import { isSignedIn as isSignedInApi } from "../../api/authApi";
 import { getUserInformation } from "../../api/userApi";
 import { AppDispatch } from "../store";
-import {
-    setUserInformation,
-} from "./userReducer";
+import { setUserInformation } from "./userReducer";
 
 export function loadInitialStateUser() {
 	return async function (dispatch: AppDispatch) {
 		try {
-            const isSignedIn = await isSignedInApi();
-            if (!isSignedIn) return;
-            const userInformation = await getUserInformation();
-            dispatch(setUserInformation(userInformation));
+			const isSignedIn = await isSignedInApi();
+			if (!isSignedIn) return;
+			const userInformation = await getUserInformation();
+			dispatch(setUserInformation(userInformation));
 		} catch (e) {
 			console.error(e);
-            // Do nothing, and assume that the user is not logged in
+			// TODO: delete user credentials from cookies
 		}
 	};
 }

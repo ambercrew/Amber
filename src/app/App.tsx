@@ -52,7 +52,7 @@ function App() {
 
 	useEffect(() => {
 		void dispatch(getReviewTreeFolderForRoot());
-        void dispatch(loadInitialStateUser());
+		void dispatch(loadInitialStateUser());
 		void (async () => {
 			const settings = await getSettings();
 			await applySettings(settings);

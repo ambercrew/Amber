@@ -19,6 +19,8 @@ pub async fn update_user_information(
     first_name: Option<String>,
     last_name: Option<String>,
 ) -> Result<(), ApiError> {
-    backend_client.update_user_information(first_name, last_name).await?;
+    backend_client
+        .update_user_information(first_name, last_name)
+        .await?;
     Ok(())
 }

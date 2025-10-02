@@ -1,8 +1,8 @@
 import styles from "./styles.module.css";
 import Dialog from "../../../components/Dialog/Dialog";
-import LoginForm from "./LoginForm";
+import SignInForm from "./SignInForm";
 import { useState } from "react";
-import SignupForm from "./SignupForm";
+import SignUpForm from "./SignUpForm";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import ProfileForm from "./ProfileForm";
@@ -12,9 +12,11 @@ interface IProps {
 }
 
 export default function UserDialog({ onClose }: IProps) {
-	const [typeOfForm, setTypeOfForm] = useState<"login" | "signup">("login");
-    const [isSendingRequest, setIsSendingRequest] = useState(false);
-    const isSignedIn = useAppSelector(selectIsSignedIn);
+	const [typeOfForm, setTypeOfForm] = useState<"sign-in" | "sign-up">(
+		"sign-in",
+	);
+	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const isSignedIn = useAppSelector(selectIsSignedIn);
 
 	const handleClose = () => {
 		if (!isSendingRequest) onClose();
@@ -22,29 +24,33 @@ export default function UserDialog({ onClose }: IProps) {
 
 	return (
 		<Dialog className={styles.box} onHide={handleClose}>
-            {!isSignedIn && (typeOfForm == "login" ? (
-				<LoginForm
-                    isSendingRequest={isSendingRequest}
-                    onRequestStart={() => setIsSendingRequest(true)}
-                    onRequestEnd={() => setIsSendingRequest(false)}
-					onClose={handleClose}
-					onSignupClick={() => setTypeOfForm("signup")}
-				/>
-			) : (
-				<SignupForm
-                    isSendingRequest={isSendingRequest}
-                    onRequestStart={() => setIsSendingRequest(true)}
-                    onRequestEnd={() => setIsSendingRequest(false)}
-					onClose={handleClose}
-					onLoginClick={() => setTypeOfForm("login")}
-				/>
-			))}
+			{!isSignedIn &&
+				(typeOfForm == "sign-in" ? (
+					<SignInForm
+						isSendingRequest={isSendingRequest}
+						onRequestStart={() => setIsSendingRequest(true)}
+						onRequestEnd={() => setIsSendingRequest(false)}
+						onClose={handleClose}
+						onSignUpClick={() => setTypeOfForm("sign-up")}
+					/>
+				) : (
+					<SignUpForm
+						isSendingRequest={isSendingRequest}
+						onRequestStart={() => setIsSendingRequest(true)}
+						onRequestEnd={() => setIsSendingRequest(false)}
+						onClose={handleClose}
+						onSignInClick={() => setTypeOfForm("sign-in")}
+					/>
+				))}
 
-            {isSignedIn && <ProfileForm
-                isSendingRequest={isSendingRequest}
-                onRequestStart={() => setIsSendingRequest(true)}
-                onRequestEnd={() => setIsSendingRequest(false)}
-                onClose={handleClose} />}
+			{isSignedIn && (
+				<ProfileForm
+					isSendingRequest={isSendingRequest}
+					onRequestStart={() => setIsSendingRequest(true)}
+					onRequestEnd={() => setIsSendingRequest(false)}
+					onClose={handleClose}
+				/>
+			)}
 		</Dialog>
 	);
 }

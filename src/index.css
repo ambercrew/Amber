@@ -122,6 +122,11 @@ button.link {
 	padding: 0;
 }
 
+a:focus,
+button.link:focus {
+	outline-color: var(--link-color);
+}
+
 a:hover,
 button.link:hover {
 	color: var(--link-color-shade-10);
@@ -218,6 +223,15 @@ button.grey-button:focus {
 
 body.dark button.grey-button {
 	background-color: var(--grey-background-color);
+}
+
+button.red {
+	background-color: var(--red-color);
+	color: #fff;
+}
+
+button.red:focus {
+	outline-color: var(--red-color);
 }
 
 button.column-button {

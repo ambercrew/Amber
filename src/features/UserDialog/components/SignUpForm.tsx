@@ -9,55 +9,61 @@ import Form, {
 import { mdiAccountPlusOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
-import { signup } from "../../../api/authApi";
+import { signUp } from "../../../api/authApi";
 import errorToString from "../../../utils/errorToString";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import { getUserInformation } from "../../../api/userApi";
 
 interface IProps {
-    isSendingRequest: boolean,
-    onRequestStart: () => void;
-    onRequestEnd: () => void;
+	isSendingRequest: boolean;
+	onRequestStart: () => void;
+	onRequestEnd: () => void;
 	onClose: () => void;
-	onLoginClick: () => void;
+	onSignInClick: () => void;
 }
 
-export default function SignupForm({ isSendingRequest, onRequestStart, onRequestEnd, onClose, onLoginClick }: IProps) {
+export default function SignUpForm({
+	isSendingRequest,
+	onRequestStart,
+	onRequestEnd,
+	onClose,
+	onSignInClick,
+}: IProps) {
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+	const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-        setErrorMessage("");
+		setErrorMessage("");
 
 		if (password !== confirmPassword) {
 			alert("Passwords do not match!");
 			return;
 		}
 
-        try {
-            onRequestStart();
-			await signup(username, password, email, firstName, lastName);
-            const userInformation = await getUserInformation();
-            dispatch(setUserInformation(userInformation));
-            onClose();
-        } catch (e) {
-            console.error(e);
-            setErrorMessage(errorToString(e));
-        } finally {
-            onRequestEnd();
-        }
+		try {
+			onRequestStart();
+			await signUp(username, password, email, firstName, lastName);
+			const userInformation = await getUserInformation();
+			dispatch(setUserInformation(userInformation));
+			onClose();
+		} catch (e) {
+			console.error(e);
+			setErrorMessage(errorToString(e));
+		} finally {
+			onRequestEnd();
+		}
 	};
 
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiAccountPlusOutline} title="Signup" />
+			<FormHeader icon={mdiAccountPlusOutline} title="Sign-up" />
 			<FormRows
 				rows={[
 					{
@@ -168,13 +174,13 @@ export default function SignupForm({ isSendingRequest, onRequestStart, onRequest
 			{!isSendingRequest && (
 				<>
 					<button
-						className={`link ${styles.signupButtonLink}`}
+						className={`link ${styles.buttonLink}`}
 						type="button"
-						onClick={onLoginClick}>
-						Alreday have an account? Login instead
+						onClick={onSignInClick}>
+						Alreday have an account? Sign-in instead
 					</button>
 
-					<FormButtons onClose={onClose} submitText="Signup" />
+					<FormButtons onClose={onClose} submitText="Sign-up" />
 				</>
 			)}
 		</Form>

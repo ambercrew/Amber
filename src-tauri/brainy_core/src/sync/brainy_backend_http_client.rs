@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::sync::{
-    models::{LoginDto, ProblemDetails, UpdateUserInformationDto, UserInformnationDto, UserRegistrationDto},
+    models::{ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto, UserInformnationDto},
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
@@ -65,17 +65,17 @@ impl BrainyBackendHttpClient {
 
 #[async_trait]
 impl BrainyBackendClient for BrainyBackendHttpClient {
-    async fn login(
+    async fn log_in(
         &self,
         username: String,
         password: String,
     ) -> Result<(), BrainyBackendClientError> {
-        let dto = LoginDto { username, password };
+        let dto = SignInDto { username, password };
 
-        log::info!("Logging in...");
+        log::info!("Signing-in...");
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/auth/login").unwrap())
+            .post(self.backend_url.join("/api/auth/sign-in").unwrap())
             .json(&dto)
             .send()
             .await;
@@ -85,7 +85,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn signup(
+    async fn sign_up(
         &self,
         username: String,
         password: String,
@@ -93,7 +93,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         first_name: String,
         last_name: String,
     ) -> Result<(), BrainyBackendClientError> {
-        let dto = UserRegistrationDto {
+        let dto = SignUpDto {
             first_name,
             last_name,
             email,
@@ -101,10 +101,10 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             username,
         };
 
-        log::info!("Signing up...");
+        log::info!("Signing-up...");
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/auth/signup").unwrap())
+            .post(self.backend_url.join("/api/auth/sign-up").unwrap())
             .json(&dto)
             .send()
             .await;
@@ -146,8 +146,11 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         first_name: Option<String>,
         last_name: Option<String>,
     ) -> Result<(), BrainyBackendClientError> {
-        let dto = UpdateUserInformationDto { first_name, last_name };
-        
+        let dto = UpdateUserInformationDto {
+            first_name,
+            last_name,
+        };
+
         log::info!("Updating user information...");
         let response = self
             .reqwest_client

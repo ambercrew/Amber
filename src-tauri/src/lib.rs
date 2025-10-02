@@ -124,8 +124,8 @@ pub async fn run() -> Result<(), String> {
             export_folder,
             import,
             // Auth
-            login,
-            signup,
+            sign_in,
+            sign_up,
             is_signed_in,
             // User
             get_user_information,

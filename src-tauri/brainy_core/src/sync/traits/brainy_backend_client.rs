@@ -19,13 +19,13 @@ pub enum BrainyBackendClientError {
 
 #[async_trait]
 pub trait BrainyBackendClient: Send + Sync {
-    async fn login(
+    async fn log_in(
         &self,
         username: String,
         password: String,
     ) -> Result<(), BrainyBackendClientError>;
 
-    async fn signup(
+    async fn sign_up(
         &self,
         username: String,
         password: String,
