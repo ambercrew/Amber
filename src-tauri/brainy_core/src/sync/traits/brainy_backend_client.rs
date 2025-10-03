@@ -7,6 +7,8 @@ use crate::sync::models::UserInformnationDto;
 pub enum BrainyBackendClientError {
     #[error("Invalid credentials!")]
     InvalidCredentials,
+    #[error("Unauthorized!")]
+    Unauthorized,
     #[error("The application received an unexpected respone!")]
     UnexpectedResponse,
     #[error("An unknown error happend while sending the request!")]
@@ -33,6 +35,8 @@ pub trait BrainyBackendClient: Send + Sync {
         first_name: String,
         last_name: String,
     ) -> Result<(), BrainyBackendClientError>;
+
+    async fn sign_out(&self) -> Result<(), BrainyBackendClientError>;
 
     async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError>;
 

@@ -12,7 +12,6 @@ export function loadInitialStateUser() {
 			dispatch(setUserInformation(userInformation));
 		} catch (e) {
 			console.error(e);
-			// TODO: delete user credentials from cookies
 		}
 	};
 }

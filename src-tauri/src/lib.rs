@@ -126,6 +126,7 @@ pub async fn run() -> Result<(), String> {
             // Auth
             sign_in,
             sign_up,
+            sign_out,
             is_signed_in,
             // User
             get_user_information,

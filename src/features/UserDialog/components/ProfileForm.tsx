@@ -11,12 +11,16 @@ import { mdiAccountOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
 import Spinner from "../../../components/Spinner/Spinner";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { setUserInformation } from "../../../stores/user/userReducer";
+import {
+	setLoggedOf,
+	setUserInformation,
+} from "../../../stores/user/userReducer";
 import errorToString from "../../../utils/errorToString";
 import {
 	getUserInformation,
 	updateUserInformation,
 } from "../../../api/userApi";
+import { signOut } from "../../../api/authApi";
 
 interface IProps {
 	isSendingRequest: boolean;
@@ -25,7 +29,6 @@ interface IProps {
 	onClose: () => void;
 }
 
-// TODO: add signout button
 export default function ProfileForm({
 	isSendingRequest,
 	onRequestStart,
@@ -37,6 +40,26 @@ export default function ProfileForm({
 	const [lastName, setLastName] = useState(userInformation.lastName);
 	const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
+
+	const executeRequest = async (cb: () => Promise<void>) => {
+		setErrorMessage("");
+
+		try {
+			onRequestStart();
+			await cb();
+		} catch (e) {
+			console.error(e);
+			setErrorMessage(errorToString(e));
+		} finally {
+			onRequestEnd();
+		}
+	};
+
+	const handleSignOut = () =>
+		executeRequest(async () => {
+			await signOut();
+			dispatch(setLoggedOf());
+		});
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -50,18 +73,12 @@ export default function ProfileForm({
 			return;
 		}
 
-		try {
-			onRequestStart();
+		await executeRequest(async () => {
 			await updateUserInformation(firstName, lastName);
 			const userInformation = await getUserInformation();
 			dispatch(setUserInformation(userInformation));
 			onClose();
-		} catch (e) {
-			console.error(e);
-			setErrorMessage(errorToString(e));
-		} finally {
-			onRequestEnd();
-		}
+		});
 	};
 
 	return (
@@ -133,7 +150,10 @@ export default function ProfileForm({
 						label: "",
 						labelHtmlFor: "",
 						children: (
-							<button className="red" type="button">
+							<button
+								className="red"
+								type="button"
+								onClick={() => void handleSignOut()}>
 								Sign-out
 							</button>
 						),

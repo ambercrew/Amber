@@ -29,6 +29,14 @@ pub async fn sign_up(
 }
 
 #[tauri::command]
+pub async fn sign_out(
+    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+) -> Result<(), ApiError> {
+    backend_client.sign_out().await?;
+    Ok(())
+}
+
+#[tauri::command]
 pub fn is_signed_in(backend_client: State<'_, Box<dyn BrainyBackendClient>>) -> bool {
     backend_client.is_signed_in()
 }

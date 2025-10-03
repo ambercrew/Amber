@@ -1,5 +1,5 @@
+import React from "react";
 import styles from "./styles.module.css";
-import useGlobalKey from "../../hooks/useGlobalKey";
 
 interface Props {
 	className?: string;
@@ -8,11 +8,12 @@ interface Props {
 }
 
 export default function Dialog({ className, children, onHide }: Props) {
-	useGlobalKey(e => {
+	const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+		e.stopPropagation();
 		if (e.key === "Escape" && onHide) {
 			onHide();
 		}
-	});
+	};
 
 	return (
 		<div
@@ -20,7 +21,9 @@ export default function Dialog({ className, children, onHide }: Props) {
 			onClick={e => {
 				e.stopPropagation();
 				if (onHide) onHide();
-			}}>
+			}}
+			onKeyDown={e => e.stopPropagation()}
+			onKeyUp={handleKeyUp}>
 			<div
 				className={`${styles.box} ${className}`}
 				onClick={e => e.stopPropagation()}>

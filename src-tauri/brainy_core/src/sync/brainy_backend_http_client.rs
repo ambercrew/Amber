@@ -80,7 +80,15 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
 
-        ensure_success_response(response).await?;
+        let status = ensure_success_response(response).await;
+
+        if let Err(ref err) = status
+            && err == &BrainyBackendClientError::Unauthorized
+        {
+            return Err(BrainyBackendClientError::InvalidCredentials);
+        }
+        status?;
+
         self.persist_cookies();
         Ok(())
     }
@@ -112,6 +120,18 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         ensure_success_response(response).await?;
         self.persist_cookies();
 
+        Ok(())
+    }
+
+    async fn sign_out(&self) -> Result<(), BrainyBackendClientError> {
+        log::info!("Signing-out...");
+        let response = self
+            .reqwest_client
+            .post(self.backend_url.join("/api/auth/sign-out").unwrap())
+            .send()
+            .await;
+        ensure_success_response(response).await?;
+        self.persist_cookies();
         Ok(())
     }
 
@@ -201,7 +221,7 @@ async fn ensure_success_response(
     log::info!("{response:#?}");
 
     match response.status() {
-        StatusCode::UNAUTHORIZED => Err(BrainyBackendClientError::InvalidCredentials),
+        StatusCode::UNAUTHORIZED => Err(BrainyBackendClientError::Unauthorized),
         StatusCode::OK => Ok(response),
         StatusCode::BAD_REQUEST => {
             if let Ok(problem_details) = response.json::<ProblemDetails>().await {

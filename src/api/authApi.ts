@@ -23,6 +23,10 @@ export function signUp(
 	});
 }
 
+export function signOut(): Promise<boolean> {
+	return invoke("sign_out");
+}
+
 export function isSignedIn(): Promise<boolean> {
 	return invoke("is_signed_in");
 }
