@@ -22,6 +22,7 @@ import {
 	mdiHome,
 	mdiLogin,
 	mdiMagnify,
+    mdiSync,
 } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
@@ -77,6 +78,7 @@ function SideBar({ onSettingsClick }: Props) {
 		onSettingsClick();
 	};
 
+    // TODO: sync shortcut
 	return (
 		<aside className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.sideBarTopContainer}>
@@ -124,6 +126,14 @@ function SideBar({ onSettingsClick }: Props) {
 						onClick={handleSettingsButtonClick}>
 						<Icon path={mdiCog} size="1em" />
 						<p>Settings</p>
+					</button>
+
+					<button
+						className={`${styles.row}`}
+						title="Sync"
+						onClick={() => {/* TODO: */}}>
+						<Icon path={mdiSync} size="1em" />
+						<p>Sync</p>
 					</button>
 
 					<button
