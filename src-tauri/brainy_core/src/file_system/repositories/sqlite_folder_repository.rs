@@ -162,12 +162,11 @@ impl FolderRepository for SqliteFolderRepository {
         let folder_id = folder.id();
         let folder_name = folder.name().to_string();
         let parent_id = folder.parent_id();
-
         let result = sqlx::query!(
             r#"INSERT INTO folders(id, name, parent_id, modified_date) VALUES ($1, $2, $3, $4)
             ON CONFLICT(id) DO UPDATE
-            SET id = $1, name = $2, parent_id = $3, modified_date = $4
-            WHERE modified_date <= $4
+            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4)
+            WHERE modified_date <= datetime($4)
             "#,
             folder_id,
             folder_name,

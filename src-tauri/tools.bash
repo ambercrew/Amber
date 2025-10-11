@@ -7,7 +7,8 @@ show_menu() {
     echo "            SQLx Management Script"
     echo "================================================"
     echo "1. Create .env file/apply latest migration"
-    echo "2. Exit"
+    echo "2. Pull Git submodules"
+    echo "3. Exit"
     echo "================================================"
 }
 
@@ -38,6 +39,9 @@ case $choice in
         ;;
     2)
         exit 0
+        ;;
+    3)
+        git submodule update --init --recursive
         ;;
     *)
         echo "❌ Invalid option."

@@ -4,17 +4,13 @@ mod dto;
 use std::sync::Arc;
 
 use brainy_core::{
-    cells::cell_service::CellService,
-    common::{
-        sqlite_repositories_context::SqliteRepositoriesContext,
-        traits::repositories_context::RepositoriesContext,
-    },
-    file_system::file_system_service::FileSystemService,
-    settings::Settings,
     backend::{
         brainy_backend_http_client::BrainyBackendHttpClient,
         traits::brainy_backend_client::BrainyBackendClient,
-    },
+    }, cells::cell_service::CellService, common::{
+        sqlite_repositories_context::SqliteRepositoriesContext,
+        traits::repositories_context::RepositoriesContext,
+    }, file_system::file_system_service::FileSystemService, settings::Settings, sync::sync_service::SyncService
 };
 use reqwest::Url;
 use tauri::Manager;
@@ -75,6 +71,14 @@ pub async fn run() -> Result<(), String> {
                 repositories_context.file_repository(),
                 repositories_context.cell_repository(),
             )));
+            app.manage(Arc::new(SyncService::new(
+                repositories_context.local_configuration_repository(),
+                repositories_context.folder_repository(),
+                repositories_context.file_repository(),
+                repositories_context.cell_repository(),
+                repositories_context.review_repository(),
+            )));
+
             app.manage(
                 Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
             );

@@ -44,7 +44,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         }
     }
 
-    async fn upsert(&self, configuration: LocalConfiguration) -> Result<(), RepositoryError> {
+    async fn upsert(&self, configuration: &LocalConfiguration) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 

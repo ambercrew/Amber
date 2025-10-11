@@ -188,7 +188,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         &self,
         sync_number: u32,
     ) -> Result<GetNextSyncPageResponseDto, BrainyBackendClientError> {
-        log::info!("Getting next sync object..");
+        log::info!("Getting next sync object with sync number {sync_number}...");
 
         let response = self
             .reqwest_client

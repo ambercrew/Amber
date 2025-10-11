@@ -5,15 +5,19 @@ import { useState } from "react";
 import Dialog from "../../../components/Dialog/Dialog";
 import Spinner from "../../../components/Spinner/Spinner";
 import { sync } from "../../../api/syncApi";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 
 export default function SyncRow() {
     const [isSyncing, setIsSyncing] = useState(false);
+    const dispatch = useAppDispatch();
 
     const handleClick = async () => {
         // TODO: error handling
         try {
             setIsSyncing(true);
             await sync();
+            await dispatch(getReviewTreeFolderForRoot());
         } finally {
             setIsSyncing(false);
         }
