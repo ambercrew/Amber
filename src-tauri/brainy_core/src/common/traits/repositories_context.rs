@@ -10,6 +10,7 @@ use crate::{
     file_system::repositories::traits::{
         file_repository::FileRepository, folder_repository::FolderRepository,
     },
+    local_configurations::repositories::traits::LocalConfigurationRepository,
 };
 
 #[derive(Debug, Error)]
@@ -24,6 +25,7 @@ pub trait RepositoriesContext: Send + Sync {
     fn file_repository(&self) -> Arc<dyn FileRepository>;
     fn cell_repository(&self) -> Arc<dyn CellRepository>;
     fn review_repository(&self) -> Arc<dyn ReviewRepository>;
+    fn local_configuration_repository(&self) -> Arc<dyn LocalConfigurationRepository>;
     /// All changes are put automatically inside a transaction, this this
     /// method commit the transactio.
     async fn save_changes(&mut self) -> Result<(), RepositoriesContextError>;

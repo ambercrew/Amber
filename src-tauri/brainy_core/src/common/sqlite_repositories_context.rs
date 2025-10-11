@@ -20,6 +20,10 @@ use crate::{
         sqlite_folder_repository::SqliteFolderRepository,
         traits::{file_repository::FileRepository, folder_repository::FolderRepository},
     },
+    local_configurations::repositories::{
+        sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+        traits::LocalConfigurationRepository,
+    },
 };
 
 pub struct SqliteRepositoriesContext {
@@ -29,6 +33,7 @@ pub struct SqliteRepositoriesContext {
     file_repository: Arc<SqliteFileRepository>,
     cell_repository: Arc<SqliteCellRepository>,
     review_repository: Arc<SqliteReviewRepository>,
+    local_configuration_repository: Arc<SqliteLocalConfigurationRepository>,
 }
 
 #[derive(Debug, Error)]
@@ -60,6 +65,10 @@ impl SqliteRepositoriesContext {
             folder_repository: Arc::new(SqliteFolderRepository::new(arc_pool.clone(), tx.clone())),
             cell_repository: Arc::new(SqliteCellRepository::new(arc_pool.clone(), tx.clone())),
             review_repository: Arc::new(SqliteReviewRepository::new(tx.clone())),
+            local_configuration_repository: Arc::new(SqliteLocalConfigurationRepository::new(
+                arc_pool.clone(),
+                tx.clone(),
+            )),
         })
     }
 
@@ -88,6 +97,10 @@ impl RepositoriesContext for SqliteRepositoriesContext {
 
     fn review_repository(&self) -> Arc<dyn ReviewRepository> {
         self.review_repository.clone()
+    }
+
+    fn local_configuration_repository(&self) -> Arc<dyn LocalConfigurationRepository> {
+        self.local_configuration_repository.clone()
     }
 
     async fn save_changes(&mut self) -> Result<(), RepositoriesContextError> {

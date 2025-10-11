@@ -113,3 +113,10 @@ CREATE TABLE deleted_entities(
 
 CREATE INDEX deleted_entities_entity_name_and_id_index ON deleted_entities(entity_name, entity_id);
 CREATE INDEX deleted_entities_delete_date_index ON deleted_entities(delete_date);
+
+-------------------------------------------------------------------------
+
+CREATE TABLE local_configurations(
+    name                        TEXT        NOT NULL        PRIMARY KEY,
+    value                       TEXT        NOT NULL
+);
