@@ -49,9 +49,9 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         let tx = tx.as_mut();
 
         let result = sqlx::query!(
-            r#"INSERT INTO local_configurations(name, value)
-            VALUES ($1, $2)
-            ON CONFLICT(name) DO UPDATE SET name = $1, value = $2
+            r#"INSERT INTO local_configurations(name, value) VALUES ($1, $2)
+            ON CONFLICT(name) DO UPDATE
+            SET name = $1, value = $2
             "#,
             configuration.name,
             configuration.value

@@ -22,7 +22,6 @@ import {
 	mdiHome,
 	mdiLogin,
 	mdiMagnify,
-	mdiSync,
 } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
@@ -32,6 +31,7 @@ import { useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 import UserDialog from "../../UserDialog/components/UserDialog";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
+import SyncRow from "./SyncRow";
 
 interface Props {
 	onSettingsClick: () => void;
@@ -78,7 +78,6 @@ function SideBar({ onSettingsClick }: Props) {
 		onSettingsClick();
 	};
 
-	// TODO: sync shortcut
 	return (
 		<aside className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.sideBarTopContainer}>
@@ -128,15 +127,7 @@ function SideBar({ onSettingsClick }: Props) {
 						<p>Settings</p>
 					</button>
 
-					<button
-						className={`${styles.row}`}
-						title="Sync"
-						onClick={() => {
-							/* TODO: */
-						}}>
-						<Icon path={mdiSync} size="1em" />
-						<p>Sync</p>
-					</button>
+                    <SyncRow />
 
 					<button
 						className={`${styles.row}`}

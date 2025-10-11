@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Sqlite, SqlitePool, Transaction};
 use tokio::sync::Mutex;
 
@@ -149,6 +150,38 @@ impl FolderRepository for SqliteFolderRepository {
             Ok(_) => Ok(()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
+    }
+
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        folder: &Folder,
+        modified_date: DateTime<Utc>) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let folder_id = folder.id();
+        let folder_name = folder.name().to_string();
+        let parent_id = folder.parent_id();
+
+        let result = sqlx::query!(
+            r#"INSERT INTO folders(id, name, parent_id, modified_date) VALUES ($1, $2, $3, $4)
+            ON CONFLICT(id) DO UPDATE
+            SET id = $1, name = $2, parent_id = $3, modified_date = $4
+            WHERE modified_date <= $4
+            "#,
+            folder_id,
+            folder_name,
+            parent_id,
+            modified_date
+        )
+        .execute(&mut *tx)
+        .await;
+
+        if let Err(err) = result {
+            return Err(RepositoryError::UnknownError(err.to_string()));
+        }
+
+        Ok(())
     }
 }
 

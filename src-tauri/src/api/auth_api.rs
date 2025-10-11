@@ -1,4 +1,4 @@
-use brainy_core::sync::traits::brainy_backend_client::BrainyBackendClient;
+use brainy_core::backend::traits::brainy_backend_client::BrainyBackendClient;
 use tauri::State;
 
 use crate::api::ApiError;

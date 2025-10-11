@@ -3,8 +3,8 @@ use std::{
     sync::Arc,
 };
 
-use crate::sync::{
-    models::{ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto, UserInformnationDto},
+use crate::backend::{
+    models::{GetNextSyncPageResponseDto, ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto, UserInformnationDto},
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
@@ -182,6 +182,27 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         ensure_success_response(response).await?;
 
         Ok(())
+    }
+
+    async fn get_next_sync_page(
+        &self,
+        sync_number: u32,
+    ) -> Result<GetNextSyncPageResponseDto, BrainyBackendClientError> {
+        log::info!("Getting next sync object..");
+
+        let response = self
+            .reqwest_client
+            .get(self.backend_url.join("/api/sync").unwrap())
+            .query(&[("syncNumber", sync_number)])
+            .send()
+            .await;
+
+        let response = ensure_success_response(response).await?;
+        match response.json::<GetNextSyncPageResponseDto>().await {
+            Ok(result) => Ok(result),
+            Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
+        }
+
     }
 }
 

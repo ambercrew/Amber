@@ -11,7 +11,7 @@ use brainy_core::{
     },
     file_system::file_system_service::FileSystemService,
     settings::Settings,
-    sync::{
+    backend::{
         brainy_backend_http_client::BrainyBackendHttpClient,
         traits::brainy_backend_client::BrainyBackendClient,
     },
@@ -131,6 +131,8 @@ pub async fn run() -> Result<(), String> {
             // User
             get_user_information,
             update_user_information,
+            // Sync
+            sync,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -6,6 +6,7 @@ mod repetition_api;
 mod review_api;
 mod search_api;
 mod settings_api;
+mod sync_api;
 mod user_api;
 
 use std::error::Error;
@@ -34,6 +35,8 @@ pub use review_api::{get_home_statistics, register_review};
 pub use auth_api::{is_signed_in, sign_in, sign_out, sign_up};
 
 pub use user_api::{get_user_information, update_user_information};
+
+pub use sync_api::sync;
 
 #[derive(Serialize)]
 pub struct ApiError(String);

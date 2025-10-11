@@ -6,6 +6,7 @@ use crate::{
     },
 };
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 
 #[async_trait]
 pub trait FolderRepository: Send + Sync {
@@ -19,6 +20,11 @@ pub trait FolderRepository: Send + Sync {
     ) -> Result<bool, RepositoryError>;
     async fn create(&self, folder: &Folder) -> Result<(), RepositoryError>;
     async fn update(&self, folder: &Folder) -> Result<(), RepositoryError>;
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        folder: &Folder,
+        date: DateTime<Utc>,
+    ) -> Result<(), RepositoryError>;
     /// Note that deleting the folders deletes all subfolders and files inside
     /// it recursively, including the cells and all repetitions associated
     /// with the files.

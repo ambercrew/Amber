@@ -172,3 +172,11 @@
 	border-radius: 0;
 	border-top: 1px solid var(--border-color);
 }
+
+.sync-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--default-padding);
+}

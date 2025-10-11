@@ -41,3 +41,11 @@ pub struct UpdateUserInformationDto {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetNextSyncPageResponseDto {
+    pub sync_object: String,
+    pub last_included_sync_number: u32,
+    pub is_there_more_sync_objects: bool,
+}

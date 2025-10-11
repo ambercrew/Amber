@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use thiserror::Error;
 
-use crate::sync::models::UserInformnationDto;
+use crate::backend::models::{GetNextSyncPageResponseDto, UserInformnationDto};
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BrainyBackendClientError {
@@ -47,4 +47,9 @@ pub trait BrainyBackendClient: Send + Sync {
         first_name: Option<String>,
         last_name: Option<String>,
     ) -> Result<(), BrainyBackendClientError>;
+
+    async fn get_next_sync_page(
+        &self,
+        sync_number: u32,
+    ) -> Result<GetNextSyncPageResponseDto, BrainyBackendClientError>;
 }
