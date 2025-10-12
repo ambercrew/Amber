@@ -155,7 +155,8 @@ impl FolderRepository for SqliteFolderRepository {
     async fn upsert_with_modified_date_if_modified_before(
         &self,
         folder: &Folder,
-        modified_date: DateTime<Utc>) -> Result<(), RepositoryError> {
+        modified_date: DateTime<Utc>,
+    ) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 

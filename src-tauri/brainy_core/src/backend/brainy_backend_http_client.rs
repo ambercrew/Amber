@@ -4,7 +4,10 @@ use std::{
 };
 
 use crate::backend::{
-    models::{GetNextSyncPageResponseDto, ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto, UserInformnationDto},
+    models::{
+        GetNextSyncPageResponseDto, ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto,
+        UserInformnationDto,
+    },
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
@@ -202,7 +205,6 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             Ok(result) => Ok(result),
             Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
         }
-
     }
 }
 

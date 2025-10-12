@@ -65,7 +65,7 @@ impl Cell {
     }
 
     /// Used for unit testing, or repositories when reconsturcting a cell.
-    pub(in crate::cells) fn new_unchecked(
+    pub fn new_unchecked(
         id: Option<Guid>,
         file_id: Guid,
         content: String,

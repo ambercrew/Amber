@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use brainy_core::{
     backend::traits::brainy_backend_client::BrainyBackendClient,
     common::traits::repositories_context::RepositoriesContext, generated_code::SyncObject,

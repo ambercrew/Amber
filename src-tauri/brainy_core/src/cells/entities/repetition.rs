@@ -31,6 +31,45 @@ pub struct Repetition {
     pub(in crate::cells) additional_content: Option<String>,
 }
 
+impl Repetition {
+    /// Used for unit testing, or repositories when reconsturcting a reptition.
+    pub fn new_unchecked(
+        id: Guid,
+        file_id: Guid,
+        cell_id: Guid,
+        due: DateTime<Utc>,
+        stability: f64,
+        difficulty: f64,
+        elapsed_days: i64,
+        scheduled_days: i64,
+        reps: i64,
+        lapses: i64,
+        state: State,
+        last_review: Option<DateTime<Utc>>,
+        additional_content: Option<String>,
+    ) -> Self {
+        Self {
+            id,
+            file_id,
+            cell_id,
+            due,
+            stability,
+            difficulty,
+            elapsed_days,
+            scheduled_days,
+            reps,
+            lapses,
+            state,
+            last_review,
+            additional_content,
+        }
+    }
+
+    pub fn cell_id(&self) -> Guid {
+        self.cell_id
+    }
+}
+
 impl Default for Repetition {
     fn default() -> Self {
         Self {

@@ -39,6 +39,23 @@ impl Review {
             rating,
         }
     }
+
+    /// Used for unit testing, or repositories when reconsturcting a review.
+    pub fn new_unchecked(
+        id: Option<Guid>,
+        cell_id: Option<Guid>,
+        study_time: u32,
+        date: DateTime<Utc>,
+        rating: Rating,
+    ) -> Self {
+        Self {
+            id: id.unwrap_or(Guid::new_v4()),
+            cell_id,
+            study_time,
+            date,
+            rating,
+        }
+    }
 }
 
 impl Default for Review {

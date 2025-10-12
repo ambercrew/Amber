@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::{Sqlite, SqlitePool, Transaction};
 use tokio::sync::Mutex;
 
@@ -152,6 +153,38 @@ impl FileRepository for SqliteFileRepository {
             Ok(_) => Ok(()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
+    }
+
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        file: &File,
+        modified_date: DateTime<Utc>,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let file_id = file.id();
+        let file_name = file.name().to_string();
+        let parent_id = file.parent_id();
+        let result = sqlx::query!(
+            r#"INSERT INTO files(id, name, parent_id, modified_date) VALUES ($1, $2, $3, $4)
+            ON CONFLICT(id) DO UPDATE
+            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4)
+            WHERE modified_date <= datetime($4)
+            "#,
+            file_id,
+            file_name,
+            parent_id,
+            modified_date
+        )
+        .execute(&mut *tx)
+        .await;
+
+        if let Err(err) = result {
+            return Err(RepositoryError::UnknownError(err.to_string()));
+        }
+
+        Ok(())
     }
 }
 

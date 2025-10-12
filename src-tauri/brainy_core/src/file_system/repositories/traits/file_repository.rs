@@ -4,6 +4,7 @@ use crate::{
     file_system::{entities::file::File, value_objects::file_system_item_name::FileSystemItemName},
 };
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 
 #[async_trait]
 pub trait FileRepository: Send + Sync {
@@ -17,6 +18,11 @@ pub trait FileRepository: Send + Sync {
     ) -> Result<bool, RepositoryError>;
     async fn create(&self, file: &File) -> Result<(), RepositoryError>;
     async fn update(&self, file: &File) -> Result<(), RepositoryError>;
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        file: &File,
+        date: DateTime<Utc>,
+    ) -> Result<(), RepositoryError>;
     /// Note that deleting the file deletes the cells and all repetitions
     /// associated with it.
     async fn delete_by_id(&self, id: Guid) -> Result<(), RepositoryError>;
