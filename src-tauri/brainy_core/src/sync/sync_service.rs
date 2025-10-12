@@ -1,7 +1,5 @@
 use std::{collections::HashMap, sync::Arc};
 
-use chrono::{DateTime, Utc};
-use prost_types::Timestamp;
 use thiserror::Error;
 
 use crate::{
@@ -12,13 +10,12 @@ use crate::{
             cell_repository::CellRepository, review_repository::ReviewRepository,
         },
     },
-    common::repository_error::RepositoryError,
+    common::{extensions::to_datetime_ext::ToDateTimeExt, repository_error::RepositoryError},
     file_system::{
         entities::{file::File, folder::Folder},
         repositories::traits::{
             file_repository::FileRepository, folder_repository::FolderRepository,
         },
-        value_objects::file_system_item_name::FileSystemItemName,
     },
     generated_code::SyncObject,
     sync::repositories::traits::DeletedEntityRepository,
@@ -60,66 +57,38 @@ impl SyncService {
         // TODO: handle file and folders with same name, (merge into same name and replace all
         // existing with new name, order by id so that the id is the same)
 
+        // TODO: move all conversion code to From<type> traint in the files
         for folder in sync_object.folders {
-            let entity = Folder::new_unchecked(
-                Some(Guid::parse_str(&folder.id).unwrap()),
-                folder
-                    .parent_id
-                    .map(|parent_id| Guid::parse_str(&parent_id).unwrap()),
-                FileSystemItemName::new_unchecked(folder.name),
-            );
+            let modified_date = folder.modified_date.unwrap().to_datetime_utc();
+            let entity = Folder::from(folder);
             self.folder_repository
-                .upsert_with_modified_date_if_modified_before(
-                    &entity,
-                    folder.modified_date.unwrap().to_datetime_utc(),
-                )
+                .upsert_with_modified_date_if_modified_before(&entity, modified_date)
                 .await?;
         }
 
         for file in sync_object.files {
-            let entity = File::new_unchecked(
-                Some(Guid::parse_str(&file.id).unwrap()),
-                file.parent_id
-                    .map(|parent_id| Guid::parse_str(&parent_id).unwrap()),
-                FileSystemItemName::new_unchecked(file.name),
-            );
+            let modified_date = file.modified_date.unwrap().to_datetime_utc();
+            let entity = File::from(file);
             self.file_repository
-                .upsert_with_modified_date_if_modified_before(
-                    &entity,
-                    file.modified_date.unwrap().to_datetime_utc(),
-                )
+                .upsert_with_modified_date_if_modified_before(&entity, modified_date)
                 .await?;
         }
 
         let mut repetitions_by_cell_id = HashMap::<Guid, Vec<Repetition>>::new();
 
         for repetition in sync_object.repetitions {
-            let entity = Repetition::new_unchecked(
-                Guid::parse_str(&repetition.id).unwrap(),
-                Guid::parse_str(&repetition.file_id).unwrap(),
-                Guid::parse_str(&repetition.cell_id).unwrap(),
-                repetition.due.unwrap().to_datetime_utc(),
-                repetition.stability,
-                repetition.difficulty,
-                repetition.elapsed_days,
-                repetition.scheduled_days,
-                repetition.reps,
-                repetition.lapses,
-                serde_json::from_str(&repetition.state).unwrap(),
-                repetition
-                    .last_review
-                    .map(|last_review| last_review.to_datetime_utc()),
-                repetition.additional_content,
-            );
+            let entity = Repetition::from(repetition);
             repetitions_by_cell_id
                 .entry(entity.cell_id())
                 .or_default()
                 .push(entity);
         }
 
+        // TODO: handle duplicate cell index in a file
         for cell in sync_object.cells {
             let id = Guid::parse_str(&cell.id).unwrap();
 
+            // TODO: use from trait
             let entity = Cell::new_unchecked(
                 Some(id),
                 Guid::parse_str(&cell.file_id).unwrap(),
@@ -138,21 +107,17 @@ impl SyncService {
                 .await?;
         }
 
-        // TODO: repetitions without updated cell, upsert them
+        // for repetitions in repetitions_by_cell_id.values() {
+        // for repetition in repetitions {
+        // TODO: handle repettions that are updated by themselfs
+        // }
+        // }
 
         for review in sync_object.reviews {
-            let entity = Review::new_unchecked(
-                Some(Guid::parse_str(&review.id).unwrap()),
-                review.cell_id.map(|r| Guid::parse_str(&r).unwrap()),
-                review.study_time,
-                review.date.unwrap().to_datetime_utc(),
-                serde_json::from_str(&review.rating).unwrap(),
-            );
+            let modified_date = review.modified_date.unwrap().to_datetime_utc();
+            let entity = Review::from(review);
             self.review_repository
-                .upsert_with_modified_date_if_modified_before(
-                    &entity,
-                    review.modified_date.unwrap().to_datetime_utc(),
-                )
+                .upsert_with_modified_date_if_modified_before(&entity, modified_date)
                 .await?;
         }
 
@@ -167,17 +132,3 @@ impl SyncService {
 
     // TODO: on sending always send all repetitions with a cell (should be default based on trigger)
 }
-
-trait ToDateTimeExt {
-    fn to_datetime_utc(&self) -> DateTime<Utc>;
-}
-
-impl ToDateTimeExt for Timestamp {
-    fn to_datetime_utc(&self) -> DateTime<Utc> {
-        DateTime::<Utc>::from_timestamp(self.seconds, self.nanos as u32)
-            .expect("Failed to convert timestamp")
-    }
-}
-
-// TODO: deletion
-// TODO: updating entities

@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::Guid;
+use crate::{
+    Guid,
+    common::extensions::to_datetime_ext::{OptionToDateTimeExt, ToDateTimeExt},
+    generated_code,
+};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -32,39 +36,6 @@ pub struct Repetition {
 }
 
 impl Repetition {
-    /// Used for unit testing, or repositories when reconsturcting a reptition.
-    pub fn new_unchecked(
-        id: Guid,
-        file_id: Guid,
-        cell_id: Guid,
-        due: DateTime<Utc>,
-        stability: f64,
-        difficulty: f64,
-        elapsed_days: i64,
-        scheduled_days: i64,
-        reps: i64,
-        lapses: i64,
-        state: State,
-        last_review: Option<DateTime<Utc>>,
-        additional_content: Option<String>,
-    ) -> Self {
-        Self {
-            id,
-            file_id,
-            cell_id,
-            due,
-            stability,
-            difficulty,
-            elapsed_days,
-            scheduled_days,
-            reps,
-            lapses,
-            state,
-            last_review,
-            additional_content,
-        }
-    }
-
     pub fn cell_id(&self) -> Guid {
         self.cell_id
     }
@@ -86,6 +57,26 @@ impl Default for Repetition {
             state: Default::default(),
             last_review: None,
             additional_content: Default::default(),
+        }
+    }
+}
+
+impl From<generated_code::Repetition> for Repetition {
+    fn from(value: generated_code::Repetition) -> Self {
+        Self {
+            id: Guid::parse_str(&value.id).unwrap(),
+            file_id: Guid::parse_str(&value.file_id).unwrap(),
+            cell_id: Guid::parse_str(&value.cell_id).unwrap(),
+            due: value.due.unwrap().to_datetime_utc(),
+            stability: value.stability,
+            difficulty: value.difficulty,
+            elapsed_days: value.elapsed_days,
+            scheduled_days: value.scheduled_days,
+            reps: value.reps,
+            lapses: value.lapses,
+            state: serde_json::from_str(&value.state).unwrap(),
+            last_review: value.last_review.to_datetime_utc(),
+            additional_content: value.additional_content,
         }
     }
 }

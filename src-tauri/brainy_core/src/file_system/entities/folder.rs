@@ -1,4 +1,6 @@
-use crate::{Guid, file_system::value_objects::file_system_item_name::FileSystemItemName};
+use crate::{
+    Guid, file_system::value_objects::file_system_item_name::FileSystemItemName, generated_code,
+};
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -51,6 +53,18 @@ impl Folder {
 
     pub(in crate::file_system) fn set_parent_id(&mut self, parent_id: Option<Guid>) {
         self.parent_id = parent_id;
+    }
+}
+
+impl From<generated_code::Folder> for Folder {
+    fn from(value: generated_code::Folder) -> Self {
+        Self {
+            id: Guid::parse_str(&value.id).unwrap(),
+            parent_id: value
+                .parent_id
+                .map(|parent_id| Guid::parse_str(&parent_id).unwrap()),
+            name: FileSystemItemName::new_unchecked(value.name),
+        }
     }
 }
 

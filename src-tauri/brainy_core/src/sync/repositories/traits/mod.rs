@@ -4,5 +4,8 @@ use crate::{common::repository_error::RepositoryError, generated_code::DeletedEn
 
 #[async_trait]
 pub trait DeletedEntityRepository: Send + Sync {
-    async fn apply_deleted_entity(&self, deleted_entity: DeletedEntity) -> Result<(), RepositoryError>;
+    async fn apply_deleted_entity(
+        &self,
+        deleted_entity: DeletedEntity,
+    ) -> Result<(), RepositoryError>;
 }

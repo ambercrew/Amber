@@ -23,7 +23,11 @@ use crate::{
     local_configurations::repositories::{
         sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         traits::LocalConfigurationRepository,
-    }, sync::repositories::{sqlite_deleted_entity_repository::SqliteDeletedEntityRepository, traits::DeletedEntityRepository},
+    },
+    sync::repositories::{
+        sqlite_deleted_entity_repository::SqliteDeletedEntityRepository,
+        traits::DeletedEntityRepository,
+    },
 };
 
 pub struct SqliteRepositoriesContext {

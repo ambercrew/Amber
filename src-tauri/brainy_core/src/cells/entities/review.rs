@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::Guid;
+use crate::{common::extensions::to_datetime_ext::ToDateTimeExt, generated_code, Guid};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Rating {
@@ -39,21 +39,16 @@ impl Review {
             rating,
         }
     }
+}
 
-    /// Used for unit testing, or repositories when reconsturcting a review.
-    pub fn new_unchecked(
-        id: Option<Guid>,
-        cell_id: Option<Guid>,
-        study_time: u32,
-        date: DateTime<Utc>,
-        rating: Rating,
-    ) -> Self {
+impl From<generated_code::Review> for Review {
+    fn from(value: generated_code::Review) -> Self {
         Self {
-            id: id.unwrap_or(Guid::new_v4()),
-            cell_id,
-            study_time,
-            date,
-            rating,
+            id: Guid::parse_str(&value.id).unwrap(),
+            cell_id: value.cell_id.map(|r| Guid::parse_str(&r).unwrap()),
+            study_time: value.study_time,
+            date: value.date.unwrap().to_datetime_utc(),
+            rating: serde_json::from_str(&value.rating).unwrap(),
         }
     }
 }
