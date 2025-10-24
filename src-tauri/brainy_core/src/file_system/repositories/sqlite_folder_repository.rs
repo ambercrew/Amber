@@ -34,7 +34,14 @@ impl FolderRepository for SqliteFolderRepository {
     async fn get_by_id(&self, id: Guid) -> Result<Folder, RepositoryError> {
         let row = sqlx::query_as!(
             FolderRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM folders WHERE id = $1"#,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM folders
+            WHERE id = $1"#,
             id
         )
         .fetch_one(&*self.pool)
@@ -49,7 +56,13 @@ impl FolderRepository for SqliteFolderRepository {
     async fn get_all_folders(&self) -> Result<Vec<Folder>, RepositoryError> {
         let rows = sqlx::query_as!(
             FolderRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM folders"#,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM folders"#,
         )
         .fetch_all(&*self.pool)
         .await;
@@ -63,7 +76,40 @@ impl FolderRepository for SqliteFolderRepository {
     async fn get_subfolders(&self, parent_folder_id: Guid) -> Result<Vec<Folder>, RepositoryError> {
         let rows = sqlx::query_as!(
             FolderRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM folders WHERE parent_id = $1"#, parent_folder_id
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM folders
+            WHERE parent_id = $1"#,
+            parent_folder_id
+        )
+        .fetch_all(&*self.pool)
+        .await;
+
+        match rows {
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
+        }
+    }
+
+    async fn get_all_modified_on_or_after(
+        &self,
+        modified_date: DateTime<Utc>,
+    ) -> Result<Vec<Folder>, RepositoryError> {
+        let rows = sqlx::query_as!(
+            FolderRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM folders
+            WHERE modified_date >= datetime($1)"#,
+            modified_date
         )
         .fetch_all(&*self.pool)
         .await;
@@ -101,9 +147,20 @@ impl FolderRepository for SqliteFolderRepository {
         let folder_id = folder.id();
         let folder_name = folder.name().to_string();
         let parent_id = folder.parent_id();
+        let created_date = folder.created_date();
+        let modified_date = folder.modified_date();
+
         let result = sqlx::query!(
-            "INSERT INTO folders(id, name, parent_id) VALUES ($1, $2, $3)",
+            "INSERT INTO folders(
+                id,
+                created_date,
+                modified_date,
+                name,
+                parent_id)
+            VALUES ($1, datetime($2), datetime($3), $4, $5)",
             folder_id,
+            created_date,
+            modified_date,
             folder_name,
             parent_id
         )
@@ -123,9 +180,19 @@ impl FolderRepository for SqliteFolderRepository {
         let folder_id = folder.id();
         let folder_name = folder.name().to_string();
         let parent_id = folder.parent_id();
+        let created_date = folder.created_date();
+        let modified_date = folder.modified_date();
         let result = sqlx::query!(
-            "UPDATE folders SET id = $1, name = $2, parent_id = $3 WHERE id = $1",
+            "UPDATE folders SET
+                id = $1,
+                created_date = datetime($2),
+                modified_date = datetime($3),
+                name = $4,
+                parent_id = $5
+            WHERE id = $1",
             folder_id,
+            created_date,
+            modified_date,
             folder_name,
             parent_id
         )
@@ -134,6 +201,45 @@ impl FolderRepository for SqliteFolderRepository {
 
         match result {
             Ok(_) => Ok(()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+        }
+    }
+
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        folder: &Folder,
+        modified_date: DateTime<Utc>,
+    ) -> Result<u64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let folder_id = folder.id();
+        let folder_name = folder.name().to_string();
+        let parent_id = folder.parent_id();
+        let created_date = folder.created_date();
+        let result = sqlx::query!(
+            r#"INSERT INTO folders(
+                id,
+                name,
+                parent_id,
+                modified_date,
+                created_date)
+            VALUES ($1, $2, $3, datetime($4), datetime($5))
+            ON CONFLICT(id) DO UPDATE
+            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4), created_date = datetime($5)
+            WHERE modified_date <= datetime($4)
+            "#,
+            folder_id,
+            folder_name,
+            parent_id,
+            modified_date,
+            created_date
+        )
+        .execute(&mut *tx)
+        .await;
+
+        match result {
+            Ok(result) => Ok(result.rows_affected()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
     }
@@ -151,53 +257,27 @@ impl FolderRepository for SqliteFolderRepository {
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
     }
-
-    async fn upsert_with_modified_date_if_modified_before(
-        &self,
-        folder: &Folder,
-        modified_date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError> {
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-
-        let folder_id = folder.id();
-        let folder_name = folder.name().to_string();
-        let parent_id = folder.parent_id();
-        let result = sqlx::query!(
-            r#"INSERT INTO folders(id, name, parent_id, modified_date) VALUES ($1, $2, $3, $4)
-            ON CONFLICT(id) DO UPDATE
-            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4)
-            WHERE modified_date <= datetime($4)
-            "#,
-            folder_id,
-            folder_name,
-            parent_id,
-            modified_date
-        )
-        .execute(&mut *tx)
-        .await;
-
-        if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
-        }
-
-        Ok(())
-    }
 }
 
 mod folder_row {
+    use chrono::{DateTime, Utc};
+
     use super::*;
 
     pub(super) struct FolderRow {
         pub id: Guid,
+        pub created_date: DateTime<Utc>,
+        pub modified_date: DateTime<Utc>,
         pub parent_id: Option<Guid>,
         pub name: String,
     }
 
     impl From<FolderRow> for Folder {
         fn from(value: FolderRow) -> Self {
-            Folder::new(
-                Some(value.id),
+            Folder::new_unchecked(
+                value.id,
+                value.created_date,
+                value.modified_date,
                 value.parent_id,
                 FileSystemItemName::new_unchecked(value.name),
             )

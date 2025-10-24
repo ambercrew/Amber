@@ -22,11 +22,10 @@ use crate::{
     },
     local_configurations::repositories::{
         sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
-        traits::LocalConfigurationRepository,
+        traits::local_configuration_repository::LocalConfigurationRepository,
     },
     sync::repositories::{
-        sqlite_deleted_entity_repository::SqliteDeletedEntityRepository,
-        traits::DeletedEntityRepository,
+        sqlite_sync_repository::SqliteSyncRepository, traits::sync_repository::SyncRepository,
     },
 };
 
@@ -38,7 +37,7 @@ pub struct SqliteRepositoriesContext {
     cell_repository: Arc<SqliteCellRepository>,
     review_repository: Arc<SqliteReviewRepository>,
     local_configuration_repository: Arc<SqliteLocalConfigurationRepository>,
-    deleted_entity_repository: Arc<SqliteDeletedEntityRepository>,
+    sync_repository: Arc<SqliteSyncRepository>,
 }
 
 #[derive(Debug, Error)]
@@ -56,12 +55,15 @@ impl SqliteRepositoriesContext {
     /// are automatically applied!
     pub async fn new_with_migration(path: &str) -> Result<Self, SqliteRepositoriesContextError> {
         let url = format!("{path}?mode=rwc");
-        let options = SqliteConnectOptions::from_str(&url)?;
+        let options = SqliteConnectOptions::from_str(&url)?
+            // Since there is a single client, we can allow read uncommitted.
+            .pragma("read_uncommitted", "TRUE")
+            .optimize_on_close(true, None);
         let pool = SqlitePoolOptions::new().connect_with(options).await?;
         sqlx::migrate!("./db/").run(&pool).await?;
 
         let arc_pool = Arc::new(pool);
-        let tx = Arc::new(Mutex::new(create_transaction(arc_pool.clone()).await));
+        let tx = Arc::new(Mutex::new(create_transaction(&arc_pool).await));
 
         Ok(Self {
             pool: arc_pool.clone(),
@@ -69,13 +71,20 @@ impl SqliteRepositoriesContext {
             file_repository: Arc::new(SqliteFileRepository::new(arc_pool.clone(), tx.clone())),
             folder_repository: Arc::new(SqliteFolderRepository::new(arc_pool.clone(), tx.clone())),
             cell_repository: Arc::new(SqliteCellRepository::new(arc_pool.clone(), tx.clone())),
-            review_repository: Arc::new(SqliteReviewRepository::new(tx.clone())),
+            review_repository: Arc::new(SqliteReviewRepository::new(arc_pool.clone(), tx.clone())),
             local_configuration_repository: Arc::new(SqliteLocalConfigurationRepository::new(
                 arc_pool.clone(),
                 tx.clone(),
             )),
-            deleted_entity_repository: Arc::new(SqliteDeletedEntityRepository::new(tx.clone())),
+            sync_repository: Arc::new(SqliteSyncRepository::new(arc_pool.clone(), tx.clone())),
         })
+    }
+
+    /// Returns the old transaction.
+    async fn replace_current_transaction_with_new_one(&mut self) -> Transaction<'static, Sqlite> {
+        let mut guard = self.tx.lock().await;
+        let new_tx = create_transaction(&self.pool).await;
+        std::mem::replace(&mut *guard, new_tx)
     }
 
     #[cfg(test)]
@@ -109,25 +118,51 @@ impl RepositoriesContext for SqliteRepositoriesContext {
         self.local_configuration_repository.clone()
     }
 
-    fn deleted_entity_repository(&self) -> Arc<dyn DeletedEntityRepository> {
-        self.deleted_entity_repository.clone()
+    fn sync_repository(&self) -> Arc<dyn SyncRepository> {
+        self.sync_repository.clone()
     }
 
     async fn save_changes(&mut self) -> Result<(), RepositoriesContextError> {
         log::info!("Saving changes");
-        let mut guard = self.tx.lock().await;
 
-        let new_tx = create_transaction(self.pool.clone()).await;
-        let old_tx = std::mem::replace(&mut *guard, new_tx);
+        let old_tx = self.replace_current_transaction_with_new_one().await;
 
         if let Err(err) = old_tx.commit().await {
             return Err(RepositoriesContextError::UnknownError(err.to_string()));
         }
         Ok(())
     }
+
+    async fn rollback(&mut self) -> Result<(), RepositoriesContextError> {
+        log::info!("Aborting transaction");
+
+        let old_tx = self.replace_current_transaction_with_new_one().await;
+
+        if let Err(err) = old_tx.rollback().await {
+            return Err(RepositoriesContextError::UnknownError(err.to_string()));
+        }
+        Ok(())
+    }
+
+    async fn disable_foregin_key_contraint_for_current_transaction(
+        &self,
+    ) -> Result<(), RepositoriesContextError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let result = sqlx::query("PRAGMA defer_foreign_keys = ON")
+            .fetch_optional(&mut *tx)
+            .await;
+
+        if let Err(err) = result {
+            return Err(RepositoriesContextError::UnknownError(err.to_string()));
+        }
+
+        Ok(())
+    }
 }
 
-async fn create_transaction(pool: Arc<SqlitePool>) -> Transaction<'static, Sqlite> {
+async fn create_transaction(pool: &Arc<SqlitePool>) -> Transaction<'static, Sqlite> {
     #[cfg(debug_assertions)]
     log::info!("Starting new transaction");
     pool.begin().await.expect("Cannot create a new transaction")

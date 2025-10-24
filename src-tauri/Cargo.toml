@@ -19,8 +19,8 @@ tauri-build = { version = "2.4.1", features = [] }
 
 [dependencies]
 async-trait = "0.1.89"
-base64 = "0.22.1"
 brainy_core = { path = "./brainy_core" }
+chrono = { version = "0.4.41", features = ["serde"] }
 log = "0.4.28"
 prost = "0.14"
 prost-types = "0.14.1"

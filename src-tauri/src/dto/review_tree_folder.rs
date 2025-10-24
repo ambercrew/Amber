@@ -116,6 +116,7 @@ impl ReviewTreeFolder {
 #[cfg(test)]
 pub mod tests {
     use brainy_core::ROOT_FOLDER_ID;
+    use chrono::Utc;
 
     use super::*;
 
@@ -125,17 +126,37 @@ pub mod tests {
 
         let parent_folder_id = Guid::new_v4();
         let folders: Vec<Folder> = vec![
-            Folder::new_unchecked(Some(ROOT_FOLDER_ID), None, "root".try_into().unwrap()),
             Folder::new_unchecked(
-                Some(parent_folder_id),
+                ROOT_FOLDER_ID,
+                Utc::now(),
+                Utc::now(),
+                None,
+                "root".try_into().unwrap(),
+            ),
+            Folder::new_unchecked(
+                parent_folder_id,
+                Utc::now(),
+                Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
             ),
         ];
 
         let files: Vec<File> = vec![
-            File::new_unchecked(None, Some(ROOT_FOLDER_ID), "file".try_into().unwrap()),
-            File::new_unchecked(None, Some(parent_folder_id), "file".try_into().unwrap()),
+            File::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
+                Some(ROOT_FOLDER_ID),
+                "file".try_into().unwrap(),
+            ),
+            File::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
+                Some(parent_folder_id),
+                "file".try_into().unwrap(),
+            ),
         ];
 
         let mut study_repetitions = HashMap::new();

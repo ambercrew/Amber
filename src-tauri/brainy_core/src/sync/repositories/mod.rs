@@ -1,2 +1,2 @@
-pub mod sqlite_deleted_entity_repository;
+pub mod sqlite_sync_repository;
 pub mod traits;

@@ -1,0 +1,11 @@
+.container {
+	position: fixed;
+	bottom: 0;
+	left: 50%;
+	background-color: var(--default-background-color);
+	transform: translateX(-50%);
+	margin-bottom: var(--xl-padding);
+	padding: var(--large-padding);
+	box-shadow: var(--default-box-shadow);
+	border-radius: var(--default-border-radius);
+}

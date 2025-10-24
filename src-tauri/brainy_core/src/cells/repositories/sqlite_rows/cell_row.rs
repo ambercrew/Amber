@@ -15,6 +15,8 @@ use crate::{
 pub struct CellRow {
     // Cell fields
     pub cell_id: Guid,
+    pub cell_created_date: DateTime<Utc>,
+    pub cell_modified_date: DateTime<Utc>,
     pub cell_file_id: Guid,
     pub cell_content: String,
     pub cell_type: CellType,
@@ -23,6 +25,8 @@ pub struct CellRow {
 
     // Repetition fields
     pub repetition_id: Option<Guid>,
+    pub repetition_created_date: Option<DateTime<Utc>>,
+    pub repetition_modified_date: Option<DateTime<Utc>>,
     pub repetition_file_id: Option<Guid>,
     pub repetition_cell_id: Option<Guid>,
     pub repetition_due: Option<DateTime<Utc>>,
@@ -40,6 +44,8 @@ pub struct CellRow {
 /// Used to select only repetitions.
 pub struct RepetitionRow {
     pub id: Guid,
+    pub created_date: DateTime<Utc>,
+    pub modified_date: DateTime<Utc>,
     pub file_id: Guid,
     pub cell_id: Guid,
     pub due: DateTime<Utc>,
@@ -58,6 +64,8 @@ impl From<RepetitionRow> for Repetition {
     fn from(value: RepetitionRow) -> Self {
         Repetition {
             id: value.id,
+            created_date: value.created_date,
+            modified_date: value.modified_date,
             file_id: value.file_id,
             cell_id: value.cell_id,
             due: value.due,
@@ -84,6 +92,8 @@ pub fn convert_rows_to_cells(rows: Vec<CellRow>) -> Vec<Cell> {
 
         let repetition = Repetition {
             id: row.repetition_id.unwrap(),
+            created_date: row.repetition_created_date.unwrap(),
+            modified_date: row.repetition_modified_date.unwrap(),
             file_id: row.repetition_file_id.unwrap(),
             cell_id: row.repetition_cell_id.unwrap(),
             due: row.repetition_due.unwrap(),
@@ -110,7 +120,9 @@ pub fn convert_rows_to_cells(rows: Vec<CellRow>) -> Vec<Cell> {
     for row in rows {
         if added_cells.insert(row.cell_id) {
             let cell = Cell::new_unchecked(
-                Some(row.cell_id),
+                row.cell_id,
+                row.cell_created_date,
+                row.cell_modified_date,
                 row.cell_file_id,
                 row.cell_content,
                 row.cell_type,

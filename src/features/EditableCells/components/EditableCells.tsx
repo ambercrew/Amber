@@ -22,6 +22,9 @@ interface Props {
 	/** Indicates whether the editor is showing the cells for a single or multiple files. */
 	fileMode: "single" | "global search";
 	onError: (error: string) => void;
+	/** Used when the changes to cells are applied, this callback should
+	 * retrieve the new cells and repetitions.
+	 */
 	onCellsUpdateSave: () => Promise<void>;
 	onEditButtonClick?: (fileId: string, cellId: string) => void;
 }
@@ -55,6 +58,7 @@ function EditableCells({
 	});
 
 	useEffect(() => {
+		// Scroll to the selected cell when the search text is cleared.
 		if (!searchText) selectedCellRef.current?.scrollIntoView();
 	}, [searchText]);
 

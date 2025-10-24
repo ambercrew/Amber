@@ -11,6 +11,10 @@ pub trait FileRepository: Send + Sync {
     async fn get_by_id(&self, id: Guid) -> Result<File, RepositoryError>;
     async fn get_all_files(&self) -> Result<Vec<File>, RepositoryError>;
     async fn get_folder_files(&self, parent_folder_id: Guid) -> Result<Vec<File>, RepositoryError>;
+    async fn get_all_modified_on_or_after(
+        &self,
+        modified_date: DateTime<Utc>,
+    ) -> Result<Vec<File>, RepositoryError>;
     async fn exists(
         &self,
         parent_id: Option<Guid>,
@@ -21,8 +25,8 @@ pub trait FileRepository: Send + Sync {
     async fn upsert_with_modified_date_if_modified_before(
         &self,
         file: &File,
-        date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError>;
+        modified_date: DateTime<Utc>,
+    ) -> Result<u64, RepositoryError>;
     /// Note that deleting the file deletes the cells and all repetitions
     /// associated with it.
     async fn delete_by_id(&self, id: Guid) -> Result<(), RepositoryError>;

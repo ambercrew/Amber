@@ -26,7 +26,7 @@ const extensions = [
 ];
 
 interface Props {
-	initialContent: string;
+	content: string;
 	title?: string;
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
@@ -50,14 +50,14 @@ function RichTextEditor({ editable: initialEditable, ...props }: Props) {
 		<>
 			{props.title && <p className={styles.title}>{props.title}</p>}
 			<div className={styles.innerEditor}>
-				{!initialEditable && !editable && (
+				{!editable && (
 					<div className={`${styles.editor}`}>
 						<div
 							tabIndex={0}
 							dangerouslySetInnerHTML={{
 								// Setting white space if content is emtpy so that the height is correct.
-								__html: props.initialContent
-									? props.initialContent
+								__html: props.content
+									? props.content
 									: "&nbsp;",
 							}}
 							onMouseEnter={() => setEditable(true)}
@@ -71,7 +71,7 @@ function RichTextEditor({ editable: initialEditable, ...props }: Props) {
 }
 
 interface TiptapEditorProps {
-	initialContent: string;
+	content: string;
 	title?: string;
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
@@ -82,7 +82,7 @@ interface TiptapEditorProps {
 }
 
 function TiptapEditor({
-	initialContent,
+	content,
 	extraExtensions,
 	commands,
 	autofocus,
@@ -93,9 +93,9 @@ function TiptapEditor({
 	const editor = useEditor(
 		{
 			extensions: [...extensions, ...(extraExtensions ?? [])],
-			content: initialContent,
+			content: content,
 			onUpdate: e => {
-				if (e.editor.getHTML() !== initialContent)
+				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
 			},
 			onFocus: onFocus ? e => onFocus(e.editor) : undefined,

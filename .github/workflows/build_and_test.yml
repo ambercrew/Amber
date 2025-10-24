@@ -15,9 +15,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v5
-              with:
-                token: ${{ secrets.GIT_TOKEN }}
-                submodules: true
             - name: Install dependencies
               run: |
                   sudo apt-get update

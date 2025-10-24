@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use brainy_core::backend::traits::brainy_backend_client::BrainyBackendClient;
 use tauri::State;
 
@@ -5,7 +7,7 @@ use crate::api::ApiError;
 
 #[tauri::command]
 pub async fn sign_in(
-    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
     username: String,
     password: String,
 ) -> Result<(), ApiError> {
@@ -15,7 +17,7 @@ pub async fn sign_in(
 
 #[tauri::command]
 pub async fn sign_up(
-    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
     username: String,
     password: String,
     email: String,
@@ -30,13 +32,13 @@ pub async fn sign_up(
 
 #[tauri::command]
 pub async fn sign_out(
-    backend_client: State<'_, Box<dyn BrainyBackendClient>>,
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
 ) -> Result<(), ApiError> {
     backend_client.sign_out().await?;
     Ok(())
 }
 
 #[tauri::command]
-pub fn is_signed_in(backend_client: State<'_, Box<dyn BrainyBackendClient>>) -> bool {
+pub fn is_signed_in(backend_client: State<'_, Arc<dyn BrainyBackendClient>>) -> bool {
     backend_client.is_signed_in()
 }

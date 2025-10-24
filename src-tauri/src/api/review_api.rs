@@ -3,9 +3,9 @@ use std::sync::Arc;
 use crate::api::ApiError;
 use brainy_core::{
     cells::{
-        cell_service::CellService,
-        entities::{repetition::Repetition, review::Rating},
+        cell_service::CellService, entities::review::Rating,
         models::home_statistics::HomeStatistics,
+        value_objects::repetition_update::RepetitionUpdate,
     },
     common::traits::repositories_context::RepositoriesContext,
 };
@@ -25,13 +25,13 @@ pub async fn get_home_statistics(
 pub async fn register_review(
     context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
     cell_service: State<'_, Arc<CellService>>,
-    new_repetition: Repetition,
+    repetition_update: RepetitionUpdate,
     rating: Rating,
     study_time: u32,
 ) -> Result<(), ApiError> {
     let mut context = context.lock().await;
     cell_service
-        .register_review(new_repetition, rating, study_time)
+        .register_review(repetition_update, rating, study_time)
         .await?;
     context.save_changes().await?;
     Ok(())

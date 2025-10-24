@@ -23,6 +23,7 @@ import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/componenets/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
 import { loadInitialStateUser } from "../stores/user/userActions";
+import { defaultGlobalSyncEvenetManager } from "../stores/sync/manager/syncEventManager";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -68,6 +69,12 @@ function App() {
 			}
 		});
 	}, [dispatch]);
+
+	useEffect(() => {
+		const cb = async () => await dispatch(getReviewTreeFolderForRoot());
+		defaultGlobalSyncEvenetManager.addPostSyncListener(cb);
+		return () => defaultGlobalSyncEvenetManager.removePostSyncListener(cb);
+	});
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "p") {

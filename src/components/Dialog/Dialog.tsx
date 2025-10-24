@@ -23,7 +23,8 @@ export default function Dialog({ className, children, onHide }: Props) {
 				if (onHide) onHide();
 			}}
 			onKeyDown={e => e.stopPropagation()}
-			onKeyUp={handleKeyUp}>
+			onKeyUp={handleKeyUp}
+			tabIndex={-1}>
 			<div
 				className={`${styles.box} ${className}`}
 				onClick={e => e.stopPropagation()}>

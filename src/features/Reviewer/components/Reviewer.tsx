@@ -18,6 +18,7 @@ import { registerReview } from "../../../api/reviewApi";
 import sortReviewerRepetitions from "../utils/sortReviewerRepetitions";
 import ButtonRow from "./ButtonRow";
 import accumulateRepetitionsCounts from "../utils/accumulateRepetitionsCounts";
+import { defaultGlobalSyncEvenetManager } from "../../../stores/sync/manager/syncEventManager";
 
 interface Props {
 	fileIds: string[];
@@ -38,18 +39,26 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	const startTime = useRef(new Date());
 	const location = useLocation();
 
-	useEffect(() => {
-		void (async () => {
-			try {
-				setIsSendingRequest(true);
-				setCells(await getCellsForFiles(fileIds));
-				setIsSendingRequest(false);
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-		})();
+	const loadCells = useCallback(async () => {
+		try {
+			setIsSendingRequest(true);
+			setCells(await getCellsForFiles(fileIds));
+			setCurrentCellIndex(0);
+			setShowAnswer(false);
+			setIsSendingRequest(false);
+		} catch (e) {
+			console.error(e);
+			onError(errorToString(e));
+		}
 	}, [fileIds, onError]);
+
+	useEffect(() => {
+		void loadCells();
+
+		defaultGlobalSyncEvenetManager.addPostSyncListener(loadCells);
+		return () =>
+			defaultGlobalSyncEvenetManager.removePostSyncListener(loadCells);
+	}, [loadCells]);
 
 	const dueToday = useMemo(() => {
 		return sortReviewerRepetitions(

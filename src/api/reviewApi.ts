@@ -1,14 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import HomeStatistics from "../types/backend/dto/homeStatistics";
-import Repetition from "../types/backend/entity/repetition";
 import { Rating } from "../types/backend/entity/rating";
+import RepetitionUpdate from "../types/backend/value_objects/repetitionUpdate";
 
 export function registerReview(
-	newRepetition: Repetition,
+	repetitionUpdate: RepetitionUpdate,
 	rating: Rating,
 	studyTime: number,
 ) {
-	return invoke("register_review", { newRepetition, rating, studyTime });
+	return invoke("register_review", { repetitionUpdate, rating, studyTime });
 }
 
 export function getHomeStatistics(): Promise<HomeStatistics> {

@@ -3,7 +3,7 @@ import Cell from "../../../types/backend/entity/cell";
 import TrueFalse from "../../../types/backend/value_objects/trueFalse";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
 	cell: Cell;
@@ -21,12 +21,17 @@ export function TrueFalseCell({
 	onFocus,
 }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
-
-	const [question, setQuestion] = useState(trueFalse.question);
+	const question = useRef(trueFalse.question);
 	const [isTrue, setIsTrue] = useState(trueFalse.isTrue);
 
+	useEffect(() => {
+		const trueFalse = JSON.parse(cell.content) as TrueFalse;
+		question.current = trueFalse.question;
+		setIsTrue(trueFalse.isTrue);
+	}, [cell.content]);
+
 	const handleQuestionUpdate = (html: string) => {
-		setQuestion(html);
+		question.current = html;
 		onUpdate(
 			JSON.stringify({
 				question: html,
@@ -39,7 +44,7 @@ export function TrueFalseCell({
 		setIsTrue(isTrue);
 		onUpdate(
 			JSON.stringify({
-				question: question,
+				question: question.current,
 				isTrue,
 			} as TrueFalse),
 		);
@@ -49,7 +54,7 @@ export function TrueFalseCell({
 		<div className={styles.trueFalse}>
 			<RichTextEditor
 				title="Question"
-				initialContent={question}
+				content={question.current}
 				onUpdate={handleQuestionUpdate}
 				autofocus={autofocus}
 				onFocus={onFocus}

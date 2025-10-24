@@ -53,7 +53,7 @@ function ClozeCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 					onClick: c => c.decreaseClozeIndex(),
 				},
 			]}
-			initialContent={cell.content}
+			content={cell.content}
 			autofocus={autofocus}
 			onUpdate={onUpdate}
 			onFocus={onFocus}

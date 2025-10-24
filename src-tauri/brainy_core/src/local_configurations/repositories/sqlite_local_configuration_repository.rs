@@ -10,7 +10,7 @@ use crate::{
         entities::LocalConfiguration,
         repositories::{
             sqlite_local_configuration_repository::local_configuration_row::LocalConfigurationRow,
-            traits::LocalConfigurationRepository,
+            traits::local_configuration_repository::LocalConfigurationRepository,
         },
     },
 };
@@ -26,7 +26,6 @@ impl SqliteLocalConfigurationRepository {
     }
 }
 
-// TODO: unit tests (maybe not if used in some service)
 #[async_trait]
 impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
     async fn get_by_name(&self, name: &str) -> Result<Option<LocalConfiguration>, RepositoryError> {

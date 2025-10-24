@@ -1,3 +1,0 @@
-[submodule "src-tauri/brainy_core/Brainy-protocol-buffer-files"]
-	path = src-tauri/brainy_core/Brainy-protocol-buffer-files
-	url = https://github.com/ramialkawadri/Brainy-protocol-buffer-files.git

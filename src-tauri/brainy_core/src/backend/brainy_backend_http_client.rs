@@ -5,12 +5,13 @@ use std::{
 
 use crate::backend::{
     models::{
-        GetNextSyncPageResponseDto, ProblemDetails, SignInDto, SignUpDto, UpdateUserInformationDto,
-        UserInformnationDto,
+        ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
+        UpdateUserInformationDto, UserInformnationDto,
     },
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use keyring::Entry;
 use reqwest::{Response, StatusCode, Url};
 use reqwest_cookie_store::CookieStoreMutex;
@@ -187,24 +188,47 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn get_next_sync_page(
+    async fn get_synced_entities_after_ordered_by_created_date(
         &self,
-        sync_number: u32,
-    ) -> Result<GetNextSyncPageResponseDto, BrainyBackendClientError> {
-        log::info!("Getting next sync object with sync number {sync_number}...");
+        date: DateTime<Utc>,
+        page: u32,
+    ) -> Result<SyncedEntitiesPageDto, BrainyBackendClientError> {
+        log::info!("Getting synced entity after {date} and for the page {page}...");
 
         let response = self
             .reqwest_client
             .get(self.backend_url.join("/api/sync").unwrap())
-            .query(&[("syncNumber", sync_number)])
+            .query(&[("date", date.to_rfc3339())])
+            .query(&[("page", page)])
             .send()
             .await;
 
         let response = ensure_success_response(response).await?;
-        match response.json::<GetNextSyncPageResponseDto>().await {
+        match response.json::<SyncedEntitiesPageDto>().await {
             Ok(result) => Ok(result),
             Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
         }
+    }
+
+    async fn send_synced_entities(
+        &self,
+        entities: &[SyncEntityDto],
+    ) -> Result<(), BrainyBackendClientError> {
+        log::info!(
+            "Sending synced entities, a total of {} entities",
+            entities.len()
+        );
+
+        let response = self
+            .reqwest_client
+            .post(self.backend_url.join("/api/sync").unwrap())
+            .json(&entities)
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+
+        Ok(())
     }
 }
 
@@ -232,7 +256,13 @@ async fn ensure_success_response(
     response: Result<Response, reqwest::Error>,
 ) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
-        return Err(BrainyBackendClientError::UnknownError(err.to_string()));
+        if err.is_connect() {
+            return Err(BrainyBackendClientError::ConnectError);
+        } else if err.is_timeout() {
+            return Err(BrainyBackendClientError::TimeoutError);
+        } else {
+            return Err(BrainyBackendClientError::UnknownError(err.to_string()));
+        }
     }
 
     let response = response.unwrap();

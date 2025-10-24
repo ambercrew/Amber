@@ -127,7 +127,7 @@ function SideBar({ onSettingsClick }: Props) {
 						<p>Settings</p>
 					</button>
 
-                    <SyncRow />
+					{isSignedIn && <SyncRow />}
 
 					<button
 						className={`${styles.row}`}

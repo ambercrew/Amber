@@ -1,7 +1,11 @@
+use crate::backend::models::SyncEntityDto;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+#[cfg(test)]
+use mockall::automock;
 use thiserror::Error;
 
-use crate::backend::models::{GetNextSyncPageResponseDto, UserInformnationDto};
+use crate::backend::models::{SyncedEntitiesPageDto, UserInformnationDto};
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BrainyBackendClientError {
@@ -17,8 +21,13 @@ pub enum BrainyBackendClientError {
     DeserializationError(String),
     #[error("{0}")]
     BadRequest(String),
+    #[error("Error connecting to the server, please try again!")]
+    ConnectError,
+    #[error("The request has timed out, please try again!")]
+    TimeoutError,
 }
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait BrainyBackendClient: Send + Sync {
     async fn log_in(
@@ -48,8 +57,14 @@ pub trait BrainyBackendClient: Send + Sync {
         last_name: Option<String>,
     ) -> Result<(), BrainyBackendClientError>;
 
-    async fn get_next_sync_page(
+    async fn get_synced_entities_after_ordered_by_created_date(
         &self,
-        sync_number: u32,
-    ) -> Result<GetNextSyncPageResponseDto, BrainyBackendClientError>;
+        date: DateTime<Utc>,
+        page: u32,
+    ) -> Result<SyncedEntitiesPageDto, BrainyBackendClientError>;
+
+    async fn send_synced_entities(
+        &self,
+        entities: &[SyncEntityDto],
+    ) -> Result<(), BrainyBackendClientError>;
 }

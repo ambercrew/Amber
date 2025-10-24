@@ -1,14 +1,14 @@
--- Since there is a single client, we can allow read uncommitted.
-PRAGMA read_uncommitted = TRUE;
-
 CREATE TABLE folders(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    modified_date               DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     name                        TEXT        NOT NULL,
     parent_id                   TEXT,
-    FOREIGN KEY(parent_id) REFERENCES folders(id) ON DELETE CASCADE,
-    UNIQUE (name, parent_id)
+    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE INDEX folders_modified_date_index ON folders(modified_date);
+CREATE INDEX folders_parent_id ON folders(parent_id);
 
 -- The id of root is 00000000-0000-0000-0000-000000000001
 INSERT INTO folders(id, name, parent_id) VALUES (X'00000000000000000000000000000001', 'root', NULL);
@@ -17,25 +17,32 @@ INSERT INTO folders(id, name, parent_id) VALUES (X'00000000000000000000000000000
 
 CREATE TABLE files(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    modified_date               DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     name                        TEXT        NOT NULL,
     parent_id                   TEXT        NOT NULL,
-    FOREIGN KEY(parent_id) REFERENCES folders(id) ON DELETE CASCADE,
-    UNIQUE (name, parent_id)
+    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE INDEX files_modified_date_index ON files(modified_date);
+CREATE INDEX files_parent_id ON files(parent_id);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE cells(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    modified_date               DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     content                     TEXT        NOT NULL        DEFAULT "",
     cell_type                   TEXT        NOT NULL,
     cell_index                  INTEGER     NOT NULL,
     file_id                     TEXT        NOT NULL,
     searchable_content          TEXT        NOT NULL,
-    FOREIGN KEY(file_id) REFERENCES files(id) ON DELETE CASCADE
+    FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+CREATE INDEX cells_file_id ON cells(file_id);
+CREATE INDEX cells_modified_date_index ON cells(modified_date);
 
 CREATE VIRTUAL TABLE cells_fts USING fts5(
     searchable_content, 
@@ -71,10 +78,11 @@ END;
 
 CREATE TABLE repetitions(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    modified_date               DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     file_id                     TEXT        NOT NULL,
     cell_id                     TEXT        NOT NULL,
-    due                         DATETIME    NOT NULL,
+    due                         TEXT        NOT NULL,
     stability                   REAL        NOT NULL,
     difficulty                  REAL        NOT NULL,
     elapsed_days                INTEGER     NOT NULL,
@@ -82,37 +90,43 @@ CREATE TABLE repetitions(
     reps                        INTEGER     NOT NULL,
     lapses                      INTEGER     NOT NULL,
     state                       TEXT        NOT NULL,
-    last_review                 DATETIME,
+    last_review                 TEXT    ,
     additional_content          TEXT,
-    FOREIGN KEY(file_id) REFERENCES files(id) ON DELETE CASCADE,
-    FOREIGN KEY(cell_id) REFERENCES cells(id) ON DELETE CASCADE
+    FOREIGN KEY (file_id) REFERENCES files(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE INDEX repetitions_cell_id_index ON repetitions(cell_id);
 CREATE INDEX repetitions_file_id_index ON repetitions(file_id);
+CREATE INDEX repetitions_modified_date_index ON repetitions(modified_date);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE reviews(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    modified_date               DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     cell_id                     TEXT,
     study_time                  INTEGER     NOT NULL,
-    date                        DATETIME    NOT NULL,
+    date                        TEXT        NOT NULL,
     rating                      TEXT        NOT NULL,
-    FOREIGN KEY(cell_id) REFERENCES cells(id) ON DELETE SET NULL
+    FOREIGN KEY (cell_id) REFERENCES cells(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
+
+CREATE INDEX reviews_date ON reviews(date);
+CREATE INDEX reviews_modified_date_index ON reviews(modified_date);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE deleted_entities(
-    entity_name                 TEXT        NOT NULL,
     entity_id                   TEXT        NOT NULL,
-    delete_date                 DATETIME    DEFAULT CURRENT_TIMESTAMP
+    entity_name                 TEXT        NOT NULL,
+    entity_created_date         TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    deleted_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX deleted_entities_entity_name_and_id_index ON deleted_entities(entity_name, entity_id);
-CREATE INDEX deleted_entities_delete_date_index ON deleted_entities(delete_date);
+CREATE INDEX deleted_entities_entity_id_and_name_index ON deleted_entities(entity_id, entity_name);
+CREATE INDEX deleted_entities_deleted_date_index ON deleted_entities(deleted_date);
 
 -------------------------------------------------------------------------
 

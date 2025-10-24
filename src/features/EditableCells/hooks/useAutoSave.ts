@@ -7,6 +7,7 @@ import errorToString from "../../../utils/errorToString";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
+import { defaultGlobalSyncEvenetManager } from "../../../stores/sync/manager/syncEventManager";
 
 interface Input {
 	cells: Cell[];
@@ -108,6 +109,20 @@ function useAutoSave({
 			if (unlisten) void unlisten();
 		};
 	}, [saveChanges]);
+
+	useEffect(() => {
+		defaultGlobalSyncEvenetManager.addPreSyncListener(saveChanges);
+		return () =>
+			defaultGlobalSyncEvenetManager.removePreSyncListener(saveChanges);
+	}, [saveChanges]);
+
+	useEffect(() => {
+		defaultGlobalSyncEvenetManager.addPostSyncListener(onCellsUpdateSave);
+		return () =>
+			defaultGlobalSyncEvenetManager.removePostSyncListener(
+				onCellsUpdateSave,
+			);
+	}, [onCellsUpdateSave]);
 
 	useBeforeUnload(e => {
 		void saveChanges();

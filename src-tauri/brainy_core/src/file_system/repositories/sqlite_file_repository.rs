@@ -33,7 +33,14 @@ impl FileRepository for SqliteFileRepository {
     async fn get_by_id(&self, id: Guid) -> Result<File, RepositoryError> {
         let row = sqlx::query_as!(
             FileRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM files WHERE id = $1"#,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM files
+            WHERE id = $1"#,
             id
         )
         .fetch_one(&*self.pool)
@@ -48,7 +55,13 @@ impl FileRepository for SqliteFileRepository {
     async fn get_all_files(&self) -> Result<Vec<File>, RepositoryError> {
         let rows = sqlx::query_as!(
             FileRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM files"#,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM files"#,
         )
         .fetch_all(&*self.pool)
         .await;
@@ -62,8 +75,40 @@ impl FileRepository for SqliteFileRepository {
     async fn get_folder_files(&self, parent_folder_id: Guid) -> Result<Vec<File>, RepositoryError> {
         let rows = sqlx::query_as!(
             FileRow,
-            r#"SELECT id as "id: _", parent_id as "parent_id: _", name FROM files WHERE parent_id = $1"#,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM files
+            WHERE parent_id = $1"#,
             parent_folder_id
+        )
+        .fetch_all(&*self.pool)
+        .await;
+
+        match rows {
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
+        }
+    }
+
+    async fn get_all_modified_on_or_after(
+        &self,
+        modified_date: DateTime<Utc>,
+    ) -> Result<Vec<File>, RepositoryError> {
+        let rows = sqlx::query_as!(
+            FileRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                name
+            FROM files
+            WHERE modified_date >= datetime($1)"#,
+            modified_date
         )
         .fetch_all(&*self.pool)
         .await;
@@ -100,12 +145,22 @@ impl FileRepository for SqliteFileRepository {
         let tx = tx.as_mut();
 
         let file_id = file.id();
+        let created_date = file.created_date();
         let file_name = file.name().to_string();
         let parent_id = file.parent_id();
+        let modified_date = file.modified_date();
 
         let result = sqlx::query!(
-            "INSERT INTO files(id, name, parent_id) VALUES ($1, $2, $3)",
+            "INSERT INTO files(
+                id,
+                created_date,
+                modified_date,
+                name,
+                parent_id)
+            VALUES ($1, datetime($2), datetime($3), $4, $5)",
             file_id,
+            created_date,
+            modified_date,
             file_name,
             parent_id
         )
@@ -123,12 +178,22 @@ impl FileRepository for SqliteFileRepository {
         let tx = tx.as_mut();
 
         let file_id = file.id();
+        let created_date = file.created_date();
         let file_name = file.name().to_string();
         let parent_id = file.parent_id();
+        let modified_date = file.modified_date();
 
         let result = sqlx::query!(
-            "UPDATE files SET id = $1, name = $2, parent_id = $3 WHERE id = $1",
+            "UPDATE files SET
+                id = $1,
+                created_date = datetime($2),
+                modified_date = datetime($3),
+                name = $4,
+                parent_id = $5
+            WHERE id = $1",
             file_id,
+            created_date,
+            modified_date,
             file_name,
             parent_id
         )
@@ -137,6 +202,45 @@ impl FileRepository for SqliteFileRepository {
 
         match result {
             Ok(_) => Ok(()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+        }
+    }
+
+    async fn upsert_with_modified_date_if_modified_before(
+        &self,
+        file: &File,
+        modified_date: DateTime<Utc>,
+    ) -> Result<u64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let file_id = file.id();
+        let file_name = file.name().to_string();
+        let parent_id = file.parent_id();
+        let created_date = file.created_date();
+        let result = sqlx::query!(
+            r#"INSERT INTO files(
+                id,
+                name,
+                parent_id,
+                modified_date,
+                created_date)
+            VALUES ($1, $2, $3, datetime($4), datetime($5))
+            ON CONFLICT(id) DO UPDATE
+            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4), created_date = datetime($5)
+            WHERE modified_date <= datetime($4)
+            "#,
+            file_id,
+            file_name,
+            parent_id,
+            modified_date,
+            created_date
+        )
+        .execute(&mut *tx)
+        .await;
+
+        match result {
+            Ok(result) => Ok(result.rows_affected()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
     }
@@ -153,38 +257,6 @@ impl FileRepository for SqliteFileRepository {
             Ok(_) => Ok(()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
-    }
-
-    async fn upsert_with_modified_date_if_modified_before(
-        &self,
-        file: &File,
-        modified_date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError> {
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-
-        let file_id = file.id();
-        let file_name = file.name().to_string();
-        let parent_id = file.parent_id();
-        let result = sqlx::query!(
-            r#"INSERT INTO files(id, name, parent_id, modified_date) VALUES ($1, $2, $3, $4)
-            ON CONFLICT(id) DO UPDATE
-            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4)
-            WHERE modified_date <= datetime($4)
-            "#,
-            file_id,
-            file_name,
-            parent_id,
-            modified_date
-        )
-        .execute(&mut *tx)
-        .await;
-
-        if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
-        }
-
-        Ok(())
     }
 }
 
@@ -266,18 +338,24 @@ pub mod tests {
 }
 
 mod file_row {
+    use chrono::{DateTime, Utc};
+
     use super::*;
 
     pub(super) struct FileRow {
         pub id: Guid,
+        pub created_date: DateTime<Utc>,
+        pub modified_date: DateTime<Utc>,
         pub parent_id: Option<Guid>,
         pub name: String,
     }
 
     impl From<FileRow> for File {
         fn from(value: FileRow) -> Self {
-            File::new(
-                Some(value.id),
+            File::new_unchecked(
+                value.id,
+                value.created_date,
+                value.modified_date,
                 value.parent_id,
                 FileSystemItemName::new_unchecked(value.name.clone()),
             )

@@ -47,6 +47,8 @@ impl CellRepository for SqliteCellRepository {
             CellRow,
             r#"SELECT
                 cell.id as "cell_id: _",
+                cell.created_date as "cell_created_date: _",
+                cell.modified_date as "cell_modified_date: _",
                 cell.file_id as "cell_file_id: _",
                 cell.content as cell_content,
                 cell.cell_index as "cell_index: _",
@@ -54,6 +56,8 @@ impl CellRepository for SqliteCellRepository {
                 cell.searchable_content as cell_searchable_content,
 
                 repetition.id as "repetition_id: _",
+                repetition.created_date as "repetition_created_date: _",
+                repetition.modified_date as "repetition_modified_date: _",
                 repetition.file_id as "repetition_file_id: _",
                 repetition.cell_id as "repetition_cell_id: _",
                 repetition.due as "repetition_due: _",
@@ -85,53 +89,6 @@ impl CellRepository for SqliteCellRepository {
         }
     }
 
-    async fn try_get_by_id(&self, id: Guid) -> Result<Option<Cell>, RepositoryError> {
-        let rows = sqlx::query_as!(
-            CellRow,
-            r#"SELECT
-                cell.id as "cell_id: _",
-                cell.file_id as "cell_file_id: _",
-                cell.content as cell_content,
-                cell.cell_index as "cell_index: _",
-                cell.cell_type as "cell_type: _",
-                cell.searchable_content as cell_searchable_content,
-
-                repetition.id as "repetition_id: _",
-                repetition.file_id as "repetition_file_id: _",
-                repetition.cell_id as "repetition_cell_id: _",
-                repetition.due as "repetition_due: _",
-                repetition.stability as "repetition_stability: _",
-                repetition.difficulty as "repetition_difficulty: _",
-                repetition.elapsed_days as "repetition_elapsed_days: _",
-                repetition.scheduled_days as "repetition_scheduled_days",
-                repetition.reps as "repetition_reps: _",
-                repetition.lapses as "repetition_lapses: _",
-                repetition.state as "repetition_state: _",
-                repetition.last_review as "repetition_last_review: _",
-                repetition.additional_content as "repetition_additional_content: _"
-
-            FROM cells As cell
-            LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
-            WHERE cell.id = $1"#,
-            id
-        )
-        .fetch_all(&*self.pool)
-        .await;
-
-        match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
-            Ok(rows) => {
-                if rows.is_empty() {
-                    Ok(None)
-                } else {
-                    // Should be a single cell in list.
-                    let cell = convert_rows_to_cells(rows).remove(0);
-                    Ok(Some(cell))
-                }
-            }
-        }
-    }
-
     async fn get_file_cells_ordered_by_index(
         &self,
         file_id: Guid,
@@ -140,6 +97,8 @@ impl CellRepository for SqliteCellRepository {
             CellRow,
             r#"SELECT
                 cell.id as "cell_id: _",
+                cell.created_date as "cell_created_date: _",
+                cell.modified_date as "cell_modified_date: _",
                 cell.file_id as "cell_file_id: _",
                 cell.content as cell_content,
                 cell.cell_index as "cell_index: _",
@@ -147,6 +106,8 @@ impl CellRepository for SqliteCellRepository {
                 cell.searchable_content as cell_searchable_content,
 
                 repetition.id as "repetition_id: _",
+                repetition.created_date as "repetition_created_date: _",
+                repetition.modified_date as "repetition_modified_date: _",
                 repetition.file_id as "repetition_file_id: _",
                 repetition.cell_id as "repetition_cell_id: _",
                 repetition.due as "repetition_due: _",
@@ -179,6 +140,94 @@ impl CellRepository for SqliteCellRepository {
         }
     }
 
+    async fn get_all_cells_modified_on_or_after(
+        &self,
+        modified_date: DateTime<Utc>,
+    ) -> Result<Vec<Cell>, RepositoryError> {
+        let rows = sqlx::query_as!(
+            CellRow,
+            r#"SELECT
+                cell.id as "cell_id: _",
+                cell.created_date as "cell_created_date: _",
+                cell.modified_date as "cell_modified_date: _",
+                cell.file_id as "cell_file_id: _",
+                cell.content as cell_content,
+                cell.cell_index as "cell_index: _",
+                cell.cell_type as "cell_type: _",
+                cell.searchable_content as cell_searchable_content,
+
+                repetition.id as "repetition_id: _",
+                repetition.created_date as "repetition_created_date: _",
+                repetition.modified_date as "repetition_modified_date: _",
+                repetition.file_id as "repetition_file_id: _",
+                repetition.cell_id as "repetition_cell_id: _",
+                repetition.due as "repetition_due: _",
+                repetition.stability as "repetition_stability: _",
+                repetition.difficulty as "repetition_difficulty: _",
+                repetition.elapsed_days as "repetition_elapsed_days: _",
+                repetition.scheduled_days as "repetition_scheduled_days",
+                repetition.reps as "repetition_reps: _",
+                repetition.lapses as "repetition_lapses: _",
+                repetition.state as "repetition_state: _",
+                repetition.last_review as "repetition_last_review: _",
+                repetition.additional_content as "repetition_additional_content: _"
+
+            FROM cells As cell
+            LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
+            WHERE cell.modified_date >= datetime($1)"#,
+            modified_date
+        )
+        .fetch_all(&*self.pool)
+        .await;
+
+        match rows {
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Ok(rows) => {
+                let cells = convert_rows_to_cells(rows);
+                Ok(cells)
+            }
+        }
+    }
+
+    async fn get_all_repetitions_modified_on_or_after(
+        &self,
+        modified_date: DateTime<Utc>,
+    ) -> Result<Vec<Repetition>, RepositoryError> {
+        let rows = sqlx::query_as!(
+            RepetitionRow,
+            r#"SELECT
+                id as "id: _",
+                file_id as "file_id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                cell_id as "cell_id: _",
+                due as "due: _",
+                stability as "stability: _",
+                difficulty as "difficulty: _",
+                elapsed_days as "elapsed_days: _",
+                scheduled_days as "scheduled_days",
+                reps as "reps: _",
+                lapses as "lapses: _",
+                state as "state: _",
+                last_review as "last_review: _",
+                additional_content as "additional_content: _"
+
+            FROM repetitions
+            WHERE modified_date >= datetime($1)"#,
+            modified_date
+        )
+        .fetch_all(&*self.pool)
+        .await;
+
+        match rows {
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Ok(rows) => {
+                let result = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
+                Ok(result)
+            }
+        }
+    }
+
     async fn create(&self, cell: &Cell) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
@@ -189,12 +238,23 @@ impl CellRepository for SqliteCellRepository {
         let file_id = cell.file_id();
         let index = cell.index();
         let searchable_content = cell.searchable_content();
+        let created_date = cell.created_date();
+        let modified_date = cell.modified_date();
 
         let result = sqlx::query!(
-            r#"INSERT INTO
-                cells(id, content, cell_type, cell_index, file_id, searchable_content)
-                VALUES ($1, $2, $3, $4, $5, $6)"#,
+            r#"INSERT INTO cells(
+                id,
+                created_date,
+                modified_date,
+                content,
+                cell_type,
+                cell_index,
+                file_id,
+                searchable_content)
+            VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7, $8)"#,
             id,
+            created_date,
+            modified_date,
             content,
             cell_type,
             index,
@@ -221,17 +281,23 @@ impl CellRepository for SqliteCellRepository {
         let file_id = cell.file_id();
         let index = cell.index();
         let searchable_content = cell.searchable_content();
+        let created_date = cell.created_date();
+        let modified_date = cell.modified_date();
 
         let result = sqlx::query!(
             r#"UPDATE cells
                 SET id = $1,
-                    file_id = $2,
-                    content = $3,
-                    cell_type = $4,
-                    cell_index = $5,
-                    searchable_content = $6
+                    created_date = datetime($2),
+                    modified_date = datetime($3),
+                    file_id = $4,
+                    content = $5,
+                    cell_type = $6,
+                    cell_index = $7,
+                    searchable_content = $8
                 WHERE id = $1"#,
             id,
+            created_date,
+            modified_date,
             file_id,
             content,
             cell_type,
@@ -264,36 +330,141 @@ impl CellRepository for SqliteCellRepository {
         self.upsert_repetitions(tx, cell.repetitions()).await
     }
 
-    async fn upsert_with_modified_date_if_modified_before(
+    async fn upsert_cell_without_repetition_and_with_modified_date_if_modified_before(
         &self,
         cell: &Cell,
-        date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError> {
-        let cell_id = cell.id();
-        let current_modified_date = sqlx::query_scalar!(
-            r#"SELECT modified_date as "modified_date: DateTime<Utc>" from cells WHERE id = $1"#,
-            cell_id
+        modified_date: DateTime<Utc>,
+    ) -> Result<u64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let id = cell.id();
+        let content = cell.content();
+        let cell_type = cell.cell_type();
+        let file_id = cell.file_id();
+        let index = cell.index();
+        let searchable_content = cell.searchable_content();
+        let created_date = cell.created_date();
+
+        let result = sqlx::query!(
+            r#"INSERT INTO cells(
+                id,
+                file_id,
+                content,
+                cell_type,
+                cell_index,
+                searchable_content,
+                modified_date,
+                created_date)
+            VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8))
+            ON CONFLICT(id) DO UPDATE
+            SET id = $1,
+                file_id = $2,
+                content = $3,
+                cell_type = $4,
+                cell_index = $5,
+                searchable_content = $6,
+                modified_date = datetime($7),
+                created_date = datetime($8)
+            WHERE modified_date <= datetime($7)"#,
+            id,
+            file_id,
+            content,
+            cell_type,
+            index,
+            searchable_content,
+            modified_date,
+            created_date
         )
-        .fetch_optional(&*self.pool)
+        .execute(&mut *tx)
         .await;
 
-        if let Err(err) = current_modified_date {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+        match result {
+            Ok(result) => Ok(result.rows_affected()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
+    }
 
-        let current_modified_date = current_modified_date.unwrap();
-        if current_modified_date.is_none() {
-            self.create(cell).await?;
-            return Ok(());
+    async fn upsert_repetition_with_modified_date_if_modified_before(
+        &self,
+        repetition: &Repetition,
+        modified_date: DateTime<Utc>,
+    ) -> Result<u64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let id = repetition.id();
+        let file_id = repetition.file_id();
+        let cell_id = repetition.cell_id();
+        let due = repetition.due();
+        let stability = repetition.stability();
+        let difficulty = repetition.difficulty();
+        let elapsed_days = repetition.elapsed_days();
+        let scheduled_days = repetition.scheduled_days();
+        let reps = repetition.reps();
+        let lapses = repetition.lapses();
+        let state = repetition.state();
+        let last_review = repetition.last_review();
+        let additional_content = repetition.additional_content();
+        let created_date = repetition.created_date();
+
+        let result = sqlx::query!(
+            r#"INSERT INTO repetitions(
+                id,
+                file_id,
+                cell_id,
+                due,
+                stability,
+                difficulty,
+                elapsed_days,
+                scheduled_days,
+                reps,
+                lapses,
+                state,
+                last_review,
+                additional_content,
+                modified_date,
+                created_date)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, datetime($14), datetime($15))
+            ON CONFLICT(id) DO UPDATE SET
+                file_id = $2,
+                cell_id = $3,
+                due = $4,
+                stability = $5,
+                difficulty = $6,
+                elapsed_days = $7,
+                scheduled_days = $8,
+                reps = $9,
+                lapses = $10,
+                state = $11,
+                last_review = $12,
+                additional_content = $13,
+                modified_date = datetime($14),
+                created_date = datetime($15)
+            WHERE modified_date <= datetime($14)
+            "#,
+            id,
+            file_id,
+            cell_id,
+            due,
+            stability,
+            difficulty,
+            elapsed_days,
+            scheduled_days,
+            reps,
+            lapses,
+            state,
+            last_review,
+            additional_content,
+            modified_date,
+            created_date
+        )
+        .execute(&mut *tx)
+        .await;
+
+        match result {
+            Ok(result) => Ok(result.rows_affected()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
-
-        let current_modified_date = current_modified_date.unwrap().unwrap();
-        if current_modified_date <= date {
-            self.update(cell).await?;
-            return Ok(());
-        }
-
-        Ok(())
     }
 
     async fn move_cells_indices_starting_from(
@@ -353,6 +524,8 @@ impl CellRepository for SqliteCellRepository {
             CellRow,
             r#"SELECT
                 cell.id as "cell_id: _",
+                cell.created_date as "cell_created_date: _",
+                cell.modified_date as "cell_modified_date: _",
                 cell.file_id as "cell_file_id: _",
                 cell.content as cell_content,
                 cell.cell_index as "cell_index: _",
@@ -360,6 +533,8 @@ impl CellRepository for SqliteCellRepository {
                 cell.searchable_content as cell_searchable_content,
 
                 repetition.id as "repetition_id: _",
+                repetition.created_date as "repetition_created_date: _",
+                repetition.modified_date as "repetition_modified_date: _",
                 repetition.file_id as "repetition_file_id: _",
                 repetition.cell_id as "repetition_cell_id: _",
                 repetition.due as "repetition_due: _",
@@ -402,6 +577,8 @@ impl CellRepository for SqliteCellRepository {
             r#"SELECT
                 id as "id: _",
                 file_id as "file_id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
                 cell_id as "cell_id: _",
                 due as "due: _",
                 stability as "stability: _",
@@ -572,7 +749,7 @@ impl CellRepository for SqliteCellRepository {
 
         let mut review_counts: HashMap<NaiveDate, u64> = HashMap::new();
         for row in rows.unwrap() {
-            review_counts.insert(row.date.unwrap(), row.count);
+            review_counts.insert(row.date.unwrap(), row.count.unwrap_or(0));
         }
 
         let rows = sqlx::query!(
@@ -615,6 +792,8 @@ impl SqliteCellRepository {
         for repetition in repetitions {
             let Repetition {
                 id,
+                created_date,
+                modified_date,
                 file_id,
                 cell_id,
                 due,
@@ -632,6 +811,8 @@ impl SqliteCellRepository {
             let result = sqlx::query!(
                 r#"INSERT INTO repetitions(
                     id,
+                    created_date,
+                    modified_date,
                     file_id,
                     cell_id,
                     due,
@@ -644,22 +825,26 @@ impl SqliteCellRepository {
                     state,
                     last_review,
                     additional_content)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 ON CONFLICT(id) DO UPDATE SET
-                    file_id = $2,
-                    cell_id = $3,
-                    due = $4,
-                    stability = $5,
-                    difficulty = $6,
-                    elapsed_days = $7,
-                    scheduled_days = $8,
-                    reps = $9,
-                    lapses = $10,
-                    state = $11,
-                    last_review = $12,
-                    additional_content = $13
+                    created_date = datetime($2),
+                    modified_date = datetime($3),
+                    file_id = $4,
+                    cell_id = $5,
+                    due = $6,
+                    stability = $7,
+                    difficulty = $8,
+                    elapsed_days = $9,
+                    scheduled_days = $10,
+                    reps = $11,
+                    lapses = $12,
+                    state = $13,
+                    last_review = $14,
+                    additional_content = $15
                 "#,
                 id,
+                created_date,
+                modified_date,
                 file_id,
                 cell_id,
                 due,
@@ -707,7 +892,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cell = Cell::new(
@@ -756,7 +947,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cells = [
@@ -796,7 +993,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let mut cell = Cell::new(
@@ -869,7 +1072,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cells = [
@@ -910,7 +1119,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cell = Cell::new(
@@ -951,7 +1166,13 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cell = Cell::new(
@@ -997,12 +1218,20 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
         let cell = Cell::new_unchecked(
-            Some(cell_id),
+            cell_id,
+            Utc::now(),
+            Utc::now(),
             file.id(),
             "".to_string(),
             CellType::Cloze,
@@ -1080,14 +1309,28 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file1 = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
-        let file2 = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test2".try_into().unwrap());
+        let file1 = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
+        let file2 = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test2".try_into().unwrap(),
+        );
         context.file_repository().create(&file1).await.unwrap();
         context.file_repository().create(&file2).await.unwrap();
 
         let cell1_id = Guid::new_v4();
         let cell1 = Cell::new_unchecked(
-            Some(cell1_id),
+            cell1_id,
+            Utc::now(),
+            Utc::now(),
             file1.id(),
             "".to_string(),
             CellType::Cloze,
@@ -1120,7 +1363,9 @@ pub mod tests {
 
         let cell2_id = Guid::new_v4();
         let cell2 = Cell::new_unchecked(
-            Some(cell2_id),
+            cell2_id,
+            Utc::now(),
+            Utc::now(),
             file2.id(),
             "".to_string(),
             CellType::Cloze,
@@ -1181,12 +1426,20 @@ pub mod tests {
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
 
-        let file = File::new_unchecked(None, Some(ROOT_FOLDER_ID), "test".try_into().unwrap());
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
         context.file_repository().create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
         let cell = Cell::new_unchecked(
-            Some(cell_id),
+            cell_id,
+            Utc::now(),
+            Utc::now(),
             file.id(),
             "".to_string(),
             CellType::Cloze,

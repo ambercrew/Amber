@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package generated_code;
+
+message Folder {
+  google.protobuf.Timestamp modified_date = 1;
+  string name = 2;
+  optional string parent_id = 3;
+}
+
+message File {
+  google.protobuf.Timestamp modified_date = 1;
+  string name = 2;
+  optional string parent_id = 3;
+}
+
+message Cell {
+  google.protobuf.Timestamp modified_date = 1;
+  string content = 2;
+  string cell_type = 3;
+  uint32 index = 4;
+  string file_id = 5;
+  string searchable_content = 6;
+}
+
+message Repetition {
+  google.protobuf.Timestamp modified_date = 1;
+  string file_id = 2;
+  string cell_id = 3;
+  google.protobuf.Timestamp due = 4;
+  double stability = 5;
+  double difficulty = 6;
+  int64 elapsed_days = 7;
+  int64 scheduled_days = 8;
+  int64 reps = 9;
+  int64 lapses = 10;
+  string state = 11;
+  google.protobuf.Timestamp last_review = 12;
+  optional string additional_content = 13;
+}
+
+message Review {
+  google.protobuf.Timestamp modified_date = 1;
+  optional string cell_id = 2;
+  uint32 study_time = 3;
+  google.protobuf.Timestamp date = 4;
+  string rating = 5;
+}
+
+message DeletedEntity {
+  string entity_name = 1;
+  google.protobuf.Timestamp deleted_date = 2;
+}
