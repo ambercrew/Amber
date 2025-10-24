@@ -13,6 +13,8 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import { Editor as TipTapEditor } from "@tiptap/react";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectIsSyncing } from "../../../stores/sync/syncSelector";
 
 interface Props {
 	cell: Cell;
@@ -55,6 +57,7 @@ function CellBlock(
 	const [isDragging, setIsDragging] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
+	const isSyncing = useAppSelector(selectIsSyncing);
 	const tipTapEditorRef = useRef<TipTapEditor>(null);
 
 	useGlobalKey(e => {
@@ -160,7 +163,7 @@ function CellBlock(
 
 			<EditableCell
 				cell={cell}
-				autofocus={autoFocusEditor ?? false}
+				autofocus={(autoFocusEditor ?? false) && !isSyncing}
 				onUpdate={onUpdate}
 				onFocus={editor => (tipTapEditorRef.current = editor)}
 				editable={isSelected}

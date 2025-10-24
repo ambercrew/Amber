@@ -8,6 +8,10 @@
 	gap: 0.5rem;
 	width: 100%;
 
+	&.syncing {
+		opacity: 0.5;
+	}
+
 	& .add-button-container {
 		width: 100%;
 		display: flex;

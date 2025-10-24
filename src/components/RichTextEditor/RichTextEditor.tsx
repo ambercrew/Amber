@@ -31,6 +31,7 @@ interface Props {
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
 	autofocus?: boolean;
+	// TODO: better name
 	editable: boolean;
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;

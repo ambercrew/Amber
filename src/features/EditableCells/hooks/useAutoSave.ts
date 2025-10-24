@@ -7,7 +7,10 @@ import errorToString from "../../../utils/errorToString";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
-import { defaultGlobalSyncEvenetManager } from "../../../stores/sync/manager/syncEventManager";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../stores/sync/manager/syncEventManager";
 
 interface Input {
 	cells: Cell[];
@@ -111,15 +114,25 @@ function useAutoSave({
 	}, [saveChanges]);
 
 	useEffect(() => {
-		defaultGlobalSyncEvenetManager.addPreSyncListener(saveChanges);
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PreSyncStart,
+			saveChanges,
+		);
 		return () =>
-			defaultGlobalSyncEvenetManager.removePreSyncListener(saveChanges);
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PreSyncStart,
+				saveChanges,
+			);
 	}, [saveChanges]);
 
 	useEffect(() => {
-		defaultGlobalSyncEvenetManager.addPostSyncListener(onCellsUpdateSave);
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PreSyncComplete,
+			onCellsUpdateSave,
+		);
 		return () =>
-			defaultGlobalSyncEvenetManager.removePostSyncListener(
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PreSyncComplete,
 				onCellsUpdateSave,
 			);
 	}, [onCellsUpdateSave]);

@@ -9,11 +9,15 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSyncing } from "../../../stores/sync/syncSelector";
 import { sync } from "../../../stores/sync/syncActions";
 import Toast from "../../../components/Toast/Toast";
-import { useEffect, useState } from "react";
-import { defaultGlobalSyncEvenetManager } from "../../../stores/sync/manager/syncEventManager";
+import { useEffect, useRef, useState } from "react";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../stores/sync/manager/syncEventManager";
 
 export default function SyncRow() {
 	const [showToast, setShowToast] = useState(false);
+	const focusedElementBeforeSync = useRef<HTMLElement | null>(null);
 	const dispatch = useAppDispatch();
 	const isSyncing = useAppSelector(selectIsSyncing);
 
@@ -24,13 +28,45 @@ export default function SyncRow() {
 		}
 	});
 
+	// TODO: move the focus part to dialog?
 	useEffect(() => {
 		const cb = () => {
 			setShowToast(true);
+			focusedElementBeforeSync.current?.focus();
 			return Promise.resolve();
 		};
-		defaultGlobalSyncEvenetManager.addPostSyncListener(cb);
-		return () => defaultGlobalSyncEvenetManager.removePostSyncListener(cb);
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PostSyncComplete,
+			cb,
+		);
+		return () =>
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PostSyncComplete,
+				cb,
+			);
+	}, []);
+
+	useEffect(() => {
+		const cb = () => {
+			if (
+				document.activeElement !== null &&
+				document.activeElement instanceof HTMLElement
+			) {
+				focusedElementBeforeSync.current = document.activeElement;
+				// Moving focus from anything.
+				document.activeElement.blur();
+			}
+			return Promise.resolve();
+		};
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PreSyncStart,
+			cb,
+		);
+		return () =>
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PreSyncStart,
+				cb,
+			);
 	}, []);
 
 	return (
@@ -38,6 +74,7 @@ export default function SyncRow() {
 			{showToast && (
 				<Toast
 					onHide={() => setShowToast(false)}
+					timeoutInMilliSeconds={5000}
 					text="✅ Sync completed"
 				/>
 			)}

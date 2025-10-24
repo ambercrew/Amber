@@ -11,6 +11,12 @@ import useGlobalKey from "../../../hooks/useGlobalKey";
 import scrollUntilVisible from "../utils/scrollUntilVisible";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
 import useAutoSave from "../hooks/useAutoSave";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectIsSyncing } from "../../../stores/sync/syncSelector";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../stores/sync/manager/syncEventManager";
 
 interface Props {
 	cells: Cell[];
@@ -48,6 +54,9 @@ function EditableCells({
 	});
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
+	const containerScrollTopBeforeSync = useRef(0);
+	const cellsPlaceholderHeights = useRef(new Map<string, number>());
+	const isSyncing = useAppSelector(selectIsSyncing);
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
 
@@ -61,6 +70,42 @@ function EditableCells({
 		// Scroll to the selected cell when the search text is cleared.
 		if (!searchText) selectedCellRef.current?.scrollIntoView();
 	}, [searchText]);
+
+	useEffect(() => {
+		const cb = async () => {
+			if (!containerRef.current) return;
+			containerScrollTopBeforeSync.current =
+				containerRef.current.scrollTop;
+			await Promise.resolve();
+		};
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PreSyncStart,
+			cb,
+		);
+		return () =>
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PreSyncStart,
+				cb,
+			);
+	}, []);
+
+	useEffect(() => {
+		const cb = async () => {
+			if (!containerRef.current) return;
+			containerRef.current.scrollTop =
+				containerScrollTopBeforeSync.current;
+			await Promise.resolve();
+		};
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PostSyncComplete,
+			cb,
+		);
+		return () =>
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PostSyncComplete,
+				cb,
+			);
+	}, []);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
@@ -172,17 +217,27 @@ function EditableCells({
 	};
 
 	return (
-		<div className={`${className} ${styles.container}`} ref={containerRef}>
+		<div
+			className={`${className} ${styles.container} ${isSyncing && styles.syncing}`}
+			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
 			{filteredCells.map((cell, i) => (
 				<RenderIfVisible
 					key={cell.id}
-					defaultHeight={200}
+					defaultHeight={
+						cellsPlaceholderHeights.current.get(cell.id) ?? 200
+					}
 					stayRendered={selectedCellId === cell.id}
-					root={containerRef.current}>
+					root={containerRef.current}
+					onPlaceholderChangeHeight={height =>
+						cellsPlaceholderHeights.current.set(cell.id, height)
+					}>
 					<CellBlock
-						key={cell.id}
+						key={
+                            // Using isSyncing directly in key to reforce reconstruction
+                            // of the editors.
+                            cell.id + isSyncing}
 						ref={
 							cell.id === selectedCellId ? selectedCellRef : null
 						}

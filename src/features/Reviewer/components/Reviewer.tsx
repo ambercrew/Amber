@@ -18,7 +18,10 @@ import { registerReview } from "../../../api/reviewApi";
 import sortReviewerRepetitions from "../utils/sortReviewerRepetitions";
 import ButtonRow from "./ButtonRow";
 import accumulateRepetitionsCounts from "../utils/accumulateRepetitionsCounts";
-import { defaultGlobalSyncEvenetManager } from "../../../stores/sync/manager/syncEventManager";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../stores/sync/manager/syncEventManager";
 
 interface Props {
 	fileIds: string[];
@@ -55,9 +58,15 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	useEffect(() => {
 		void loadCells();
 
-		defaultGlobalSyncEvenetManager.addPostSyncListener(loadCells);
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PostSyncComplete,
+			loadCells,
+		);
 		return () =>
-			defaultGlobalSyncEvenetManager.removePostSyncListener(loadCells);
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PostSyncComplete,
+				loadCells,
+			);
 	}, [loadCells]);
 
 	const dueToday = useMemo(() => {

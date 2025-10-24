@@ -6,6 +6,8 @@ interface Props {
 	children: React.ReactNode;
 	stayRendered?: boolean;
 	root?: HTMLElement | null;
+	/** Called when the placeholder replaces the default height given */
+	onPlaceholderChangeHeight?: (height: number) => void;
 }
 
 const RenderIfVisible = ({
@@ -14,6 +16,7 @@ const RenderIfVisible = ({
 	children,
 	stayRendered = false,
 	root = null,
+	onPlaceholderChangeHeight,
 }: Props) => {
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 	const placeholderHeight = useRef<number>(defaultHeight);
@@ -29,6 +32,8 @@ const RenderIfVisible = ({
 				// Before switching off `isVisible`, set the height of the placeholder
 				if (!entries[0].isIntersecting) {
 					placeholderHeight.current = localRef.offsetHeight;
+					if (onPlaceholderChangeHeight)
+						onPlaceholderChangeHeight(placeholderHeight.current);
 				}
 				if (window.requestIdleCallback) {
 					window.requestIdleCallback(

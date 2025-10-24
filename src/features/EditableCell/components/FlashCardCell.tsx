@@ -64,7 +64,7 @@ function FlashCardCell({
 			<RichTextEditor
 				title="Answer"
 				content={answer.current}
-				autofocus={false}
+				autofocus={autofocus && isAnswerEditorFocused.current}
 				onUpdate={handleAnswerUpdate}
 				onFocus={e => {
 					isAnswerEditorFocused.current = true;

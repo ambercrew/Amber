@@ -8,4 +8,5 @@
 	padding: var(--large-padding);
 	box-shadow: var(--default-box-shadow);
 	border-radius: var(--default-border-radius);
+	z-index: 9999;
 }

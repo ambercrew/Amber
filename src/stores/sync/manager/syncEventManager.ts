@@ -1,40 +1,36 @@
 type SyncEventListenerCallback = () => Promise<void>;
 
+export enum ListenerType {
+	PreSyncStart,
+	PreSyncComplete,
+	PostSyncComplete,
+}
+
 /** Manages the set of listeners that listen to when the sync operation starts
  * and ends.
- * The listeners can listen to pre-sync event, and to post-sync if it succeeded.
  */
 export default class SyncEventManager {
-	private preSyncListeners = new Set<SyncEventListenerCallback>();
-	private postSyncListeners = new Set<SyncEventListenerCallback>();
+	private listeners = new Map<ListenerType, Set<SyncEventListenerCallback>>();
 
-	addPreSyncListener(callback: SyncEventListenerCallback) {
-		this.preSyncListeners.add(callback);
-	}
-
-	removePreSyncListener(callback: SyncEventListenerCallback) {
-		this.preSyncListeners.delete(callback);
-	}
-
-	addPostSyncListener(callback: SyncEventListenerCallback) {
-		this.postSyncListeners.add(callback);
-	}
-
-	removePostSyncListener(callback: SyncEventListenerCallback) {
-		this.postSyncListeners.delete(callback);
-	}
-
-	async notifyPreSync() {
-		for (const listener of this.preSyncListeners) {
-			await listener();
+	constructor() {
+		for (const type of Object.values(ListenerType)) {
+			this.listeners.set(type as ListenerType, new Set());
 		}
 	}
 
-	async notifyPostSync() {
-		for (const listener of this.postSyncListeners) {
+	addListener(type: ListenerType, callback: SyncEventListenerCallback) {
+		this.listeners.get(type)!.add(callback);
+	}
+
+	removeListener(type: ListenerType, callback: SyncEventListenerCallback) {
+		this.listeners.get(type)!.delete(callback);
+	}
+
+	async notifyListeners(type: ListenerType) {
+		for (const listener of this.listeners.get(type)!) {
 			await listener();
 		}
 	}
 }
 
-export const defaultGlobalSyncEvenetManager = new SyncEventManager();
+export const defaultGlobalSyncEventManager = new SyncEventManager();
