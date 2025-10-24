@@ -21,13 +21,13 @@ pub async fn sync(
     let result = sync_service.sync_with_backend().await;
     if let Err(err) = result {
         context.rollback().await?;
-        return Err(ApiError(err.to_string()));
+        return Err(err.into());
     }
 
     let result = context.save_changes().await;
     if let Err(err) = result {
         context.rollback().await?;
-        return Err(ApiError(err.to_string()));
+        return Err(err.into());
     }
 
     Ok(())
