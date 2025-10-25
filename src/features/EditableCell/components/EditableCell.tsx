@@ -8,12 +8,18 @@ import TrueFalseCell from "./TrueFalseCell";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	editable: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
 
-function EditableCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
+function EditableCell({
+	cell,
+	autofocus,
+	eagerLoadRichTextEditor,
+	onUpdate,
+	onFocus,
+}: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
@@ -22,7 +28,7 @@ function EditableCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 					autofocus={autofocus}
 					onUpdate={onUpdate}
 					onFocus={onFocus}
-					editable={editable}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 				/>
 			);
 		case "Note":
@@ -30,7 +36,7 @@ function EditableCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 				<RichTextEditor
 					content={cell.content}
 					autofocus={autofocus}
-					editable={editable}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onUpdate={onUpdate}
 					onFocus={onFocus}
 				/>
@@ -40,7 +46,7 @@ function EditableCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 				<ClozeCell
 					cell={cell}
 					autofocus={autofocus}
-					editable={editable}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onUpdate={onUpdate}
 					onFocus={onFocus}
 				/>
@@ -48,7 +54,7 @@ function EditableCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 		case "TrueFalse":
 			return (
 				<TrueFalseCell
-					editable={editable}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					cell={cell}
 					autofocus={autofocus}
 					onUpdate={onUpdate}

@@ -166,7 +166,7 @@ function CellBlock(
 				autofocus={(autoFocusEditor ?? false) && !isSyncing}
 				onUpdate={onUpdate}
 				onFocus={editor => (tipTapEditorRef.current = editor)}
-				editable={isSelected}
+				eagerLoadRichTextEditor={isSelected}
 			/>
 		</div>
 	);

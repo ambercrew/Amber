@@ -235,9 +235,10 @@ function EditableCells({
 					}>
 					<CellBlock
 						key={
-                            // Using isSyncing directly in key to reforce reconstruction
-                            // of the editors.
-                            cell.id + isSyncing}
+							// Using isSyncing directly in key to reforce reconstruction
+							// of the editors.
+							cell.id + isSyncing
+						}
 						ref={
 							cell.id === selectedCellId ? selectedCellRef : null
 						}

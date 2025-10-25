@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	editable: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
@@ -16,7 +16,7 @@ interface Props {
 export function TrueFalseCell({
 	cell,
 	autofocus,
-	editable,
+	eagerLoadRichTextEditor,
 	onUpdate,
 	onFocus,
 }: Props) {
@@ -58,7 +58,7 @@ export function TrueFalseCell({
 				onUpdate={handleQuestionUpdate}
 				autofocus={autofocus}
 				onFocus={onFocus}
-				editable={editable}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 			<div className={styles.buttonsRow}>
 				<button

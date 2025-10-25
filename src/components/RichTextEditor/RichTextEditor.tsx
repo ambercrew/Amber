@@ -31,41 +31,47 @@ interface Props {
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
 	autofocus?: boolean;
-	// TODO: better name
-	editable: boolean;
+	/** TiptapEditor is slow on rendering, therefor showing a div element
+	 * instead until there is a need to render the actual editor (e.g. user interaction).
+	 */
+	eagerLoadRichTextEditor: boolean;
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;
 }
 
-function RichTextEditor({ editable: initialEditable, ...props }: Props) {
-	const [editable, setEditable] = useState(initialEditable);
+function RichTextEditor({
+	eagerLoadRichTextEditor: initialEagerLoadEditor,
+	...props
+}: Props) {
+	const [showTiptapEditor, setShowTiptapEditor] = useState(
+		initialEagerLoadEditor,
+	);
 
 	useEffect(() => {
-		if (initialEditable) setEditable(true);
-	}, [initialEditable]);
+		if (initialEagerLoadEditor) setShowTiptapEditor(true);
+	}, [initialEagerLoadEditor]);
 
-	// TiptapEditor is slow on rendring, therefor showing a div element
-	// instead until there is a need to render the editor.
 	return (
 		<>
 			{props.title && <p className={styles.title}>{props.title}</p>}
 			<div className={styles.innerEditor}>
-				{!editable && (
+				{showTiptapEditor && <TiptapEditor {...props} />}
+				{!showTiptapEditor && (
 					<div className={`${styles.editor}`}>
 						<div
 							tabIndex={0}
 							dangerouslySetInnerHTML={{
-								// Setting white space if content is emtpy so that the height is correct.
+								// Setting white space if content is empty so that the height is correct.
 								__html: props.content
 									? props.content
 									: "&nbsp;",
 							}}
-							onMouseEnter={() => setEditable(true)}
+							onMouseEnter={() => setShowTiptapEditor(true)}
+							onFocus={() => setShowTiptapEditor(true)}
 						/>
 					</div>
 				)}
-				{editable && <TiptapEditor {...props} />}
 			</div>
 		</>
 	);

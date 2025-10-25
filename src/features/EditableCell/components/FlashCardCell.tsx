@@ -8,7 +8,7 @@ import { Editor } from "@tiptap/react";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	editable: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
@@ -16,7 +16,7 @@ interface Props {
 function FlashCardCell({
 	cell,
 	autofocus,
-	editable,
+	eagerLoadRichTextEditor,
 	onUpdate,
 	onFocus,
 }: Props) {
@@ -59,7 +59,7 @@ function FlashCardCell({
 				onUpdate={handleQuestionUpdate}
 				autofocus={autofocus && !isAnswerEditorFocused.current}
 				onFocus={onFocus}
-				editable={editable}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 			<RichTextEditor
 				title="Answer"
@@ -71,7 +71,7 @@ function FlashCardCell({
 					onFocus(e);
 				}}
 				onBlur={() => (isAnswerEditorFocused.current = false)}
-				editable={editable}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 		</div>
 	);
