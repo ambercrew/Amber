@@ -30,7 +30,6 @@ interface Props {
 	onResetRepetitions: () => void;
 	onError: (error: string) => void;
 	onCellDeleteConfirm: () => void;
-	onDeleteDialogHide: () => void;
 	onEditButtonClick?: (fileId: string, cellId: string) => void;
 }
 
@@ -45,7 +44,6 @@ function FocusTools({
 	onShowRepetitionsInfo,
 	onResetRepetitions,
 	onCellDeleteConfirm,
-	onDeleteDialogHide,
 	onError,
 	onEditButtonClick,
 }: Props) {
@@ -61,7 +59,6 @@ function FocusTools({
 
 	const hideDeleteDialog = () => {
 		setShowDeleteDialog(false);
-		onDeleteDialogHide();
 	};
 
 	const handleShowRepetitionsInfoClick = () => {

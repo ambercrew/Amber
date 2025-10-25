@@ -28,7 +28,6 @@ export default function SyncRow() {
 		}
 	});
 
-	// TODO: move the focus part to dialog?
 	useEffect(() => {
 		const cb = () => {
 			setShowToast(true);

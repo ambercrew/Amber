@@ -135,9 +135,6 @@ function CellBlock(
 					onResetRepetitions={onResetRepetitions}
 					onError={onError}
 					onCellDeleteConfirm={onDelete}
-					onDeleteDialogHide={() =>
-						tipTapEditorRef.current?.commands.focus()
-					}
 					fileMode={fileMode}
 					enableFileSpecificFunctionality={
 						enableFileSpecificFunctionality
