@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useState } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
@@ -15,21 +15,22 @@ interface Props {
  * might move the focus away!
  */
 export default function Dialog({ className, children, onHide }: Props) {
-	const focusedElementBeforeView = useRef<HTMLElement | null>(null);
+	const [focusedElementBeforeView, setFocusedElementBeforeView] =
+		useState<HTMLElement | null>(null);
 
 	if (
 		document.activeElement !== null &&
 		document.activeElement instanceof HTMLElement &&
-		focusedElementBeforeView.current === null
+		focusedElementBeforeView === null
 	) {
-		focusedElementBeforeView.current = document.activeElement;
+		setFocusedElementBeforeView(document.activeElement);
 		// Moving focus from anything.
 		document.activeElement.blur();
 	}
 
 	const handleHide = () => {
 		if (onHide) {
-			focusedElementBeforeView.current?.focus();
+			focusedElementBeforeView?.focus();
 			onHide();
 		}
 	};
@@ -43,7 +44,7 @@ export default function Dialog({ className, children, onHide }: Props) {
 
 	const handleSubmit = () => {
 		// All submit calls are followed by closing the dialog.
-		focusedElementBeforeView.current?.focus();
+		focusedElementBeforeView?.focus();
 	};
 
 	return (

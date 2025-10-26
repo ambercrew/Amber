@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Cell from "../../../types/backend/entity/cell";
 import FlashCard from "../../../types/backend/value_objects/flashCard";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
@@ -23,7 +23,7 @@ function FlashCardCell({
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 	const question = useRef(flashCard.question);
 	const answer = useRef(flashCard.answer);
-	const isAnswerEditorFocused = useRef(false);
+	const [isAnswerEditorFocused, setIsAnswerEditorFocused] = useState(false);
 
 	useEffect(() => {
 		const flashCard = JSON.parse(cell.content) as FlashCard;
@@ -55,22 +55,24 @@ function FlashCardCell({
 		<div className={styles.flashCard}>
 			<RichTextEditor
 				title="Question"
-				content={question.current}
+				content={flashCard.question}
 				onUpdate={handleQuestionUpdate}
-				autofocus={autofocus && !isAnswerEditorFocused.current}
-				onFocus={onFocus}
+				autofocus={autofocus && !isAnswerEditorFocused}
+				onFocus={e => {
+					setIsAnswerEditorFocused(false);
+					onFocus(e);
+				}}
 				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 			<RichTextEditor
 				title="Answer"
-				content={answer.current}
-				autofocus={autofocus && isAnswerEditorFocused.current}
+				content={flashCard.answer}
+				autofocus={autofocus && isAnswerEditorFocused}
 				onUpdate={handleAnswerUpdate}
 				onFocus={e => {
-					isAnswerEditorFocused.current = true;
+					setIsAnswerEditorFocused(true);
 					onFocus(e);
 				}}
-				onBlur={() => (isAnswerEditorFocused.current = false)}
 				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 		</div>

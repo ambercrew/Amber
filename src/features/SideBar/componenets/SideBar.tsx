@@ -12,7 +12,7 @@ import {
 	setErrorMessage,
 	setSuccessMessage,
 } from "../../../stores/fileSystem/fileSystemReducers";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
 	mdiAccount,
@@ -49,17 +49,19 @@ function SideBar({ onSettingsClick }: Props) {
 	const navigate = useNavigate();
 	const isSignedIn = useAppSelector(selectIsSignedIn);
 	const location = useLocation();
+	const [previousLocation, setPreviousLocation] = useState(location);
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
 
-	useEffect(() => {
-		if (window.innerWidth > SMALL_SCREEN_MAX_WIDTH_IN_PX) return;
-		setIsExpanded(false);
-	}, [location]);
+	if (location !== previousLocation) {
+		setPreviousLocation(location);
+		if (window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX)
+			setIsExpanded(false);
+	}
 
-	const openHelpWebiste = useCallback(() => {
+	const openHelpWebsite = useCallback(() => {
 		void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
 	}, []);
 
@@ -67,7 +69,7 @@ function SideBar({ onSettingsClick }: Props) {
 		if (e.ctrlKey && e.key == "\\") {
 			setIsExpanded(!isExpanded);
 		} else if (e.key === "F1") {
-			openHelpWebiste();
+			openHelpWebsite();
 		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
 			void navigate("/search");
 		}
@@ -132,7 +134,7 @@ function SideBar({ onSettingsClick }: Props) {
 					<button
 						className={`${styles.row}`}
 						title="Help (F1)"
-						onClick={openHelpWebiste}>
+						onClick={openHelpWebsite}>
 						<Icon path={mdiHelp} size="1em" />
 						<p>Help</p>
 					</button>
@@ -144,7 +146,7 @@ function SideBar({ onSettingsClick }: Props) {
 						value={searchText ?? ""}
 						onChange={e => setSearchText(e.target.value)}
 						placeholder="Search"
-						inputClassName={styles.searchInput}
+						className={styles.searchInput}
 					/>
 				</div>
 

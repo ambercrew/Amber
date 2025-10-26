@@ -40,17 +40,18 @@ interface Props {
 	onBlur?: () => void;
 }
 
-function RichTextEditor({
-	eagerLoadRichTextEditor: initialEagerLoadEditor,
-	...props
-}: Props) {
+function RichTextEditor({ eagerLoadRichTextEditor, ...props }: Props) {
 	const [showTiptapEditor, setShowTiptapEditor] = useState(
-		initialEagerLoadEditor,
+		eagerLoadRichTextEditor,
 	);
-
-	useEffect(() => {
-		if (initialEagerLoadEditor) setShowTiptapEditor(true);
-	}, [initialEagerLoadEditor]);
+	const [
+		previousEagerLoadRichTextEditor,
+		setPreviousEagerLoadRichTextEditor,
+	] = useState<boolean | null>(null);
+	if (previousEagerLoadRichTextEditor !== eagerLoadRichTextEditor) {
+		setPreviousEagerLoadRichTextEditor(eagerLoadRichTextEditor);
+		if (eagerLoadRichTextEditor) setShowTiptapEditor(true);
+	}
 
 	return (
 		<>

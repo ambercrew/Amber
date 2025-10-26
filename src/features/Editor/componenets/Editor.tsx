@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
 import Cell from "../../../types/backend/entity/cell";
@@ -27,9 +27,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
+	const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
 	const [searchParams] = useSearchParams();
-	const isCellsLoaded = useRef(false);
-	const searchInputRef = useRef<HTMLInputElement>(null);
 	const selectedFileId = searchParams.get(fileIdQueryParameter)!;
 
 	useGlobalKey(e => {
@@ -77,10 +76,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-			isCellsLoaded.current = false;
 			await retrieveRepetitionCounts();
 			await retrieveSelectedFileCells();
-			isCellsLoaded.current = true;
 			setSearchText("");
 		})();
 	}, [retrieveSelectedFileCells, retrieveRepetitionCounts]);
@@ -94,27 +91,24 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
 				repetitionCounts={repetitionCounts}
-				onStudyButtonClick={onStudyStart}
 				searchText={searchText}
 				onSearchTextChange={setSearchText}
-				searchInputRef={searchInputRef}
+				onStudyButtonClick={onStudyStart}
+				onSearchInputFocus={() => setIsSearchInputFocused(true)}
+				onSearchInputBlur={() => setIsSearchInputFocused(false)}
 			/>
 
-			{isCellsLoaded.current && (
-				<EditableCells
-					cells={cells}
-					searchText={searchText}
-					onError={onError}
-					editCellId={editCellId}
-					fileId={selectedFileId}
-					onCellsUpdateSave={handleCellsUpdate}
-					fileMode="single"
-					autoFocusEditor={
-						document.activeElement !== searchInputRef.current
-					}
-					className={styles.editor}
-				/>
-			)}
+			<EditableCells
+				cells={cells}
+				searchText={searchText}
+				onError={onError}
+				editCellId={editCellId}
+				fileId={selectedFileId}
+				onCellsUpdateSave={handleCellsUpdate}
+				fileMode="single"
+				autoFocusEditor={!isSearchInputFocused}
+				className={styles.editor}
+			/>
 		</div>
 	);
 }

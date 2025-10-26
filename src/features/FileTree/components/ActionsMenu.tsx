@@ -1,6 +1,6 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { RefObject, useEffect, useRef, useState } from "react";
+import { RefObject, useLayoutEffect, useRef, useState } from "react";
 import { Action } from "../types/action";
 
 interface Props {
@@ -12,7 +12,7 @@ function ActionsMenu({ fileTreeItemRowContainer, actions }: Props) {
 	const [topPosition, setTopPosition] = useState(0);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!fileTreeItemRowContainer.current || !containerRef.current) return;
 
 		const containerRect = containerRef.current.getBoundingClientRect();
@@ -25,6 +25,7 @@ function ActionsMenu({ fileTreeItemRowContainer, actions }: Props) {
 			newTopPosition -= containerRect.height ?? 0;
 		}
 
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setTopPosition(newTopPosition);
 	}, [fileTreeItemRowContainer, containerRef]);
 

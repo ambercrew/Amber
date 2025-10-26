@@ -8,23 +8,27 @@ import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../../config/constants";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { useRef } from "react";
 
 interface Props {
 	repetitionCounts: FileRepetitionCounts;
 	searchText: string;
-	searchInputRef: React.RefObject<HTMLInputElement | null>;
 	onSearchTextChange: (value: string) => void;
 	onStudyButtonClick: () => void;
+	onSearchInputFocus: () => void;
+	onSearchInputBlur: () => void;
 }
 
 function TitleBar({
 	repetitionCounts,
 	searchText,
-	searchInputRef,
 	onSearchTextChange,
 	onStudyButtonClick,
+	onSearchInputFocus,
+	onSearchInputBlur,
 }: Props) {
 	const [searchParams] = useSearchParams();
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const selectedFile = useAppSelector(state =>
 		selectFileById(state, selectedFileId!),
@@ -77,7 +81,9 @@ function TitleBar({
 				onChange={e => onSearchTextChange(e.target.value)}
 				containerClassName={styles.searchInputContainer}
 				ref={searchInputRef}
-				inputClassName={styles.searchInput}
+				className={styles.searchInput}
+				onFocus={onSearchInputFocus}
+				onBlur={onSearchInputBlur}
 			/>
 		</div>
 	);

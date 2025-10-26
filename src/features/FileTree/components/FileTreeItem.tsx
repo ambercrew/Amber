@@ -292,7 +292,7 @@ function FileTreeItem({
 					onShowActions={() => setShowActions(true)}
 					onClick={handleClick}
 					onHideActions={() => setShowActions(false)}
-					onStopRenaming={() => setIsRenaming(false)}
+					onRenamingCancel={() => setIsRenaming(false)}
 					onDragEnd={onDragEnd}
 				/>
 

@@ -37,7 +37,7 @@ interface IProps {
 	onShowActions: () => void;
 	onHideActions: () => void;
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-	onStopRenaming: () => void;
+	onRenamingCancel: () => void;
 }
 
 export default function FileTreeItemRow({
@@ -55,7 +55,7 @@ export default function FileTreeItemRow({
 	onShowActions,
 	onClick,
 	onHideActions,
-	onStopRenaming,
+	onRenamingCancel,
 }: IProps) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const [searchParams] = useSearchParams();
@@ -63,6 +63,7 @@ export default function FileTreeItemRow({
 	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
 	const containerRef = useRef<HTMLDivElement>(null);
+	const buttonRef = useRef<HTMLButtonElement>(null);
 
 	useOutsideClick(
 		containerRef as React.RefObject<HTMLElement>,
@@ -74,9 +75,10 @@ export default function FileTreeItemRow({
 		onHideActions,
 	);
 
-	useEffect(() => {
-		if (!isRenaming) setNewName(getFileName(fullPath));
-	}, [isRenaming, fullPath]);
+	if (!isRenaming) {
+		const fileName = getFileName(fullPath);
+		if (fileName !== newName) setNewName(fileName);
+	}
 
 	useEffect(() => {
 		window.addEventListener("scroll", onHideActions, true);
@@ -93,6 +95,7 @@ export default function FileTreeItemRow({
 		else await dispatch(renameFile(id, newName));
 
 		onRenameEnd();
+		buttonRef.current?.focus();
 	};
 
 	const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -112,8 +115,9 @@ export default function FileTreeItemRow({
 				ref={containerRef}>
 				<button
 					className={`${styles.fileTreeButton}
-                ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
-					onClick={onClick}>
+                    ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
+					onClick={onClick}
+					ref={buttonRef}>
 					<Icon
 						path={
 							isRoot
@@ -129,7 +133,10 @@ export default function FileTreeItemRow({
 					{isRenaming && (
 						<form onSubmit={e => void handleRenameSubmit(e)}>
 							<CancellableInput
-								onCancel={onStopRenaming}
+								onCancel={() => {
+									buttonRef.current?.focus();
+									onRenamingCancel();
+								}}
 								type="text"
 								value={newName}
 								onChange={e => setNewName(e.target.value)}

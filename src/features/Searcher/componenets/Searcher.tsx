@@ -1,7 +1,7 @@
 import { mdiMagnify } from "@mdi/js";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import errorToString from "../../../utils/errorToString";
 import EditableCells from "../../EditableCells/components/EditableCells";
@@ -17,12 +17,14 @@ interface Props {
 const searchTextQueryParameter = "searchText";
 
 function Searcher({ onError, onEditButtonClick }: Props) {
-	const [searchText, setSearchText] = useState("");
 	const [searchResult, setSearchResult] = useState<Cell[] | null>(null);
 	const [searchParams, setSearchParams] = useSearchParams();
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const searchParamsSearchText =
 		searchParams.get(searchTextQueryParameter) ?? "";
+	const [previousSearchParamsSearchText, setPreviousSearchParamsSearchText] =
+		useState<string | null>(null);
+	const [searchText, setSearchText] = useState(searchParamsSearchText);
 
 	const retrieveSearchResult = useCallback(async () => {
 		try {
@@ -34,10 +36,11 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 		}
 	}, [onError, searchParamsSearchText]);
 
-	useEffect(() => {
-		void retrieveSearchResult();
+	if (previousSearchParamsSearchText !== searchParamsSearchText) {
+		setPreviousSearchParamsSearchText(searchParamsSearchText);
 		setSearchText(searchParamsSearchText);
-	}, [retrieveSearchResult, searchParamsSearchText]);
+		void retrieveSearchResult();
+	}
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {

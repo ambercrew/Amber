@@ -1,6 +1,6 @@
 import Editor from "../features/Editor/componenets/Editor";
 import styles from "./styles.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Alert from "../components/Alert/Alert";
 import Reviewer from "../features/Reviewer/components/Reviewer";
 import Home from "../features/Home/componenets/Home";
@@ -32,15 +32,15 @@ function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchParams] = useSearchParams();
-	const studyFileIds = useRef<string[]>([]);
-	const editCellId = useRef<string | null>(null);
+	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
+	const [editCellId, setEditCellId] = useState<string | null>(null);
 	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const location = useLocation();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
 	const handleEditorStudyClick = () => {
-		studyFileIds.current = [selectedFileId!];
+		setStudyFileIds([selectedFileId!]);
 		void navigate("/reviewer", {
 			state: {
 				from: location.pathname,
@@ -50,7 +50,7 @@ function App() {
 	};
 
 	const handleHomeStudyClick = (fileIds: string[]) => {
-		studyFileIds.current = fileIds;
+		setStudyFileIds(fileIds);
 		void navigate("/reviewer");
 	};
 
@@ -99,7 +99,7 @@ function App() {
 	}, "keydown");
 
 	const handleEditButtonClick = (fileId: string, cellId: string) => {
-		editCellId.current = cellId;
+		setEditCellId(cellId);
 		searchParams.set(fileIdQueryParameter, fileId);
 		void navigate({
 			pathname: "editor",
@@ -141,7 +141,7 @@ function App() {
 						path="/editor"
 						element={
 							<Editor
-								editCellId={editCellId.current}
+								editCellId={editCellId}
 								onError={setErrorMessage}
 								onStudyStart={() => handleEditorStudyClick()}
 							/>
@@ -153,7 +153,7 @@ function App() {
 							<Reviewer
 								onEditButtonClick={handleEditButtonClick}
 								onError={setErrorMessage}
-								fileIds={studyFileIds.current}
+								fileIds={studyFileIds}
 							/>
 						}
 					/>

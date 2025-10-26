@@ -107,6 +107,38 @@ function EditableCells({
 			);
 	}, []);
 
+	const executeRequest = useCallback(
+		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
+			try {
+				return await cb();
+			} catch (e) {
+				console.error(e);
+				onError(errorToString(e));
+			}
+			return null;
+		},
+		[onError],
+	);
+
+	const moveSelectedCellByNumber = async (number: number) => {
+		if (!enableFileSpecificFunctionality) return;
+
+		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+		if (
+			0 <= selectedCellIndex + number &&
+			selectedCellIndex + number < cells.length
+		) {
+			await saveChanges();
+			await executeRequest(async () => {
+				await moveCell(
+					cells[selectedCellIndex].id,
+					selectedCellIndex + (number > 0 ? number + 1 : number),
+				);
+			});
+			await onCellsUpdateSave();
+		}
+	};
+
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
 			e.preventDefault();
@@ -133,19 +165,6 @@ function EditableCells({
 		}
 	}, "keydown");
 
-	const executeRequest = useCallback(
-		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
-			try {
-				return await cb();
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-			return null;
-		},
-		[onError],
-	);
-
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId!, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
@@ -168,25 +187,6 @@ function EditableCells({
 		}
 		await saveChanges();
 		await onCellsUpdateSave();
-	};
-
-	const moveSelectedCellByNumber = async (number: number) => {
-		if (!enableFileSpecificFunctionality) return;
-
-		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
-		if (
-			0 <= selectedCellIndex + number &&
-			selectedCellIndex + number < cells.length
-		) {
-			await saveChanges();
-			await executeRequest(async () => {
-				await moveCell(
-					cells[selectedCellIndex].id,
-					selectedCellIndex + (number > 0 ? number + 1 : number),
-				);
-			});
-			await onCellsUpdateSave();
-		}
 	};
 
 	const handleDrop = async (e: React.DragEvent, index: number) => {
@@ -222,6 +222,8 @@ function EditableCells({
 			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
+			{/* Rerendering when the placeholder height change might be to expensive */}
+			{/*eslint-disable-next-line react-hooks/refs */}
 			{filteredCells.map((cell, i) => (
 				<RenderIfVisible
 					key={cell.id}

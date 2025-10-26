@@ -19,7 +19,7 @@ const RenderIfVisible = ({
 	onPlaceholderChangeHeight,
 }: Props) => {
 	const [isVisible, setIsVisible] = useState<boolean>(false);
-	const placeholderHeight = useRef<number>(defaultHeight);
+	const [placeholderHeight, setPlaceholderHeight] = useState(defaultHeight);
 	const intersectionRef = useRef<HTMLDivElement>(null);
 
 	// Set visibility with intersection observer
@@ -31,9 +31,10 @@ const RenderIfVisible = ({
 			entries => {
 				// Before switching off `isVisible`, set the height of the placeholder
 				if (!entries[0].isIntersecting) {
-					placeholderHeight.current = localRef.offsetHeight;
-					if (onPlaceholderChangeHeight)
-						onPlaceholderChangeHeight(placeholderHeight.current);
+					setPlaceholderHeight(localRef.offsetHeight);
+					if (onPlaceholderChangeHeight) {
+						onPlaceholderChangeHeight(placeholderHeight);
+					}
 				}
 				if (window.requestIdleCallback) {
 					window.requestIdleCallback(
@@ -62,9 +63,7 @@ const RenderIfVisible = ({
 			{isVisible || stayRendered ? (
 				children
 			) : (
-				<div
-					style={{ height: placeholderHeight.current }}
-					tabIndex={0}></div>
+				<div style={{ height: placeholderHeight }} tabIndex={0}></div>
 			)}
 		</div>
 	);

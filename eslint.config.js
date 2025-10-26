@@ -1,3 +1,5 @@
+// @ts-check
+
 import js from "@eslint/js";
 import globals from "globals";
 import react from "eslint-plugin-react";
@@ -8,9 +10,10 @@ import tseslint from "typescript-eslint";
 import parser from "@typescript-eslint/parser";
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import { importX } from "eslint-plugin-import-x";
+import { defineConfig } from "eslint/config";
 
-export default tseslint.config(
-	{ ignores: ["dist", "src-tauri/target/release"] },
+export default defineConfig([
+	{ ignores: ["dist", "src-tauri"] },
 	{
 		settings: {
 			react: {
@@ -20,13 +23,15 @@ export default tseslint.config(
 		},
 		extends: [
 			js.configs.recommended,
-			...tseslint.configs.recommendedTypeChecked,
-			...tseslint.configs.stylisticTypeChecked,
+			tseslint.configs.recommendedTypeChecked,
+			tseslint.configs.stylisticTypeChecked,
 			react.configs.flat.recommended,
 			react.configs.flat["jsx-runtime"],
+			reactHooks.configs.flat.recommended,
 			eslintConfigPrettier,
-			importX.flatConfigs.recommended,
-			importX.flatConfigs.typescript,
+			"import-x/flat/recommended",
+			"import-x/flat/react",
+			"import-x/flat/typescript",
 		],
 		files: ["**/*.{ts,tsx}"],
 		languageOptions: {
@@ -40,15 +45,16 @@ export default tseslint.config(
 				ecmaVersion: "latest",
 				sourceType: "module",
 				project: ["./tsconfig.json", "./tsconfig.node.json"],
+				// @ts-ignore
 				tsconfigRootDir: import.meta.dirname,
 			},
 		},
 		plugins: {
-			"react-hooks": reactHooks,
 			"react-refresh": reactRefresh,
+			// @ts-ignore
+			"import-x": importX,
 		},
 		rules: {
-			...reactHooks.configs.recommended.rules,
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 			"react-refresh/only-export-components": [
 				"warn",
@@ -80,4 +86,4 @@ export default tseslint.config(
 			],
 		},
 	},
-);
+]);
