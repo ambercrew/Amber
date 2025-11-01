@@ -26,8 +26,7 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 	}, "keydown");
 
 	const handleDragOver = (e: React.DragEvent) => {
-		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
-		if (dragCellId === null) {
+		if (!e.dataTransfer.types.some(t => t === CELL_ID_DRAG_FORMAT)) {
 			return;
 		}
 		e.preventDefault();

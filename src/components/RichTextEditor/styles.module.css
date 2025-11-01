@@ -1,16 +1,16 @@
-.inner-editor {
+.container {
+	position: relative;
 	border: 1px solid var(--border-color);
 	border-radius: var(--default-border-radius);
-	overflow: hidden;
 	transition: all var(--default-transition-time);
-}
 
-.inner-editor:hover {
-	border-color: var(--hover-border-color);
-}
+	&:hover {
+		border-color: var(--hover-border-color);
+	}
 
-.inner-editor:focus-within {
-	border-color: var(--primary-color);
+	&:focus-within {
+		border-color: var(--primary-color);
+	}
 }
 
 .title {
@@ -19,9 +19,6 @@
 
 .editor {
 	min-height: calc(1.4rem + 4 * var(--small-padding));
-}
-
-.editor div {
 	padding: var(--small-padding) var(--default-padding);
 	outline: none;
 
@@ -35,7 +32,9 @@
 	}
 }
 
-.bubble-menu {
+.floating-menu {
+	position: absolute;
+	transform: translateY(-100%);
 	background-color: var(--default-background-color);
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
@@ -46,6 +45,7 @@
 	justify-items: center;
 	gap: 2px;
 	width: fit-content;
+	z-index: 3;
 
 	& > button {
 		color: var(--text-color);
@@ -55,8 +55,16 @@
 	}
 }
 
+:global(body.dark) .floating-menu {
+	background-color: var(--light-default-background-color) !important;
+}
+
 .active-button {
 	background-color: var(--grey-background-color-shade-10) !important;
+}
+
+:global(body.dark) .active-button {
+	background-color: var(--default-background-color);
 }
 
 .active-button:hover {
@@ -65,5 +73,6 @@
 
 .vertical-border {
 	height: 1.6rem;
-	border-right: 1px solid var(--hover-border-color);
+	border-right: 1px solid var(--text-color);
+	margin: 0 4px;
 }

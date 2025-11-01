@@ -10,11 +10,11 @@ import Icon from "@mdi/react";
 import FocusTools from "./FocusTools";
 import Repetition from "../../../types/backend/entity/repetition";
 import NewCellTypeSelector from "./NewCellTypeSelector";
-import { Editor as TipTapEditor } from "@tiptap/react";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { CELL_ID_DRAG_FORMAT } from "../config/constants";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSyncing } from "../../../stores/sync/syncSelector";
+import { LexicalEditor } from "lexical";
 
 interface Props {
 	cell: Cell;
@@ -27,7 +27,7 @@ interface Props {
 	onClick: (id: string) => void;
 	onError: (error: string) => void;
 	onDrop: (e: React.DragEvent) => void;
-	onUpdate: (content: string) => void;
+	onChange: (content: string) => void;
 	onDelete: () => void;
 	onInsertNewCell: (cellType: CellType) => void;
 	onResetRepetitions: () => void;
@@ -46,7 +46,7 @@ function CellBlock(
 		onSelect,
 		onClick,
 		onDrop,
-		onUpdate,
+		onChange,
 		onDelete,
 		onInsertNewCell,
 		onResetRepetitions,
@@ -61,15 +61,13 @@ function CellBlock(
 		boolean | null
 	>(null);
 	const isSyncing = useAppSelector(selectIsSyncing);
-	const tipTapEditorRef = useRef<TipTapEditor>(null);
+	const editorRef = useRef<LexicalEditor>(null);
 
 	useGlobalKey(e => {
-		if (e.key === "Escape") {
-			if (isSelected) tipTapEditorRef.current?.commands.focus();
-		} else if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
+		if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
 		} else if (e.ctrlKey && e.key === " ") {
-			if (isSelected) tipTapEditorRef.current?.commands.focus();
+			if (isSelected) editorRef.current?.focus();
 		}
 	});
 
@@ -85,8 +83,10 @@ function CellBlock(
 	};
 
 	const handleDragOver = (e: React.DragEvent) => {
-		const dragCellId = e.dataTransfer.getData(CELL_ID_DRAG_FORMAT);
-		if (dragCellId === null || cell.id === dragCellId) {
+		if (
+			isDragging ||
+			!e.dataTransfer.types.some(t => t === CELL_ID_DRAG_FORMAT)
+		) {
 			return;
 		}
 		e.preventDefault();
@@ -100,12 +100,12 @@ function CellBlock(
 
 	const handleFocusToolsInsertNewCellClick = () => {
 		setShowInsertNewCell(!showInsertNewCell);
-		if (showInsertNewCell) tipTapEditorRef.current?.commands.focus();
+		if (showInsertNewCell) editorRef.current?.focus();
 	};
 
 	const handleClick = () => {
-		if (isSelected && tipTapEditorRef.current) {
-			tipTapEditorRef.current.commands.focus();
+		if (isSelected && editorRef.current) {
+			editorRef.current.focus();
 		}
 		onClick(cell.id);
 	};
@@ -164,9 +164,8 @@ function CellBlock(
 			<EditableCell
 				cell={cell}
 				autofocus={(autoFocusEditor ?? false) && !isSyncing}
-				onUpdate={onUpdate}
-				onFocus={editor => (tipTapEditorRef.current = editor)}
-				eagerLoadRichTextEditor={isSelected}
+				onChange={onChange}
+				onFocus={editor => (editorRef.current = editor)}
 			/>
 		</div>
 	);

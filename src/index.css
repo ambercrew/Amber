@@ -274,3 +274,16 @@ body.dark .overlay {
 .review-color {
 	color: var(--review-color);
 }
+
+/* Global classes for the Lexical editor */
+.underline {
+	text-decoration: underline;
+}
+
+.bold {
+	font-weight: 600;
+}
+
+.italic {
+	font-style: italic;
+}

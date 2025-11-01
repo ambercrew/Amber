@@ -1,32 +1,25 @@
-import { Editor } from "@tiptap/react";
 import Cell from "../../../types/backend/entity/cell";
 import TrueFalse from "../../../types/backend/value_objects/trueFalse";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 import { useRef, useState } from "react";
+import { LexicalEditor } from "lexical";
 
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	eagerLoadRichTextEditor: boolean;
-	onUpdate: (content: string) => void;
-	onFocus: (editor: Editor) => void;
+	onChange: (content: string) => void;
+	onFocus: (editor: LexicalEditor) => void;
 }
 
-export function TrueFalseCell({
-	cell,
-	autofocus,
-	eagerLoadRichTextEditor,
-	onUpdate,
-	onFocus,
-}: Props) {
+export function TrueFalseCell({ cell, autofocus, onChange, onFocus }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 	const question = useRef(trueFalse.question);
 	const [isTrue, setIsTrue] = useState(trueFalse.isTrue);
 
-	const handleQuestionUpdate = (html: string) => {
+	const handleQuestionChange = (html: string) => {
 		question.current = html;
-		onUpdate(
+		onChange(
 			JSON.stringify({
 				question: html,
 				isTrue: isTrue,
@@ -34,9 +27,9 @@ export function TrueFalseCell({
 		);
 	};
 
-	const handleTrueFalseUpdate = (isTrue: boolean) => {
+	const handleTrueFalseChange = (isTrue: boolean) => {
 		setIsTrue(isTrue);
-		onUpdate(
+		onChange(
 			JSON.stringify({
 				question: question.current,
 				isTrue,
@@ -49,17 +42,16 @@ export function TrueFalseCell({
 			<RichTextEditor
 				title="Question"
 				content={trueFalse.question}
-				onUpdate={handleQuestionUpdate}
+				onChange={handleQuestionChange}
 				autofocus={autofocus}
 				onFocus={onFocus}
-				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 			<div className={styles.buttonsRow}>
 				<button
 					className={`transparent ${isTrue && styles.checked}`}
 					onClick={e => {
 						e.stopPropagation();
-						handleTrueFalseUpdate(true);
+						handleTrueFalseChange(true);
 					}}>
 					True
 				</button>
@@ -67,7 +59,7 @@ export function TrueFalseCell({
 					className={`transparent ${!isTrue && styles.checked}`}
 					onClick={e => {
 						e.stopPropagation();
-						handleTrueFalseUpdate(false);
+						handleTrueFalseChange(false);
 					}}>
 					False
 				</button>

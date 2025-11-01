@@ -3,23 +3,16 @@ import Cell from "../../../types/backend/entity/cell";
 import FlashCard from "../../../types/backend/value_objects/flashCard";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
-import { Editor } from "@tiptap/react";
+import { LexicalEditor } from "lexical";
 
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	eagerLoadRichTextEditor: boolean;
-	onUpdate: (content: string) => void;
-	onFocus: (editor: Editor) => void;
+	onChange: (content: string) => void;
+	onFocus: (editor: LexicalEditor) => void;
 }
 
-function FlashCardCell({
-	cell,
-	autofocus,
-	eagerLoadRichTextEditor,
-	onUpdate,
-	onFocus,
-}: Props) {
+function FlashCardCell({ cell, autofocus, onChange, onFocus }: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 	const question = useRef(flashCard.question);
 	const answer = useRef(flashCard.answer);
@@ -31,9 +24,9 @@ function FlashCardCell({
 		answer.current = flashCard.answer;
 	}, [cell.content]);
 
-	const handleQuestionUpdate = (html: string) => {
+	const handleQuestionChange = (html: string) => {
 		question.current = html;
-		onUpdate(
+		onChange(
 			JSON.stringify({
 				question: html,
 				answer: answer.current,
@@ -41,9 +34,9 @@ function FlashCardCell({
 		);
 	};
 
-	const handleAnswerUpdate = (html: string) => {
+	const handleAnswerChange = (html: string) => {
 		answer.current = html;
-		onUpdate(
+		onChange(
 			JSON.stringify({
 				question: question.current,
 				answer: html,
@@ -56,24 +49,22 @@ function FlashCardCell({
 			<RichTextEditor
 				title="Question"
 				content={flashCard.question}
-				onUpdate={handleQuestionUpdate}
+				onChange={handleQuestionChange}
 				autofocus={autofocus && !isAnswerEditorFocused}
 				onFocus={e => {
 					setIsAnswerEditorFocused(false);
 					onFocus(e);
 				}}
-				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 			<RichTextEditor
 				title="Answer"
 				content={flashCard.answer}
 				autofocus={autofocus && isAnswerEditorFocused}
-				onUpdate={handleAnswerUpdate}
+				onChange={handleAnswerChange}
 				onFocus={e => {
 					setIsAnswerEditorFocused(true);
 					onFocus(e);
 				}}
-				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 		</div>
 	);

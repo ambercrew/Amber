@@ -1,4 +1,3 @@
-import { ChainedCommands, Editor } from "@tiptap/core";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import {
 	mdiDotsHorizontal,
@@ -6,63 +5,65 @@ import {
 	mdiNumericPositive1,
 } from "@mdi/js";
 import Cell from "../../../types/backend/entity/cell";
-import clozeMark from "../utils/clozeMark";
-import { clozeMarkName } from "../config/constants";
+import {
+	ClozePlugin,
+	DECREASE_CLOZE_GROUP_NUMBER,
+	INCREASE_CLOZE_GROUP_NUMBER,
+	TOGGLE_CLOZE_NODE,
+} from "../plugins/clozePlugin";
+import { LexicalEditor } from "lexical";
+import { $isSelectionInsideCloze, ClozeNode } from "../plugins/clozeNode";
 
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
-	eagerLoadRichTextEditor: boolean;
-	onUpdate: (content: string) => void;
-	onFocus: (editor: Editor) => void;
+	onChange: (content: string) => void;
+	onFocus: (editor: LexicalEditor) => void;
 }
 
-const regexp = /<cloze[^>]*index="(\d+)"[^>]*>/g;
-
-function ClozeCell({
-	cell,
-	autofocus,
-	eagerLoadRichTextEditor,
-	onUpdate,
-	onFocus,
-}: Props) {
-	const handleToggleCloze = (commands: ChainedCommands) => {
-		const matches = cell.content.matchAll(regexp);
-		let newClozeIndex = 1;
-		for (const match of matches) {
-			newClozeIndex = Math.max(newClozeIndex, Number(match[1]));
-		}
-		return commands.toggleCloze(newClozeIndex);
-	};
-
+function ClozeCell({ cell, autofocus, onChange, onFocus }: Props) {
 	return (
 		<RichTextEditor
-			extraExtensions={[clozeMark]}
-			eagerLoadRichTextEditor={eagerLoadRichTextEditor}
-			commands={[
+			extraNodes={[ClozeNode]}
+			additionalFloatingMenuButtons={[
 				{
-					name: clozeMarkName,
+					name: "Toggle Cloze",
 					icon: mdiDotsHorizontal,
-					title: "Cloze",
-					onClick: handleToggleCloze,
+					title: "Toggle Cloze (Ctrl + Shift + C)",
+					onClick: editor =>
+						editor.dispatchCommand(TOGGLE_CLOZE_NODE, undefined),
+					isActive: $isSelectionInsideCloze,
 				},
 				{
 					name: "Cloze+1",
 					icon: mdiNumericPositive1,
 					title: "Increase cloze group number",
-					onClick: c => c.increaseClozeIndex(),
+					onClick: editor =>
+						editor.dispatchCommand(
+							INCREASE_CLOZE_GROUP_NUMBER,
+							undefined,
+						),
+					isActive: () => false,
+					isVisible: $isSelectionInsideCloze,
 				},
 				{
 					name: "Cloze-1",
 					icon: mdiNumericNegative1,
 					title: "Decrease cloze group number",
-					onClick: c => c.decreaseClozeIndex(),
+					onClick: editor =>
+						editor.dispatchCommand(
+							DECREASE_CLOZE_GROUP_NUMBER,
+							undefined,
+						),
+					isActive: () => false,
+					isVisible: $isSelectionInsideCloze,
 				},
 			]}
 			content={cell.content}
 			autofocus={autofocus}
-			onUpdate={onUpdate}
+			onChange={onChange}
 			onFocus={onFocus}
+			plugins={[<ClozePlugin key={1} />]}
 		/>
 	);
 }

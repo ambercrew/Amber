@@ -11,6 +11,7 @@ import parser from "@typescript-eslint/parser";
 import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import { importX } from "eslint-plugin-import-x";
 import { defineConfig } from "eslint/config";
+import lexicalPlugin from "@lexical/eslint-plugin";
 
 export default defineConfig([
 	{ ignores: ["dist", "src-tauri"] },
@@ -53,6 +54,8 @@ export default defineConfig([
 			"react-refresh": reactRefresh,
 			// @ts-ignore
 			"import-x": importX,
+			// @ts-ignore
+			"@lexical": lexicalPlugin,
 		},
 		rules: {
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
@@ -60,6 +63,7 @@ export default defineConfig([
 				"warn",
 				{ allowConstantExport: true },
 			],
+			"@lexical/rules-of-lexical": "error",
 			"import-x/default": "off",
 			"import-x/no-named-as-default": "off",
 			"import-x/no-restricted-paths": [

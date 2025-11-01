@@ -22,7 +22,7 @@ export default function SyncRow() {
 	const isSyncing = useAppSelector(selectIsSyncing);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key.toLowerCase() === "y") {
+		if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "y") {
 			e.preventDefault();
 			void dispatch(sync());
 		}
@@ -85,7 +85,7 @@ export default function SyncRow() {
 			)}
 			<button
 				className={`${styles.row}`}
-				title="Sync (Ctrl + Y)"
+				title="Sync (Ctrl + Shift + Y)"
 				onClick={() => void dispatch(sync())}>
 				<Icon path={mdiSync} size="1em" />
 				<p>Sync</p>

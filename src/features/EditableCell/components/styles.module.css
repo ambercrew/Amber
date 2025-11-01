@@ -36,10 +36,10 @@
 	}
 }
 
-/* This should be a global class since the HTML is presisted on database,
+/* This should be a global class since the HTML is persisted on database,
  * and the class name might change if we do not have it as global
  */
-:global(.cloze-mark) {
+:global(.cloze-node) {
 	display: inline-block;
 	padding: var(--small-padding);
 	border-radius: var(--default-border-radius);

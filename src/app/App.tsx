@@ -144,6 +144,7 @@ function App() {
 								editCellId={editCellId}
 								onError={setErrorMessage}
 								onStudyStart={() => handleEditorStudyClick()}
+								key={selectedFileId}
 							/>
 						}
 					/>

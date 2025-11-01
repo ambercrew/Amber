@@ -47,11 +47,7 @@ function EditableCells({
 	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
-	const [selectedCellId, setSelectedCellId] = useState<string | null>(() => {
-		if (cells.some(c => c.id === editCellId)) return editCellId;
-		else if (cells.length > 0) return cells[0].id;
-		return null;
-	});
+	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
@@ -59,6 +55,12 @@ function EditableCells({
 	const isSyncing = useAppSelector(selectIsSyncing);
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
+
+	// Ensuring that a cell is selected at start.
+	if (!selectedCellId) {
+		if (cells.some(c => c.id === editCellId)) setSelectedCellId(editCellId);
+		else if (cells.length > 0) setSelectedCellId(cells[0].id);
+	}
 
 	const { saveChanges, onCellContentUpdate, ignoreCell } = useAutoSave({
 		cells,
@@ -191,7 +193,7 @@ function EditableCells({
 
 	const handleDrop = async (e: React.DragEvent, index: number) => {
 		const dragCellId = e.dataTransfer.getData(CELL_ID_DRAG_FORMAT);
-		if (dragCellId === null) return;
+		if (!dragCellId) return;
 		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(dragCellId, index));
@@ -237,9 +239,9 @@ function EditableCells({
 					}>
 					<CellBlock
 						key={
-							// Using isSyncing directly in key to reforce reconstruction
+							// Using isSyncing directly in key to re-force reconstruction
 							// of the editors.
-							cell.id + isSyncing
+							i + cell.id + isSyncing
 						}
 						ref={
 							cell.id === selectedCellId ? selectedCellRef : null
@@ -255,7 +257,7 @@ function EditableCells({
 						repetitions={cell.repetitions}
 						onError={onError}
 						onDrop={e => void handleDrop(e, i)}
-						onUpdate={content =>
+						onChange={content =>
 							onCellContentUpdate(cell.id, content)
 						}
 						onDelete={() => void handleCellDeleteConfirm()}

@@ -1,163 +1,111 @@
-import {
-	BubbleMenu,
-	useEditor,
-	EditorContent,
-	AnyExtension,
-	Editor,
-} from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import styles from "./styles.module.css";
-import Underline from "@tiptap/extension-underline";
-import Subscript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import ImageResize from "tiptap-extension-resize-image";
-import BubbleMenuCommand, { Command } from "./Command";
-import { defaultCommands } from "./defaultCommands";
-import { useEffect, useState } from "react";
+import { JSX } from "react";
+import {
+	InitialConfigType,
+	LexicalComposer,
+} from "@lexical/react/LexicalComposer";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
+import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
+import { FloatingMenuPlugin } from "./Plugins/FloatingMenuPlugin/FloatingMenuPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin";
+import { ListItemNode, ListNode } from "@lexical/list";
+import FocusBlurPlugin from "./Plugins/FocusBlurPlugin";
+import {
+	LexicalEditor,
+	$getRoot,
+	EditorState,
+	LexicalNode,
+	Klass,
+} from "lexical";
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import { IFloatingMenuButton } from "./Plugins/FloatingMenuPlugin/FloatingMenuButton";
+import DefaultShortcutPlugin from "./Plugins/DefaultShortcutsPlugin";
+import ListCommandsPluginHandler from "./Plugins/ListCommandsPluginHandler/ListCommandsPluginHandler";
+import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 
-const extensions = [
-	StarterKit,
-	ImageResize.configure({
-		allowBase64: true,
-	}),
-	Underline,
-	Subscript,
-	Superscript,
-];
-
-interface Props {
+interface IProps {
 	content: string;
 	title?: string;
-	extraExtensions?: AnyExtension[];
-	commands?: Command[];
+	extraNodes?: Klass<LexicalNode>[];
+	additionalFloatingMenuButtons?: IFloatingMenuButton[];
+	plugins?: JSX.Element[];
 	autofocus?: boolean;
-	/** TiptapEditor is slow on rendering, therefor showing a div element
-	 * instead until there is a need to render the actual editor (e.g. user interaction).
-	 */
-	eagerLoadRichTextEditor: boolean;
-	onUpdate: (html: string) => void;
-	onFocus?: (editor: Editor) => void;
+	onChange: (html: string) => void;
+	onFocus?: (editor: LexicalEditor) => void;
 	onBlur?: () => void;
 }
 
-function RichTextEditor({ eagerLoadRichTextEditor, ...props }: Props) {
-	const [showTiptapEditor, setShowTiptapEditor] = useState(
-		eagerLoadRichTextEditor,
-	);
-	const [
-		previousEagerLoadRichTextEditor,
-		setPreviousEagerLoadRichTextEditor,
-	] = useState<boolean | null>(null);
-	if (previousEagerLoadRichTextEditor !== eagerLoadRichTextEditor) {
-		setPreviousEagerLoadRichTextEditor(eagerLoadRichTextEditor);
-		if (eagerLoadRichTextEditor) setShowTiptapEditor(true);
-	}
+export default function RichTextEditor({
+	title,
+	content,
+	extraNodes,
+	additionalFloatingMenuButtons,
+	autofocus,
+	plugins,
+	onChange,
+	onFocus,
+	onBlur,
+}: IProps) {
+	const initialConfig: InitialConfigType = {
+		namespace: "BrainyEditor",
+		onError: console.error,
+		nodes: [ListNode, ListItemNode, ...(extraNodes ?? [])],
+		theme: {
+			text: {
+				// Global class names in index.xml.
+				underline: "underline",
+				bold: "bold",
+				italic: "italic",
+			},
+		},
+		editorState: editor => {
+			const parser = new DOMParser();
+			const dom = parser.parseFromString(content, "text/html");
+			const nodes = $generateNodesFromDOM(editor, dom);
+			$getRoot().append(...nodes);
+		},
+	};
+
+	const handleChange = (editorState: EditorState, editor: LexicalEditor) => {
+		editorState.read(() => {
+			const html = $generateHtmlFromNodes(editor);
+			onChange(html);
+		});
+	};
 
 	return (
 		<>
-			{props.title && <p className={styles.title}>{props.title}</p>}
-			<div className={styles.innerEditor}>
-				{showTiptapEditor && <TiptapEditor {...props} />}
-				{!showTiptapEditor && (
-					<div className={`${styles.editor}`}>
-						<div
-							tabIndex={0}
-							dangerouslySetInnerHTML={{
-								// Setting white space if content is empty so that the height is correct.
-								__html: props.content
-									? props.content
-									: "&nbsp;",
-							}}
-							onMouseEnter={() => setShowTiptapEditor(true)}
-							onFocus={() => setShowTiptapEditor(true)}
-						/>
-					</div>
-				)}
+			{title && <p className={styles.title}>{title}</p>}
+			<div className={styles.container}>
+				<LexicalComposer initialConfig={initialConfig}>
+					<RichTextPlugin
+						contentEditable={
+							<ContentEditable
+								className={styles.editor}
+								aria-placeholder={"Enter some text..."}
+								placeholder={<></>}
+							/>
+						}
+						ErrorBoundary={LexicalErrorBoundary}
+					/>
+					<HistoryPlugin />
+					<OnChangePlugin onChange={handleChange} />
+					<FloatingMenuPlugin
+						additionalFloatingMenuButtons={
+							additionalFloatingMenuButtons
+						}
+					/>
+					{autofocus && <AutoFocusPlugin />}
+					<ListPlugin />
+					<ListCommandsPluginHandler />
+					<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
+					<DefaultShortcutPlugin />
+					{plugins}
+				</LexicalComposer>
 			</div>
 		</>
 	);
 }
-
-interface TiptapEditorProps {
-	content: string;
-	title?: string;
-	extraExtensions?: AnyExtension[];
-	commands?: Command[];
-	autofocus?: boolean;
-	onUpdate: (html: string) => void;
-	onFocus?: (editor: Editor) => void;
-	onBlur?: () => void;
-}
-
-function TiptapEditor({
-	content,
-	extraExtensions,
-	commands,
-	autofocus,
-	onUpdate,
-	onFocus,
-	onBlur,
-}: TiptapEditorProps) {
-	const editor = useEditor(
-		{
-			extensions: [...extensions, ...(extraExtensions ?? [])],
-			content: content,
-			onUpdate: e => {
-				if (e.editor.getHTML() !== content)
-					onUpdate(e.editor.getHTML());
-			},
-			onFocus: onFocus ? e => onFocus(e.editor) : undefined,
-			onBlur,
-			editorProps: {
-				handleKeyDown: (_, e) => {
-					// Do not insert new lines when clicking Ctrl + Enter.
-					if (e.ctrlKey && e.key === "Enter") {
-						return true;
-					}
-					return false;
-				},
-				transformPastedText(text) {
-					return text.trim();
-				},
-			},
-		},
-		[],
-	);
-
-	useEffect(() => {
-		if (autofocus && editor) editor.commands.focus();
-	}, [autofocus, editor]);
-
-	return (
-		<>
-			{editor && (
-				<BubbleMenu
-					editor={editor}
-					tippyOptions={{ duration: 100 }}
-					className={styles.bubbleMenu}>
-					{commands?.map(c => (
-						<BubbleMenuCommand
-							key={c.name}
-							command={c}
-							editor={editor}
-						/>
-					))}
-					{commands && commands.length > 0 && (
-						<div className={styles.verticalBorder} />
-					)}
-
-					{defaultCommands.map(c => (
-						<BubbleMenuCommand
-							key={c.name}
-							command={c}
-							editor={editor}
-						/>
-					))}
-				</BubbleMenu>
-			)}
-			<EditorContent editor={editor} className={styles.editor} />
-		</>
-	);
-}
-
-export default RichTextEditor;

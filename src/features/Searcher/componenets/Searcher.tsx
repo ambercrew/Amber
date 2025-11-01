@@ -66,7 +66,6 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
 					ref={searchInputRef}
-					autoFocus
 				/>
 			</form>
 
