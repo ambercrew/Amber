@@ -64,12 +64,12 @@ impl Cell {
             repetitions: Vec::new(),
         };
 
-        output.update_searcahble_content();
+        output.update_searchable_content();
         output.update_repetitions();
         output
     }
 
-    /// Used for unit testing, or repositories when reconsturcting a cell.
+    /// Used for unit testing, or repositories when reconstructing a cell.
     #[allow(clippy::too_many_arguments)]
     pub fn new_unchecked(
         id: Guid,
@@ -142,7 +142,7 @@ impl Cell {
 
     pub fn set_content(&mut self, content: String) {
         self.content = content;
-        self.update_searcahble_content();
+        self.update_searchable_content();
         self.update_repetitions();
     }
 
@@ -156,7 +156,7 @@ impl Cell {
         });
     }
 
-    fn update_searcahble_content(&mut self) {
+    fn update_searchable_content(&mut self) {
         let remove_html_regex = Regex::new("<[^>]*>").expect("Invalid regex");
 
         let searchable_content = match self.cell_type {
