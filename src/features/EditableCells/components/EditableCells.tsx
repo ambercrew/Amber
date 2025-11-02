@@ -18,7 +18,9 @@ import {
 	ListenerType,
 } from "../../../stores/sync/manager/syncEventManager";
 
-interface Props {
+const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
+
+interface IProps {
 	cells: Cell[];
 	searchText?: string;
 	editCellId: string | null;
@@ -46,7 +48,7 @@ function EditableCells({
 	onError,
 	onCellsUpdateSave,
 	onEditButtonClick,
-}: Props) {
+}: IProps) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
@@ -218,6 +220,13 @@ function EditableCells({
 		scrollUntilVisible(containerRef.current, e.currentTarget);
 	};
 
+	let selectedCellIndex: number | null = cells.findIndex(
+		c => c.id === selectedCellId,
+	);
+	if (selectedCellIndex === -1) {
+		selectedCellIndex = null;
+	}
+
 	return (
 		<div
 			className={`${className} ${styles.container} ${isSyncing && styles.syncing}`}
@@ -245,6 +254,12 @@ function EditableCells({
 						}
 						ref={
 							cell.id === selectedCellId ? selectedCellRef : null
+						}
+						eagerLoadRichTextEditor={
+							selectedCellIndex !== null
+								? Math.abs(selectedCellIndex - i) <=
+									EAGER_LOAD_DISTANCE_FROM_SELECTED
+								: false
 						}
 						cell={cell}
 						fileMode={fileMode}

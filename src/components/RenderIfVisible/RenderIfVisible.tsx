@@ -12,7 +12,7 @@ interface Props {
 
 const RenderIfVisible = ({
 	defaultHeight = 300,
-	visibleOffset = 400,
+	visibleOffset = 600,
 	children,
 	stayRendered = false,
 	root = null,
@@ -40,7 +40,7 @@ const RenderIfVisible = ({
 					window.requestIdleCallback(
 						() => setIsVisible(entries[0].isIntersecting),
 						{
-							timeout: 300,
+							timeout: 200,
 						},
 					);
 				} else {

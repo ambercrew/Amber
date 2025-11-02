@@ -23,6 +23,7 @@ interface Props {
 	repetitions: Repetition[];
 	enableFileSpecificFunctionality: boolean;
 	fileMode: "single" | "global search";
+	eagerLoadRichTextEditor: boolean;
 	onSelect: (e: React.FocusEvent<HTMLDivElement>) => void;
 	onClick: (id: string) => void;
 	onError: (error: string) => void;
@@ -42,6 +43,7 @@ function CellBlock(
 		repetitions,
 		enableFileSpecificFunctionality,
 		fileMode,
+		eagerLoadRichTextEditor,
 		onError,
 		onSelect,
 		onClick,
@@ -166,6 +168,7 @@ function CellBlock(
 				autofocus={(autoFocusEditor ?? false) && !isSyncing}
 				onChange={onChange}
 				onFocus={editor => (editorRef.current = editor)}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			/>
 		</div>
 	);

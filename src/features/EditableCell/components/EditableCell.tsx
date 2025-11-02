@@ -8,17 +8,25 @@ import { LexicalEditor } from "lexical";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onChange: (content: string) => void;
 	onFocus: (editor: LexicalEditor) => void;
 }
 
-function EditableCell({ cell, autofocus, onChange, onFocus }: Props) {
+function EditableCell({
+	cell,
+	autofocus,
+	eagerLoadRichTextEditor,
+	onChange,
+	onFocus,
+}: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
 				<FlashCardCell
 					cell={cell}
 					autofocus={autofocus}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onChange={onChange}
 					onFocus={onFocus}
 				/>
@@ -28,6 +36,7 @@ function EditableCell({ cell, autofocus, onChange, onFocus }: Props) {
 				<RichTextEditor
 					content={cell.content}
 					autofocus={autofocus}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onChange={onChange}
 					onFocus={onFocus}
 				/>
@@ -37,6 +46,7 @@ function EditableCell({ cell, autofocus, onChange, onFocus }: Props) {
 				<ClozeCell
 					cell={cell}
 					autofocus={autofocus}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onChange={onChange}
 					onFocus={onFocus}
 				/>
@@ -46,6 +56,7 @@ function EditableCell({ cell, autofocus, onChange, onFocus }: Props) {
 				<TrueFalseCell
 					cell={cell}
 					autofocus={autofocus}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onChange={onChange}
 					onFocus={onFocus}
 				/>

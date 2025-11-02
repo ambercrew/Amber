@@ -17,11 +17,18 @@ import { $isSelectionInsideCloze, ClozeNode } from "../plugins/clozeNode";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onChange: (content: string) => void;
 	onFocus: (editor: LexicalEditor) => void;
 }
 
-function ClozeCell({ cell, autofocus, onChange, onFocus }: Props) {
+function ClozeCell({
+	cell,
+	autofocus,
+	eagerLoadRichTextEditor,
+	onChange,
+	onFocus,
+}: Props) {
 	return (
 		<RichTextEditor
 			extraNodes={[ClozeNode]}
@@ -61,6 +68,7 @@ function ClozeCell({ cell, autofocus, onChange, onFocus }: Props) {
 			]}
 			content={cell.content}
 			autofocus={autofocus}
+			eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 			onChange={onChange}
 			onFocus={onFocus}
 			plugins={[<ClozePlugin key={1} />]}

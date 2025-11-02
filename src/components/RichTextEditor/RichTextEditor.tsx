@@ -1,5 +1,5 @@
 import styles from "./styles.module.css";
-import { JSX } from "react";
+import { JSX, useState } from "react";
 import {
 	InitialConfigType,
 	LexicalComposer,
@@ -33,13 +33,54 @@ interface IProps {
 	additionalFloatingMenuButtons?: IFloatingMenuButton[];
 	plugins?: JSX.Element[];
 	autofocus?: boolean;
+	/* The rich text editor might be slow to render, therefore a temporally div
+	 * is shown until the real editor is needed to be rendered, e.g.
+	 * the editor is focused or this property is true.
+	 */
+	eagerLoadRichTextEditor: boolean;
 	onChange: (html: string) => void;
 	onFocus?: (editor: LexicalEditor) => void;
 	onBlur?: () => void;
 }
 
-export default function RichTextEditor({
-	title,
+export default function RichTextEditor({ ...props }: IProps) {
+	const [showEditor, setShowEditor] = useState(props.eagerLoadRichTextEditor);
+	const [
+		previousEagerLoadRichTextEditor,
+		setPreviousEagerLoadRichTextEditor,
+	] = useState<boolean | null>(null);
+
+	if (previousEagerLoadRichTextEditor !== props.eagerLoadRichTextEditor) {
+		setPreviousEagerLoadRichTextEditor(props.eagerLoadRichTextEditor);
+		if (props.eagerLoadRichTextEditor) setShowEditor(true);
+	}
+
+	return (
+		<>
+			{props.title && <p className={styles.title}>{props.title}</p>}
+			<div className={styles.container}>
+				{showEditor && <Editor {...props} />}
+				{!showEditor && (
+					<div className={`${styles.editor}`}>
+						<div
+							tabIndex={0}
+							dangerouslySetInnerHTML={{
+								// Setting white space if content is empty so that the height is correct.
+								__html: props.content
+									? props.content
+									: "&nbsp;",
+							}}
+							onMouseEnter={() => setShowEditor(true)}
+							onFocus={() => setShowEditor(true)}
+						/>
+					</div>
+				)}
+			</div>
+		</>
+	);
+}
+
+function Editor({
 	content,
 	extraNodes,
 	additionalFloatingMenuButtons,
@@ -72,40 +113,37 @@ export default function RichTextEditor({
 	const handleChange = (editorState: EditorState, editor: LexicalEditor) => {
 		editorState.read(() => {
 			const html = $generateHtmlFromNodes(editor);
-			onChange(html);
+			if (html !== content) onChange(html);
 		});
 	};
 
 	return (
-		<>
-			{title && <p className={styles.title}>{title}</p>}
-			<div className={styles.container}>
-				<LexicalComposer initialConfig={initialConfig}>
-					<RichTextPlugin
-						contentEditable={
-							<ContentEditable
-								className={styles.editor}
-								aria-placeholder={"Enter some text..."}
-								placeholder={<></>}
-							/>
-						}
-						ErrorBoundary={LexicalErrorBoundary}
+		<LexicalComposer initialConfig={initialConfig}>
+			<RichTextPlugin
+				contentEditable={
+					<ContentEditable
+						className={styles.editor}
+						aria-placeholder={"Enter some text..."}
+						placeholder={<></>}
 					/>
-					<HistoryPlugin />
-					<OnChangePlugin onChange={handleChange} />
-					<FloatingMenuPlugin
-						additionalFloatingMenuButtons={
-							additionalFloatingMenuButtons
-						}
-					/>
-					{autofocus && <AutoFocusPlugin />}
-					<ListPlugin />
-					<ListCommandsPluginHandler />
-					<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
-					<DefaultShortcutPlugin />
-					{plugins}
-				</LexicalComposer>
-			</div>
-		</>
+				}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<HistoryPlugin />
+			<OnChangePlugin
+				onChange={handleChange}
+				ignoreSelectionChange={true}
+				ignoreHistoryMergeTagChange={true}
+			/>
+			<FloatingMenuPlugin
+				additionalFloatingMenuButtons={additionalFloatingMenuButtons}
+			/>
+			{autofocus && <AutoFocusPlugin />}
+			<ListPlugin />
+			<ListCommandsPluginHandler />
+			<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
+			<DefaultShortcutPlugin />
+			{plugins}
+		</LexicalComposer>
 	);
 }

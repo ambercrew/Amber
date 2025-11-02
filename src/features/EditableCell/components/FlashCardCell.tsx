@@ -8,11 +8,18 @@ import { LexicalEditor } from "lexical";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	eagerLoadRichTextEditor: boolean;
 	onChange: (content: string) => void;
 	onFocus: (editor: LexicalEditor) => void;
 }
 
-function FlashCardCell({ cell, autofocus, onChange, onFocus }: Props) {
+function FlashCardCell({
+	cell,
+	autofocus,
+	eagerLoadRichTextEditor,
+	onChange,
+	onFocus,
+}: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 	const question = useRef(flashCard.question);
 	const answer = useRef(flashCard.answer);
@@ -51,6 +58,7 @@ function FlashCardCell({ cell, autofocus, onChange, onFocus }: Props) {
 				content={flashCard.question}
 				onChange={handleQuestionChange}
 				autofocus={autofocus && !isAnswerEditorFocused}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 				onFocus={e => {
 					setIsAnswerEditorFocused(false);
 					onFocus(e);
@@ -60,6 +68,7 @@ function FlashCardCell({ cell, autofocus, onChange, onFocus }: Props) {
 				title="Answer"
 				content={flashCard.answer}
 				autofocus={autofocus && isAnswerEditorFocused}
+				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 				onChange={handleAnswerChange}
 				onFocus={e => {
 					setIsAnswerEditorFocused(true);
