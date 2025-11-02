@@ -12,6 +12,7 @@ use crate::{
         traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
     },
     cells::{
+        cell_service::{CellService, CellServiceError},
         entities::{cell::Cell, repetition::Repetition, review::Review},
         repositories::traits::{
             cell_repository::CellRepository, review_repository::ReviewRepository,
@@ -52,6 +53,8 @@ pub enum SyncError {
     UnknownRepositoryError(#[from] RepositoryError),
     #[error("{0}")]
     ClientError(#[from] BrainyBackendClientError),
+    #[error("{0}")]
+    CellServiceError(#[from] CellServiceError),
 }
 
 pub struct SyncService {
@@ -62,9 +65,11 @@ pub struct SyncService {
     review_repository: Arc<dyn ReviewRepository>,
     sync_repository: Arc<dyn SyncRepository>,
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
+    cell_service: Arc<CellService>,
 }
 
 impl SyncService {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         backend_client: Arc<dyn BrainyBackendClient>,
         folder_repository: Arc<dyn FolderRepository>,
@@ -73,6 +78,7 @@ impl SyncService {
         review_repository: Arc<dyn ReviewRepository>,
         sync_repository: Arc<dyn SyncRepository>,
         local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
+        cell_service: Arc<CellService>,
     ) -> Self {
         Self {
             backend_client,
@@ -82,6 +88,7 @@ impl SyncService {
             review_repository,
             sync_repository,
             local_configuration_repository,
+            cell_service,
         }
     }
 
@@ -226,12 +233,17 @@ impl SyncService {
                 #[cfg(debug_assertions)]
                 log::info!("Parsed entity {:#?}", entity);
 
-                self.cell_repository
+                let result = self
+                    .cell_repository
                     .upsert_cell_without_repetition_and_with_modified_date_if_modified_before(
                         &entity,
                         cell.modified_date.unwrap().into_datetime(),
                     )
-                    .await?
+                    .await?;
+                self.cell_service
+                    .enforce_cell_invariants_on_cell(synced_entity.entity_id)
+                    .await?;
+                result
             }
             EntityType::Repetition => {
                 let repetition = generated_code::Repetition::decode(&bytes[..]).unwrap();
@@ -309,7 +321,7 @@ impl SyncService {
     async fn send_unsynced_entities_since(
         &self,
         last_sync_date: DateTime<Utc>,
-        excluded_entitiies: &HashSet<Guid>,
+        excluded_entities: &HashSet<Guid>,
     ) -> Result<(), SyncError> {
         log::info!("Sending all entities modified after date {last_sync_date} to sync.");
 
@@ -463,7 +475,7 @@ impl SyncService {
             synced_entities.push(dto);
         }
 
-        synced_entities.retain(|entity| !excluded_entitiies.contains(&entity.entity_id));
+        synced_entities.retain(|entity| !excluded_entities.contains(&entity.entity_id));
 
         if !synced_entities.is_empty() {
             #[cfg(debug_assertions)]
@@ -506,6 +518,7 @@ mod tests {
         context: &SqliteRepositoriesContext,
         backend_client: MockBrainyBackendClient,
     ) -> SyncService {
+        let cell_service = CellService::new(context.cell_repository(), context.review_repository());
         SyncService::new(
             Arc::new(backend_client),
             context.folder_repository(),
@@ -514,6 +527,7 @@ mod tests {
             context.review_repository(),
             context.sync_repository(),
             context.local_configuration_repository(),
+            Arc::new(cell_service),
         )
     }
 
@@ -657,6 +671,96 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(1, home_statistics.number_of_reviews);
+    }
+
+    #[tokio::test]
+    pub async fn sync_with_backend_two_cells_with_same_index_corrected_index_and_sent_update() {
+        // Arrange
+
+        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let cell_in_database_id = Guid::new_v4();
+        let cell_from_sync_id = Guid::new_v4();
+
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
+        context.file_repository().create(&file).await.unwrap();
+        context
+            .cell_repository()
+            .create(&Cell::new_unchecked(
+                cell_in_database_id,
+                Utc::now(),
+                Utc::now(),
+                file.id(),
+                "".to_string(),
+                CellType::Note,
+                1,
+                "".to_string(),
+                Vec::new(),
+            ))
+            .await
+            .unwrap();
+
+        let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
+            user_id: Guid::new_v4(),
+            entity_id: cell_from_sync_id,
+            entity_type: EntityType::Cell,
+            created_date: Utc::now(),
+            last_sync_date: Utc::now(),
+            data: generated_code::Cell {
+                modified_date: Some(Utc::now().into_timestamp()),
+                content: "content".to_string(),
+                cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
+                index: 1,
+                searchable_content: "search".to_string(),
+                file_id: file.id().to_string(),
+            }
+            .into_base64(),
+        }];
+
+        backend_client
+            .expect_get_synced_entities_after_ordered_by_created_date()
+            .returning(move |_, _| {
+                Ok(SyncedEntitiesPageDto {
+                    synced_entities: synced_entities.clone(),
+                    has_more: false,
+                })
+            });
+
+        // Ensuring that the new index is sent!
+        backend_client
+            .expect_send_synced_entities()
+            .withf(move |value| value.iter().any(|s| s.entity_id == cell_in_database_id))
+            .returning(move |_| Ok(()));
+
+        let service = create_sync_service(&context, backend_client);
+
+        // Act
+
+        service.sync_with_backend().await.unwrap();
+        context.save_changes().await.unwrap();
+
+        // Assert
+
+        let cells = context
+            .cell_repository()
+            .get_file_cells_ordered_by_index(file.id())
+            .await
+            .unwrap();
+        assert!(
+            cells
+                .iter()
+                .any(|c| c.id() == cell_from_sync_id && c.index() == 1)
+        );
+        assert!(
+            cells
+                .iter()
+                .any(|c| c.id() == cell_in_database_id && c.index() == 2)
+        );
     }
 
     #[tokio::test]

@@ -130,7 +130,6 @@ impl FileRepository for SqliteFileRepository {
             parent_id,
             name_string
         )
-        .bind(name.to_string())
         .fetch_one(&*self.pool)
         .await;
 

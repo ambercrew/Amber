@@ -24,6 +24,12 @@ pub trait CellRepository: Send + Sync {
         file_id: Guid,
     ) -> Result<Vec<Cell>, RepositoryError>;
 
+    async fn get_number_of_cells_in_file_with_index(
+        &self,
+        file_id: Guid,
+        index: u32,
+    ) -> Result<u32, RepositoryError>;
+
     async fn get_all_cells_modified_on_or_after(
         &self,
         modified_date: DateTime<Utc>,
@@ -49,7 +55,7 @@ pub trait CellRepository: Send + Sync {
         modified_date: DateTime<Utc>,
     ) -> Result<u64, RepositoryError>;
 
-    /// Moves all the indicies of cells up or down based on the given direction.
+    /// Moves all the indices of cells up or down based on the given direction.
     /// The cells moved must belong to the file given and must have an index
     /// greater than or equal to the given value.
     async fn move_cells_indices_starting_from(

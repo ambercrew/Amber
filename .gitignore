@@ -25,4 +25,6 @@ dist-ssr
 *.sln
 *.sw?
 
+# Misc
 db.db
+target/*

@@ -138,6 +138,33 @@ impl CellService {
 
         Ok(())
     }
+
+    /// This method is used to enforce all invariants on the cell with the given id. By default all
+    /// invariants should be enforced, but in some cases (like sync), you may need to
+    /// call this method, to reinforce invariants that got broken in sync.
+    /// The business invariants enforce in this calls are:
+    /// 1. Ensuring no two cells has the same index.
+    pub async fn enforce_cell_invariants_on_cell(&self, id: Guid) -> Result<(), CellServiceError> {
+        log::info!("Enforcing cell invariants on cell with id {id}.");
+
+        let cell = self.cell_repository.get_by_id(id).await?;
+
+        if self
+            .cell_repository
+            .get_number_of_cells_in_file_with_index(cell.file_id(), cell.index())
+            .await?
+            > 1
+        {
+            // Ensuring that no two cells has the same index
+            self.cell_repository
+                .move_cells_indices_starting_from(cell.file_id(), cell.index(), MoveDirection::Down)
+                .await?;
+            // Updating to keep the old index.
+            self.cell_repository.update(&cell).await?;
+        }
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -442,5 +469,52 @@ pub mod tests {
             .await
             .unwrap();
         assert_eq!(1, home_statistics.number_of_reviews);
+    }
+
+    #[tokio::test]
+    pub async fn enforce_cell_invariants_on_cell_two_cells_with_same_index_updated_index() {
+        // Arrange
+
+        let (mut context, service) = create_test_dependencies().await;
+
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+        );
+        context.file_repository().create(&file).await.unwrap();
+
+        let cells = [
+            Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
+            Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
+        ];
+
+        context.cell_repository().create(&cells[0]).await.unwrap();
+        context.cell_repository().create(&cells[1]).await.unwrap();
+        context.save_changes().await.unwrap();
+
+        // Act
+
+        service
+            .enforce_cell_invariants_on_cell(cells[0].id())
+            .await
+            .unwrap();
+        context.save_changes().await.unwrap();
+
+        // Assert
+
+        let actual_cells = context
+            .cell_repository()
+            .get_file_cells_ordered_by_index(file.id())
+            .await
+            .unwrap();
+
+        assert_eq!(actual_cells[0].id(), cells[0].id());
+        assert_eq!(actual_cells[0].index(), 0);
+
+        assert_eq!(actual_cells[1].id(), cells[1].id());
+        assert_eq!(actual_cells[1].index(), 1);
     }
 }
