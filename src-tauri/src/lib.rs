@@ -72,7 +72,7 @@ pub async fn run() -> Result<(), String> {
             app.manage(cell_service.clone());
 
             app.manage(Arc::new(FileSystemService::new(
-                cell_service,
+                cell_service.clone(),
                 repositories_context.folder_repository(),
                 repositories_context.file_repository(),
                 repositories_context.cell_repository(),
@@ -85,6 +85,7 @@ pub async fn run() -> Result<(), String> {
                 repositories_context.review_repository(),
                 repositories_context.sync_repository(),
                 repositories_context.local_configuration_repository(),
+                cell_service.clone(),
             )));
 
             app.manage(
