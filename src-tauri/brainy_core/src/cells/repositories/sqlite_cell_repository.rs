@@ -89,7 +89,7 @@ impl CellRepository for SqliteCellRepository {
         }
     }
 
-    async fn get_file_cells_ordered_by_index(
+    async fn get_file_cells_ordered_by_index_then_created_date(
         &self,
         file_id: Guid,
     ) -> Result<Vec<Cell>, RepositoryError> {
@@ -125,7 +125,7 @@ impl CellRepository for SqliteCellRepository {
             LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
 
             WHERE cell.file_id = $1
-            ORDER BY cell.cell_index"#,
+            ORDER BY cell.cell_index, cell.created_date"#,
             file_id
         )
         .fetch_all(&*self.pool)
@@ -942,7 +942,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    pub async fn get_file_cells_ordered_by_index_valid_input_returned_files_ordered() {
+    pub async fn get_file_cells_ordered_by_index_then_created_date_valid_input_returned_files_ordered() {
         // Arrange
 
         let mut context = SqliteRepositoriesContext::create_testing_context().await;
@@ -976,7 +976,7 @@ pub mod tests {
 
         let actual = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file.id())
+            .get_file_cells_ordered_by_index_then_created_date(file.id())
             .await
             .unwrap();
 

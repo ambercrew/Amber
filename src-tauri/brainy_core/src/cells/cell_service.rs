@@ -201,7 +201,7 @@ pub mod tests {
 
         let actual_cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file.id())
+            .get_file_cells_ordered_by_index_then_created_date(file.id())
             .await
             .unwrap();
         assert_eq!(actual_cells[0].id(), cells[0].id());
@@ -249,7 +249,7 @@ pub mod tests {
 
         let actual_cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file.id())
+            .get_file_cells_ordered_by_index_then_created_date(file.id())
             .await
             .unwrap();
 
@@ -303,7 +303,7 @@ pub mod tests {
 
         let actual_cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file.id())
+            .get_file_cells_ordered_by_index_then_created_date(file.id())
             .await
             .unwrap();
 
@@ -363,7 +363,7 @@ pub mod tests {
 
         let actual_cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file.id())
+            .get_file_cells_ordered_by_index_then_created_date(file.id())
             .await
             .unwrap();
 

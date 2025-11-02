@@ -297,7 +297,7 @@ impl FileSystemService {
         let file = self.file_repository.get_by_id(file_id).await?;
         let cells = self
             .cell_repository
-            .get_file_cells_ordered_by_index(file_id)
+            .get_file_cells_ordered_by_index_then_created_date(file_id)
             .await?;
         let exported_cells = cells.into_iter().map(|c| c.into()).collect();
 
@@ -1256,7 +1256,7 @@ pub mod tests {
 
         let all_cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(actual_file.id())
+            .get_file_cells_ordered_by_index_then_created_date(actual_file.id())
             .await
             .unwrap();
         assert_eq!(2, all_cells.len());

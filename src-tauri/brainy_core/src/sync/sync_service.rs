@@ -640,7 +640,7 @@ mod tests {
 
         let cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file_id)
+            .get_file_cells_ordered_by_index_then_created_date(file_id)
             .await
             .unwrap();
         assert_eq!(1, cells.len());
@@ -821,7 +821,7 @@ mod tests {
 
         let cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file_id)
+            .get_file_cells_ordered_by_index_then_created_date(file_id)
             .await
             .unwrap();
         assert_eq!(1, cells.len());
@@ -931,7 +931,7 @@ mod tests {
 
         let cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index(file_id)
+            .get_file_cells_ordered_by_index_then_created_date(file_id)
             .await
             .unwrap();
         assert_eq!(1, cells.len());
