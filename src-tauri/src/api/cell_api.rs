@@ -20,7 +20,7 @@ pub async fn get_file_cells_ordered_by_index(
     let context = context.lock().await;
     let result = context
         .cell_repository()
-        .get_file_cells_ordered_by_index_then_created_date(file_id)
+        .get_file_cells_ordered_by_index(file_id)
         .await?;
     Ok(result)
 }
@@ -94,7 +94,7 @@ pub async fn get_cells_for_files(
     for file_id in file_ids {
         let mut cells = context
             .cell_repository()
-            .get_file_cells_ordered_by_index_then_created_date(file_id)
+            .get_file_cells_ordered_by_index(file_id)
             .await?;
         result.append(&mut cells);
     }
