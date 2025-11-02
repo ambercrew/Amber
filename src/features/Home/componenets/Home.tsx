@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
@@ -14,6 +14,10 @@ import {
 	ReviewTreeFile,
 	ReviewTreeFolder,
 } from "../../../types/backend/dto/reviewTreeFolder";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../stores/sync/manager/syncEventManager";
 
 interface Props {
 	onStudyClick: (fileIds: string[]) => void;
@@ -31,16 +35,28 @@ function Home({ onStudyClick, onError }: Props) {
 		void dispatch(getReviewTreeFolderForRoot());
 	}, [dispatch]);
 
-	useEffect(() => {
-		void (async () => {
-			try {
-				setHomeStatistics(await getHomeStatistics());
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-		})();
+	const fetchHomeStatistics = useCallback(async () => {
+		try {
+			setHomeStatistics(await getHomeStatistics());
+		} catch (e) {
+			console.error(e);
+			onError(errorToString(e));
+		}
 	}, [onError]);
+
+	useEffect(() => {
+		void (async () => await fetchHomeStatistics())();
+
+		defaultGlobalSyncEventManager.addListener(
+			ListenerType.PostSyncComplete,
+			fetchHomeStatistics,
+		);
+		return () =>
+			defaultGlobalSyncEventManager.removeListener(
+				ListenerType.PostSyncComplete,
+				fetchHomeStatistics,
+			);
+	}, [fetchHomeStatistics]);
 
 	const handleStudyClick = (
 		fileIds: string[],
