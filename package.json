@@ -12,7 +12,12 @@
 		"test": "vitest",
 		"uitest": "vitest --ui",
 		"coverage": "vitest run --coverage",
-		"format": "prettier . --write"
+		"format": "prettier . --write",
+		"prepare": "husky"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,json,css,md,html}": "prettier --write",
+		"*.rs": "cargo fmt --manifest-path ./src-tauri/Cargo.toml --"
 	},
 	"dependencies": {
 		"@lexical/html": "0.38.2",
@@ -59,7 +64,9 @@
 		"eslint-plugin-react-hooks": "7.0.1",
 		"eslint-plugin-react-refresh": "0.4.24",
 		"globals": "16.5.0",
+		"husky": "^9.1.7",
 		"jsdom": "27.1.0",
+		"lint-staged": "^16.2.6",
 		"prettier": "3.6.2",
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.46.2",
