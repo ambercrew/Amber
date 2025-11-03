@@ -44,8 +44,8 @@ function SettingsPopup({ onClose, onError }: Props) {
 		});
 		if (!location) return;
 
-		const pathCharacer = location.includes("/") ? "/" : "\\";
-		if (!location.endsWith(pathCharacer)) location += pathCharacer;
+		const pathCharacter = location.includes("/") ? "/" : "\\";
+		if (!location.endsWith(pathCharacter)) location += pathCharacter;
 		location += "brainy.db";
 
 		setSettings({
