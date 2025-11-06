@@ -27,6 +27,9 @@ pub async fn update_settings(
     if let Some(zoom_percentage) = new_settings.zoom_percentage {
         settings.zoom_percentage = zoom_percentage;
     }
+    if let Some(auto_sync) = new_settings.auto_sync {
+        settings.auto_sync = auto_sync;
+    }
     settings.save_to_disk().await?;
 
     if restart {

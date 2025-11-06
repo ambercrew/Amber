@@ -28,10 +28,15 @@
 		gap: var(--small-padding);
 
 		& input,
-		& select,
-		& > div {
-			width: 100%;
+		& select {
 			font-size: 1.4rem;
+		}
+		& label {
+			font-size: 1.6rem;
+		}
+
+		& > * {
+			width: 100%;
 		}
 	}
 }

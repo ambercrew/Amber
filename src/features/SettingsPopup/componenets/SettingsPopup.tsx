@@ -2,40 +2,34 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiCog, mdiFolderOpenOutline } from "@mdi/js";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Settings, { Theme } from "../../../types/backend/model/settings";
-import { getSettings, updateSettings } from "../../../api/settingsApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import errorToString from "../../../utils/errorToString";
-import applySettings from "../../../utils/applySettings";
 import Dialog from "../../../components/Dialog/Dialog";
 import Form, {
 	FormButtons,
 	FormHeader,
 	FormRows,
 } from "../../../components/Form/Form";
+import CheckBox from "../../../components/Checkbox/Checkbox";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectSettings } from "../../../stores/settings/settingsSelector";
+import { updateAndApplySettings } from "../../../stores/settings/settingsActions";
 
-interface Props {
+interface IProps {
 	onClose: () => void;
 	onError: (error: string) => void;
 }
 
-function SettingsPopup({ onClose, onError }: Props) {
-	const [settings, setSettings] = useState<Settings | null>(null);
+function SettingsPopup({ onClose, onError }: IProps) {
+	const globalSettings = useAppSelector(selectSettings);
+	const [settings, setSettings] = useState<Settings | null>(globalSettings);
 	const dispatch = useAppDispatch();
 
-	useEffect(() => {
-		void (async () => {
-			try {
-				const settings = await getSettings();
-				setSettings(settings);
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-		})();
-	}, [onError]);
+	if (settings === null && globalSettings !== null) {
+		setSettings(globalSettings);
+	}
 
 	const handleChangeDatabaseLocationClick = async () => {
 		let location = await open({
@@ -56,13 +50,10 @@ function SettingsPopup({ onClose, onError }: Props) {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		if (!settings) return;
 
 		try {
-			await updateSettings({
-				...settings!,
-			});
-			await applySettings(settings!);
-			await dispatch(getReviewTreeFolderForRoot());
+			await dispatch(updateAndApplySettings(settings));
 			onClose();
 		} catch (e) {
 			console.error(e);
@@ -74,78 +65,99 @@ function SettingsPopup({ onClose, onError }: Props) {
 		<Dialog className={styles.box} onHide={onClose}>
 			<Form onSubmit={e => void handleSubmit(e)}>
 				<FormHeader icon={mdiCog} title="Settings" />
-				<FormRows
-					rows={[
-						{
-							label: "Database Location",
-							labelHtmlFor: "database-location",
-							children: (
-								<div className="row">
-									<input
-										id="database-location"
-										type="text"
-										value={settings?.databaseLocation ?? ""}
-										readOnly
-										autoFocus
-									/>
-									<button
-										className="transparent"
-										type="button"
-										onClick={() =>
-											void handleChangeDatabaseLocationClick()
-										}>
-										<Icon
-											path={mdiFolderOpenOutline}
-											size={1}
+				{settings && (
+					<FormRows
+						rows={[
+							{
+								label: "Database Location",
+								labelHtmlFor: "database-location",
+								children: (
+									<div className="row">
+										<input
+											id="database-location"
+											type="text"
+											value={settings.databaseLocation}
+											style={{ width: "100%" }}
+											readOnly
+											autoFocus
 										/>
-									</button>
-								</div>
-							),
-						},
-						{
-							label: "Theme",
-							labelHtmlFor: "theme",
-							children: (
-								<select
-									value={settings?.theme}
-									id="theme"
-									onChange={e =>
-										setSettings({
-											...settings!,
-											theme: e.target.value as Theme,
-										})
-									}>
-									<option value="FollowSystem">
-										Follow system
-									</option>
-									<option value="Light">Light</option>
-									<option value="Dark">Dark</option>
-								</select>
-							),
-						},
-						{
-							label: "Zoom (%)",
-							labelHtmlFor: "zoom",
-							children: (
-								<input
-									id="zoom"
-									type="number"
-									value={settings?.zoomPercentage ?? ""}
-									onChange={e =>
-										setSettings({
-											...settings!,
-											zoomPercentage: Number(
-												e.target.value,
-											),
-										})
-									}
-									min={50}
-									max={400}
-								/>
-							),
-						},
-					]}
-				/>
+										<button
+											className="transparent"
+											type="button"
+											onClick={() =>
+												void handleChangeDatabaseLocationClick()
+											}>
+											<Icon
+												path={mdiFolderOpenOutline}
+												size={1}
+											/>
+										</button>
+									</div>
+								),
+							},
+							{
+								label: "Theme",
+								labelHtmlFor: "theme",
+								children: (
+									<select
+										value={settings?.theme}
+										id="theme"
+										onChange={e =>
+											setSettings({
+												...settings,
+												theme: e.target.value as Theme,
+											})
+										}>
+										<option value="FollowSystem">
+											Follow system
+										</option>
+										<option value="Light">Light</option>
+										<option value="Dark">Dark</option>
+									</select>
+								),
+							},
+							{
+								label: "Zoom (%)",
+								labelHtmlFor: "zoom",
+								children: (
+									<input
+										id="zoom"
+										type="number"
+										value={settings.zoomPercentage}
+										onChange={e =>
+											setSettings({
+												...settings,
+												zoomPercentage: Number(
+													e.target.value,
+												),
+											})
+										}
+										min={50}
+										max={400}
+									/>
+								),
+							},
+							{
+								label: "Sync on startup and on close",
+								labelHtmlFor: "auto-sync",
+								children: (
+									<div style={{ padding: "4px" }}>
+										<CheckBox
+											id="auto-sync"
+											checked={settings.autoSync}
+											onChange={e =>
+												setSettings({
+													...settings,
+													autoSync: e.target.checked,
+												})
+											}
+										/>
+									</div>
+								),
+							},
+						]}
+					/>
+				)}
 
 				<FormButtons onClose={onClose} submitText="Save" />
 			</Form>

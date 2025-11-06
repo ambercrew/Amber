@@ -81,6 +81,7 @@ body.dark {
 	--body-background-color: #1a1f23;
 	--default-background-color: #252b30;
 	--light-default-background-color: rgb(52, 59, 65);
+	--lighter-default-background-color: #4b555d;
 
 	--grey-background-color: #424242;
 	--grey-background-color-shade-10: #292929;

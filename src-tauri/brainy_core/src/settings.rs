@@ -13,6 +13,7 @@ pub struct Settings {
     pub database_location: String,
     pub theme: Theme,
     pub zoom_percentage: f64,
+    pub auto_sync: bool,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -47,8 +48,8 @@ const SETTINGS_FILE_NAME: &str = "settings.dev.json";
 const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 
 impl Settings {
-    /// Initalizes the settings if not found and then return it, the settings
-    /// is automtaically saved into a file if not found.
+    /// Initializes the settings if not found and then return it, the settings
+    /// is automatically saved into a file if not found.
     pub async fn init_settings_and_get() -> Result<Self, SettingsError> {
         let settings_dir = get_settings_dir().await?;
         if settings_dir.join(SETTINGS_FILE_NAME).exists() {
@@ -62,6 +63,7 @@ impl Settings {
                     .into(),
                 theme: Theme::FollowSystem,
                 zoom_percentage: 100f64,
+                auto_sync: true,
             };
             settings.save_to_disk().await?;
             Ok(settings)

@@ -1,0 +1,50 @@
+:global(body.dark) .container {
+	background-color: var(--lighter-default-background-color);
+}
+
+.container {
+	max-width: fit-content;
+	position: relative;
+	background-color: var(--grey-background-color-shade-20);
+	position: relative;
+	border-radius: 20px;
+	padding: var(--large-padding);
+	min-width: 5rem;
+	transition: all var(--default-transition-time);
+
+	&:focus-within {
+		outline-color: 1px solid var(--primary-color);
+		outline-offset: 2px;
+	}
+
+	&:has(input:checked) {
+		background-color: var(--primary-color);
+	}
+
+	& input {
+		background-color: transparent;
+		border: none;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+	}
+
+	& input + .circle {
+		top: 4px;
+		bottom: 4px;
+		left: 4px;
+		width: 2rem;
+		border-radius: 20px;
+		position: absolute;
+		transition: all var(--default-transition-time);
+		background-color: #fff;
+		pointer-events: none;
+	}
+
+	& input:checked + .circle {
+		left: 100%;
+		transform: translateX(calc(-100% + -4px));
+	}
+}

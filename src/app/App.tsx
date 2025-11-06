@@ -8,8 +8,6 @@ import useAppDispatch from "../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
 import SideBar from "../features/SideBar/componenets/SideBar";
 import SettingsPopup from "../features/SettingsPopup/componenets/SettingsPopup";
-import { getSettings } from "../api/settingsApi";
-import applySettings from "../utils/applySettings";
 import useGlobalKey from "../hooks/useGlobalKey";
 import {
 	Route,
@@ -27,6 +25,7 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../stores/sync/manager/syncEventManager";
+import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -55,11 +54,12 @@ function App() {
 	};
 
 	useEffect(() => {
-		void dispatch(getReviewTreeFolderForRoot());
-		void dispatch(loadInitialStateUser());
 		void (async () => {
-			const settings = await getSettings();
-			await applySettings(settings);
+			await dispatch(getReviewTreeFolderForRoot());
+			const userInformation = await dispatch(loadInitialStateUser());
+			await dispatch(
+				initialLoadAndApplySettings(userInformation !== null),
+			);
 		})();
 
 		document.addEventListener("contextmenu", e => {

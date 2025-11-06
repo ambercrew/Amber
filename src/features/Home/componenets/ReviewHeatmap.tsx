@@ -1,20 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import ReviewHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
 import HomeStatistics from "../../../types/backend/dto/homeStatistics";
-import Settings from "../../../types/backend/model/settings";
-import { getSettings } from "../../../api/settingsApi";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectSettings } from "../../../stores/settings/settingsSelector";
 
 interface Props {
 	homeStatistics: HomeStatistics;
 }
 
 function ReviewHeatmap({ homeStatistics }: Props) {
-	const [setting, setSettings] = useState<Settings | null>(null);
-
-	useEffect(() => {
-		void (async () => setSettings(await getSettings()))();
-	}, []);
+	const settings = useAppSelector(selectSettings);
 
 	const weeksOfYear = useMemo(() => {
 		const dates = [];
@@ -34,14 +30,14 @@ function ReviewHeatmap({ homeStatistics }: Props) {
 
 	return (
 		<div className={styles.reviewHeatmap}>
-			{setting &&
+			{settings &&
 				weeksOfYear.map((week, i) => (
 					<ReviewHeatmapColumn
 						currentYear={new Date().getFullYear()}
 						key={i}
 						date={week}
 						homeStatistics={homeStatistics}
-						isDarkTheme={setting.theme === "Dark"}
+						isDarkTheme={settings.theme === "Dark"}
 					/>
 				))}
 		</div>

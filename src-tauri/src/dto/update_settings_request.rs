@@ -7,4 +7,5 @@ pub struct UpdateSettingsRequest {
     pub database_location: Option<String>,
     pub theme: Option<Theme>,
     pub zoom_percentage: Option<f64>,
+    pub auto_sync: Option<bool>,
 }

@@ -4,21 +4,22 @@ import useBeforeUnload from "../../../hooks/useBeforeUnload";
 import UpdateCellRequest from "../../../types/backend/dto/updateCellRequest";
 import { updateCellsContents } from "../../../api/cellApi";
 import errorToString from "../../../utils/errorToString";
-import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/manager/syncEventManager";
+import { defaultCloseRequestedEventManager } from "../../../managers/closeRequestedEventManager";
 
-interface Input {
+const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";
+
+interface IProps {
 	cells: Cell[];
 	onCellsUpdateSave: () => Promise<void>;
 	onError: (error: string) => void;
 }
 
-interface ReturnValue {
+interface IReturnValue {
 	saveChanges: () => Promise<void>;
 	onCellContentUpdate: (id: string, content: string) => void;
 	ignoreCell: (id: string) => void;
@@ -33,7 +34,7 @@ function useAutoSave({
 	cells,
 	onCellsUpdateSave,
 	onError,
-}: Input): ReturnValue {
+}: IProps): IReturnValue {
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
 	const autoSaveTimeoutId = useRef<number>(null);
@@ -90,27 +91,18 @@ function useAutoSave({
 	}, [cells, saveChanges]);
 
 	useEffect(() => {
-		let unlisten: UnlistenFn;
-
-		void (async () => {
-			unlisten = await getCurrentWindow().listen(
-				TauriEvent.WINDOW_CLOSE_REQUESTED,
-				() => {
-					if (changedCellsIds.current.size > 0) {
-						void (async () => {
-							await saveChanges();
-							await getCurrentWindow().destroy();
-						})();
-					} else {
-						void getCurrentWindow().destroy();
-					}
-				},
+		defaultCloseRequestedEventManager.addHandler(
+			CLOSE_REQUESTED_HANDLER_NAME,
+			{
+				cb: saveChanges,
+				// Must be executed at start!
+				priority: 0,
+			},
+		);
+		return () =>
+			defaultCloseRequestedEventManager.removeHandler(
+				CLOSE_REQUESTED_HANDLER_NAME,
 			);
-		})();
-
-		return () => {
-			if (unlisten) void unlisten();
-		};
 	}, [saveChanges]);
 
 	useEffect(() => {

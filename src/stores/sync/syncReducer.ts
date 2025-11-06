@@ -1,10 +1,10 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 
-interface SyncState {
+interface ISyncState {
 	isSyncing: boolean;
 }
 
-const initialState: SyncState = {
+const initialState: ISyncState = {
 	isSyncing: false,
 };
 

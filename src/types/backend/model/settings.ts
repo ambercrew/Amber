@@ -4,4 +4,5 @@ export default interface Settings {
 	databaseLocation: string;
 	theme: Theme;
 	zoomPercentage: number;
+	autoSync: boolean;
 }
