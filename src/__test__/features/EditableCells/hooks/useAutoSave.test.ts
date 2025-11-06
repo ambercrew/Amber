@@ -3,7 +3,6 @@ import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
 import { act } from "react";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { TauriEvent } from "@tauri-apps/api/event";
 
 const cellId = "1";
 
@@ -35,7 +34,7 @@ describe(useAutoSave, () => {
 		const getCurrentWindowMock = vi.fn();
 		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
 		getCurrentWindowMock.mockReturnValue({
-			listen: vi.fn(),
+			onCloseRequested: vi.fn(),
 		});
 	});
 
@@ -93,9 +92,7 @@ describe(useAutoSave, () => {
 	it("Saves on window close request", async () => {
 		// Arrange
 
-		const unlistenMock = vi.fn();
-		const listenMock = vi.fn().mockReturnValue(unlistenMock);
-		const destroyMock = vi.fn();
+		const onCloseRequestedMock = vi.fn();
 
 		// Must be mocked since spy does not work:
 		// https://vitest.dev/guide/browser/#limitations
@@ -103,32 +100,26 @@ describe(useAutoSave, () => {
 		const getCurrentWindowMock = vi.fn();
 		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
 		getCurrentWindowMock.mockReturnValue({
-			listen: listenMock,
-			destroy: destroyMock,
+			onCloseRequested: onCloseRequestedMock,
 		});
 
 		// Act
 
 		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
-		(listenMock.mock.calls[0][1] as () => void)();
 
 		// Waiting for all promises, including the ones in useEffect.
 		await Promise.resolve();
-		// Ensuring that the call back for useEffect is called.
-		returnValue.unmount();
+		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
 		// Assert
 
-		await waitFor(() => {
-			expect(listenMock).toBeCalled();
-			expect(listenMock.mock.calls[0][0] as string).toBe(
-				TauriEvent.WINDOW_CLOSE_REQUESTED,
-			);
-			expect(listenMock.mock.calls).toHaveLength(1);
-			expect(destroyMock).toBeCalled();
-			expect(unlistenMock).toBeCalled();
-			expect(onCellsUpdateSaveCb).toBeCalled();
-		});
+		await waitFor(
+			() => {
+				expect(onCloseRequestedMock).toBeCalled();
+				expect(onCellsUpdateSaveCb).toBeCalled();
+			},
+			{ timeout: 1000 },
+		);
 	});
 });

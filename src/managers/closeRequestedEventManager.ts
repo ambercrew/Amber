@@ -7,11 +7,20 @@ interface IHandler {
 
 export class CloseRequestedEventManager {
 	private handlers = new Map<string, IHandler>();
+	// Used to lazy add a callback to tauri event listener.
+	private isEventAdded = false;
 
 	/** Adds a handler that is called before closing the window, handlers
 	 * with lower priority are executed before handlers with higher priorities.
 	 */
 	public addHandler(name: string, handler: IHandler) {
+		if (!this.isEventAdded) {
+			void getCurrentWindow().onCloseRequested(async () => {
+				await this.callHandlers();
+			});
+			this.isEventAdded = true;
+		}
+
 		this.handlers.set(name, handler);
 	}
 
@@ -31,7 +40,3 @@ export class CloseRequestedEventManager {
 
 export const defaultCloseRequestedEventManager =
 	new CloseRequestedEventManager();
-
-void getCurrentWindow().onCloseRequested(async () => {
-	await defaultCloseRequestedEventManager.callHandlers();
-});
