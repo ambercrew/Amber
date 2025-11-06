@@ -16,7 +16,7 @@ import { selectIsSyncing } from "../../../stores/sync/syncSelector";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../../stores/sync/manager/syncEventManager";
+} from "../../../stores/sync/managers/syncEventManager";
 
 const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
 

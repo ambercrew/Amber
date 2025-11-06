@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../../stores/sync/manager/syncEventManager";
+} from "../../../stores/sync/managers/syncEventManager";
 
 export default function SyncRow() {
 	const [showToast, setShowToast] = useState(false);

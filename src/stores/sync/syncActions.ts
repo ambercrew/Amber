@@ -5,7 +5,7 @@ import { setIsSyncing } from "./syncReducer";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "./manager/syncEventManager";
+} from "./managers/syncEventManager";
 
 export function sync() {
 	return async function (dispatch: AppDispatch) {

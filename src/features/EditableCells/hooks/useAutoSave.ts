@@ -8,7 +8,7 @@ import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../../stores/sync/manager/syncEventManager";
+} from "../../../stores/sync/managers/syncEventManager";
 import { defaultCloseRequestedEventManager } from "../../../managers/closeRequestedEventManager";
 
 const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";

@@ -17,7 +17,7 @@ import {
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../../stores/sync/manager/syncEventManager";
+} from "../../../stores/sync/managers/syncEventManager";
 
 interface Props {
 	onStudyClick: (fileIds: string[]) => void;

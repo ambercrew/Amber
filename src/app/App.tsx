@@ -24,7 +24,7 @@ import { loadInitialStateUser } from "../stores/user/userActions";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../stores/sync/manager/syncEventManager";
+} from "../stores/sync/managers/syncEventManager";
 import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
 
 function App() {
