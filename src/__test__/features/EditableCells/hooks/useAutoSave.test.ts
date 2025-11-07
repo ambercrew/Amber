@@ -110,12 +110,14 @@ describe(useAutoSave, () => {
 
 		// Waiting for all promises, including the ones in useEffect.
 		await Promise.resolve();
-		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
 		// Assert
 
 		await waitFor(
-			() => {
+			async () => {
+				await (
+					onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>
+				)();
 				expect(onCloseRequestedMock).toBeCalled();
 				expect(onCellsUpdateSaveCb).toBeCalled();
 			},
