@@ -1,4 +1,4 @@
-import { fireEvent, renderHook, waitFor } from "@testing-library/react";
+import { fireEvent, renderHook } from "@testing-library/react";
 import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
 import { act } from "react";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
@@ -29,12 +29,18 @@ const renderAutoSave = () => {
 };
 
 describe(useAutoSave, () => {
+	const onCloseRequestedMock = vi.fn();
+
 	beforeAll(() => {
+		// Must be mocked since spy does not work:
+		// https://vitest.dev/guide/browser/#limitations
+		vi.mock("@tauri-apps/api/window", { spy: true });
+
 		// Mocking this to not get errors.
 		const getCurrentWindowMock = vi.fn();
 		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
 		getCurrentWindowMock.mockReturnValue({
-			onCloseRequested: vi.fn(),
+			onCloseRequested: onCloseRequestedMock,
 		});
 	});
 
@@ -90,38 +96,15 @@ describe(useAutoSave, () => {
 	});
 
 	it("Saves on window close request", async () => {
-		// Arrange
-
-		const onCloseRequestedMock = vi.fn();
-
-		// Must be mocked since spy does not work:
-		// https://vitest.dev/guide/browser/#limitations
-		vi.mock("@tauri-apps/api/window", { spy: true });
-		const getCurrentWindowMock = vi.fn();
-		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
-		getCurrentWindowMock.mockReturnValue({
-			onCloseRequested: onCloseRequestedMock,
-		});
-
 		// Act
 
 		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
-
-		// Waiting for all promises, including the ones in useEffect.
-		await Promise.resolve();
+		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
 		// Assert
 
-		await waitFor(
-			async () => {
-				await (
-					onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>
-				)();
-				expect(onCloseRequestedMock).toBeCalled();
-				expect(onCellsUpdateSaveCb).toBeCalled();
-			},
-			{ timeout: 1000 },
-		);
+		expect(onCloseRequestedMock).toBeCalled();
+		expect(onCellsUpdateSaveCb).toBeCalled();
 	});
 });
