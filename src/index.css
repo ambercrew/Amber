@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
-
 * {
 	margin: 0;
 	padding: 0;
@@ -287,4 +285,38 @@ body.dark .overlay {
 
 .italic {
 	font-style: italic;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+	width: 0.8rem;
+	height: 0.8rem;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--body-background-color);
+	border-radius: var(--default-border-radius);
+	margin: var(--small-padding) 0;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--grey-background-color-shade-20);
+	border-radius: var(--default-border-radius);
+	transition: all 0.2s ease;
+}
+
+.dark ::-webkit-scrollbar-track {
+	background: var(--light-default-background-color);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+	background: var(--lighter-default-background-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--primary-color);
+}
+
+::-webkit-scrollbar-thumb:active {
+	background: var(--primary-color-shade-10);
 }
