@@ -17,6 +17,7 @@
 	gap: 1rem;
 	flex-direction: column;
 	height: 100%;
+	overflow: auto;
 
 	& ol,
 	& ul {
