@@ -16,7 +16,10 @@ import {
 	useNavigate,
 	useSearchParams,
 } from "react-router";
-import { fileIdQueryParameter } from "../config/constants";
+import {
+	fileIdQueryParameter,
+	SMALL_SCREEN_MAX_WIDTH_IN_PX,
+} from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/componenets/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
@@ -33,10 +36,28 @@ function App() {
 	const [searchParams] = useSearchParams();
 	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
 	const [editCellId, setEditCellId] = useState<string | null>(null);
-	const selectedFileId = searchParams.get(fileIdQueryParameter);
+	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
+	const [isSmallScreen, setIsSmallScreen] = useState(
+		window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX,
+	);
 	const location = useLocation();
+	const [previousLocation, setPreviousLocation] = useState(location);
+	const selectedFileId = searchParams.get(fileIdQueryParameter);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+
+	useEffect(() => {
+		const cb = () =>
+			setIsSmallScreen(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX);
+		window.addEventListener("resize", cb);
+		return () => window.removeEventListener("resize", cb);
+	}, []);
+
+	if (location !== previousLocation) {
+		setPreviousLocation(location);
+		if (window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX)
+			setIsSideBarExpanded(false);
+	}
 
 	const handleEditorStudyClick = () => {
 		setStudyFileIds([selectedFileId!]);
@@ -121,54 +142,64 @@ function App() {
 				</div>
 			)}
 
-			<SideBar onSettingsClick={() => setShowSettings(true)} />
+			<SideBar
+				onSettingsClick={() => setShowSettings(true)}
+				onExpand={() => setIsSideBarExpanded(true)}
+				onCollapse={() => setIsSideBarExpanded(false)}
+				isExpanded={isSideBarExpanded}
+			/>
 
-			<div className={`${styles.workarea}`}>
-				<Routes>
-					{["/", "/home"].map(path => (
+			{
+				<div
+					className={`${styles.workarea} ${isSmallScreen && isSideBarExpanded && styles.hidden}`}>
+					<Routes>
+						{["/", "/home"].map(path => (
+							<Route
+								key={path}
+								path={path}
+								element={
+									<Home
+										onStudyClick={handleHomeStudyClick}
+										onError={setErrorMessage}
+									/>
+								}
+							/>
+						))}
 						<Route
-							key={path}
-							path={path}
+							path="/editor"
 							element={
-								<Home
-									onStudyClick={handleHomeStudyClick}
+								<Editor
+									editCellId={editCellId}
 									onError={setErrorMessage}
+									onStudyStart={() =>
+										handleEditorStudyClick()
+									}
+									key={selectedFileId}
 								/>
 							}
 						/>
-					))}
-					<Route
-						path="/editor"
-						element={
-							<Editor
-								editCellId={editCellId}
-								onError={setErrorMessage}
-								onStudyStart={() => handleEditorStudyClick()}
-								key={selectedFileId}
-							/>
-						}
-					/>
-					<Route
-						path="/reviewer"
-						element={
-							<Reviewer
-								onEditButtonClick={handleEditButtonClick}
-								onError={setErrorMessage}
-								fileIds={studyFileIds}
-							/>
-						}
-					/>
-					<Route
-						path="/search"
-						element={
-							<Searcher
-								onError={setErrorMessage}
-								onEditButtonClick={handleEditButtonClick}
-							/>
-						}
-					/>
-				</Routes>
-			</div>
+						<Route
+							path="/reviewer"
+							element={
+								<Reviewer
+									onEditButtonClick={handleEditButtonClick}
+									onError={setErrorMessage}
+									fileIds={studyFileIds}
+								/>
+							}
+						/>
+						<Route
+							path="/search"
+							element={
+								<Searcher
+									onError={setErrorMessage}
+									onEditButtonClick={handleEditButtonClick}
+								/>
+							}
+						/>
+					</Routes>
+				</div>
+			}
 
 			{showSettings && (
 				<SettingsPopup

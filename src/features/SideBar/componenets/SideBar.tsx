@@ -28,18 +28,24 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
-import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 import UserDialog from "../../UserDialog/components/UserDialog";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import SyncRow from "./SyncRow";
 
-interface Props {
+interface IProps {
+	isExpanded: boolean;
+	onExpand: () => void;
+	onCollapse: () => void;
 	onSettingsClick: () => void;
 }
 
-function SideBar({ onSettingsClick }: Props) {
+function SideBar({
+	isExpanded,
+	onExpand,
+	onCollapse,
+	onSettingsClick,
+}: IProps) {
 	const [searchText, setSearchText] = useState<string | null>(null);
-	const [isExpanded, setIsExpanded] = useState(true);
 	const [showAuthenticationDialog, setShowAuthenticationDialog] =
 		useState(false);
 	const rootFolder = useAppSelector(selectRootFolder);
@@ -49,17 +55,15 @@ function SideBar({ onSettingsClick }: Props) {
 	const navigate = useNavigate();
 	const isSignedIn = useAppSelector(selectIsSignedIn);
 	const location = useLocation();
-	const [previousLocation, setPreviousLocation] = useState(location);
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
 
-	if (location !== previousLocation) {
-		setPreviousLocation(location);
-		if (window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX)
-			setIsExpanded(false);
-	}
+	const handleToggleExpand = () => {
+		if (isExpanded) onCollapse();
+		else onExpand();
+	};
 
 	const openHelpWebsite = useCallback(() => {
 		void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
@@ -67,7 +71,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key == "\\") {
-			setIsExpanded(!isExpanded);
+			handleToggleExpand();
 		} else if (e.key === "F1") {
 			openHelpWebsite();
 		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
@@ -91,7 +95,7 @@ function SideBar({ onSettingsClick }: Props) {
 
 					<button
 						className={`transparent center ${styles.toggleButton}`}
-						onClick={() => setIsExpanded(!isExpanded)}
+						onClick={() => handleToggleExpand()}
 						title="Expand/Collapse sidebar (Ctrl + \)">
 						<Icon path={mdiChevronLeft} size={1} />
 					</button>
