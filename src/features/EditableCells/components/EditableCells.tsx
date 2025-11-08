@@ -221,6 +221,7 @@ function EditableCells({
 		e: React.FocusEvent<HTMLDivElement>,
 		cellId: string,
 	) => {
+		if (selectedCellId === cellId) return;
 		setSelectedCellId(cellId);
 		if (!containerRef.current) return;
 		scrollUntilVisible(containerRef.current, e.currentTarget);
