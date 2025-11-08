@@ -68,7 +68,7 @@
 	}
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 62rem) {
 	.title-bar {
 		flex-direction: column;
 		align-items: start;
