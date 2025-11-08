@@ -24,8 +24,6 @@ export default function Dialog({ className, children, onHide }: Props) {
 		focusedElementBeforeView === null
 	) {
 		setFocusedElementBeforeView(document.activeElement);
-		// Moving focus from anything.
-		document.activeElement.blur();
 	}
 
 	const handleHide = () => {
