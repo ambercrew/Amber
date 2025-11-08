@@ -143,6 +143,14 @@ function EditableCells({
 		}
 	};
 
+	const filteredCells = searchText
+		? cells.filter(c =>
+				c.searchableContent
+					.toLowerCase()
+					.includes(searchText.toLowerCase()),
+			)
+		: cells;
+
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
 			e.preventDefault();
@@ -152,18 +160,24 @@ function EditableCells({
 			void moveSelectedCellByNumber(-1);
 		} else if (e.ctrlKey && e.key == "ArrowDown") {
 			e.preventDefault();
-			const selectedCellIndex = cells.findIndex(
+			if (filteredCells.length === 0) return;
+			const selectedCellIndex = filteredCells.findIndex(
 				c => c.id === selectedCellId,
 			);
 			setSelectedCellId(
-				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id,
+				filteredCells[
+					Math.min(filteredCells.length - 1, selectedCellIndex + 1)
+				].id,
 			);
 		} else if (e.ctrlKey && e.key == "ArrowUp") {
 			e.preventDefault();
-			const selectedCellIndex = cells.findIndex(
+			if (filteredCells.length === 0) return;
+			const selectedCellIndex = filteredCells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id);
+			setSelectedCellId(
+				filteredCells[Math.max(0, selectedCellIndex - 1)].id,
+			);
 		} else if (e.ctrlKey && e.key === " ") {
 			selectedCellRef.current?.scrollIntoView();
 		}
@@ -202,14 +216,6 @@ function EditableCells({
 		await saveChanges();
 		await onCellsUpdateSave();
 	};
-
-	const filteredCells = searchText
-		? cells.filter(c =>
-				c.searchableContent
-					.toLowerCase()
-					.includes(searchText.toLowerCase()),
-			)
-		: cells;
 
 	const handleSelect = (
 		e: React.FocusEvent<HTMLDivElement>,
