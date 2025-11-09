@@ -47,6 +47,7 @@ export default defineConfig({
 		css: true,
 		coverage: {
 			reporter: ["lcov"],
+			include: ["src/**/*.{ts,tsx,js,jsx}"],
 		},
 	},
 });

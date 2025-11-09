@@ -28,3 +28,4 @@ dist-ssr
 # Misc
 db.db
 target/*
+coverage/*
