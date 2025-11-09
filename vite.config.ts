@@ -1,7 +1,8 @@
 /// <reference types="vitest" />
+///// <reference types="vitest/config" />
 /// <reference types="vite/client" />
 
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 // @ts-expect-error process is a nodejs global
