@@ -1,7 +1,7 @@
 import { act, fireEvent, renderHook, waitFor } from "@testing-library/react";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 
-describe(useBeforeUnload, () => {
+describe("useBeforeUnload", () => {
 	it("Calls the callback function", async () => {
 		// Arrange
 

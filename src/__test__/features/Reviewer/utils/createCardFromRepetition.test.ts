@@ -4,7 +4,7 @@ import Repetition, {
 	RepetitionState,
 } from "../../../../types/backend/entity/repetition";
 
-describe(createCardFromRepetition, () => {
+describe("createCardFromRepetition", () => {
 	it("Returns correct on all status", () => {
 		// Arrange
 

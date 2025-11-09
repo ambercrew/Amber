@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import Alert from "../../components/Alert/Alert";
 
-describe(Alert, () => {
+describe("Alert", () => {
 	it("Calls function on close", async () => {
 		// Arrange
 

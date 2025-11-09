@@ -7,7 +7,7 @@ import {
 import getCellIcon from "../../utils/getCellIcon";
 import { CellType } from "../../types/backend/entity/cell";
 
-describe(getCellIcon, () => {
+describe("getCellIcon", () => {
 	it("Returns correct icon", () => {
 		// Arrange
 

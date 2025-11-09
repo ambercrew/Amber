@@ -8,7 +8,7 @@ import {
 	waitFor,
 } from "@testing-library/react";
 
-describe(useOutsideClick, () => {
+describe("useOutsideClick", () => {
 	it("Calls callback on outside click", async () => {
 		// Arrange
 

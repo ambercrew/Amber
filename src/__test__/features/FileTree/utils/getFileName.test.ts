@@ -1,6 +1,6 @@
 import getFileName from "../../../../features/FileTree/utils/getFileName";
 
-describe(getFileName, () => {
+describe("getFileName", () => {
 	it("Works on full path", () => {
 		// Arrange
 

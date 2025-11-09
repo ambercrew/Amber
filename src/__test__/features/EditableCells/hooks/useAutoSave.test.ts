@@ -28,7 +28,7 @@ const renderAutoSave = () => {
 	};
 };
 
-describe(useAutoSave, () => {
+describe("useAutoSave", () => {
 	const onCloseRequestedMock = vi.fn();
 
 	beforeAll(() => {

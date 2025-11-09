@@ -4,7 +4,7 @@ import {
 } from "../../types/backend/dto/reviewTreeFolder";
 import getFolderChildById from "../../utils/getFolderChildById";
 
-describe(getFolderChildById, () => {
+describe("getFolderChildById", () => {
 	it("Returns existing file", () => {
 		// Arrange
 
