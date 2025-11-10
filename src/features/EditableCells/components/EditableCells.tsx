@@ -50,6 +50,8 @@ function EditableCells({
 	onEditButtonClick,
 }: IProps) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
+	// Used to force the scrolling of the selected cell, useful after inserting a new cell.
+	const scrollToSelectedCell = useRef(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
@@ -186,8 +188,12 @@ function EditableCells({
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId!, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-		if (cellId) setSelectedCellId(cellId);
-		else return;
+		if (cellId) {
+			setSelectedCellId(cellId);
+			scrollToSelectedCell.current = true;
+		} else {
+			return;
+		}
 		await saveChanges();
 		await onCellsUpdateSave();
 	};
@@ -233,6 +239,17 @@ function EditableCells({
 	if (selectedCellIndex === -1) {
 		selectedCellIndex = null;
 	}
+
+	useEffect(() => {
+		if (
+			scrollToSelectedCell.current &&
+			containerRef.current &&
+			selectedCellRef.current
+		) {
+			scrollUntilVisible(containerRef.current, selectedCellRef.current);
+			scrollToSelectedCell.current = false;
+		}
+	}, [cells]);
 
 	return (
 		<div
