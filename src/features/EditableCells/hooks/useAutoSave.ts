@@ -4,14 +4,14 @@ import useBeforeUnload from "../../../hooks/useBeforeUnload";
 import UpdateCellRequest from "../../../types/backend/dto/updateCellRequest";
 import { updateCellsContents } from "../../../api/cellApi";
 import errorToString from "../../../utils/errorToString";
-import { AUTO_SAVE_DELAY_IN_MILLI_SECONDS } from "../../../config/constants";
+import { AUTO_SAVE_DELAY_IN_MILLISECONDS } from "../../../config/constants";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 import { defaultCloseRequestedEventManager } from "../../../managers/closeRequestedEventManager";
 
-const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";
+export const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";
 
 interface IProps {
 	cells: Cell[];
@@ -63,11 +63,11 @@ function useAutoSave({
 
 			await updateCellsContents(requests);
 			changedCellsIds.current.clear();
+			await onCellsUpdateSave();
 		} catch (e) {
 			console.error(e);
 			onError(errorToString(e));
 		}
-		await onCellsUpdateSave();
 	}, [onError, onCellsUpdateSave]);
 
 	const handleCellContentUpdate = (id: string, content: string) => {
@@ -82,7 +82,7 @@ function useAutoSave({
 		}
 		autoSaveTimeoutId.current = setTimeout(() => {
 			void saveChanges();
-		}, AUTO_SAVE_DELAY_IN_MILLI_SECONDS);
+		}, AUTO_SAVE_DELAY_IN_MILLISECONDS);
 	};
 
 	useEffect(() => {

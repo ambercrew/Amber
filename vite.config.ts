@@ -49,5 +49,6 @@ export default defineConfig({
 			reporter: ["lcov"],
 			include: ["src/**/*.{ts,tsx,js,jsx}"],
 		},
+		clearMocks: true,
 	},
 });

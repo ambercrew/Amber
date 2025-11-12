@@ -1,4 +1,4 @@
-export const AUTO_SAVE_DELAY_IN_MILLI_SECONDS = 2000;
+export const AUTO_SAVE_DELAY_IN_MILLISECONDS = 2000;
 export const fileIdQueryParameter = "filedId";
 // This must be synced with CSS media query for sidebar.
 export const SMALL_SCREEN_MAX_WIDTH_IN_PX = 46 * 16;

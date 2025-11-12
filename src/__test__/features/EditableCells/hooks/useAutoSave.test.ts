@@ -1,10 +1,31 @@
 import { fireEvent, renderHook } from "@testing-library/react";
-import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
+import useAutoSave, {
+	CLOSE_REQUESTED_HANDLER_NAME,
+} from "../../../../features/EditableCells/hooks/useAutoSave";
 import { act } from "react";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../../stores/sync/managers/syncEventManager";
+import * as cellApi from "../../../../api/cellApi";
 
 const cellId = "1";
+
+vi.mock(import("../../../../managers/closeRequestedEventManager"));
+vi.mock(import("../../../../stores/sync/managers/syncEventManager"));
+vi.mock(import("../../../../api/cellApi.ts"));
+vi.mock(import("@tauri-apps/api/window"), () => {
+	const getCurrentWindowMock = vi.fn();
+	getCurrentWindowMock.mockReturnValue({
+		onCloseRequested: vi.fn(),
+	});
+
+	return {
+		getCurrentWindow: getCurrentWindowMock,
+	};
+});
 
 const renderAutoSave = () => {
 	const cell = createDefaultCell("FlashCard", "0", 0);
@@ -29,25 +50,11 @@ const renderAutoSave = () => {
 };
 
 describe("useAutoSave", () => {
-	const onCloseRequestedMock = vi.fn();
-
-	beforeAll(() => {
-		// Must be mocked since spy does not work:
-		// https://vitest.dev/guide/browser/#limitations
-		vi.mock("@tauri-apps/api/window", { spy: true });
-
-		// Mocking this to not get errors.
-		const getCurrentWindowMock = vi.fn();
-		vi.mocked(getCurrentWindow).mockImplementation(getCurrentWindowMock);
-		getCurrentWindowMock.mockReturnValue({
-			onCloseRequested: onCloseRequestedMock,
-		});
-	});
-
 	it("Saves automatically after delay", async () => {
 		// Arrange
 
 		vi.useFakeTimers();
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
 
 		// Act
 
@@ -58,30 +65,49 @@ describe("useAutoSave", () => {
 		// Assert
 
 		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(updateCellsContentsSpy).toBeCalled();
 		vi.useRealTimers();
 		vi.clearAllTimers();
 	});
 
-	it("Does not save if delay did not pass", () => {
+	it("Ignore cells remove cell from being saved", async () => {
 		// Arrange
 
-		const cb = vi.fn();
+		vi.useFakeTimers();
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
 
 		// Act
 
-		const { returnValue } = renderAutoSave();
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		returnValue.result.current.onCellContentUpdate(cellId, "test");
+		returnValue.result.current.ignoreCell(cellId);
+		await vi.runAllTimersAsync();
+
+		// Assert
+
+		expect(onCellsUpdateSaveCb).not.toBeCalled();
+		expect(updateCellsContentsSpy).not.toBeCalled();
+		vi.useRealTimers();
+		vi.clearAllTimers();
+	});
+
+	it("Does not save if timeout did not pass", () => {
+		// Act
+
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 
 		// Assert
 
-		expect(cb).not.toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).not.toHaveBeenCalled();
 	});
 
-	it("Stops before unload", async () => {
+	it("Stops and saves before unload", async () => {
 		// Arrange
 
 		const event = new Event("beforeunload");
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
 
 		// Act
 
@@ -92,19 +118,126 @@ describe("useAutoSave", () => {
 		// Assert
 
 		expect(preventDefaultSpy).toBeCalled();
+		expect(updateCellsContentsSpy).toBeCalled();
 		expect(onCellsUpdateSaveCb).toBeCalled();
 	});
 
 	it("Saves on window close request", async () => {
+		// Arrange
+
+		const addHandlerSpy = vi.spyOn(
+			defaultCloseRequestedEventManager,
+			"addHandler",
+		);
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
+
 		// Act
 
 		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
-		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
 		// Assert
 
-		expect(onCloseRequestedMock).toBeCalled();
+		expect(addHandlerSpy).toBeCalledWith(
+			CLOSE_REQUESTED_HANDLER_NAME,
+			expect.objectContaining({
+				priority: 0,
+			}),
+		);
+		await (addHandlerSpy.mock.calls[0][1].cb as () => Promise<void>)();
+		expect(updateCellsContentsSpy).toBeCalled();
 		expect(onCellsUpdateSaveCb).toBeCalled();
+	});
+
+	it("Saves on unmount", async () => {
+		// Arrange
+
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
+
+		// Act
+
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		returnValue.result.current.onCellContentUpdate(cellId, "test");
+		returnValue.unmount();
+		// Waiting for all async functions to be called.
+		await Promise.resolve();
+
+		// Assert
+
+		expect(updateCellsContentsSpy).toBeCalled();
+		expect(onCellsUpdateSaveCb).toBeCalled();
+	});
+
+	it("Saves on pre-sync start", async () => {
+		// Arrange
+
+		const addListenerSpy = vi.spyOn(
+			defaultGlobalSyncEventManager,
+			"addListener",
+		);
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
+
+		// Act
+
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		returnValue.result.current.onCellContentUpdate(cellId, "test");
+		await addListenerSpy.mock.calls.find(
+			a => a[0] === ListenerType.PreSyncStart,
+		)![1]();
+
+		// Assert
+
+		expect(updateCellsContentsSpy).toBeCalled();
+		expect(onCellsUpdateSaveCb).toBeCalled();
+	});
+
+	it("Calls onCellsUpdateSave on pre-sync complete", async () => {
+		// Arrange
+
+		const addListenerSpy = vi.spyOn(
+			defaultGlobalSyncEventManager,
+			"addListener",
+		);
+
+		// Act
+
+		const { onCellsUpdateSaveCb } = renderAutoSave();
+		await addListenerSpy.mock.calls.find(
+			a => a[0] === ListenerType.PreSyncComplete,
+		)![1]();
+
+		// Assert
+
+		expect(onCellsUpdateSaveCb).toBeCalled();
+	});
+
+	it("Unregister useEffect dependencies on unmount", () => {
+		// Arrange
+
+		const removeHandlerSpy = vi.spyOn(
+			defaultCloseRequestedEventManager,
+			"removeHandler",
+		);
+		const removeListenerSpy = vi.spyOn(
+			defaultGlobalSyncEventManager,
+			"removeListener",
+		);
+
+		// Act
+
+		const { returnValue } = renderAutoSave();
+		returnValue.unmount();
+
+		// Assert
+
+		expect(removeHandlerSpy).toBeCalledWith(CLOSE_REQUESTED_HANDLER_NAME);
+		expect(removeListenerSpy).toBeCalledWith(
+			ListenerType.PreSyncStart,
+			expect.anything(),
+		);
+		expect(removeListenerSpy).toBeCalledWith(
+			ListenerType.PreSyncComplete,
+			expect.anything(),
+		);
 	});
 });
