@@ -14,7 +14,7 @@ import { defineConfig } from "eslint/config";
 import lexicalPlugin from "@lexical/eslint-plugin";
 
 export default defineConfig([
-	{ ignores: ["dist", "src-tauri"] },
+	{ ignores: ["dist", "src-tauri", "coverage"] },
 	{
 		settings: {
 			react: {
