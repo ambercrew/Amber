@@ -1,36 +1,43 @@
 import { getSettings, updateSettings } from "../../api/settingsApi";
-import { AppDispatch } from "../store";
+import { AppDispatch, RootState } from "../store";
 import { setSettings } from "./settingsReducer";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Settings from "../../types/backend/model/settings";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
+import { selectIsSignedIn } from "../user/userSelectors";
 
-const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
+export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
 /** This function should be called on startup, and it loads the settings and
  * applies them.
  */
-export function initialLoadAndApplySettings(isUserSignedIn: boolean) {
-	return async function (dispatch: AppDispatch) {
+export function initialLoadAndApplySettings() {
+	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		const settings = await getSettings();
-		await applySettings(settings, dispatch);
+		if (settings.autoSync && selectIsSignedIn(getState())) {
+			await dispatch(sync());
+		}
 		dispatch(setSettings(settings));
-		if (isUserSignedIn && settings.autoSync) await dispatch(sync());
+		await applySettings(settings, dispatch, getState);
 	};
 }
 
 export function updateAndApplySettings(settings: Settings) {
-	return async function (dispatch: AppDispatch) {
+	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		await updateSettings({
 			...settings,
 		});
-		await applySettings(settings, dispatch);
 		dispatch(setSettings(settings));
+		await applySettings(settings, dispatch, getState);
 	};
 }
 
-async function applySettings(settings: Settings, dispatch: AppDispatch) {
+async function applySettings(
+	settings: Settings,
+	dispatch: AppDispatch,
+	getState: () => RootState,
+) {
 	if (
 		settings.theme === "Dark" ||
 		(settings.theme === "FollowSystem" &&
@@ -50,7 +57,8 @@ async function applySettings(settings: Settings, dispatch: AppDispatch) {
 		SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 		{
 			cb: async () => {
-				if (settings.autoSync) await dispatch(sync());
+				if (settings.autoSync && selectIsSignedIn(getState()))
+					await dispatch(sync());
 			},
 			// Must be executed after everything.
 			priority: 9999,

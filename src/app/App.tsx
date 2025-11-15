@@ -77,10 +77,8 @@ function App() {
 	useEffect(() => {
 		void (async () => {
 			await dispatch(getReviewTreeFolderForRoot());
-			const userInformation = await dispatch(loadInitialStateUser());
-			await dispatch(
-				initialLoadAndApplySettings(userInformation !== null),
-			);
+			await dispatch(loadInitialStateUser());
+			await dispatch(initialLoadAndApplySettings());
 		})();
 
 		document.addEventListener("contextmenu", e => {
