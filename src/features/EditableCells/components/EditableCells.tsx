@@ -18,6 +18,9 @@ import {
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 
+/** Used to say how many cells are always eagerly loaded from the current
+ * selected cell.
+ */
 const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
 
 interface IProps {
