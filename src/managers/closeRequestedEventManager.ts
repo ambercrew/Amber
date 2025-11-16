@@ -15,9 +15,9 @@ export class CloseRequestedEventManager {
 	 */
 	public addHandler(name: string, handler: IHandler) {
 		if (!this.isEventAdded) {
-			void getCurrentWindow().onCloseRequested(async () => {
-				await this.callHandlers();
-			});
+			void getCurrentWindow().onCloseRequested(
+				this.callHandlers.bind(this),
+			);
 			this.isEventAdded = true;
 		}
 
@@ -28,7 +28,7 @@ export class CloseRequestedEventManager {
 		this.handlers.delete(name);
 	}
 
-	public async callHandlers() {
+	private async callHandlers() {
 		const handlers = Array.from(this.handlers.values()).sort(
 			(a, b) => a.priority - b.priority,
 		);
