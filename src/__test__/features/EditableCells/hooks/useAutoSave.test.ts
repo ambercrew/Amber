@@ -16,16 +16,6 @@ const cellId = "1";
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../stores/sync/managers/syncEventManager"));
 vi.mock(import("../../../../api/cellApi.ts"));
-vi.mock(import("@tauri-apps/api/window"), () => {
-	const getCurrentWindowMock = vi.fn();
-	getCurrentWindowMock.mockReturnValue({
-		onCloseRequested: vi.fn(),
-	});
-
-	return {
-		getCurrentWindow: getCurrentWindowMock,
-	};
-});
 
 const renderAutoSave = () => {
 	const cell = createDefaultCell("FlashCard", "0", 0);
