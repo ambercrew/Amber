@@ -11,13 +11,17 @@ const reducers = combineReducers({
 	settings: settingsReducer,
 });
 
-export const store = configureStore({
-	reducer: reducers,
-	middleware: getDefaultMiddleware =>
-		getDefaultMiddleware({
-			serializableCheck: false,
-		}),
-});
+export const setupStore = (preloadedState?: Partial<RootState>) => {
+	return configureStore({
+		reducer: reducers,
+		middleware: getDefaultMiddleware =>
+			getDefaultMiddleware({
+				serializableCheck: false,
+			}),
+		preloadedState,
+	});
+};
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof reducers>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore["dispatch"];
