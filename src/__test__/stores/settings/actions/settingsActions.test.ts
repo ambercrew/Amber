@@ -240,12 +240,6 @@ describe("initialLoadAndApplySettings", () => {
 });
 
 describe("updateAndApplySettings", () => {
-	beforeEach(() => {
-		vi.mocked(getCurrentWebview).mockReturnValue({
-			setZoom: vi.fn(),
-		} as Partial<Webview> as Webview);
-	});
-
 	it("Should update settings, apply them and then set the global state", async () => {
 		// Arrange
 
