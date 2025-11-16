@@ -50,8 +50,11 @@ function EditableCells({
 	onEditButtonClick,
 }: IProps) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
-	// Used to force the scrolling of the selected cell, useful after inserting a new cell.
-	const scrollToSelectedCell = useRef(false);
+	/** Contains the id of the cell that rendering automatically scrolled to last render.
+	 * If this value is not equal to current selected cell id, when rendering, the container
+	 * will scroll to the new selected cell id.
+	 */
+	const lastAutoScrolledToCellId = useRef<string | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
@@ -74,7 +77,9 @@ function EditableCells({
 
 	useEffect(() => {
 		// Scroll to the selected cell when the search text is cleared.
-		if (!searchText) selectedCellRef.current?.scrollIntoView();
+		if (!searchText && selectedCellRef.current && containerRef.current) {
+			scrollUntilVisible(containerRef.current, selectedCellRef.current);
+		}
 	}, [searchText]);
 
 	useEffect(() => {
@@ -142,6 +147,9 @@ function EditableCells({
 				);
 			});
 			await onCellsUpdateSave();
+
+			// Scrolling to the new cell position!
+			lastAutoScrolledToCellId.current = null;
 		}
 	};
 
@@ -181,7 +189,11 @@ function EditableCells({
 				filteredCells[Math.max(0, selectedCellIndex - 1)].id,
 			);
 		} else if (e.ctrlKey && e.key === " ") {
-			selectedCellRef.current?.scrollIntoView();
+			if (containerRef.current && selectedCellRef.current)
+				scrollUntilVisible(
+					containerRef.current,
+					selectedCellRef.current,
+				);
 		}
 	}, "keydown");
 
@@ -190,7 +202,6 @@ function EditableCells({
 		const cellId = await executeRequest(async () => await createCell(cell));
 		if (cellId) {
 			setSelectedCellId(cellId);
-			scrollToSelectedCell.current = true;
 		} else {
 			return;
 		}
@@ -221,16 +232,13 @@ function EditableCells({
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await saveChanges();
 		await onCellsUpdateSave();
+		// Scrolling to the new cell position!
+		lastAutoScrolledToCellId.current = null;
 	};
 
-	const handleSelect = (
-		e: React.FocusEvent<HTMLDivElement>,
-		cellId: string,
-	) => {
+	const handleSelect = (cellId: string) => {
 		if (selectedCellId === cellId) return;
 		setSelectedCellId(cellId);
-		if (!containerRef.current) return;
-		scrollUntilVisible(containerRef.current, e.currentTarget);
 	};
 
 	let selectedCellIndex: number | null = cells.findIndex(
@@ -240,16 +248,20 @@ function EditableCells({
 		selectedCellIndex = null;
 	}
 
-	useEffect(() => {
-		if (
-			scrollToSelectedCell.current &&
-			containerRef.current &&
-			selectedCellRef.current
-		) {
-			scrollUntilVisible(containerRef.current, selectedCellRef.current);
-			scrollToSelectedCell.current = false;
-		}
-	}, [cells]);
+	const selectedCellCallbackRef = useCallback(
+		(node: HTMLDivElement) => {
+			selectedCellRef.current = node;
+			if (
+				node &&
+				containerRef.current &&
+				lastAutoScrolledToCellId.current !== selectedCellId
+			) {
+				scrollUntilVisible(containerRef.current, node);
+				lastAutoScrolledToCellId.current = selectedCellId;
+			}
+		},
+		[selectedCellId],
+	);
 
 	return (
 		<div
@@ -277,7 +289,9 @@ function EditableCells({
 							i + cell.id + isSyncing
 						}
 						ref={
-							cell.id === selectedCellId ? selectedCellRef : null
+							cell.id === selectedCellId
+								? selectedCellCallbackRef
+								: null
 						}
 						eagerLoadRichTextEditor={
 							selectedCellIndex !== null
@@ -287,7 +301,7 @@ function EditableCells({
 						}
 						cell={cell}
 						fileMode={fileMode}
-						onSelect={e => handleSelect(e, cell.id)}
+						onSelect={() => handleSelect(cell.id)}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id)}
 						autoFocusEditor={
