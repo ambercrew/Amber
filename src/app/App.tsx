@@ -35,7 +35,9 @@ function App() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchParams] = useSearchParams();
 	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
-	const [editCellId, setEditCellId] = useState<string | null>(null);
+	const [editorInitialSelectedCellId, setInitialSelectedCellId] = useState<
+		string | null
+	>(null);
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
 	const [isSmallScreen, setIsSmallScreen] = useState(
 		window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX,
@@ -118,7 +120,7 @@ function App() {
 	}, "keydown");
 
 	const handleEditButtonClick = (fileId: string, cellId: string) => {
-		setEditCellId(cellId);
+		setInitialSelectedCellId(cellId);
 		searchParams.set(fileIdQueryParameter, fileId);
 		void navigate({
 			pathname: "editor",
@@ -167,7 +169,9 @@ function App() {
 							path="/editor"
 							element={
 								<Editor
-									editCellId={editCellId}
+									initialSelectedCellId={
+										editorInitialSelectedCellId
+									}
 									onError={setErrorMessage}
 									onStudyStart={() =>
 										handleEditorStudyClick()

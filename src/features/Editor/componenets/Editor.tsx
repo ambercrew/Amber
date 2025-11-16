@@ -12,12 +12,12 @@ import { fileIdQueryParameter } from "../../../config/constants";
 import EditableCells from "../../EditableCells/components/EditableCells";
 
 interface Props {
-	editCellId: string | null;
+	initialSelectedCellId: string | null;
 	onError: (error: string) => void;
 	onStudyStart: () => void;
 }
 
-function Editor({ editCellId, onError, onStudyStart }: Props) {
+function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
 	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
@@ -102,7 +102,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				cells={cells}
 				searchText={searchText}
 				onError={onError}
-				editCellId={editCellId}
+				initialSelectedCellId={initialSelectedCellId}
 				fileId={selectedFileId}
 				onCellsUpdateSave={handleCellsUpdate}
 				fileMode="single"

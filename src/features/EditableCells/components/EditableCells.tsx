@@ -26,7 +26,7 @@ const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
 interface IProps {
 	cells: Cell[];
 	searchText?: string;
-	editCellId: string | null;
+	initialSelectedCellId?: string | null;
 	fileId?: string;
 	autoFocusEditor?: boolean;
 	className?: string;
@@ -44,7 +44,7 @@ function EditableCells({
 	cells,
 	searchText,
 	fileId,
-	editCellId,
+	initialSelectedCellId,
 	autoFocusEditor,
 	className,
 	fileMode,
@@ -68,7 +68,8 @@ function EditableCells({
 
 	// Ensuring that a cell is selected at start.
 	if (!selectedCellId) {
-		if (cells.some(c => c.id === editCellId)) setSelectedCellId(editCellId);
+		if (cells.some(c => c.id === initialSelectedCellId))
+			setSelectedCellId(initialSelectedCellId!);
 		else if (cells.length > 0) setSelectedCellId(cells[0].id);
 	}
 
