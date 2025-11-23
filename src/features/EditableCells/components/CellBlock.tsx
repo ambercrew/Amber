@@ -125,6 +125,7 @@ function CellBlock(
 			onDragOver={handleDragOver}
 			onDragLeave={() => setIsDragOver(false)}
 			onDrop={handleDrop}
+			data-testid={`CellBlock-${cell.id}`}
 			className={`${styles.cellBlock}
                 ${isSelected ? styles.selectedCell : ""}
                 ${isDragOver ? styles.dragOver : ""}

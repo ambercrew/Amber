@@ -270,6 +270,7 @@ function EditableCells({
 	return (
 		<div
 			className={`${className} ${styles.container} ${isSyncing && styles.syncing}`}
+			data-testid="EditableCells"
 			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
