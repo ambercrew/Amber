@@ -14,7 +14,11 @@ function scrollUntilVisible(
 	}
 
 	if (0 < childRect.bottom - parentRect.bottom) {
-		childElement.scrollIntoView(false);
+		if (childRect.height > parentRect.height) {
+			childElement.scrollIntoView(true);
+		} else {
+			childElement.scrollIntoView(false);
+		}
 	}
 }
 
