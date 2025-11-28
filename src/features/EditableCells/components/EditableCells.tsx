@@ -53,11 +53,12 @@ function EditableCells({
 	onEditButtonClick,
 }: IProps) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
-	/** Contains the id of the cell that rendering automatically scrolled to last render.
-	 * If this value is not equal to current selected cell id, when rendering, the container
-	 * will scroll to the new selected cell id.
+	/** Automatically scroll to the selected cell on the next render,
+	 * this requires something else to rerender the component for it to work.
 	 */
-	const lastAutoScrolledToCellId = useRef<string | null>(null);
+	const scrollToSelectedCellOnNextRender = useRef<boolean>(
+		initialSelectedCellId !== null && initialSelectedCellId !== undefined,
+	);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
@@ -150,9 +151,7 @@ function EditableCells({
 				);
 			});
 			await onCellsUpdateSave();
-
-			// Scrolling to the new cell position!
-			lastAutoScrolledToCellId.current = null;
+			scrollToSelectedCellOnNextRender.current = true;
 		}
 	};
 
@@ -182,6 +181,7 @@ function EditableCells({
 					Math.min(filteredCells.length - 1, selectedCellIndex + 1)
 				].id,
 			);
+			scrollToSelectedCellOnNextRender.current = true;
 		} else if (e.ctrlKey && e.key == "ArrowUp") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
@@ -191,6 +191,7 @@ function EditableCells({
 			setSelectedCellId(
 				filteredCells[Math.max(0, selectedCellIndex - 1)].id,
 			);
+			scrollToSelectedCellOnNextRender.current = true;
 		} else if (e.ctrlKey && e.key === " ") {
 			if (containerRef.current && selectedCellRef.current)
 				scrollUntilVisible(
@@ -205,6 +206,7 @@ function EditableCells({
 		const cellId = await executeRequest(async () => await createCell(cell));
 		if (cellId) {
 			setSelectedCellId(cellId);
+			scrollToSelectedCellOnNextRender.current = true;
 		} else {
 			return;
 		}
@@ -223,6 +225,7 @@ function EditableCells({
 		} else {
 			setSelectedCellId(null);
 		}
+		scrollToSelectedCellOnNextRender.current = true;
 		await saveChanges();
 		await onCellsUpdateSave();
 	};
@@ -235,13 +238,7 @@ function EditableCells({
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await saveChanges();
 		await onCellsUpdateSave();
-		// Scrolling to the new cell position!
-		lastAutoScrolledToCellId.current = null;
-	};
-
-	const handleSelect = (cellId: string) => {
-		if (selectedCellId === cellId) return;
-		setSelectedCellId(cellId);
+		scrollToSelectedCellOnNextRender.current = true;
 	};
 
 	let selectedCellIndex: number | null = cells.findIndex(
@@ -251,20 +248,17 @@ function EditableCells({
 		selectedCellIndex = null;
 	}
 
-	const selectedCellCallbackRef = useCallback(
-		(node: HTMLDivElement) => {
-			selectedCellRef.current = node;
-			if (
-				node &&
-				containerRef.current &&
-				lastAutoScrolledToCellId.current !== selectedCellId
-			) {
-				scrollUntilVisible(containerRef.current, node);
-				lastAutoScrolledToCellId.current = selectedCellId;
-			}
-		},
-		[selectedCellId],
-	);
+	const selectedCellCallbackRef = useCallback((node: HTMLDivElement) => {
+		selectedCellRef.current = node;
+		if (
+			node &&
+			containerRef.current &&
+			scrollToSelectedCellOnNextRender.current
+		) {
+			scrollUntilVisible(containerRef.current, node);
+			scrollToSelectedCellOnNextRender.current = false;
+		}
+	}, []);
 
 	return (
 		<div
@@ -273,7 +267,7 @@ function EditableCells({
 			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
-			{/* Rerendering when the placeholder height change might be to expensive */}
+			{/* False positive about the containerRef, no other solution to get it working. */}
 			{/*eslint-disable-next-line react-hooks/refs */}
 			{filteredCells.map((cell, i) => (
 				<RenderIfVisible
@@ -299,13 +293,16 @@ function EditableCells({
 						}
 						cell={cell}
 						fileMode={fileMode}
-						onSelect={() => handleSelect(cell.id)}
 						isSelected={selectedCellId === cell.id}
-						onClick={() => setSelectedCellId(cell.id)}
+						repetitions={cell.repetitions}
 						autoFocusEditor={
 							autoFocusEditor && selectedCellId === cell.id
 						}
-						repetitions={cell.repetitions}
+						enableFileSpecificFunctionality={
+							enableFileSpecificFunctionality
+						}
+						onFocus={() => setSelectedCellId(cell.id)}
+						onClick={() => setSelectedCellId(cell.id)}
 						onError={onError}
 						onDrop={e => void handleDrop(e, i)}
 						onChange={content =>
@@ -319,9 +316,6 @@ function EditableCells({
 							void saveChanges();
 							void onCellsUpdateSave();
 						}}
-						enableFileSpecificFunctionality={
-							enableFileSpecificFunctionality
-						}
 						onEditButtonClick={onEditButtonClick}
 					/>
 				</RenderIfVisible>

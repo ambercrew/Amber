@@ -84,7 +84,7 @@ describe("EditableCells", () => {
 		expect(scrollIntoViewMock).toHaveBeenCalledOnce();
 	});
 
-	it("Should scroll when selected using click", () => {
+	it("Should not scroll when selected using click", () => {
 		// Arrange
 
 		Element.prototype.getBoundingClientRect = function () {
@@ -132,8 +132,7 @@ describe("EditableCells", () => {
 
 		// Assert
 
-		expect(scrolledIntoView).toBe(true);
-		// Two times since the first time is for the initial cell.
-		expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+		expect(scrolledIntoView).toBe(false);
+		expect(scrollIntoViewMock).not.toHaveBeenCalled();
 	});
 });

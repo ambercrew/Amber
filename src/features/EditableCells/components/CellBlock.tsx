@@ -24,7 +24,7 @@ interface Props {
 	enableFileSpecificFunctionality: boolean;
 	fileMode: "single" | "global search";
 	eagerLoadRichTextEditor: boolean;
-	onSelect: (e: React.FocusEvent<HTMLDivElement>) => void;
+	onFocus: (e: React.FocusEvent<HTMLDivElement>) => void;
 	onClick: (id: string) => void;
 	onError: (error: string) => void;
 	onDrop: (e: React.DragEvent) => void;
@@ -45,7 +45,7 @@ function CellBlock(
 		fileMode,
 		eagerLoadRichTextEditor,
 		onError,
-		onSelect,
+		onFocus,
 		onClick,
 		onDrop,
 		onChange,
@@ -120,7 +120,7 @@ function CellBlock(
 	return (
 		<div
 			ref={ref}
-			onFocus={onSelect}
+			onFocus={onFocus}
 			onClick={handleClick}
 			onDragOver={handleDragOver}
 			onDragLeave={() => setIsDragOver(false)}
