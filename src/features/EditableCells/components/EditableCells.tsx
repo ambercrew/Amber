@@ -61,7 +61,6 @@ function EditableCells({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
-	const cellsPlaceholderHeights = useRef(new Map<string, number>());
 	const isSyncing = useAppSelector(selectIsSyncing);
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
@@ -279,14 +278,8 @@ function EditableCells({
 			{filteredCells.map((cell, i) => (
 				<RenderIfVisible
 					key={cell.id}
-					defaultHeight={
-						cellsPlaceholderHeights.current.get(cell.id) ?? 200
-					}
 					stayRendered={selectedCellId === cell.id}
-					root={containerRef.current}
-					onPlaceholderChangeHeight={height =>
-						cellsPlaceholderHeights.current.set(cell.id, height)
-					}>
+					root={containerRef.current}>
 					<CellBlock
 						key={
 							// Using isSyncing directly in key to re-force reconstruction

@@ -6,17 +6,14 @@ interface Props {
 	children: React.ReactNode;
 	stayRendered?: boolean;
 	root?: HTMLElement | null;
-	/** Called when the placeholder replaces the default height given */
-	onPlaceholderChangeHeight?: (height: number) => void;
 }
 
 const RenderIfVisible = ({
-	defaultHeight = 300,
+	defaultHeight = 250,
 	visibleOffset = 600,
 	children,
 	stayRendered = false,
 	root = null,
-	onPlaceholderChangeHeight,
 }: Props) => {
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 	const [placeholderHeight, setPlaceholderHeight] = useState(defaultHeight);
@@ -24,7 +21,7 @@ const RenderIfVisible = ({
 
 	// Set visibility with intersection observer
 	useEffect(() => {
-		if (!intersectionRef.current) return;
+		if (!intersectionRef.current || stayRendered) return;
 
 		const localRef = intersectionRef.current;
 		const observer = new IntersectionObserver(
@@ -32,9 +29,6 @@ const RenderIfVisible = ({
 				// Before switching off `isVisible`, set the height of the placeholder
 				if (!entries[0].isIntersecting) {
 					setPlaceholderHeight(localRef.offsetHeight);
-					if (onPlaceholderChangeHeight) {
-						onPlaceholderChangeHeight(localRef.offsetHeight);
-					}
 				}
 				if (window.requestIdleCallback) {
 					window.requestIdleCallback(
