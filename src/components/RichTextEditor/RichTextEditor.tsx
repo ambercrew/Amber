@@ -70,7 +70,7 @@ export default function RichTextEditor({ ...props }: IProps) {
 									? props.content
 									: "&nbsp;",
 							}}
-							onMouseEnter={() => setShowEditor(true)}
+							onMouseOver={() => setShowEditor(true)}
 							onFocus={() => setShowEditor(true)}
 						/>
 					</div>
