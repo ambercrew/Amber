@@ -33,7 +33,7 @@ const RenderIfVisible = ({
 				if (!entries[0].isIntersecting) {
 					setPlaceholderHeight(localRef.offsetHeight);
 					if (onPlaceholderChangeHeight) {
-						onPlaceholderChangeHeight(placeholderHeight);
+						onPlaceholderChangeHeight(localRef.offsetHeight);
 					}
 				}
 				if (window.requestIdleCallback) {
