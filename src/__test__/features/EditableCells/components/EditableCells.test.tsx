@@ -1,14 +1,12 @@
-import { act, fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
 import Cell from "../../../../types/backend/entity/cell";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
+import { useState } from "react";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
-
-vi.mock("../../../../components/RenderIfVisible/RenderIfVisible", () => ({
-	default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-}));
+vi.mock(import("../../../../api/cellApi"));
 
 function createTestCell(index: number): Cell {
 	const cell = createDefaultCell("Note", index + "", index);
@@ -180,7 +178,7 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + arrow up", async () => {
+	it("Should scroll when changing selected cell using ctrl + arrow up", () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -221,5 +219,62 @@ describe("EditableCells scrolling", () => {
 
 		expect(cellsScrolledTo).toContain("CellBlock-2");
 		expect(cellsScrolledTo).toHaveLength(1);
+	});
+
+	it("Should scroll when changing selected cell using ctrl + alt + arrow down", async () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		const cells: Cell[] = [
+			createTestCell(1),
+			createTestCell(2),
+			createTestCell(3),
+		];
+
+		const TestComponent = () => {
+			const [, setState] = useState(false);
+
+			return (
+				<EditableCells
+					cells={cells}
+					fileMode="single"
+					onError={vi.fn()}
+					onCellsUpdateSave={() => {
+						// Forcing a rerender to simulate real method.
+						setState(s => !s);
+						return Promise.resolve();
+					}}
+				/>
+			);
+		};
+
+		renderWithProviders(<TestComponent />);
+
+		// Act
+
+		act(() => {
+			const element = screen.getByTestId("CellBlock-2");
+			element.click();
+			fireEvent.keyDown(element, {
+				key: "ArrowDown",
+				ctrlKey: true,
+				altKey: true,
+			});
+		});
+
+		// Assert
+
+		await waitFor(() => {
+			expect(cellsScrolledTo).toContain("CellBlock-2");
+			expect(cellsScrolledTo).toHaveLength(1);
+		});
 	});
 });

@@ -60,6 +60,7 @@ function EditableCells({
 		initialSelectedCellId !== null && initialSelectedCellId !== undefined,
 	);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const previousSearchText = useRef(searchText);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
 	const isSyncing = useAppSelector(selectIsSyncing);
@@ -81,9 +82,15 @@ function EditableCells({
 
 	useEffect(() => {
 		// Scroll to the selected cell when the search text is cleared.
-		if (!searchText && selectedCellRef.current && containerRef.current) {
+		if (
+			!searchText &&
+			searchText !== previousSearchText.current &&
+			selectedCellRef.current &&
+			containerRef.current
+		) {
 			scrollUntilVisible(containerRef.current, selectedCellRef.current);
 		}
+		previousSearchText.current = searchText;
 	}, [searchText]);
 
 	useEffect(() => {
@@ -248,17 +255,16 @@ function EditableCells({
 		selectedCellIndex = null;
 	}
 
-	const selectedCellCallbackRef = useCallback((node: HTMLDivElement) => {
-		selectedCellRef.current = node;
+	useEffect(() => {
 		if (
-			node &&
+			selectedCellRef.current &&
 			containerRef.current &&
 			scrollToSelectedCellOnNextRender.current
 		) {
-			scrollUntilVisible(containerRef.current, node);
-			scrollToSelectedCellOnNextRender.current = false;
+			scrollUntilVisible(containerRef.current, selectedCellRef.current);
 		}
-	}, []);
+		scrollToSelectedCellOnNextRender.current = false;
+	});
 
 	return (
 		<div
@@ -281,9 +287,7 @@ function EditableCells({
 							i + cell.id + isSyncing
 						}
 						ref={
-							cell.id === selectedCellId
-								? selectedCellCallbackRef
-								: null
+							cell.id === selectedCellId ? selectedCellRef : null
 						}
 						eagerLoadRichTextEditor={
 							selectedCellIndex !== null
