@@ -19,9 +19,10 @@ const RenderIfVisible = ({
 	const [placeholderHeight, setPlaceholderHeight] = useState(defaultHeight);
 	const intersectionRef = useRef<HTMLDivElement>(null);
 
-	// Set visibility with intersection observer
 	useEffect(() => {
-		if (!intersectionRef.current || stayRendered) return;
+		// We are not returning here if the component is visible just to update
+		// placeholder height.
+		if (!intersectionRef.current) return;
 
 		const localRef = intersectionRef.current;
 		const observer = new IntersectionObserver(
