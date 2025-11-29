@@ -8,6 +8,8 @@ import { useState } from "react";
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
 
+/** Creates a cell for testing where the id is equal to the index.
+ */
 function createTestCell(index: number): Cell {
 	const cell = createDefaultCell("Note", index + "", index);
 	cell.id = index + "";
@@ -28,6 +30,34 @@ function setBoundingClientRectByTestId(
 			...(values[testId] ?? {}),
 		};
 	};
+}
+
+/** Render EditableCells with the given cells, recommended to use this function,
+ * as it sets onCellsUpdateSave callback to rerender the component when called
+ * as it would do in real situation.
+ */
+function renderEditableCells(
+	props: Partial<Parameters<typeof EditableCells>[0]>,
+) {
+	const Component = () => {
+		const [, setState] = useState(false);
+
+		return (
+			<EditableCells
+				fileMode="single"
+				onError={vi.fn()}
+				onCellsUpdateSave={() => {
+					// Forcing a rerender to simulate real method.
+					setState(s => !s);
+					return Promise.resolve();
+				}}
+				cells={[]}
+				{...props}
+			/>
+		);
+	};
+
+	return renderWithProviders(<Component />);
 }
 
 describe("EditableCells scrolling", () => {
@@ -73,23 +103,12 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells: Cell[] = [
-			createTestCell(1),
-			createTestCell(2),
-			createTestCell(3),
-		];
-
 		// Act
 
-		renderWithProviders(
-			<EditableCells
-				cells={cells}
-				fileMode="single"
-				onError={vi.fn()}
-				onCellsUpdateSave={vi.fn()}
-				initialSelectedCellId="2"
-			/>,
-		);
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "2",
+		});
 
 		// Assert
 
@@ -109,20 +128,9 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells: Cell[] = [
-			createTestCell(1),
-			createTestCell(2),
-			createTestCell(3),
-		];
-
-		renderWithProviders(
-			<EditableCells
-				cells={cells}
-				fileMode="single"
-				onError={vi.fn()}
-				onCellsUpdateSave={vi.fn()}
-			/>,
-		);
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+		});
 
 		// Act
 
@@ -147,20 +155,9 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells: Cell[] = [
-			createTestCell(1),
-			createTestCell(2),
-			createTestCell(3),
-		];
-
-		renderWithProviders(
-			<EditableCells
-				cells={cells}
-				fileMode="single"
-				onError={vi.fn()}
-				onCellsUpdateSave={vi.fn()}
-			/>,
-		);
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+		});
 
 		// Act
 
@@ -190,21 +187,10 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells: Cell[] = [
-			createTestCell(1),
-			createTestCell(2),
-			createTestCell(3),
-		];
-
-		renderWithProviders(
-			<EditableCells
-				cells={cells}
-				fileMode="single"
-				onError={vi.fn()}
-				onCellsUpdateSave={vi.fn()}
-				initialSelectedCellId="3"
-			/>,
-		);
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "3",
+		});
 
 		// Act
 
@@ -233,30 +219,9 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells: Cell[] = [
-			createTestCell(1),
-			createTestCell(2),
-			createTestCell(3),
-		];
-
-		const TestComponent = () => {
-			const [, setState] = useState(false);
-
-			return (
-				<EditableCells
-					cells={cells}
-					fileMode="single"
-					onError={vi.fn()}
-					onCellsUpdateSave={() => {
-						// Forcing a rerender to simulate real method.
-						setState(s => !s);
-						return Promise.resolve();
-					}}
-				/>
-			);
-		};
-
-		renderWithProviders(<TestComponent />);
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+		});
 
 		// Act
 
@@ -276,5 +241,38 @@ describe("EditableCells scrolling", () => {
 			expect(cellsScrolledTo).toContain("CellBlock-2");
 			expect(cellsScrolledTo).toHaveLength(1);
 		});
+	});
+
+	it("Should scroll when changing selected cell using ctrl + alt + arrow up", () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-3": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "3",
+		});
+
+		// Act
+
+		act(() => {
+			fireEvent.keyDown(screen.getByTestId("CellBlock-3"), {
+				key: "ArrowUp",
+				ctrlKey: true,
+				altKey: true,
+			});
+		});
+
+		// Assert
+
+		expect(cellsScrolledTo).toContain("CellBlock-3");
+		expect(cellsScrolledTo).toHaveLength(1);
 	});
 });
