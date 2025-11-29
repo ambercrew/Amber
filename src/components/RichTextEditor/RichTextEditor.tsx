@@ -50,7 +50,10 @@ export default function RichTextEditor({ ...props }: IProps) {
 		setPreviousEagerLoadRichTextEditor,
 	] = useState<boolean | null>(null);
 
-	if (previousEagerLoadRichTextEditor !== props.eagerLoadRichTextEditor) {
+	if (
+		previousEagerLoadRichTextEditor !== props.eagerLoadRichTextEditor &&
+		!showEditor
+	) {
 		setPreviousEagerLoadRichTextEditor(props.eagerLoadRichTextEditor);
 		if (props.eagerLoadRichTextEditor) setShowEditor(true);
 	}
