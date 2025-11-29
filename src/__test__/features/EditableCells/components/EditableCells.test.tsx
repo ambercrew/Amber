@@ -1,26 +1,54 @@
-import { act, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
 import Cell from "../../../../types/backend/entity/cell";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
-import { Mock } from "vitest";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 
+vi.mock("../../../../components/RenderIfVisible/RenderIfVisible", () => ({
+	default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 function createTestCell(index: number): Cell {
-	const cell = createDefaultCell("FlashCard", index + "", index);
+	const cell = createDefaultCell("Note", index + "", index);
 	cell.id = index + "";
 	return cell;
 }
 
-describe("EditableCells", () => {
-	let scrollIntoViewMock: Mock<typeof Element.prototype.scrollIntoView>;
+/** Sets the DOMRect for the elements with the given data-testid.
+ */
+function setBoundingClientRectByTestId(
+	values: Record<string, Partial<DOMRect>>,
+) {
+	Element.prototype.getBoundingClientRect = function () {
+		const testId = this.getAttribute("data-testid");
+		if (!testId) return new DOMRect();
+
+		return {
+			...new DOMRect(),
+			...(values[testId] ?? {}),
+		};
+	};
+}
+
+describe("EditableCells scrolling", () => {
+	/** Cells which scrollIntoView was called on. */
+	let cellsScrolledTo: string[];
 
 	beforeEach(() => {
-		scrollIntoViewMock = vi.fn();
-		Element.prototype.scrollIntoView = scrollIntoViewMock;
+		cellsScrolledTo = [];
 
-		// @ts-expect-error IntersectionObserver is not found by default.
+		Element.prototype.scrollIntoView = vi.fn().mockImplementation(function (
+			this: Element,
+		) {
+			const testId = this.getAttribute("data-testid");
+			if (testId?.startsWith("CellBlock-")) {
+				cellsScrolledTo.push(testId);
+			}
+		});
+
+		// @ts-expect-error IntersectionObserver is not found by default on the testing library.
 		window.IntersectionObserver = class IntersectionObserver {
 			constructor(cb: (entries: unknown[]) => void) {
 				cb([
@@ -38,26 +66,13 @@ describe("EditableCells", () => {
 	it("Should scroll to initial selected cell", () => {
 		// Arrange
 
-		Element.prototype.getBoundingClientRect = function () {
-			if (this.getAttribute("data-testid") === "CellBlock-2") {
-				return {
-					...new DOMRect(),
-					top: 20,
-				};
-			} else if (this.getAttribute("data-testid") === "EditableCells") {
-				return {
-					...new DOMRect(),
-					top: 30,
-				};
-			}
-			return new DOMRect();
-		};
-
-		let scrolledIntoView = false;
-		scrollIntoViewMock.mockImplementation(function (this: Element) {
-			if (this.getAttribute("data-testid") === "CellBlock-2") {
-				scrolledIntoView = true;
-			}
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				top: 20,
+			},
+			EditableCells: {
+				top: 30,
+			},
 		});
 
 		const cells: Cell[] = [
@@ -80,33 +95,20 @@ describe("EditableCells", () => {
 
 		// Assert
 
-		expect(scrolledIntoView).toBe(true);
-		expect(scrollIntoViewMock).toHaveBeenCalledOnce();
+		expect(cellsScrolledTo).toContain("CellBlock-2");
+		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
 	it("Should not scroll when selected using click", () => {
 		// Arrange
 
-		Element.prototype.getBoundingClientRect = function () {
-			if (this.getAttribute("data-testid") === "CellBlock-3") {
-				return {
-					...new DOMRect(),
-					bottom: 30,
-				};
-			} else if (this.getAttribute("data-testid") === "EditableCells") {
-				return {
-					...new DOMRect(),
-					bottom: 20,
-				};
-			}
-			return new DOMRect();
-		};
-
-		let scrolledIntoView = false;
-		scrollIntoViewMock.mockImplementation(function (this: Element) {
-			if (this.getAttribute("data-testid") === "CellBlock-3") {
-				scrolledIntoView = true;
-			}
+		setBoundingClientRectByTestId({
+			"CellBlock-3": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
 		});
 
 		const cells: Cell[] = [
@@ -132,7 +134,92 @@ describe("EditableCells", () => {
 
 		// Assert
 
-		expect(scrolledIntoView).toBe(false);
-		expect(scrollIntoViewMock).not.toHaveBeenCalled();
+		expect(cellsScrolledTo).toHaveLength(0);
+	});
+
+	it("Should scroll when changing selected cell using ctrl + arrow down", () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		const cells: Cell[] = [
+			createTestCell(1),
+			createTestCell(2),
+			createTestCell(3),
+		];
+
+		renderWithProviders(
+			<EditableCells
+				cells={cells}
+				fileMode="single"
+				onError={vi.fn()}
+				onCellsUpdateSave={vi.fn()}
+			/>,
+		);
+
+		// Act
+
+		act(() => {
+			const element = screen.getByTestId("CellBlock-2");
+			fireEvent.keyDown(element, {
+				key: "ArrowDown",
+				ctrlKey: true,
+			});
+		});
+
+		// Assert
+
+		expect(cellsScrolledTo).toContain("CellBlock-2");
+		expect(cellsScrolledTo).toHaveLength(1);
+	});
+
+	it("Should scroll when changing selected cell using ctrl + arrow up", async () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		const cells: Cell[] = [
+			createTestCell(1),
+			createTestCell(2),
+			createTestCell(3),
+		];
+
+		renderWithProviders(
+			<EditableCells
+				cells={cells}
+				fileMode="single"
+				onError={vi.fn()}
+				onCellsUpdateSave={vi.fn()}
+				initialSelectedCellId="3"
+			/>,
+		);
+
+		// Act
+
+		act(() => {
+			fireEvent.keyDown(screen.getByTestId("CellBlock-3"), {
+				key: "ArrowUp",
+				ctrlKey: true,
+			});
+		});
+
+		// Assert
+
+		expect(cellsScrolledTo).toContain("CellBlock-2");
+		expect(cellsScrolledTo).toHaveLength(1);
 	});
 });
