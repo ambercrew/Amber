@@ -41,6 +41,6 @@ jobs:
               with:
                   node-version: "22.x"
             - name: Install Node dependencies
-              run: npm install
+              run: npm ci
             - name: Running Node tests
               run: npx vitest

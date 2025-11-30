@@ -52,7 +52,7 @@ jobs:
                   go install github.com/sassoftware/relic/v8@latest
 
             - name: install frontend dependencies
-              run: npm i
+              run: npm ci
 
             - uses: tauri-apps/tauri-action@v0
               env:
