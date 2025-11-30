@@ -13,7 +13,8 @@
 		"uitest": "vitest --ui",
 		"coverage": "vitest run --coverage",
 		"format": "prettier . --write",
-		"prepare": "husky"
+		"prepare": "husky",
+		"devtools": "react-devtools"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json,css,md,html}": "prettier --write",
@@ -68,6 +69,7 @@
 		"jsdom": "27.2.0",
 		"lint-staged": "^16.2.6",
 		"prettier": "3.6.2",
+		"react-devtools": "^7.0.1",
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.46.4",
 		"vite": "7.2.2",

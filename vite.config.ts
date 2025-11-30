@@ -9,9 +9,24 @@ import react from "@vitejs/plugin-react";
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const host = process.env.TAURI_DEV_HOST as string | null;
 
+function injectDevTools() {
+	return {
+		name: "inject-devtools",
+		transformIndexHtml(html: string) {
+			if (process.env.NODE_ENV === "development") {
+				return html.replace(
+					"</head>",
+					'<script src="http://localhost:8097"></script></head>',
+				);
+			}
+			return html;
+		},
+	};
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [react()],
+	plugins: [react(), injectDevTools()],
 	css: {
 		modules: {
 			localsConvention: "camelCase",
