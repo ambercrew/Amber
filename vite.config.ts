@@ -24,7 +24,14 @@ function injectDevTools() {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [react(), injectDevTools()],
+	plugins: [
+		react({
+			babel: {
+				plugins: ["babel-plugin-react-compiler"],
+			},
+		}),
+		injectDevTools(),
+	],
 	css: {
 		modules: {
 			localsConvention: "camelCase",
