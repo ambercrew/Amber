@@ -1,6 +1,6 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { RefObject, useLayoutEffect, useRef, useState } from "react";
+import { RefObject, useLayoutEffect, useRef } from "react";
 import { Action } from "../types/action";
 
 interface Props {
@@ -9,7 +9,6 @@ interface Props {
 }
 
 function ActionsMenu({ fileTreeItemRowContainer, actions }: Props) {
-	const [topPosition, setTopPosition] = useState(0);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	useLayoutEffect(() => {
@@ -18,22 +17,18 @@ function ActionsMenu({ fileTreeItemRowContainer, actions }: Props) {
 		const containerRect = containerRef.current.getBoundingClientRect();
 		const itemTreeRect =
 			fileTreeItemRowContainer.current.getBoundingClientRect();
-		let newTopPosition = itemTreeRect.top + itemTreeRect.height;
+		let topPosition = itemTreeRect.top + itemTreeRect.height;
 
-		if (newTopPosition + containerRect.height > window.innerHeight) {
-			newTopPosition -= itemTreeRect.height ?? 0;
-			newTopPosition -= containerRect.height ?? 0;
+		if (topPosition + containerRect.height > window.innerHeight) {
+			topPosition -= itemTreeRect.height ?? 0;
+			topPosition -= containerRect.height ?? 0;
 		}
 
-		// eslint-disable-next-line react-hooks/set-state-in-effect
-		setTopPosition(newTopPosition);
+		containerRef.current.style.top = topPosition + "px";
 	}, [fileTreeItemRowContainer, containerRef]);
 
 	return (
-		<div
-			className={`${styles.actionsMenu}`}
-			style={{ top: topPosition + "px" }}
-			ref={containerRef}>
+		<div className={`${styles.actionsMenu}`} ref={containerRef}>
 			{actions.length > 0 &&
 				actions.map((action, i) => (
 					<button
