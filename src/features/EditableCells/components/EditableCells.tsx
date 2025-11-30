@@ -219,6 +219,7 @@ function EditableCells({
 		}
 		await saveChanges();
 		await onCellsUpdateSave();
+		scrollToSelectedCellOnNextRender.current = true;
 	};
 
 	const handleCellDeleteConfirm = async () => {
