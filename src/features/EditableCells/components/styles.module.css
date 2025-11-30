@@ -88,10 +88,6 @@
 		color: var(--red-color);
 	}
 
-	& .repetitions-info-button {
-		position: relative;
-	}
-
 	& .drag {
 		cursor: grab;
 	}

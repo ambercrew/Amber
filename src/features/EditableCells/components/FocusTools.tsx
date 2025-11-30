@@ -154,21 +154,26 @@ function FocusTools({
 						</button>
 
 						{repetitions.length > 0 && (
-							<button
-								className={`transparent ${styles.repetitionsInfoButton}`}
-								title="Show repetitions info"
-								ref={repetitionsInfoRef}
-								onClick={() =>
-									handleShowRepetitionsInfoClick()
-								}>
-								<Icon path={mdiInformationOutline} size={1} />
+							<>
+								<button
+									className={`transparent`}
+									title="Show repetitions info"
+									ref={repetitionsInfoRef}
+									onClick={() =>
+										handleShowRepetitionsInfoClick()
+									}>
+									<Icon
+										path={mdiInformationOutline}
+										size={1}
+									/>
+								</button>
 								{showRepetitionsInfo && (
 									<RepetitionsInfo
 										repetitions={repetitions}
 										cellType={cell.cellType}
 									/>
 								)}
-							</button>
+							</>
 						)}
 					</>
 				)}
