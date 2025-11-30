@@ -213,7 +213,6 @@ function EditableCells({
 		const cellId = await executeRequest(async () => await createCell(cell));
 		if (cellId) {
 			setSelectedCellId(cellId);
-			scrollToSelectedCellOnNextRender.current = true;
 		} else {
 			return;
 		}
@@ -255,7 +254,6 @@ function EditableCells({
 	if (selectedCellIndex === -1) {
 		selectedCellIndex = null;
 	}
-
 	useEffect(() => {
 		if (
 			selectedCellRef.current &&
@@ -274,13 +272,11 @@ function EditableCells({
 			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
-			{/* False positive about the containerRef, no other solution to get it working. */}
-			{/*eslint-disable-next-line react-hooks/refs */}
 			{filteredCells.map((cell, i) => (
 				<RenderIfVisible
 					key={cell.id}
 					stayRendered={selectedCellId === cell.id}
-					root={containerRef.current}>
+					root={containerRef}>
 					<CellBlock
 						key={
 							// Using isSyncing directly in key to re-force reconstruction

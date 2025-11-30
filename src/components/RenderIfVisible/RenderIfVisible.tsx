@@ -1,20 +1,20 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, RefObject } from "react";
 
 interface Props {
 	defaultHeight?: number;
 	visibleOffset?: number;
 	children: React.ReactNode;
 	stayRendered?: boolean;
-	root?: HTMLElement | null;
+	root?: RefObject<HTMLElement | null>;
 }
 
-const RenderIfVisible = ({
+export default function RenderIfVisible({
 	defaultHeight = 250,
 	visibleOffset = 600,
 	children,
 	stayRendered = false,
-	root = null,
-}: Props) => {
+	root,
+}: Props) {
 	const [isVisible, setIsVisible] = useState<boolean>(false);
 	const [placeholderHeight, setPlaceholderHeight] = useState(defaultHeight);
 	const intersectionRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ const RenderIfVisible = ({
 				}
 			},
 			{
-				root,
+				root: root?.current,
 				rootMargin: `${visibleOffset}px 0px`,
 				threshold: 0.15,
 			},
@@ -62,6 +62,4 @@ const RenderIfVisible = ({
 			)}
 		</div>
 	);
-};
-
-export default RenderIfVisible;
+}
