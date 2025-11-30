@@ -13,7 +13,8 @@ export default function Toast({
 	onHide,
 }: IProps) {
 	useEffect(() => {
-		setTimeout(onHide, timeoutInMilliSeconds);
+		const id = setTimeout(onHide, timeoutInMilliSeconds);
+		return () => clearTimeout(id);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
