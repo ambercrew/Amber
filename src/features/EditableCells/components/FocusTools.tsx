@@ -88,6 +88,8 @@ function FocusTools({
 	useGlobalKey(e => {
 		if (e.altKey && e.key === "Delete") {
 			setShowDeleteDialog(true);
+		} else if (e.key === "Escape") {
+			setShowRepetitionsInfo(false);
 		}
 	});
 
