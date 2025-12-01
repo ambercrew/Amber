@@ -99,7 +99,7 @@ function Editor({
 		nodes: [ListNode, ListItemNode, ...(extraNodes ?? [])],
 		theme: {
 			text: {
-				// Global class names in index.xml.
+				// Global class names in index.css.
 				underline: "underline",
 				bold: "bold",
 				italic: "italic",
