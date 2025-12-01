@@ -266,4 +266,35 @@ describe("EditableCells scrolling", () => {
 		// Two times since first time is when initializing
 		expect(cellsScrolledTo).toHaveLength(2);
 	});
+
+	it("Should scroll when inserting new cell", async () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-3": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		vi.mocked(createCell).mockReturnValue(Promise.resolve("3"));
+
+		const cells = [createTestCell(1), createTestCell(2)];
+		renderEditableCells({
+			cells,
+			onCellsUpdateSave: () => [...cells, createTestCell(3)],
+		});
+
+		// Act
+
+		await userEvent.click(screen.getByText("Add Cell"));
+		await userEvent.click(screen.getByText("Cloze"));
+
+		// Assert
+
+		expect(cellsScrolledTo).toContain("CellBlock-3");
+		expect(cellsScrolledTo).toHaveLength(1);
+	});
 });
