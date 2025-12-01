@@ -1,9 +1,10 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
 import Cell from "../../../../types/backend/entity/cell";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { useState } from "react";
+import userEvent from "@testing-library/user-event";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
@@ -118,7 +119,7 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should not scroll when selected using click", () => {
+	it("Should not scroll when selected using click", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -136,16 +137,14 @@ describe("EditableCells scrolling", () => {
 
 		// Act
 
-		act(() => {
-			screen.getByTestId("CellBlock-3").click();
-		});
+		await userEvent.click(screen.getByTestId("CellBlock-3"));
 
 		// Assert
 
 		expect(cellsScrolledTo).toHaveLength(0);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + arrow down", () => {
+	it("Should scroll when changing selected cell using ctrl + arrow down", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -163,13 +162,7 @@ describe("EditableCells scrolling", () => {
 
 		// Act
 
-		act(() => {
-			const element = screen.getByTestId("CellBlock-2");
-			fireEvent.keyDown(element, {
-				key: "ArrowDown",
-				ctrlKey: true,
-			});
-		});
+		await userEvent.keyboard("{Control>}{ArrowDown}");
 
 		// Assert
 
@@ -177,7 +170,7 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + arrow up", () => {
+	it("Should scroll when changing selected cell using ctrl + arrow up", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -196,12 +189,7 @@ describe("EditableCells scrolling", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.keyDown(screen.getByTestId("CellBlock-3"), {
-				key: "ArrowUp",
-				ctrlKey: true,
-			});
-		});
+		await userEvent.keyboard("{Control>}{ArrowUp}");
 
 		// Assert
 
@@ -227,25 +215,16 @@ describe("EditableCells scrolling", () => {
 
 		// Act
 
-		act(() => {
-			const element = screen.getByTestId("CellBlock-2");
-			element.click();
-			fireEvent.keyDown(element, {
-				key: "ArrowDown",
-				ctrlKey: true,
-				altKey: true,
-			});
-		});
+		await userEvent.click(screen.getByTestId("CellBlock-2"));
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowDown}");
 
 		// Assert
 
-		await waitFor(() => {
-			expect(cellsScrolledTo).toContain("CellBlock-2");
-			expect(cellsScrolledTo).toHaveLength(1);
-		});
+		expect(cellsScrolledTo).toContain("CellBlock-2");
+		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + alt + arrow up", () => {
+	it("Should scroll when changing selected cell using ctrl + alt + arrow up", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -264,17 +243,12 @@ describe("EditableCells scrolling", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.keyDown(screen.getByTestId("CellBlock-3"), {
-				key: "ArrowUp",
-				ctrlKey: true,
-				altKey: true,
-			});
-		});
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowUp}");
 
 		// Assert
 
 		expect(cellsScrolledTo).toContain("CellBlock-3");
-		expect(cellsScrolledTo).toHaveLength(1);
+		// Two times since first time is when initializing
+		expect(cellsScrolledTo).toHaveLength(2);
 	});
 });
