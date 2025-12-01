@@ -5,6 +5,7 @@ import Cell from "../../../../types/backend/entity/cell";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
+import { createCell } from "../../../../api/cellApi";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
@@ -33,29 +34,33 @@ function setBoundingClientRectByTestId(
 	};
 }
 
-/** Render EditableCells with the given cells, recommended to use this function,
- * as it sets onCellsUpdateSave callback to re-render the component when called
- * as it would do in real situation.
+/** Helper function to render EditableCells.
  */
-function renderEditableCells(
-	props: Partial<Parameters<typeof EditableCells>[0]>,
-) {
+function renderEditableCells({
+	cells: initialCells,
+	initialSelectedCellId,
+	onCellsUpdateSave,
+}: {
+	cells: Cell[];
+	initialSelectedCellId?: string;
+	/** This function can return new cells after the call to onUpdateSave. */
+	onCellsUpdateSave?: () => Cell[];
+}) {
 	const Component = () => {
-		// This is to enforce the re-rendering of the editable-cells.
-		"use no memo";
-		const [, setState] = useState(false);
+		const [cells, setCells] = useState(initialCells);
 
 		return (
 			<EditableCells
 				fileMode="single"
 				onError={vi.fn()}
 				onCellsUpdateSave={() => {
-					// Forcing a rerender to simulate real method.
-					setState(s => !s);
+					if (onCellsUpdateSave) {
+						setCells(onCellsUpdateSave());
+					}
 					return Promise.resolve();
 				}}
-				cells={[]}
-				{...props}
+				cells={cells}
+				initialSelectedCellId={initialSelectedCellId}
 			/>
 		);
 	};
@@ -211,6 +216,11 @@ describe("EditableCells scrolling", () => {
 
 		renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			onCellsUpdateSave: () => [
+				createTestCell(1),
+				createTestCell(3),
+				createTestCell(2),
+			],
 		});
 
 		// Act
@@ -239,6 +249,11 @@ describe("EditableCells scrolling", () => {
 		renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 			initialSelectedCellId: "3",
+			onCellsUpdateSave: () => [
+				createTestCell(1),
+				createTestCell(3),
+				createTestCell(2),
+			],
 		});
 
 		// Act
