@@ -17,10 +17,11 @@ interface IProps {
 	editor: ReturnType<typeof useLexicalComposerContext>[0];
 	coordinates: FloatingMenuCoordinates;
 	additionalFloatingMenuButtons?: IFloatingMenuButton[];
+	onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
 function FloatingMenu(
-	{ editor, coordinates, additionalFloatingMenuButtons }: IProps,
+	{ editor, coordinates, additionalFloatingMenuButtons, onKeyDown }: IProps,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
 	const [activeState, setActiveState] = useState<Record<string, boolean>>({});
@@ -100,7 +101,8 @@ function FloatingMenu(
 				opacity: shouldShow ? 1 : 0,
 			}}
 			onFocus={() => setIsFloatingMenuFocused(true)}
-			onBlur={() => setIsFloatingMenuFocused(false)}>
+			onBlur={() => setIsFloatingMenuFocused(false)}
+			onKeyDown={onKeyDown}>
 			{additionalFloatingMenuButtons?.map(current => (
 				<FloatingMenuButton
 					key={current.name}

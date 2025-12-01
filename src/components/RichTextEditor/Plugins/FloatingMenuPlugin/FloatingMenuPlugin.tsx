@@ -1,5 +1,10 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $getSelection, $isRangeSelection } from "lexical";
+import {
+	$getSelection,
+	$isRangeSelection,
+	KEY_DOWN_COMMAND,
+	COMMAND_PRIORITY_LOW,
+} from "lexical";
 import { useCallback, useEffect, useRef, useState } from "react";
 import FloatingMenu, {
 	FloatingMenuCoordinates as FloatingMenuCoordinates,
@@ -96,12 +101,37 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: IProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isPointerReleased, $handleSelectionChange, editor]);
 
+	useEffect(() => {
+		return editor.registerCommand(
+			KEY_DOWN_COMMAND,
+			e => {
+				// Only hide floating menu on escape press without losing focus.
+				if (e.key === "Escape" && show) {
+					setCoordinates(null);
+					return true;
+				}
+
+				return false;
+			},
+			COMMAND_PRIORITY_LOW,
+		);
+	}, [editor, show]);
+
+	// Handles key down inside the floating menu and outside the editor.
+	const handleKeyDownFloatingMenu = (e: React.KeyboardEvent) => {
+		if (e.key === "Escape") {
+			setCoordinates(null);
+			editor.focus();
+		}
+	};
+
 	return (
 		<FloatingMenu
 			ref={ref}
 			editor={editor}
 			coordinates={coordinates}
 			additionalFloatingMenuButtons={additionalFloatingMenuButtons}
+			onKeyDown={handleKeyDownFloatingMenu}
 		/>
 	);
 }
