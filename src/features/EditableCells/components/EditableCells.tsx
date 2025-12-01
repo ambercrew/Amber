@@ -129,6 +129,17 @@ function EditableCells({
 			);
 	}, []);
 
+	useEffect(() => {
+		if (
+			selectedCellRef.current &&
+			containerRef.current &&
+			scrollToSelectedCellOnNextRender.current
+		) {
+			scrollUntilVisible(containerRef.current, selectedCellRef.current);
+		}
+		scrollToSelectedCellOnNextRender.current = false;
+	});
+
 	const executeRequest = useCallback(
 		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
 			try {
@@ -254,16 +265,6 @@ function EditableCells({
 	if (selectedCellIndex === -1) {
 		selectedCellIndex = null;
 	}
-	useEffect(() => {
-		if (
-			selectedCellRef.current &&
-			containerRef.current &&
-			scrollToSelectedCellOnNextRender.current
-		) {
-			scrollUntilVisible(containerRef.current, selectedCellRef.current);
-		}
-		scrollToSelectedCellOnNextRender.current = false;
-	});
 
 	return (
 		<div
