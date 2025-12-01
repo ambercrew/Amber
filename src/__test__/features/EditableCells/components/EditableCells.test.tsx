@@ -33,13 +33,15 @@ function setBoundingClientRectByTestId(
 }
 
 /** Render EditableCells with the given cells, recommended to use this function,
- * as it sets onCellsUpdateSave callback to rerender the component when called
+ * as it sets onCellsUpdateSave callback to re-render the component when called
  * as it would do in real situation.
  */
 function renderEditableCells(
 	props: Partial<Parameters<typeof EditableCells>[0]>,
 ) {
 	const Component = () => {
+		// This is to enforce the re-rendering of the editable-cells.
+		"use no memo";
 		const [, setState] = useState(false);
 
 		return (
