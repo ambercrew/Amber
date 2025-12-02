@@ -185,10 +185,10 @@ function EditableCells({
 		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(1);
-		} else if (e.ctrlKey && e.altKey && e.key == "ArrowUp") {
+		} else if (e.ctrlKey && e.altKey && e.key === "ArrowUp") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(-1);
-		} else if (e.ctrlKey && e.key == "ArrowDown") {
+		} else if (e.ctrlKey && e.key === "ArrowDown") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
 			const selectedCellIndex = filteredCells.findIndex(
