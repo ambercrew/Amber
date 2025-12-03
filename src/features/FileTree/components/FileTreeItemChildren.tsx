@@ -1,7 +1,7 @@
 import { mdiFileDocumentPlusOutline, mdiFolderPlusOutline } from "@mdi/js";
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import UiFolder from "../../../types/ui/uiFolder";
 import FileTreeItem from "./FileTreeItem";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -10,6 +10,7 @@ import {
 	createFolder,
 } from "../../../stores/fileSystem/fileSystemActions";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
+import { IFileTreeItemRowRef } from "./FileTreeItemRow";
 
 interface Props {
 	creatingNewFolder: boolean;
@@ -40,6 +41,8 @@ function FileTreeItemChildren({
 }: Props) {
 	// Creating new folder or file share the same controlled input.
 	const [newItemName, setNewItemName] = useState("");
+	// Contains the id of the child that should be focused automatically.
+	const autoFocusChildId = useRef<string | null>(null);
 	const dispatch = useAppDispatch();
 
 	const handleCreateNewItemSubmit = async (
@@ -47,12 +50,25 @@ function FileTreeItemChildren({
 	) => {
 		e.preventDefault();
 		if (creatingNewFolder) {
-			await dispatch(createFolder(newItemName, folder.id));
+			autoFocusChildId.current = await dispatch(
+				createFolder(newItemName, folder.id),
+			);
 		} else if (creatingNewFile) {
-			await dispatch(createFile(newItemName, folder.id));
+			autoFocusChildId.current = await dispatch(
+				createFile(newItemName, folder.id),
+			);
 		}
 		setNewItemName("");
 		onCreatingNewItemEnd();
+	};
+
+	const handleFileTreeItemRowRef = (id: string) => {
+		return (ref: IFileTreeItemRowRef | null) => {
+			if (id === autoFocusChildId.current && ref) {
+				ref.focus();
+				autoFocusChildId.current = null;
+			}
+		};
 	};
 
 	return (
@@ -106,6 +122,7 @@ function FileTreeItemChildren({
 					isAnyItemDragged={isAnyItemDragged}
 					onDragStart={onDragStart}
 					onDragEnd={onDragEnd}
+					fileItemRowRef={handleFileTreeItemRowRef(subFolder.id)}
 				/>
 			))}
 
@@ -125,6 +142,7 @@ function FileTreeItemChildren({
 							isAnyItemDragged={isAnyItemDragged}
 							onDragStart={onDragStart}
 							onDragEnd={onDragEnd}
+							fileItemRowRef={handleFileTreeItemRowRef(file.id)}
 						/>
 					),
 			)}

@@ -10,7 +10,7 @@ import {
 import ActionsMenu from "./ActionsMenu";
 import { Action } from "../types/action";
 import getFileName from "../utils/getFileName";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
 	renameFile,
 	renameFolder,
@@ -31,6 +31,7 @@ interface IProps {
 	showActions: boolean;
 	actions: Action[];
 	fullPath: string;
+	ref?: React.Ref<IFileTreeItemRowRef>;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
@@ -38,6 +39,10 @@ interface IProps {
 	onHideActions: () => void;
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 	onRenamingCancel: () => void;
+}
+
+export interface IFileTreeItemRowRef {
+	focus: () => void;
 }
 
 export default function FileTreeItemRow({
@@ -49,6 +54,7 @@ export default function FileTreeItemRow({
 	showActions,
 	actions,
 	fullPath,
+	ref,
 	onDragStart,
 	onDragEnd,
 	onRenameEnd,
@@ -103,6 +109,16 @@ export default function FileTreeItemRow({
 		e.preventDefault();
 		onShowActions();
 	};
+
+	useImperativeHandle(
+		ref,
+		() => ({
+			focus() {
+				buttonRef.current?.focus();
+			},
+		}),
+		[],
+	);
 
 	return (
 		<>

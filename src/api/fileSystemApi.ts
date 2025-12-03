@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { ReviewTreeFolder } from "../types/backend/dto/reviewTreeFolder";
 
-export function createFolder(name: string, parentId: string) {
+export function createFolder(name: string, parentId: string): Promise<string> {
 	return invoke("create_folder", { name, parentId });
 }
 
@@ -35,7 +35,7 @@ export function renameFile(fileId: string, newName: string) {
 	return invoke("rename_file", { fileId, newName });
 }
 
-export function createFile(name: string, parentId: string) {
+export function createFile(name: string, parentId: string): Promise<string> {
 	return invoke("create_file", { name, parentId });
 }
 

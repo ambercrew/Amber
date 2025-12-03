@@ -60,12 +60,14 @@ function executeRequest<T>(
 	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		try {
 			dispatch(requestStart());
-			await cb(dispatch, getState());
+			const result = await cb(dispatch, getState());
 			const reviewTreeFolder = await getReviewTreeFolderForRootApi();
 			dispatch(requestSuccess(reviewTreeFolder));
+			return result;
 		} catch (e) {
 			console.error(e);
 			dispatch(requestFailure(errorToString(e)));
+			return null;
 		}
 	};
 }
