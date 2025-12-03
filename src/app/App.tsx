@@ -83,15 +83,26 @@ function App() {
 			await dispatch(initialLoadAndApplySettings());
 		})();
 
-		document.addEventListener("contextmenu", e => {
+		const contextMenuCb = (e: MouseEvent) => {
 			if (!import.meta.env.DEV) e.preventDefault();
-		});
+		};
+		window.addEventListener("contextmenu", contextMenuCb);
 
-		document.addEventListener("keydown", e => {
-			if ((e.ctrlKey && e.key.toLowerCase() === "r") || e.key === "F5") {
+		const keyDownCb = (e: KeyboardEvent) => {
+			if (
+				(e.ctrlKey && e.key.toLowerCase() === "r") ||
+				e.key === "F5" ||
+				(e.ctrlKey && e.key.toLowerCase() == "f")
+			) {
 				e.preventDefault();
 			}
-		});
+		};
+		window.addEventListener("keydown", keyDownCb);
+
+		return () => {
+			window.removeEventListener("contextmenu", contextMenuCb);
+			window.removeEventListener("keydown", keyDownCb);
+		};
 	}, [dispatch]);
 
 	useEffect(() => {
