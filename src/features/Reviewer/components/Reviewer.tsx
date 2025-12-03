@@ -79,7 +79,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 	}, [cells]);
 
 	const recordLog: RecordLog | null = useMemo(() => {
-		if (dueToday.length == 0) return null;
+		if (dueToday.length === 0) return null;
 		const currentCard = createCardFromCellRepetition(
 			dueToday[currentCellIndex],
 		);

@@ -92,7 +92,7 @@ function App() {
 			if (
 				(e.ctrlKey && e.key.toLowerCase() === "r") ||
 				e.key === "F5" ||
-				(e.ctrlKey && e.key.toLowerCase() == "f")
+				(e.ctrlKey && e.key.toLowerCase() === "f")
 			) {
 				e.preventDefault();
 			}

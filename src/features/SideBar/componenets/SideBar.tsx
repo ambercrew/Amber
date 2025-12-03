@@ -70,7 +70,7 @@ function SideBar({
 	}, []);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key == "\\") {
+		if (e.ctrlKey && e.key === "\\") {
 			handleToggleExpand();
 		} else if (e.key === "F1") {
 			openHelpWebsite();

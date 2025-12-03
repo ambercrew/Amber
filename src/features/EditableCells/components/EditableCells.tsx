@@ -182,7 +182,7 @@ function EditableCells({
 		: cells;
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.altKey && e.key == "ArrowDown") {
+		if (e.ctrlKey && e.altKey && e.key === "ArrowDown") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(1);
 		} else if (e.ctrlKey && e.altKey && e.key === "ArrowUp") {
@@ -200,7 +200,7 @@ function EditableCells({
 				].id,
 			);
 			scrollToSelectedCellOnNextRender.current = true;
-		} else if (e.ctrlKey && e.key == "ArrowUp") {
+		} else if (e.ctrlKey && e.key === "ArrowUp") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
 			const selectedCellIndex = filteredCells.findIndex(

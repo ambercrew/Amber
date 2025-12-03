@@ -304,7 +304,7 @@ function $removeSelectionFromCloze(selection: RangeSelection) {
 					endPoint.offset,
 				);
 				// Selected all texts.
-				if (textNodes.length == 1) selectionNodes.push(textNodes[0]);
+				if (textNodes.length === 1) selectionNodes.push(textNodes[0]);
 				// Text after selection start.
 				if (textNodes.length > 1) selectionNodes.push(textNodes[1]);
 				// Text after selection end.
@@ -320,7 +320,7 @@ function $removeSelectionFromCloze(selection: RangeSelection) {
 				if (textNodes.length > 1) selectionNodes.push(textNodes[1]);
 				// Selected everything.
 				else if (
-					textNodes.length == 1 &&
+					textNodes.length === 1 &&
 					startPoint.offset !== child.getTextContentSize()
 				)
 					selectionNodes.push(textNodes[0]);

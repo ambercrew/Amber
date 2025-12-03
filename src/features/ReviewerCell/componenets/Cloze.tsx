@@ -16,7 +16,9 @@ function ClozeReviewView({ cell, showAnswer, repetition }: Props) {
 
 		for (const element of tmp.querySelectorAll("cloze")) {
 			element.classList.remove(...element.classList);
-			if (element.getAttribute("index") == repetition.additionalContent) {
+			if (
+				element.getAttribute("index") === repetition.additionalContent
+			) {
 				element.className = styles.cloze;
 				if (!showAnswer) element.textContent = "[...]";
 			}

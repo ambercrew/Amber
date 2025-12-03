@@ -66,8 +66,8 @@ export default function ProfileForm({
 		setErrorMessage("");
 
 		if (
-			userInformation.firstName == firstName &&
-			userInformation.lastName == lastName
+			userInformation.firstName === firstName &&
+			userInformation.lastName === lastName
 		) {
 			onClose();
 			return;

@@ -25,7 +25,7 @@ export default function UserDialog({ onClose }: IProps) {
 	return (
 		<Dialog className={styles.box} onHide={handleClose}>
 			{!isSignedIn &&
-				(typeOfForm == "sign-in" ? (
+				(typeOfForm === "sign-in" ? (
 					<SignInForm
 						isSendingRequest={isSendingRequest}
 						onRequestStart={() => setIsSendingRequest(true)}
