@@ -1,4 +1,4 @@
-type SyncEventListenerCallback = () => Promise<void>;
+type SyncEventListenerCallback = () => Promise<unknown>;
 
 export enum ListenerType {
 	PreSyncStart,
