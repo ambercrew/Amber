@@ -107,7 +107,9 @@ export default function FileTreeItemRow({
 	const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
 		if (isRenaming) return;
 		e.preventDefault();
-		onShowActions();
+
+		if (showActions) onHideActions();
+		else onShowActions();
 	};
 
 	useImperativeHandle(
