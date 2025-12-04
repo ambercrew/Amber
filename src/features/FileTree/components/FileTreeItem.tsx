@@ -94,17 +94,20 @@ function FileTreeItem({
 		setShowActions(false);
 	};
 
+	const showCreateNewFolderInput = () => {
+		setCreatingNewFolder(true);
+		setCreatingNewFile(false);
+		setIsOpen(true);
+		setShowActions(false);
+	};
+
 	if (folder) {
 		actions.push(
 			{
 				iconName: mdiFolderPlusOutline,
 				text: "New Folder",
-				onClick: () => {
-					setCreatingNewFolder(true);
-					setCreatingNewFile(false);
-					setIsOpen(true);
-					setShowActions(false);
-				},
+				onClick: showCreateNewFolderInput,
+				shortcut: "Ctrl + Shift + N",
 			},
 			{
 				iconName: mdiFileDocumentPlusOutline,
@@ -219,6 +222,9 @@ function FileTreeItem({
 			enableRenaming();
 		} else if (e.key === "Delete" && !isRenaming) {
 			markForDeletion();
+		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "n") {
+			stopPropagation = isFolder;
+			showCreateNewFolderInput();
 		} else if (e.ctrlKey && e.key.toLowerCase() === "n") {
 			stopPropagation = isFolder;
 			showCreateNewFileInput();
