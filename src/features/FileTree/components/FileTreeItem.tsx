@@ -212,17 +212,21 @@ function FileTreeItem({
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-		e.stopPropagation();
+		let stopPropagation = true;
+		const isFolder = folder !== null;
 
 		if (e.key === "F2") {
 			enableRenaming();
 		} else if (e.key === "Delete" && !isRenaming) {
 			markForDeletion();
 		} else if (e.ctrlKey && e.key.toLowerCase() === "n") {
+			stopPropagation = isFolder;
 			showCreateNewFileInput();
 		} else if (e.key === "Escape") {
 			setShowActions(false);
 		}
+
+		if (stopPropagation) e.stopPropagation();
 	};
 
 	const handleCreateNewItemEnd = () => {
