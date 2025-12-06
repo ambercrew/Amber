@@ -88,20 +88,8 @@ function App() {
 		};
 		window.addEventListener("contextmenu", contextMenuCb);
 
-		const keyDownCb = (e: KeyboardEvent) => {
-			if (
-				(e.ctrlKey && e.key.toLowerCase() === "r") ||
-				e.key === "F5" ||
-				(e.ctrlKey && e.key.toLowerCase() === "f")
-			) {
-				e.preventDefault();
-			}
-		};
-		window.addEventListener("keydown", keyDownCb);
-
 		return () => {
 			window.removeEventListener("contextmenu", contextMenuCb);
-			window.removeEventListener("keydown", keyDownCb);
 		};
 	}, [dispatch]);
 
@@ -125,7 +113,11 @@ function App() {
 		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
 			e.preventDefault();
 			void navigate("/home");
-		} else if (e.key === "F5") {
+		} else if (
+			(e.ctrlKey && e.key.toLowerCase() === "r") ||
+			e.key === "F5" ||
+			(e.ctrlKey && e.key.toLowerCase() === "f")
+		) {
 			e.preventDefault();
 		}
 	}, "keydown");
