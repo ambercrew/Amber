@@ -152,59 +152,55 @@ function App() {
 				isExpanded={isSideBarExpanded}
 			/>
 
-			{
-				<div
-					className={`${styles.workarea} ${isSmallScreen && isSideBarExpanded && styles.hidden}`}>
-					<Routes>
-						{["/", "/home"].map(path => (
-							<Route
-								key={path}
-								path={path}
-								element={
-									<Home
-										onStudyClick={handleHomeStudyClick}
-										onError={setErrorMessage}
-									/>
+			<div
+				className={`${styles.workarea} ${isSmallScreen && isSideBarExpanded && styles.hidden}`}>
+				<Routes>
+					{["/", "/home"].map(path => (
+						<Route
+							key={path}
+							path={path}
+							element={
+								<Home
+									onStudyClick={handleHomeStudyClick}
+									onError={setErrorMessage}
+								/>
+							}
+						/>
+					))}
+					<Route
+						path="/editor"
+						element={
+							<Editor
+								initialSelectedCellId={
+									editorInitialSelectedCellId
 								}
+								onError={setErrorMessage}
+								onStudyStart={() => handleEditorStudyClick()}
+								key={selectedFileId}
 							/>
-						))}
-						<Route
-							path="/editor"
-							element={
-								<Editor
-									initialSelectedCellId={
-										editorInitialSelectedCellId
-									}
-									onError={setErrorMessage}
-									onStudyStart={() =>
-										handleEditorStudyClick()
-									}
-									key={selectedFileId}
-								/>
-							}
-						/>
-						<Route
-							path="/reviewer"
-							element={
-								<Reviewer
-									onEditButtonClick={handleEditButtonClick}
-									onError={setErrorMessage}
-									fileIds={studyFileIds}
-								/>
-							}
-						/>
-						<Route
-							path="/search"
-							element={
-								<Searcher
-									onError={setErrorMessage}
-									onEditButtonClick={handleEditButtonClick}
-								/>
-							}
-						/>
-					</Routes>
-				</div>
-			}
+						}
+					/>
+					<Route
+						path="/reviewer"
+						element={
+							<Reviewer
+								onEditButtonClick={handleEditButtonClick}
+								onError={setErrorMessage}
+								fileIds={studyFileIds}
+							/>
+						}
+					/>
+					<Route
+						path="/search"
+						element={
+							<Searcher
+								onError={setErrorMessage}
+								onEditButtonClick={handleEditButtonClick}
+							/>
+						}
+					/>
+				</Routes>
+			</div>
 
 			{showSettings && (
 				<SettingsPopup
