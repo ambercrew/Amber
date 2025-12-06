@@ -3,13 +3,12 @@ import { render } from "@testing-library/react";
 import type { RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { AppStore, RootState, setupStore } from "../../stores/store";
-import { createMemoryHistory, MemoryHistoryOptions } from "history";
-import { Router } from "react-router";
+import { MemoryRouter, useLocation, MemoryRouterProps } from "react-router";
 
 interface IExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 	preloadedState?: Partial<RootState>;
 	store?: AppStore;
-	memoryHistoryOptions?: MemoryHistoryOptions;
+	memoryRouterProps?: MemoryRouterProps;
 }
 
 /** A helper function for rendering that sets the default store used in the app,
@@ -20,21 +19,25 @@ export function renderWithProviders(
 	{
 		preloadedState = {},
 		store = setupStore(preloadedState),
-		memoryHistoryOptions = {},
+		memoryRouterProps = {},
 		...renderOptions
 	}: IExtendedRenderOptions = {},
 ) {
-	const history = createMemoryHistory(memoryHistoryOptions);
+	function LocationDisplay() {
+		const location = useLocation();
+		return <div data-testid="location-display">{location.pathname}</div>;
+	}
+
 	function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
 		return (
-			<Router location={history.location} navigator={history}>
+			<MemoryRouter {...memoryRouterProps}>
+				<LocationDisplay />
 				<Provider store={store}>{children}</Provider>
-			</Router>
+			</MemoryRouter>
 		);
 	}
 	return {
 		store,
-		history,
 		...render(ui, { wrapper: Wrapper, ...renderOptions }),
 	};
 }
