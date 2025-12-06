@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import { selectRootFolder } from "../../../stores/fileSystem/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
@@ -19,21 +17,16 @@ import {
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 
-interface Props {
+interface IProps {
 	onStudyClick: (fileIds: string[]) => void;
 	onError: (message: string) => void;
 }
 
-function Home({ onStudyClick, onError }: Props) {
+function Home({ onStudyClick, onError }: IProps) {
 	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
 		null,
 	);
-	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
-
-	useEffect(() => {
-		void dispatch(getReviewTreeFolderForRoot());
-	}, [dispatch]);
 
 	const fetchHomeStatistics = useCallback(async () => {
 		try {
