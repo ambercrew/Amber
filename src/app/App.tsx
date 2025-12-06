@@ -116,7 +116,7 @@ function App() {
 				ListenerType.PostSyncComplete,
 				cb,
 			);
-	});
+	}, [dispatch]);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "p") {
