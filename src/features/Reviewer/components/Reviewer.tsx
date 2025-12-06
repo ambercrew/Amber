@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-import ReviewerCell from "../../ReviewerCell/componenets/ReviewerCell";
+import ReviewerCell from "../../ReviewerCell/components/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
@@ -160,7 +160,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		dueToday[currentCellIndex]?.state === "relearning";
 	const isCurrentCellReview = dueToday[currentCellIndex]?.state === "review";
 
-	const reptitionsCounts = useMemo(
+	const repetitionsCounts = useMemo(
 		() =>
 			accumulateRepetitionsCounts(
 				dueToday.filter((_, i) => i >= currentCellIndex),
@@ -217,19 +217,19 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 							<p
 								className={`new-color
                                 ${isCurrentCellNew && styles.underline}`}>
-								{reptitionsCounts.new}
+								{repetitionsCounts.new}
 							</p>
 							<p>+</p>
 							<p
 								className={`learning-color
                                 ${isCurrentCellLearning && styles.underline}`}>
-								{reptitionsCounts.learning}
+								{repetitionsCounts.learning}
 							</p>
 							<p>+</p>
 							<p
 								className={`review-color
                                 ${isCurrentCellReview && styles.underline}`}>
-								{reptitionsCounts.review}
+								{repetitionsCounts.review}
 							</p>
 						</div>
 						<button
