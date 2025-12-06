@@ -1,12 +1,12 @@
-import Editor from "../features/Editor/componenets/Editor";
+import Editor from "../features/Editor/components/Editor";
 import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import Alert from "../components/Alert/Alert";
 import Reviewer from "../features/Reviewer/components/Reviewer";
-import Home from "../features/Home/componenets/Home";
+import Home from "../features/Home/components/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
-import SideBar from "../features/SideBar/componenets/SideBar";
+import SideBar from "../features/SideBar/components/SideBar";
 import SettingsPopup from "../features/SettingsPopup/componenets/SettingsPopup";
 import useGlobalKey from "../hooks/useGlobalKey";
 import {
@@ -21,7 +21,7 @@ import {
 	SMALL_SCREEN_MAX_WIDTH_IN_PX,
 } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
-import Searcher from "../features/Searcher/componenets/Searcher";
+import Searcher from "../features/Searcher/components/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
 import { loadInitialStateUser } from "../stores/user/userActions";
 import {
