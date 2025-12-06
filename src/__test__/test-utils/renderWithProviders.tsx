@@ -3,12 +3,13 @@ import { render } from "@testing-library/react";
 import type { RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { AppStore, RootState, setupStore } from "../../stores/store";
-import { createMemoryHistory } from "history";
+import { createMemoryHistory, MemoryHistoryOptions } from "history";
 import { Router } from "react-router";
 
 interface IExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 	preloadedState?: Partial<RootState>;
 	store?: AppStore;
+	memoryHistoryOptions?: MemoryHistoryOptions;
 }
 
 /** A helper function for rendering that sets the default store used in the app,
@@ -19,10 +20,11 @@ export function renderWithProviders(
 	{
 		preloadedState = {},
 		store = setupStore(preloadedState),
+		memoryHistoryOptions = {},
 		...renderOptions
 	}: IExtendedRenderOptions = {},
 ) {
-	const history = createMemoryHistory();
+	const history = createMemoryHistory(memoryHistoryOptions);
 	function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
 		return (
 			<Router location={history.location} navigator={history}>
