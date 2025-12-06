@@ -25,6 +25,7 @@ vi.mock(import("../../stores/settings/settingsActions"));
 vi.mock(import("@tauri-apps/api/core"));
 vi.mock(import("@tauri-apps/plugin-updater"));
 vi.mock(import("@tauri-apps/plugin-dialog"));
+vi.mock(import("@tauri-apps/plugin-process"));
 
 describe("App", () => {
 	let dispatchMock: Mock<Procedure>;
