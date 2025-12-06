@@ -11,17 +11,20 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../stores/sync/managers/syncEventManager";
-import { createMemoryHistory } from "history";
 import userEvent from "@testing-library/user-event";
-import { Router } from "react-router";
+import { check, Update } from "@tauri-apps/plugin-updater";
+import { ask } from "@tauri-apps/plugin-dialog";
+import sideBarStyles from "../../features/SideBar/componenets/styles.module.css";
 
-vi.mock("../../hooks/useAppDispatch", () => ({
+vi.mock(import("../../hooks/useAppDispatch"), () => ({
 	default: vi.fn(),
 }));
-
-vi.mock("../../stores/fileSystem/fileSystemActions");
-vi.mock("../../stores/user/userActions");
-vi.mock("../../stores/settings/settingsActions");
+vi.mock(import("../../stores/fileSystem/fileSystemActions"));
+vi.mock(import("../../stores/user/userActions"));
+vi.mock(import("../../stores/settings/settingsActions"));
+vi.mock(import("@tauri-apps/api/core"));
+vi.mock(import("@tauri-apps/plugin-updater"));
+vi.mock(import("@tauri-apps/plugin-dialog"));
 
 describe("App", () => {
 	let dispatchMock: Mock<Procedure>;
@@ -189,5 +192,50 @@ describe("App", () => {
 		// Assert
 
 		expect(history.location.pathname).toBe("/home");
+	});
+
+	it("Should render updater", async () => {
+		// Arrange
+
+		vi.mocked(check).mockReturnValue(
+			Promise.resolve(
+				new Update({
+					version: "",
+					currentVersion: "",
+					rawJson: {},
+					rid: 1,
+				}),
+			),
+		);
+		vi.mocked(ask).mockReturnValue(Promise.resolve(true));
+
+		// Act
+
+		renderWithProviders(<App />);
+
+		// Assert
+
+		await waitFor(() => {
+			expect(
+				screen.queryByText("Updating the application", {
+					exact: false,
+				}),
+			).not.toBeNull();
+		});
+	});
+
+	it("Should not render sidebar when it is collapsed", async () => {
+		// Arrange
+
+		renderWithProviders(<App />);
+
+		// Act
+
+		await userEvent.keyboard("{Control>}\\");
+
+		// Assert
+
+		const sideBar = screen.getByRole("complementary");
+		expect(sideBar.className).toContain(sideBarStyles.closed);
 	});
 });
