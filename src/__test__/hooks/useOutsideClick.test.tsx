@@ -1,12 +1,7 @@
-import { act, useRef } from "react";
+import { useRef } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
-import {
-	fireEvent,
-	render,
-	renderHook,
-	screen,
-	waitFor,
-} from "@testing-library/react";
+import { render, renderHook, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 describe("useOutsideClick", () => {
 	it("Calls callback on outside click", async () => {
@@ -29,15 +24,11 @@ describe("useOutsideClick", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.click(screen.getByText("First"));
-		});
+		await userEvent.click(screen.getByText("First"));
 
 		// Assert
 
-		await waitFor(() => {
-			expect(cb).toHaveBeenCalled();
-		});
+		expect(cb).toHaveBeenCalled();
 	});
 
 	it("Does not call the callback on the element click", async () => {
@@ -60,14 +51,10 @@ describe("useOutsideClick", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.mouseDown(screen.getByText("Second"));
-		});
+		await userEvent.click(screen.getByText("Second"));
 
 		// Assert
 
-		await waitFor(() => {
-			expect(cb).not.toHaveBeenCalled();
-		});
+		expect(cb).not.toHaveBeenCalled();
 	});
 });
