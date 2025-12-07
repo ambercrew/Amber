@@ -10,7 +10,7 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useEffect, useRef, useState } from "react";
 
-interface IProps {
+interface Props {
 	repetitionCounts: FileRepetitionCounts;
 	searchText: string;
 	onSearchTextChange: (value: string) => void;
@@ -26,7 +26,7 @@ function TitleBar({
 	onStudyButtonClick,
 	onSearchInputFocus,
 	onSearchInputBlur,
-}: IProps) {
+}: Props) {
 	// Only used for small screens.
 	const [showSearchBar, setShowSearchBar] = useState(false);
 	const [searchParams] = useSearchParams();

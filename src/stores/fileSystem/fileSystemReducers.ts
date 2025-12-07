@@ -2,13 +2,13 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ROOT_FOLDER_ID } from "../../config/constants";
 import { ReviewTreeFolder } from "../../types/backend/dto/reviewTreeFolder";
 
-interface IFileSystemState {
+interface FileSystemState {
 	errorMessage: string | null;
 	successMessage: string | null;
 	rootFolder: ReviewTreeFolder;
 }
 
-const initialState: IFileSystemState = {
+const initialState: FileSystemState = {
 	errorMessage: null,
 	successMessage: null,
 	rootFolder: {

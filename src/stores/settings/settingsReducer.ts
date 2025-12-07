@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Settings from "../../types/backend/model/settings";
 
-interface ISettingsState {
+interface SettingsState {
 	settings: Settings | null;
 }
 
-const initialState: ISettingsState = {
+const initialState: SettingsState = {
 	settings: null,
 };
 

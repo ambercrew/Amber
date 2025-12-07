@@ -2,7 +2,7 @@ import { ForwardedRef, forwardRef } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 
-interface IProps
+interface Props
 	extends React.DetailedHTMLProps<
 		React.InputHTMLAttributes<HTMLInputElement>,
 		HTMLInputElement
@@ -12,7 +12,7 @@ interface IProps
 }
 
 function InputWithIcon(
-	{ iconName, containerClassName, ...props }: IProps,
+	{ iconName, containerClassName, ...props }: Props,
 	ref: ForwardedRef<HTMLInputElement>,
 ) {
 	return (

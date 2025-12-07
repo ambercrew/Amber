@@ -22,7 +22,7 @@ import {
 } from "../../../api/userApi";
 import { signOut } from "../../../api/authApi";
 
-interface IProps {
+interface Props {
 	isSendingRequest: boolean;
 	onRequestStart: () => void;
 	onRequestEnd: () => void;
@@ -34,7 +34,7 @@ export default function ProfileForm({
 	onRequestStart,
 	onRequestEnd,
 	onClose,
-}: IProps) {
+}: Props) {
 	const userInformation = useAppSelector(selectUserInformation)!;
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);

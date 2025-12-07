@@ -13,13 +13,13 @@ import { defaultCloseRequestedEventManager } from "../../../managers/closeReques
 
 export const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";
 
-interface IProps {
+interface Props {
 	cells: Cell[];
 	onCellsUpdateSave: () => Promise<void>;
 	onError: (error: string) => void;
 }
 
-interface IReturnValue {
+interface ReturnValue {
 	saveChanges: () => Promise<void>;
 	onCellContentUpdate: (id: string, content: string) => void;
 	ignoreCell: (id: string) => void;
@@ -34,7 +34,7 @@ function useAutoSave({
 	cells,
 	onCellsUpdateSave,
 	onError,
-}: IProps): IReturnValue {
+}: Props): ReturnValue {
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
 	const autoSaveTimeoutId = useRef<number>(null);

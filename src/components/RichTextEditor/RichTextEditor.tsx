@@ -21,16 +21,16 @@ import {
 } from "lexical";
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { IFloatingMenuButton } from "./Plugins/FloatingMenuPlugin/FloatingMenuButton";
+import { FloatingMenuButtonProps } from "./Plugins/FloatingMenuPlugin/FloatingMenuButton";
 import DefaultShortcutPlugin from "./Plugins/DefaultShortcutsPlugin";
 import ListCommandsPluginHandler from "./Plugins/ListCommandsPluginHandler/ListCommandsPluginHandler";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 
-interface IProps {
+interface Props {
 	content: string;
 	title?: string;
 	extraNodes?: Klass<LexicalNode>[];
-	additionalFloatingMenuButtons?: IFloatingMenuButton[];
+	additionalFloatingMenuButtons?: FloatingMenuButtonProps[];
 	plugins?: JSX.Element[];
 	autofocus?: boolean;
 	/* The rich text editor might be slow to render, therefore a temporally div
@@ -43,7 +43,7 @@ interface IProps {
 	onBlur?: () => void;
 }
 
-export default function RichTextEditor({ ...props }: IProps) {
+export default function RichTextEditor({ ...props }: Props) {
 	const [showEditor, setShowEditor] = useState(props.eagerLoadRichTextEditor);
 	const [
 		previousEagerLoadRichTextEditor,
@@ -92,7 +92,7 @@ function Editor({
 	onChange,
 	onFocus,
 	onBlur,
-}: IProps) {
+}: Props) {
 	const initialConfig: InitialConfigType = {
 		namespace: "BrainyEditor",
 		onError: console.error,

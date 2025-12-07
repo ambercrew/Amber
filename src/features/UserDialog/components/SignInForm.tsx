@@ -14,7 +14,7 @@ import errorToString from "../../../utils/errorToString";
 import { getUserInformation } from "../../../api/userApi";
 import { signIn } from "../../../api/authApi";
 
-interface IProps {
+interface Props {
 	isSendingRequest: boolean;
 	onRequestStart: () => void;
 	onRequestEnd: () => void;
@@ -28,7 +28,7 @@ export default function SignInForm({
 	onRequestEnd,
 	onClose,
 	onSignUpClick,
-}: IProps) {
+}: Props) {
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");

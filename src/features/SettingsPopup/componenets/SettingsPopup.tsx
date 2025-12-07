@@ -17,12 +17,12 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 import { updateAndApplySettings } from "../../../stores/settings/settingsActions";
 
-interface IProps {
+interface Props {
 	onClose: () => void;
 	onError: (error: string) => void;
 }
 
-function SettingsPopup({ onClose, onError }: IProps) {
+function SettingsPopup({ onClose, onError }: Props) {
 	const globalSettings = useAppSelector(selectSettings);
 	const [settings, setSettings] = useState<Settings | null>(globalSettings);
 	const dispatch = useAppDispatch();

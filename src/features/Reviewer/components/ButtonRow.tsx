@@ -2,14 +2,14 @@ import { Grade, Rating, RecordLog } from "ts-fsrs";
 import durationToString from "../utils/durationToString";
 import styles from "./styles.module.css";
 
-interface IProps {
+interface Props {
 	startTime: Date;
 	disabled: boolean;
 	onClick: (grade: Grade) => void;
 	recordLog: RecordLog;
 }
 
-function ButtonRow({ startTime, disabled, recordLog, onClick }: IProps) {
+function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 	return (
 		<div className={styles.buttonRow}>
 			<div className={styles.buttonColumn}>

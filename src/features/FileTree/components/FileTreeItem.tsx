@@ -25,7 +25,7 @@ import {
 	setSuccessMessage,
 } from "../../../stores/fileSystem/fileSystemReducers.ts";
 import UiFolder from "../../../types/ui/uiFolder.ts";
-import FileTreeItemRow, { IFileTreeItemRowRef } from "./FileTreeItemRow";
+import FileTreeItemRow, { FileTreeItemRowRef } from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../../utils/errorToString";
 import {
@@ -50,7 +50,7 @@ interface Props {
 	fullPath: string;
 	id: string;
 	isAnyItemDragged: boolean;
-	fileItemRowRef?: React.Ref<IFileTreeItemRowRef>;
+	fileItemRowRef?: React.Ref<FileTreeItemRowRef>;
 	onMarkForDeletion: (id: string, isFolder: boolean) => void;
 	onDragStart: () => void;
 	onDragEnd: () => void;

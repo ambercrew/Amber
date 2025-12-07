@@ -22,7 +22,7 @@ import CancellableInput from "../../../components/CancellableInput/CancellableIn
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useOutsideContextMenu from "../../../hooks/useOutsideContextMenu";
 
-interface IProps {
+interface Props {
 	isRoot: boolean;
 	id: string;
 	isFolder: boolean;
@@ -31,7 +31,7 @@ interface IProps {
 	showActions: boolean;
 	actions: Action[];
 	fullPath: string;
-	ref?: React.Ref<IFileTreeItemRowRef>;
+	ref?: React.Ref<FileTreeItemRowRef>;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
@@ -41,7 +41,7 @@ interface IProps {
 	onRenamingCancel: () => void;
 }
 
-export interface IFileTreeItemRowRef {
+export interface FileTreeItemRowRef {
 	focus: () => void;
 }
 
@@ -62,7 +62,7 @@ export default function FileTreeItemRow({
 	onClick,
 	onHideActions,
 	onRenamingCancel,
-}: IProps) {
+}: Props) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const [searchParams] = useSearchParams();
 	const selectedFileId = searchParams.get(fileIdQueryParameter);

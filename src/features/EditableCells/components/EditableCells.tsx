@@ -23,7 +23,7 @@ import {
  */
 const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
 
-interface IProps {
+interface Props {
 	cells: Cell[];
 	searchText?: string;
 	initialSelectedCellId?: string | null;
@@ -51,7 +51,7 @@ function EditableCells({
 	onError,
 	onCellsUpdateSave,
 	onEditButtonClick,
-}: IProps) {
+}: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	/** Automatically scroll to the selected cell on the next render,
 	 * this requires something else to rerender the component for it to work.

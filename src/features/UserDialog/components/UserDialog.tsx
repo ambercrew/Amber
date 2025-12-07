@@ -7,11 +7,11 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import ProfileForm from "./ProfileForm";
 
-interface IProps {
+interface Props {
 	onClose: () => void;
 }
 
-export default function UserDialog({ onClose }: IProps) {
+export default function UserDialog({ onClose }: Props) {
 	const [typeOfForm, setTypeOfForm] = useState<"sign-in" | "sign-up">(
 		"sign-in",
 	);

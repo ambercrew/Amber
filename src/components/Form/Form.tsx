@@ -13,12 +13,12 @@ export default function Form({
 	return <form {...props} className={styles.form} />;
 }
 
-interface IFormHeaderProps {
+interface FormHeaderProps {
 	icon: string;
 	title: string;
 }
 
-export function FormHeader({ icon, title }: IFormHeaderProps) {
+export function FormHeader({ icon, title }: FormHeaderProps) {
 	return (
 		<div className={`row ${styles.header}`}>
 			<Icon path={icon} size={1.2} />
@@ -27,7 +27,7 @@ export function FormHeader({ icon, title }: IFormHeaderProps) {
 	);
 }
 
-interface IFormRowsProps {
+interface FormRowsProps {
 	rows: {
 		label: string;
 		labelHtmlFor: string;
@@ -35,7 +35,7 @@ interface IFormRowsProps {
 	}[];
 }
 
-export function FormRows({ rows }: IFormRowsProps) {
+export function FormRows({ rows }: FormRowsProps) {
 	return (
 		<div className={styles.rows}>
 			{rows.map((row, i) => (
@@ -48,12 +48,12 @@ export function FormRows({ rows }: IFormRowsProps) {
 	);
 }
 
-interface IFormButtonsProps {
+interface FormButtonsProps {
 	onClose: () => void;
 	submitText: string;
 }
 
-export function FormButtons({ onClose, submitText }: IFormButtonsProps) {
+export function FormButtons({ onClose, submitText }: FormButtonsProps) {
 	return (
 		<div className={styles.buttons}>
 			<button className="transparent" type="button" onClick={onClose}>

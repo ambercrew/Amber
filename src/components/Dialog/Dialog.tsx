@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styles from "./styles.module.css";
 
-interface IProps {
+interface Props {
 	className?: string;
 	children: React.ReactNode;
 	onHide?: () => void;
@@ -14,7 +14,7 @@ interface IProps {
  * hidden after submit, stop the submit event propagation, otherwise the dialog,
  * might move the focus away!
  */
-export default function Dialog({ className, children, onHide }: IProps) {
+export default function Dialog({ className, children, onHide }: Props) {
 	const [focusedElementBeforeView, setFocusedElementBeforeView] =
 		useState<HTMLElement | null>(null);
 

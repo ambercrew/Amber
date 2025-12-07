@@ -17,12 +17,12 @@ import {
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 
-interface IProps {
+interface Props {
 	onStudyClick: (fileIds: string[]) => void;
 	onError: (message: string) => void;
 }
 
-function Home({ onStudyClick, onError }: IProps) {
+function Home({ onStudyClick, onError }: Props) {
 	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
 		null,
 	);

@@ -10,7 +10,7 @@ import {
 	createFolder,
 } from "../../../stores/fileSystem/fileSystemActions";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
-import { IFileTreeItemRowRef } from "./FileTreeItemRow";
+import { FileTreeItemRowRef } from "./FileTreeItemRow";
 
 interface Props {
 	creatingNewFolder: boolean;
@@ -63,7 +63,7 @@ function FileTreeItemChildren({
 	};
 
 	const handleFileTreeItemRowRef = (id: string) => {
-		return (ref: IFileTreeItemRowRef | null) => {
+		return (ref: FileTreeItemRowRef | null) => {
 			if (id === autoFocusChildId.current && ref) {
 				ref.focus();
 				autoFocusChildId.current = null;

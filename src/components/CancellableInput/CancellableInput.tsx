@@ -1,4 +1,4 @@
-interface IProps
+interface Props
 	extends React.DetailedHTMLProps<
 		React.InputHTMLAttributes<HTMLInputElement>,
 		HTMLInputElement
@@ -6,7 +6,7 @@ interface IProps
 	onCancel: () => void;
 }
 
-function CancellableInput({ onCancel, ...props }: IProps) {
+function CancellableInput({ onCancel, ...props }: Props) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			onCancel();

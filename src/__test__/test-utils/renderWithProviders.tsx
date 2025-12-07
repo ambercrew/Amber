@@ -5,7 +5,7 @@ import { Provider } from "react-redux";
 import { AppStore, RootState, setupStore } from "../../stores/store";
 import { MemoryRouter, useLocation, MemoryRouterProps } from "react-router";
 
-interface IExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
+interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 	preloadedState?: Partial<RootState>;
 	store?: AppStore;
 	memoryRouterProps?: MemoryRouterProps;
@@ -21,7 +21,7 @@ export function renderWithProviders(
 		store = setupStore(preloadedState),
 		memoryRouterProps = {},
 		...renderOptions
-	}: IExtendedRenderOptions = {},
+	}: ExtendedRenderOptions = {},
 ) {
 	function LocationDisplay() {
 		const location = useLocation();

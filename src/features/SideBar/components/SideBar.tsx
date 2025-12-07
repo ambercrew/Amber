@@ -32,19 +32,14 @@ import UserDialog from "../../UserDialog/components/UserDialog";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import SyncRow from "./SyncRow";
 
-interface IProps {
+interface Props {
 	isExpanded: boolean;
 	onExpand: () => void;
 	onCollapse: () => void;
 	onSettingsClick: () => void;
 }
 
-function SideBar({
-	isExpanded,
-	onExpand,
-	onCollapse,
-	onSettingsClick,
-}: IProps) {
+function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [showAuthenticationDialog, setShowAuthenticationDialog] =
 		useState(false);

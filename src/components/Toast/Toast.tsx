@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import styles from "./styles.module.css";
 
-interface IProps {
+interface Props {
 	text: string;
 	timeoutInMilliSeconds?: number;
 	onHide: () => void;
@@ -11,7 +11,7 @@ export default function Toast({
 	text,
 	timeoutInMilliSeconds = 3000,
 	onHide,
-}: IProps) {
+}: Props) {
 	useEffect(() => {
 		const id = setTimeout(onHide, timeoutInMilliSeconds);
 		return () => clearTimeout(id);

@@ -2,7 +2,7 @@ import { LexicalEditor, RangeSelection } from "lexical";
 import styles from "../../styles.module.css";
 import Icon from "@mdi/react";
 
-export interface IFloatingMenuButton {
+export interface FloatingMenuButtonProps {
 	icon: string;
 	name: string;
 	title: string;
@@ -11,9 +11,9 @@ export interface IFloatingMenuButton {
 	isVisible?: (selection: RangeSelection) => boolean;
 }
 
-interface IProps {
+interface Props {
 	editor: LexicalEditor;
-	floatingButtonProps: IFloatingMenuButton;
+	floatingButtonProps: FloatingMenuButtonProps;
 	activeState: Record<string, boolean>;
 	visibleState: Record<string, boolean>;
 }
@@ -23,7 +23,7 @@ export default function FloatingMenuButton({
 	floatingButtonProps,
 	activeState,
 	visibleState,
-}: IProps) {
+}: Props) {
 	return (
 		visibleState[floatingButtonProps.name] && (
 			<button

@@ -9,19 +9,21 @@ import {
 } from "lexical";
 import styles from "../../styles.module.css";
 import { defaultButtons } from "./defaultButtons";
-import FloatingMenuButton, { IFloatingMenuButton } from "./FloatingMenuButton";
+import FloatingMenuButton, {
+	FloatingMenuButtonProps,
+} from "./FloatingMenuButton";
 
 export type FloatingMenuCoordinates = { x: number; y: number } | null;
 
-interface IProps {
+interface Props {
 	editor: ReturnType<typeof useLexicalComposerContext>[0];
 	coordinates: FloatingMenuCoordinates;
-	additionalFloatingMenuButtons?: IFloatingMenuButton[];
+	additionalFloatingMenuButtons?: FloatingMenuButtonProps[];
 	onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
 function FloatingMenu(
-	{ editor, coordinates, additionalFloatingMenuButtons, onKeyDown }: IProps,
+	{ editor, coordinates, additionalFloatingMenuButtons, onKeyDown }: Props,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
 	const [activeState, setActiveState] = useState<Record<string, boolean>>({});

@@ -10,13 +10,13 @@ import FloatingMenu, {
 	FloatingMenuCoordinates as FloatingMenuCoordinates,
 } from "./FloatingMenu";
 import { usePointerInteractions } from "./hooks/usePointerInteractions";
-import { IFloatingMenuButton } from "./FloatingMenuButton";
+import { FloatingMenuButtonProps } from "./FloatingMenuButton";
 
-interface IProps {
-	additionalFloatingMenuButtons?: IFloatingMenuButton[];
+interface Props {
+	additionalFloatingMenuButtons?: FloatingMenuButtonProps[];
 }
 
-export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: IProps) {
+export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 	const [editor] = useLexicalComposerContext();
 	const [coordinates, setCoordinates] =
 		useState<FloatingMenuCoordinates>(null);

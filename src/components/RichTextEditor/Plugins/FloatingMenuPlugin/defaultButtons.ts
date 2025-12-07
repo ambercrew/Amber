@@ -9,10 +9,10 @@ import {
 } from "@mdi/js";
 import { FORMAT_TEXT_COMMAND } from "lexical";
 import { $isListNode } from "@lexical/list";
-import { IFloatingMenuButton } from "./FloatingMenuButton";
+import { FloatingMenuButtonProps } from "./FloatingMenuButton";
 import { TOGGLE_LIST } from "../ListCommandsPluginHandler/CustomListCommands";
 
-export const defaultButtons: IFloatingMenuButton[] = [
+export const defaultButtons: FloatingMenuButtonProps[] = [
 	{
 		name: "bold",
 		title: "Bold (Ctrl + B)",

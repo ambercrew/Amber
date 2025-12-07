@@ -7,12 +7,12 @@ import {
 } from "lexical";
 import { useEffect } from "react";
 
-interface IProps {
+interface Props {
 	onFocus?: (editor: LexicalEditor) => void;
 	onBlur?: () => void;
 }
 
-export default function FocusBlurPlugin({ onFocus, onBlur }: IProps) {
+export default function FocusBlurPlugin({ onFocus, onBlur }: Props) {
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {

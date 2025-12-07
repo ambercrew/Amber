@@ -1,19 +1,19 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-interface IHandler {
+interface Handler {
 	cb: () => Promise<void>;
 	priority: number;
 }
 
 export class CloseRequestedEventManager {
-	private handlers = new Map<string, IHandler>();
+	private handlers = new Map<string, Handler>();
 	// Used to lazy add a callback to tauri event listener.
 	private isEventAdded = false;
 
 	/** Adds a handler that is called before closing the window, handlers
 	 * with lower priority are executed before handlers with higher priorities.
 	 */
-	public addHandler(name: string, handler: IHandler) {
+	public addHandler(name: string, handler: Handler) {
 		if (!this.isEventAdded) {
 			void getCurrentWindow().onCloseRequested(
 				this.callHandlers.bind(this),

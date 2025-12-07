@@ -14,7 +14,7 @@ import errorToString from "../../../utils/errorToString";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import { getUserInformation } from "../../../api/userApi";
 
-interface IProps {
+interface Props {
 	isSendingRequest: boolean;
 	onRequestStart: () => void;
 	onRequestEnd: () => void;
@@ -28,7 +28,7 @@ export default function SignUpForm({
 	onRequestEnd,
 	onClose,
 	onSignInClick,
-}: IProps) {
+}: Props) {
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [username, setUsername] = useState("");

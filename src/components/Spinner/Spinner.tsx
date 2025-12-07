@@ -1,16 +1,12 @@
 import styles from "./styles.module.css";
 
-interface IProps {
+interface Props {
 	text?: string;
 	size?: number;
 	containerClassName?: string;
 }
 
-export default function Spinner({
-	text,
-	containerClassName,
-	size = 1,
-}: IProps) {
+export default function Spinner({ text, containerClassName, size = 1 }: Props) {
 	return (
 		<div className={`${styles.container} ${containerClassName}`}>
 			<span

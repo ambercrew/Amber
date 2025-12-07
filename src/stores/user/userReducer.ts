@@ -1,12 +1,12 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { UserInformationDto } from "../../types/backend/dto/userInformnationDto";
 
-interface IUserState {
+interface UserState {
 	isSignedIn: boolean;
 	userInformation: UserInformationDto | null;
 }
 
-const initialState: IUserState = {
+const initialState: UserState = {
 	isSignedIn: false,
 	userInformation: null,
 };
