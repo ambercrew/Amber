@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { UserInformationDto } from "../types/backend/dto/userInformnationDto";
+import { UserInformationDto } from "../types/backend/dto/userInformationDto";
 
 export function getUserInformation(): Promise<UserInformationDto> {
 	return invoke("get_user_information");
