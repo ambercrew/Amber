@@ -54,7 +54,7 @@ function EditableCells({
 }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	/** Automatically scroll to the selected cell on the next render,
-	 * this requires something else to rerender the component for it to work.
+	 * this requires something else to re-render the component for it to work.
 	 */
 	const scrollToSelectedCellOnNextRender = useRef<boolean>(
 		initialSelectedCellId !== null && initialSelectedCellId !== undefined,
