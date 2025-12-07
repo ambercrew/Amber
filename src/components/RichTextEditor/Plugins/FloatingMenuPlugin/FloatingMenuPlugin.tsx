@@ -26,9 +26,12 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 
 	const calculatePosition = useCallback(() => {
 		const domSelection = getSelection();
-		const domRangeRect =
-			domSelection?.rangeCount !== 0 &&
-			domSelection?.getRangeAt(0)?.getBoundingClientRect();
+		const domRange =
+			domSelection?.rangeCount !== 0
+				? domSelection?.getRangeAt(0)?.cloneRange()
+				: null;
+		domRange?.collapse(domSelection?.direction === "backward");
+		const domRangeRect = domRange?.getBoundingClientRect();
 		const editorRootElementRect = editor
 			.getRootElement()
 			?.getBoundingClientRect();
