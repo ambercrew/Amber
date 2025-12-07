@@ -1,4 +1,4 @@
-import { act, fireEvent, renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import userEvent from "@testing-library/user-event";
 
