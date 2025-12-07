@@ -66,6 +66,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 					value={searchText}
 					onChange={e => setSearchText(e.target.value)}
 					ref={searchInputRef}
+					autoFocus
 				/>
 			</form>
 
@@ -83,7 +84,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 				<EditableCells
 					cells={searchResult}
 					onError={onError}
-					autoFocusEditor={true}
+					autoFocusEditor={false}
 					onCellsUpdateSave={retrieveSearchResult}
 					fileMode="global search"
 					onEditButtonClick={onEditButtonClick}
