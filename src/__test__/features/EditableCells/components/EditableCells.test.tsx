@@ -328,6 +328,60 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
+	it("Should scroll when emptying search box", async () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				bottom: 30,
+			},
+			EditableCells: {
+				bottom: 20,
+			},
+		});
+
+		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
+
+		const Component = () => {
+			const [searchText, setSearchText] = useState("");
+
+			return (
+				<>
+					<input
+						type="text"
+						value={searchText}
+						onChange={e => setSearchText(e.target.value)}
+						placeholder="search"
+					/>
+					<EditableCells
+						fileMode="single"
+						onError={vi.fn()}
+						onCellsUpdateSave={vi.fn()}
+						cells={cells}
+						searchText={searchText}
+						initialSelectedCellId="2"
+					/>
+				</>
+			);
+		};
+
+		renderWithProviders(<Component />);
+
+		// Act
+
+		await userEvent.click(screen.getByPlaceholderText("search"));
+		await userEvent.keyboard("test");
+		await userEvent.keyboard(
+			"{Backspace}{Backspace}{Backspace}{Backspace}",
+		);
+
+		// Assert
+
+		expect(cellsScrolledTo).toContain("CellBlock-2");
+		// Two due to first time.
+		expect(cellsScrolledTo).toHaveLength(2);
+	});
+
 	it("Should scroll when dropping", async () => {
 		// Arrange
 
