@@ -1,5 +1,5 @@
 import styles from "./styles.module.css";
-import { ForwardedRef, forwardRef, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
 import Cell, {
 	CellType,
 	cellTypesDisplayNames,
@@ -67,7 +67,7 @@ function CellBlock(
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
-			setShowInsertNewCell(!showInsertNewCell);
+			if (isSelected) setShowInsertNewCell(!showInsertNewCell);
 		} else if (e.ctrlKey && e.key === " ") {
 			if (isSelected) editorRef.current?.focus();
 		}
@@ -77,6 +77,10 @@ function CellBlock(
 		setPreviousIsSelected(isSelected);
 		setShowInsertNewCell(false);
 	}
+
+	useEffect(() => {
+		if (!showInsertNewCell && editorRef.current) editorRef.current.focus();
+	}, [showInsertNewCell]);
 
 	const handleDragStart = (e: React.DragEvent) => {
 		e.stopPropagation();
