@@ -5,10 +5,18 @@ import Cell from "../../../../types/backend/entity/cell";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
-import { createCell } from "../../../../api/cellApi";
+import { createCell, deleteCell, moveCell } from "../../../../api/cellApi";
+import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
+import { Mock } from "vitest";
+import { Procedure } from "@vitest/spy";
+import {
+	defaultGlobalSyncEventManager,
+	ListenerType,
+} from "../../../../stores/sync/managers/syncEventManager";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
+vi.mock(import("../../../../features/EditableCells/hooks/useAutoSave"));
 
 /** Creates a cell for testing where the id is equal to the index.
  */
@@ -97,6 +105,12 @@ describe("EditableCells scrolling", () => {
 			observe = vi.fn();
 			unobserve = vi.fn();
 		};
+
+		vi.mocked(useAutoSave).mockReturnValue({
+			ignoreCell: vi.fn(),
+			onCellContentUpdate: vi.fn(),
+			saveChanges: vi.fn(),
+		});
 	});
 
 	it("Should scroll to initial selected cell", () => {
@@ -310,9 +324,8 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
 		renderEditableCells({
-			cells,
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 			initialSelectedCellId: "3",
 			onCellsUpdateSave: () => [createTestCell(1), createTestCell(2)],
 		});
@@ -394,9 +407,8 @@ describe("EditableCells scrolling", () => {
 			},
 		});
 
-		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
 		renderEditableCells({
-			cells,
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 			initialSelectedCellId: "3",
 			onCellsUpdateSave: () => [
 				createTestCell(1),
@@ -427,7 +439,11 @@ describe("EditableCells scrolling", () => {
 });
 
 describe("EditableCells logic", () => {
-	beforeAll(() => {
+	let saveChangesMock: Mock<Procedure>;
+
+	beforeEach(() => {
+		saveChangesMock = vi.fn();
+
 		// @ts-expect-error IntersectionObserver is not found by default on the testing library.
 		window.IntersectionObserver = class IntersectionObserver {
 			constructor(cb: (entries: unknown[]) => void) {
@@ -441,6 +457,12 @@ describe("EditableCells logic", () => {
 			observe = vi.fn();
 			unobserve = vi.fn();
 		};
+
+		vi.mocked(useAutoSave).mockReturnValue({
+			ignoreCell: vi.fn(),
+			onCellContentUpdate: vi.fn(),
+			saveChanges: saveChangesMock,
+		});
 	});
 
 	it("Should always select a cell at the start", () => {
@@ -454,5 +476,113 @@ describe("EditableCells logic", () => {
 
 		const classList = screen.getByTestId("CellBlock-1").classList.value;
 		expect(classList).contains("selected-cell");
+	});
+
+	it("Should call backend with correct arguments when dropping", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+		});
+
+		// Act
+
+		act(() => {
+			fireEvent.drop(screen.getByTestId("CellBlock-2"), {
+				dataTransfer: {
+					getData() {
+						return "3";
+					},
+				},
+			});
+		});
+
+		// Assert
+
+		await waitFor(() => {
+			expect(saveChangesMock).toBeCalled();
+			expect(vi.mocked(moveCell)).toBeCalledWith("3", 1);
+		});
+	});
+
+	it("Should call backend with correct arguments and set new selected cell when deleting a cell", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "2",
+		});
+
+		// Act
+
+		await userEvent.click(screen.getByTitle("Delete cell (Alt + Del)"));
+		await userEvent.click(screen.getByText("Yes"));
+
+		// Assert
+
+		expect(saveChangesMock).toBeCalled();
+		expect(vi.mocked(deleteCell)).toBeCalledWith("2");
+
+		const classList = screen.getByTestId("CellBlock-1").classList.value;
+		expect(classList).contains("selected-cell");
+	});
+
+	it("Should call backend with correct arguments and set new selected cell when inserting a new cell", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			onCellsUpdateSave: () => [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
+		});
+
+		vi.mocked(createCell).mockReturnValue(Promise.resolve("4"));
+
+		// Act
+
+		await userEvent.click(
+			screen.getByTitle("Insert Cell (Ctrl + Shift + Enter)"),
+		);
+		await userEvent.click(screen.getByText("True/False"));
+
+		// Assert
+
+		expect(saveChangesMock).toBeCalled();
+		expect(vi.mocked(createCell)).toBeCalledWith(
+			expect.objectContaining({
+				cellType: "TrueFalse",
+			}),
+		);
+
+		const classList = screen.getByTestId("CellBlock-4").classList.value;
+		expect(classList).contains("selected-cell");
+	});
+
+	it("Should scroll back to correct position when sync is completed", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+		});
+		const editableCells = screen.getByTestId("EditableCells");
+
+		// Act
+
+		editableCells.scrollTop = 100;
+		await defaultGlobalSyncEventManager.notifyListeners(
+			ListenerType.PreSyncStart,
+		);
+		editableCells.scrollTop = 400;
+		await defaultGlobalSyncEventManager.notifyListeners(
+			ListenerType.PostSyncComplete,
+		);
+
+		// Assert
+
+		expect(editableCells.scrollTop).toBe(100);
 	});
 });
