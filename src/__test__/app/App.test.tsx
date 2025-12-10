@@ -3,7 +3,7 @@ import { renderWithProviders } from "../test-utils/renderWithProviders";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../../stores/fileSystem/fileSystemActions";
 import { screen, waitFor } from "@testing-library/react";
-import { loadInitialStateUser } from "../../stores/user/userActions";
+import { loadInitialUserState } from "../../stores/user/userActions";
 import { initialLoadAndApplySettings } from "../../stores/settings/settingsActions";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
@@ -52,7 +52,7 @@ describe("App", () => {
 		);
 
 		const expectedLoadSettingsCb = vi.fn();
-		vi.mocked(loadInitialStateUser).mockReturnValue(expectedLoadSettingsCb);
+		vi.mocked(loadInitialUserState).mockReturnValue(expectedLoadSettingsCb);
 
 		const expectedInitiateSettings = vi.fn();
 		vi.mocked(initialLoadAndApplySettings).mockReturnValue(

@@ -3,7 +3,7 @@ import { getUserInformation } from "../../api/userApi";
 import { AppDispatch } from "../store";
 import { setUserInformation } from "./userReducer";
 
-export function loadInitialStateUser() {
+export function loadInitialUserState() {
 	return async function (dispatch: AppDispatch): Promise<void> {
 		try {
 			const isSignedIn = await isSignedInApi();

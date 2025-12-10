@@ -23,7 +23,7 @@ import {
 import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/components/Searcher";
 import Updater from "../features/Updater/componenets/Updater";
-import { loadInitialStateUser } from "../stores/user/userActions";
+import { loadInitialUserState } from "../stores/user/userActions";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
@@ -79,7 +79,7 @@ function App() {
 	useEffect(() => {
 		void (async () => {
 			await dispatch(getReviewTreeFolderForRoot());
-			await dispatch(loadInitialStateUser());
+			await dispatch(loadInitialUserState());
 			await dispatch(initialLoadAndApplySettings());
 		})();
 
