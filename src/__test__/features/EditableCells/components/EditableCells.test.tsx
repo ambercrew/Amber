@@ -216,7 +216,7 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + alt + arrow down", async () => {
+	it("Should scroll when moving selected cell using ctrl + alt + arrow down", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -248,7 +248,7 @@ describe("EditableCells scrolling", () => {
 		expect(cellsScrolledTo).toHaveLength(1);
 	});
 
-	it("Should scroll when changing selected cell using ctrl + alt + arrow up", async () => {
+	it("Should scroll when moving selected cell using ctrl + alt + arrow up", async () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
@@ -505,6 +505,39 @@ describe("EditableCells logic", () => {
 		});
 	});
 
+	it("Should call backend with correct arguments when dropping after forward", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [
+				createTestCell(0),
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
+		});
+
+		// Act
+
+		act(() => {
+			fireEvent.drop(screen.getByTestId("CellBlock-3"), {
+				dataTransfer: {
+					getData() {
+						return "1";
+					},
+				},
+			});
+		});
+
+		// Assert
+
+		await waitFor(() => {
+			expect(saveChangesMock).toBeCalled();
+			expect(vi.mocked(moveCell)).toBeCalledWith("1", 2);
+		});
+	});
+
 	it("Should call backend with correct arguments and set new selected cell when deleting a cell", async () => {
 		// Arrange
 
@@ -584,5 +617,75 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		expect(editableCells.scrollTop).toBe(100);
+	});
+
+	it("Should called backend with correct arguments when moving selected cell using ctrl + alt + arrow up", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "3",
+		});
+
+		// Act
+
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowUp}");
+
+		// Assert
+
+		// Indexing start from zero.
+		expect(vi.mocked(moveCell)).toBeCalledWith("3", 1);
+	});
+
+	it("Should called backend with correct arguments when moving selected cell using ctrl + alt + arrow down", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "2",
+		});
+
+		// Act
+
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowDown}");
+
+		// Assert
+
+		// Indexing start from zero.
+		expect(vi.mocked(moveCell)).toBeCalledWith("2", 2);
+	});
+
+	it("Should not call the backend when moving to invalid place using shortcuts (ctrl + alt + arrow down)", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "3",
+		});
+
+		// Act
+
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowDown}");
+
+		// Assert
+
+		expect(vi.mocked(moveCell)).not.toBeCalled();
+	});
+
+	it("Should not call the backend when moving to invalid place using shortcuts (ctrl + alt + arrow up)", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "1",
+		});
+
+		// Act
+
+		await userEvent.keyboard("{Control>}{Alt>}{ArrowUp}");
+
+		// Assert
+
+		expect(vi.mocked(moveCell)).not.toBeCalled();
 	});
 });
