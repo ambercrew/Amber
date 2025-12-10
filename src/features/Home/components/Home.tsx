@@ -16,6 +16,8 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 
 interface Props {
 	onStudyClick: (fileIds: string[]) => void;
@@ -27,6 +29,7 @@ function Home({ onStudyClick, onError }: Props) {
 		null,
 	);
 	const rootFolder = useAppSelector(selectRootFolder);
+	const dispatch = useAppDispatch();
 
 	const fetchHomeStatistics = useCallback(async () => {
 		try {
@@ -39,6 +42,8 @@ function Home({ onStudyClick, onError }: Props) {
 
 	useEffect(() => {
 		void (async () => await fetchHomeStatistics())();
+		// This is necessary to load the new state after things like review.
+		void (async () => await dispatch(getReviewTreeFolderForRoot()))();
 
 		defaultGlobalSyncEventManager.addListener(
 			ListenerType.PostSyncComplete,
@@ -49,7 +54,7 @@ function Home({ onStudyClick, onError }: Props) {
 				ListenerType.PostSyncComplete,
 				fetchHomeStatistics,
 			);
-	}, [fetchHomeStatistics]);
+	}, [fetchHomeStatistics, dispatch]);
 
 	const handleStudyClick = (
 		fileIds: string[],
