@@ -22,7 +22,7 @@
 
 	& .row {
 		display: grid;
-		grid-template-columns: 16rem 1fr;
+		grid-template-columns: 18rem 1fr;
 		justify-content: center;
 		align-items: center;
 		gap: var(--small-padding);

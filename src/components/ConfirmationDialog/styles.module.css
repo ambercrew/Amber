@@ -1,5 +1,5 @@
 .box {
-	min-width: 48rem;
+	width: 52rem;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
