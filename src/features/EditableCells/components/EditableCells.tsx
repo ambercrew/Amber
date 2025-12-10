@@ -165,7 +165,7 @@ function EditableCells({
 			await executeRequest(async () => {
 				await moveCell(
 					cells[selectedCellIndex].id,
-					selectedCellIndex + (number > 0 ? number + 1 : number),
+					selectedCellIndex + number,
 				);
 			});
 			await onCellsUpdateSave();
@@ -252,6 +252,7 @@ function EditableCells({
 		const dragCellId = e.dataTransfer.getData(CELL_ID_DRAG_FORMAT);
 		if (!dragCellId) return;
 		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
+		if (index > draggedCellIndex) index--;
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await saveChanges();

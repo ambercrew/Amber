@@ -81,12 +81,6 @@ impl CellService {
         log::info!("Moving cell with id {id} to new index {new_index}.");
         let mut cell = self.cell_repository.get_by_id(id).await?;
 
-        let new_index = if new_index > cell.index() {
-            new_index - 1
-        } else {
-            new_index
-        };
-
         self.cell_repository
             .move_cells_indices_starting_from(cell.file_id(), cell.index() + 1, MoveDirection::Up)
             .await?;
@@ -340,10 +334,10 @@ pub mod tests {
         assert_eq!(actual_cells[1].id(), cells[2].id());
         assert_eq!(actual_cells[1].index(), 1);
 
-        assert_eq!(actual_cells[2].id(), cells[1].id());
+        assert_eq!(actual_cells[2].id(), cells[3].id());
         assert_eq!(actual_cells[2].index(), 2);
 
-        assert_eq!(actual_cells[3].id(), cells[3].id());
+        assert_eq!(actual_cells[3].id(), cells[1].id());
         assert_eq!(actual_cells[3].index(), 3);
 
         assert_eq!(actual_cells[4].id(), cells[4].id());
