@@ -79,7 +79,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         log::info!("Signing-in...");
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/auth/sign-in").unwrap())
+            .post(self.backend_url.join("/api/v1/auth/sign-in").unwrap())
             .json(&dto)
             .send()
             .await;
@@ -116,7 +116,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         log::info!("Signing-up...");
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/auth/sign-up").unwrap())
+            .post(self.backend_url.join("/api/v1/auth/sign-up").unwrap())
             .json(&dto)
             .send()
             .await;
@@ -131,7 +131,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         log::info!("Signing-out...");
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/auth/sign-out").unwrap())
+            .post(self.backend_url.join("/api/v1/auth/sign-out").unwrap())
             .send()
             .await;
         ensure_success_response(response).await?;
@@ -142,7 +142,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
     async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError> {
         let response = self
             .reqwest_client
-            .get(self.backend_url.join("/api/user").unwrap())
+            .get(self.backend_url.join("/api/v1/user").unwrap())
             .send()
             .await;
 
@@ -178,7 +178,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         log::info!("Updating user information...");
         let response = self
             .reqwest_client
-            .patch(self.backend_url.join("/api/user").unwrap())
+            .patch(self.backend_url.join("/api/v1/user").unwrap())
             .json(&dto)
             .send()
             .await;
@@ -197,7 +197,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 
         let response = self
             .reqwest_client
-            .get(self.backend_url.join("/api/sync").unwrap())
+            .get(self.backend_url.join("/api/v1/sync").unwrap())
             .query(&[("date", date.to_rfc3339())])
             .query(&[("page", page)])
             .send()
@@ -221,7 +221,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 
         let response = self
             .reqwest_client
-            .post(self.backend_url.join("/api/sync").unwrap())
+            .post(self.backend_url.join("/api/v1/sync").unwrap())
             .json(&entities)
             .send()
             .await;
