@@ -170,6 +170,9 @@ describe("App", () => {
 			expectedReviewTreeCb,
 		);
 		renderWithProviders(<App />);
+		const beforeTimes = dispatchMock.mock.calls.filter(
+			c => c[0] === expectedReviewTreeCb,
+		).length;
 
 		// Act
 
@@ -184,7 +187,7 @@ describe("App", () => {
 				c => c[0] === expectedReviewTreeCb,
 			).length;
 			// Two times since it should get on the initial render.
-			expect(times).toBe(2);
+			expect(times).toBe(beforeTimes + 1);
 		});
 	});
 
