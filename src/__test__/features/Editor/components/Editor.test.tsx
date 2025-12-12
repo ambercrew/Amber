@@ -72,7 +72,7 @@ describe("TitleBar", () => {
 		);
 	});
 
-	it("Should remove shown class when escaped is pressed", async () => {
+	it("Should remove shown class and empties search text when escape is pressed", async () => {
 		// Arrange
 
 		renderWithProviders(
@@ -87,13 +87,19 @@ describe("TitleBar", () => {
 
 		// Act
 
-		await userEvent.keyboard("{Escape}");
+		await userEvent.keyboard("test{Escape}");
 
 		// Assert
 
 		expect(
 			(searchInput?.parentNode as HTMLElement).classList,
 		).not.toContain(editorStyles.shown);
+
+		const editableCellsMockCalls = vi.mocked(EditableCells).mock.calls;
+		expect(
+			editableCellsMockCalls[editableCellsMockCalls.length - 1][0]
+				.searchText,
+		).toBe("");
 	});
 
 	it("Should not auto-focus editable cells when search-input is focused", async () => {
