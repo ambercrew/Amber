@@ -9,16 +9,21 @@ import {
 	createFolder,
 	deleteFile,
 	deleteFolder,
+	getReviewTreeFolderForRoot,
 	moveFolder,
 	renameFolder,
 } from "../../../../api/fileSystemApi.ts";
 import UiFile from "../../../../types/ui/uiFile.ts";
-import { save } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import {
 	dragFormatForFolder,
 	jsonFileFilter,
 } from "../../../../features/FileTree/config/constants.ts";
-import { exportFile, exportFolder } from "../../../../api/exportImportApi.ts";
+import {
+	exportFile,
+	exportFolder,
+	importExportedItem,
+} from "../../../../api/exportImportApi.ts";
 import { act } from "react";
 import fileTreeStyles from "../../../../features/FileTree/components/styles.module.css";
 
@@ -301,6 +306,34 @@ describe("FileTreeItem", () => {
 			"1",
 			"/usr/test/test.json",
 		);
+	});
+
+	it("Should import folder using actions", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+
+		vi.mocked(open).mockImplementation(options => {
+			if (options!.filters![0] === jsonFileFilter) {
+				return Promise.resolve("/usr/test/test.json");
+			}
+			return Promise.resolve(null);
+		});
+
+		// Act
+
+		await userEvent.click(screen.getAllByTitle("Actions")[1]);
+		await userEvent.click(screen.getByText("Import"));
+
+		// Assert
+
+		expect(vi.mocked(importExportedItem)).toBeCalledWith(
+			"/usr/test/test.json",
+			"1",
+		);
+		expect(vi.mocked(getReviewTreeFolderForRoot)).toBeCalled();
 	});
 
 	it("Should export file using actions", async () => {
