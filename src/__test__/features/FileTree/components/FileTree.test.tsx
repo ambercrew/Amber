@@ -2,7 +2,12 @@ import userEvent from "@testing-library/user-event";
 import FileTree from "../../../../features/FileTree/components/FileTree";
 import UiFolder from "../../../../types/ui/uiFolder";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+	createEvent,
+	fireEvent,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 import { ROOT_FOLDER_ID } from "../../../../config/constants";
 import {
 	createFile,
@@ -376,7 +381,7 @@ describe("FileTreeItem", () => {
 		expect(data).toBe("1");
 	});
 
-	it("Should update classes on drag enter", async () => {
+	it("Should update classes on drag enter", () => {
 		// Arrange
 
 		const root = createTestFolder("", ROOT_FOLDER_ID);
@@ -395,11 +400,65 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		await waitFor(() => {
-			const fileTree =
-				screen.getByText("test").parentElement!.parentElement!
-					.parentElement!;
-			expect(fileTree.classList).toContain(fileTreeStyles.dragOver);
+		const fileTree =
+			screen.getByText("test").parentElement!.parentElement!
+				.parentElement!;
+		expect(fileTree.classList).toContain(fileTreeStyles.dragOver);
+	});
+
+	it("Should update classes on drag drag", () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		act(() => {
+			fireEvent.dragEnter(screen.getByText("test"), {
+				dataTransfer: {
+					types: [dragFormatForFolder],
+				},
+			});
+			fireEvent.dragLeave(screen.getByText("test"), {
+				dataTransfer: {
+					types: [dragFormatForFolder],
+				},
+			});
 		});
+
+		// Assert
+
+		const fileTree =
+			screen.getByText("test").parentElement!.parentElement!
+				.parentElement!;
+		expect(fileTree.classList).not.toContain(fileTreeStyles.dragOver);
+	});
+
+	it("Should prevent default on drag over", () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+
+		// The testing library is acting weiredly when attaching preventDefault
+		// as mock function, therefore spying on the prototype.
+		const preventDefaultSpy = vi.spyOn(Event.prototype, "preventDefault");
+
+		// Act
+
+		act(() => {
+			fireEvent.dragOver(screen.getByText("test"), {
+				dataTransfer: {
+					types: [dragFormatForFolder],
+				},
+			});
+		});
+
+		// Assert
+
+		expect(preventDefaultSpy).toBeCalled();
 	});
 });
