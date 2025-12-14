@@ -11,7 +11,7 @@ import {
 	mdiImport,
 	mdiPencilOutline,
 } from "@mdi/js";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { Action } from "../types/action.ts";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
@@ -49,11 +49,8 @@ interface Props {
 	folder: UiFolder | null;
 	fullPath: string;
 	id: string;
-	isAnyItemDragged: boolean;
 	fileItemRowRef?: React.Ref<FileTreeItemRowRef>;
 	onMarkForDeletion: (id: string, isFolder: boolean) => void;
-	onDragStart: () => void;
-	onDragEnd: () => void;
 }
 
 /**
@@ -64,18 +61,15 @@ function FileTreeItem({
 	folder,
 	fullPath,
 	id,
-	isAnyItemDragged,
 	fileItemRowRef,
 	onMarkForDeletion,
-	onDragStart,
-	onDragEnd,
 }: Props) {
 	const isRoot = id === ROOT_FOLDER_ID;
 	const [showActions, setShowActions] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
-	const [isDragOver, setIsDragOver] = useState(false);
+	const [dragCounter, setDragCounter] = useState(0);
 	const [isOpen, setIsOpen] = useLocalStorage(
 		`is-file-tree-item-open-${id}`,
 		false,
@@ -83,7 +77,6 @@ function FileTreeItem({
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const dragEnterTarget = useRef<EventTarget>(null);
 	const isExpanded = isRoot || isOpen;
 	const actions: Action[] = [];
 
@@ -246,31 +239,38 @@ function FileTreeItem({
 		setShowActions(false);
 		const format = folder ? dragFormatForFolder : dragFormatForFile;
 		e.dataTransfer.setData(format, id.toString());
-		onDragStart();
 	};
 
-	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-		if (
-			!folder ||
-			(!e.dataTransfer.types.includes(dragFormatForFile) &&
-				!e.dataTransfer.types.includes(dragFormatForFolder))
-		) {
-			return;
-		}
+	const isAllowedDrag = (e: React.DragEvent<HTMLDivElement>) => {
+		return (
+			folder &&
+			(e.dataTransfer.types.includes(dragFormatForFile) ||
+				e.dataTransfer.types.includes(dragFormatForFolder))
+		);
+	};
+
+	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+		if (!isAllowedDrag(e)) return;
 		e.preventDefault();
 		e.stopPropagation();
-		setIsDragOver(true);
+		setDragCounter(val => val + 1);
 	};
 
 	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-		if (e.target === dragEnterTarget.current && folder)
-			setIsDragOver(false);
+		if (!isAllowedDrag(e)) return;
+		e.preventDefault();
+		e.stopPropagation();
+		setDragCounter(val => val - 1);
+	};
+
+	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+		if (isAllowedDrag(e)) e.preventDefault();
 	};
 
 	const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
 		if (!folder) return;
 		e.stopPropagation();
-		setIsDragOver(false);
+		setDragCounter(0);
 
 		const fileId = e.dataTransfer.getData(dragFormatForFile);
 		const folderId = e.dataTransfer.getData(dragFormatForFolder);
@@ -284,8 +284,8 @@ function FileTreeItem({
 	return (
 		(!folder || isRoot || folder.isVisible) && (
 			<div
-				className={`${styles.fileItemOuterContainer} ${isDragOver && isAnyItemDragged ? styles.dragOver : ""}`}
-				onDragEnter={e => (dragEnterTarget.current = e.target)}
+				className={`${styles.fileItemOuterContainer} ${dragCounter ? styles.dragOver : ""}`}
+				onDragEnter={handleDragEnter}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
@@ -306,7 +306,6 @@ function FileTreeItem({
 					onClick={handleClick}
 					onHideActions={() => setShowActions(false)}
 					onRenamingCancel={() => setIsRenaming(false)}
-					onDragEnd={onDragEnd}
 				/>
 
 				{folder && isExpanded && (
@@ -316,12 +315,9 @@ function FileTreeItem({
 						onMarkForDeletion={onMarkForDeletion}
 						onCreatingNewItemEnd={handleCreateNewItemEnd}
 						isRoot={isRoot}
-						isAnyItemDragged={isAnyItemDragged}
 						folder={folder}
 						fullPath={fullPath}
 						onCreateNewFileClick={() => setCreatingNewFile(true)}
-						onDragStart={onDragStart}
-						onDragEnd={onDragEnd}
 					/>
 				)}
 			</div>

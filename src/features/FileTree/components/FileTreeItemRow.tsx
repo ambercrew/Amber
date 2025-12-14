@@ -33,7 +33,6 @@ interface Props {
 	fullPath: string;
 	ref?: React.Ref<FileTreeItemRowRef>;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
-	onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
 	onShowActions: () => void;
 	onHideActions: () => void;
@@ -56,7 +55,6 @@ export default function FileTreeItemRow({
 	fullPath,
 	ref,
 	onDragStart,
-	onDragEnd,
 	onRenameEnd,
 	onShowActions,
 	onClick,
@@ -128,7 +126,6 @@ export default function FileTreeItemRow({
 				className={`${styles.fileTreeRow}`}
 				draggable={!isRoot && !isRenaming}
 				onDragStart={onDragStart}
-				onDragEnd={onDragEnd}
 				onContextMenu={handleContextMenu}
 				ref={containerRef}>
 				<button
