@@ -9,6 +9,7 @@ import {
 	createFolder,
 	deleteFile,
 	deleteFolder,
+	moveFolder,
 	renameFolder,
 } from "../../../../api/fileSystemApi.ts";
 import UiFile from "../../../../types/ui/uiFile.ts";
@@ -455,5 +456,67 @@ describe("FileTreeItem", () => {
 		// Assert
 
 		expect(preventDefaultSpy).toBeCalled();
+	});
+
+	it("Should call backend on drop", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		act(() => {
+			fireEvent.drop(screen.getByText("test"), {
+				dataTransfer: {
+					types: [dragFormatForFolder],
+					getData(format: string) {
+						if (format === dragFormatForFolder) return "2";
+						return null;
+					},
+				},
+			});
+		});
+
+		// Assert
+
+		expect(vi.mocked(moveFolder)).toBeCalledWith("2", "1");
+	});
+
+	it("Should navigate to file on click", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.files.push(createTestFile("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		await userEvent.click(screen.getByText("test"));
+
+		// Assert
+
+		expect(screen.getByTestId("location-display")).toHaveTextContent(
+			"/editor?fileId=1",
+		);
+	});
+
+	it("Should navigate to home on click on root", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.files.push(createTestFile("test", "1"));
+		renderWithProviders(<FileTree folder={root} />);
+		// Navigating to some file first.
+		await userEvent.click(screen.getByText("test"));
+
+		// Act
+
+		await userEvent.click(screen.getByText("Files"));
+
+		// Assert
+
+		expect(screen.getByTestId("location-display")).toHaveTextContent("/");
 	});
 });
