@@ -25,7 +25,12 @@ export function renderWithProviders(
 ) {
 	function LocationDisplay() {
 		const location = useLocation();
-		return <div data-testid="location-display">{location.pathname}</div>;
+		return (
+			<div data-testid="location-display">
+				{location.pathname}
+				{location.search}
+			</div>
+		);
 	}
 
 	function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
