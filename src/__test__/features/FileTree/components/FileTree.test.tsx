@@ -2,12 +2,7 @@ import userEvent from "@testing-library/user-event";
 import FileTree from "../../../../features/FileTree/components/FileTree";
 import UiFolder from "../../../../types/ui/uiFolder";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
-import {
-	createEvent,
-	fireEvent,
-	screen,
-	waitFor,
-} from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { ROOT_FOLDER_ID } from "../../../../config/constants";
 import {
 	createFile,
