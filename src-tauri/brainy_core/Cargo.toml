@@ -31,4 +31,4 @@ uuid = { version = "1.17.0", features = [ "v4", "serde" ] }
 prost-build = "0.14.1"
 
 [dev-dependencies]
-mockall = "0.13.1"
+mockall = "0.14.0"
