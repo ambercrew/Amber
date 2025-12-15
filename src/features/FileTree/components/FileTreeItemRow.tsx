@@ -17,7 +17,7 @@ import {
 } from "../../../stores/fileSystem/fileSystemActions";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useSearchParams } from "react-router";
-import { fileIdQueryParameter } from "../../../config/constants";
+import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useOutsideContextMenu from "../../../hooks/useOutsideContextMenu";
@@ -63,7 +63,7 @@ export default function FileTreeItemRow({
 }: Props) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const [searchParams] = useSearchParams();
-	const selectedFileId = searchParams.get(fileIdQueryParameter);
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
 	const containerRef = useRef<HTMLDivElement>(null);

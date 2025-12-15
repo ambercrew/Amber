@@ -8,7 +8,7 @@ import { getStudyRepetitionCounts } from "../../../api/repetitionApi";
 import errorToString from "../../../utils/errorToString";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
-import { fileIdQueryParameter } from "../../../config/constants";
+import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import EditableCells from "../../EditableCells/components/EditableCells";
 
 interface Props {
@@ -29,7 +29,7 @@ function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
 	const [cells, setCells] = useState<Cell[]>([]);
 	const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
 	const [searchParams] = useSearchParams();
-	const selectedFileId = searchParams.get(fileIdQueryParameter)!;
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER)!;
 
 	useGlobalKey(e => {
 		if (e.key === "F5") {

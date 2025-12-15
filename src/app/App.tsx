@@ -17,7 +17,7 @@ import {
 	useSearchParams,
 } from "react-router";
 import {
-	fileIdQueryParameter,
+	FILE_ID_QUERY_PARAMETER,
 	SMALL_SCREEN_MAX_WIDTH_IN_PX,
 } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
@@ -44,7 +44,7 @@ function App() {
 	);
 	const location = useLocation();
 	const [previousLocation, setPreviousLocation] = useState(location);
-	const selectedFileId = searchParams.get(fileIdQueryParameter);
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
@@ -124,7 +124,7 @@ function App() {
 
 	const handleEditButtonClick = (fileId: string, cellId: string) => {
 		setInitialSelectedCellId(cellId);
-		searchParams.set(fileIdQueryParameter, fileId);
+		searchParams.set(FILE_ID_QUERY_PARAMETER, fileId);
 		void navigate({
 			pathname: "editor",
 			search: searchParams.toString(),

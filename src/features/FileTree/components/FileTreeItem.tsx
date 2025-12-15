@@ -29,7 +29,7 @@ import FileTreeItemRow, { FileTreeItemRowRef } from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../../utils/errorToString";
 import {
-	fileIdQueryParameter,
+	FILE_ID_QUERY_PARAMETER,
 	ROOT_FOLDER_ID,
 } from "../../../config/constants";
 import { useNavigate, useSearchParams } from "react-router";
@@ -199,7 +199,7 @@ function FileTreeItem({
 				setIsOpen(!isOpen);
 			}
 		} else {
-			searchParams.set(fileIdQueryParameter, id.toString());
+			searchParams.set(FILE_ID_QUERY_PARAMETER, id.toString());
 			void navigate({
 				pathname: "editor",
 				search: searchParams.toString(),

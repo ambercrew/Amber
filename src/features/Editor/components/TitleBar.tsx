@@ -5,7 +5,7 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { selectFileById } from "../../../stores/fileSystem/fileSystemSelectors";
 import FileRepetitionCounts from "../../../types/backend/model/fileRepetitionCounts";
 import { useSearchParams } from "react-router";
-import { fileIdQueryParameter } from "../../../config/constants";
+import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useEffect, useRef, useState } from "react";
@@ -31,7 +31,7 @@ function TitleBar({
 	const [showSearchBar, setShowSearchBar] = useState(false);
 	const [searchParams] = useSearchParams();
 	const searchInputRef = useRef<HTMLInputElement>(null);
-	const selectedFileId = searchParams.get(fileIdQueryParameter);
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const selectedFile = useAppSelector(state =>
 		selectFileById(state, selectedFileId!),
 	);

@@ -9,7 +9,7 @@ import {
 import FileTreeItem from "./FileTreeItem.tsx";
 import UiFolder from "../../../types/ui/uiFolder.ts";
 import { useNavigate, useSearchParams } from "react-router";
-import { fileIdQueryParameter } from "../../../config/constants.ts";
+import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants.ts";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";
 import { mdiDeleteOutline } from "@mdi/js";
 import { ReviewTreeFolder } from "../../../types/backend/dto/reviewTreeFolder.ts";
@@ -28,7 +28,7 @@ function FileTree({ folder }: Props) {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const selectedFileId = searchParams.get(fileIdQueryParameter);
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const folderMarkedForDeletion = getFolderChildById(
 		folder,
 		folderMarkedForDeletionId!,
