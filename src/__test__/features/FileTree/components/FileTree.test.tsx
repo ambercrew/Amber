@@ -26,6 +26,9 @@ import {
 } from "../../../../api/exportImportApi.ts";
 import { act } from "react";
 import fileTreeStyles from "../../../../features/FileTree/components/styles.module.css";
+import useAppSelector from "../../../../hooks/useAppSelector.ts";
+import { selectRootFolder } from "../../../../stores/fileSystem/fileSystemSelectors.ts";
+import searchFolder from "../../../../features/SideBar/utils/searchFolder.ts";
 
 vi.mock(import("../../../../api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/exportImportApi.ts"));
@@ -491,7 +494,7 @@ describe("FileTreeItem", () => {
 		expect(preventDefaultSpy).toBeCalled();
 	});
 
-	it("Should call backend on drop", async () => {
+	it("Should call backend on drop", () => {
 		// Arrange
 
 		const root = createTestFolder("", ROOT_FOLDER_ID);
@@ -551,5 +554,112 @@ describe("FileTreeItem", () => {
 		// Assert
 
 		expect(screen.getByTestId("location-display")).toHaveTextContent("/");
+	});
+
+	it("Should focus new folder after create", async () => {
+		// Arrange
+
+		const Component = () => {
+			const root = useAppSelector(selectRootFolder);
+			const rootUiFolder = searchFolder(root, "");
+			return <FileTree folder={rootUiFolder} />;
+		};
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		renderWithProviders(<Component />, {
+			preloadedState: {
+				fileSystem: {
+					rootFolder: root,
+					errorMessage: null,
+					successMessage: null,
+				},
+			},
+		});
+
+		vi.mocked(createFolder).mockReturnValue(Promise.resolve("1"));
+
+		const newRoot = createTestFolder("", ROOT_FOLDER_ID);
+		newRoot.subfolders.push(createTestFolder("test", "1"));
+		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
+			Promise.resolve(newRoot),
+		);
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("Files"),
+			keys: "[MouseRight>]",
+		});
+		await userEvent.click(screen.getByText("New Folder"));
+		await userEvent.keyboard("test{Enter}");
+
+		// Assert
+
+		expect(screen.getByText("test").parentElement).toBe(
+			document.activeElement,
+		);
+	});
+
+	it("Should hide actions menu when outside clicking", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("Files"),
+			keys: "[MouseRight>]",
+		});
+
+		await userEvent.click(screen.getByText("Files"));
+
+		// Assert
+
+		expect(screen.queryByText("New Folder")).toBeNull();
+	});
+
+	it("Should hide actions menu when double context menu event", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("Files"),
+			keys: "[MouseRight>]",
+		});
+		await userEvent.pointer({
+			target: screen.getByText("Files"),
+			keys: "[MouseRight>]",
+		});
+
+		// Assert
+
+		expect(screen.queryByText("New Folder")).toBeNull();
+	});
+
+	it("Should hide actions menu when scrolling", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("Files"),
+			keys: "[MouseRight>]",
+		});
+		act(() => {
+			fireEvent.scroll(document.body);
+		});
+
+		// Assert
+
+		expect(screen.queryByText("New Folder")).toBeNull();
 	});
 });
