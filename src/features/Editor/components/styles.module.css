@@ -16,17 +16,25 @@
 	top: 0;
 	z-index: 4;
 	display: flex;
+	gap: var(--large-padding);
 	justify-content: space-between;
 	align-items: center;
 	border-bottom: 1px solid var(--border-color);
 
 	.title-and-search-button {
+		min-width: 0;
 		display: flex;
 		justify-content: space-between;
 		width: 100%;
+		gap: var(--default-padding);
+
+		& > * {
+			min-width: 0;
+		}
 
 		& .search-button {
 			display: none;
+			flex-shrink: 0;
 		}
 	}
 
@@ -36,7 +44,18 @@
 		gap: 4px;
 		font-size: 1.4rem;
 
+		& > * {
+			min-width: 0;
+		}
+
+		& .file-name {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+
 		& .study-button {
+			flex-shrink: 0;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
@@ -70,6 +89,7 @@
 
 @media (max-width: 62rem) {
 	.title-bar {
+		gap: 0;
 		flex-direction: column;
 		align-items: start;
 

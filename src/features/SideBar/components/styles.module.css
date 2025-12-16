@@ -1,4 +1,5 @@
 .side-bar {
+	flex-shrink: 0;
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
 	width: 28rem;

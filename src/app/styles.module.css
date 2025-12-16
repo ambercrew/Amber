@@ -1,11 +1,12 @@
 .workspace {
-	display: grid;
-	grid-template-columns: auto 1fr;
+	display: flex;
 	height: 100vh;
 	overflow: hidden;
 }
 
 .workarea {
+	flex-shrink: 1;
+	min-width: 0;
 	width: 100%;
 	max-height: 100vh;
 

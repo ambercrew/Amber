@@ -82,7 +82,7 @@ function TitleBar({
 						<span className={styles.label}>Study</span>
 					</button>
 					<div>
-						<p>{selectedFile?.name}</p>
+						<p className={styles.fileName}>{selectedFile?.name}</p>
 						<div className={styles.repetitionCounts}>
 							<span>New: {repetitionCounts.new}</span>
 							<span>&#x2022;</span>
