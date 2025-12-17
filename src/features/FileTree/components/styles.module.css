@@ -39,6 +39,7 @@
 		text-align: left;
 		text-overflow: ellipsis;
 		overflow: hidden;
+		text-wrap: nowrap;
 	}
 }
 
