@@ -688,4 +688,26 @@ describe("EditableCells logic", () => {
 
 		expect(vi.mocked(moveCell)).not.toBeCalled();
 	});
+
+	it("Should re-focus last focused element when insert new cell is hidden", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1)],
+			initialSelectedCellId: "1",
+		});
+		const element = screen.getByRole("textbox");
+
+		// Act
+
+		await userEvent.click(element);
+		expect(element).toBe(document.activeElement);
+		await userEvent.keyboard("{Control>}{Enter}");
+		expect(element).not.toBe(document.activeElement);
+		await userEvent.keyboard("{Escape}");
+
+		// Assert
+
+		expect(element).toBe(document.activeElement);
+	});
 });
