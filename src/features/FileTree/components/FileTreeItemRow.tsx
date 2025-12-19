@@ -21,6 +21,7 @@ import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useOutsideContextMenu from "../../../hooks/useOutsideContextMenu";
+import { FileTreeItemRef } from "./FileTreeItem";
 
 interface Props {
 	isRoot: boolean;
@@ -31,17 +32,13 @@ interface Props {
 	showActions: boolean;
 	actions: Action[];
 	fullPath: string;
-	ref?: React.Ref<FileTreeItemRowRef>;
+	ref?: React.Ref<FileTreeItemRef>;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
 	onShowActions: () => void;
 	onHideActions: () => void;
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 	onRenamingCancel: () => void;
-}
-
-export interface FileTreeItemRowRef {
-	focus: () => void;
 }
 
 export default function FileTreeItemRow({

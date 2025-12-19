@@ -11,10 +11,12 @@ import {
 	mdiImport,
 	mdiPencilOutline,
 } from "@mdi/js";
-import React, { useState } from "react";
+import React, { useImperativeHandle, useRef, useState } from "react";
 import { Action } from "../types/action.ts";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
+	deleteFile,
+	deleteFolder,
 	getReviewTreeFolderForRoot,
 	moveFile,
 	moveFolder,
@@ -25,7 +27,7 @@ import {
 	setSuccessMessage,
 } from "../../../stores/fileSystem/fileSystemReducers.ts";
 import UiFolder from "../../../types/ui/uiFolder.ts";
-import FileTreeItemRow, { FileTreeItemRowRef } from "./FileTreeItemRow";
+import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../../utils/errorToString";
 import {
@@ -44,27 +46,28 @@ import {
 	importExportedItem,
 } from "../../../api/exportImportApi.ts";
 import useLocalStorage from "../../../hooks/useLocalStorage.ts";
+import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog.tsx";
+import getFolderChildById from "../../../utils/getFolderChildById.ts";
 
 interface Props {
 	folder: UiFolder | null;
 	fullPath: string;
 	id: string;
-	fileItemRowRef?: React.Ref<FileTreeItemRowRef>;
-	onMarkForDeletion: (id: string, isFolder: boolean) => void;
+	ref?: React.Ref<FileTreeItemRef>;
+	onDelete?: () => void;
+}
+
+export interface FileTreeItemRef {
+	focus: () => void;
 }
 
 /**
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
  */
-function FileTreeItem({
-	folder,
-	fullPath,
-	id,
-	fileItemRowRef,
-	onMarkForDeletion,
-}: Props) {
+function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 	const isRoot = id === ROOT_FOLDER_ID;
+	const [isDeleteDialogShown, setIsDeleteDialogShown] = useState(false);
 	const [showActions, setShowActions] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
@@ -75,10 +78,12 @@ function FileTreeItem({
 		false,
 	);
 	const [searchParams] = useSearchParams();
+	const fileTreeItemRowRef = useRef<FileTreeItemRef | null>(null);
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const isExpanded = isRoot || isOpen;
 	const actions: Action[] = [];
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 
 	const showCreateNewFileInput = () => {
 		setCreatingNewFolder(false);
@@ -122,7 +127,7 @@ function FileTreeItem({
 			{
 				iconName: mdiDeleteOutline,
 				text: "Delete",
-				onClick: markForDeletion,
+				onClick: showDeleteDialog,
 				shortcut: "DEL",
 			},
 		);
@@ -182,10 +187,9 @@ function FileTreeItem({
 		setIsRenaming(true);
 	}
 
-	function markForDeletion() {
+	function showDeleteDialog() {
 		if (isRoot) return;
-		onMarkForDeletion(id, folder !== null);
-		setShowActions(false);
+		setIsDeleteDialogShown(true);
 	}
 
 	const handleClick = () => {
@@ -214,7 +218,7 @@ function FileTreeItem({
 		if (e.key === "F2") {
 			enableRenaming();
 		} else if (e.key === "Delete" && !isRenaming) {
-			markForDeletion();
+			showDeleteDialog();
 		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "n") {
 			stopPropagation = isFolder;
 			showCreateNewFolderInput();
@@ -281,47 +285,90 @@ function FileTreeItem({
 		}
 	};
 
-	return (
-		(!folder || isRoot || folder.isVisible) && (
-			<div
-				className={`${styles.fileItemOuterContainer} ${dragCounter ? styles.dragOver : ""}`}
-				onDragEnter={handleDragEnter}
-				onDragOver={handleDragOver}
-				onDragLeave={handleDragLeave}
-				onDrop={e => void handleDrop(e)}
-				onKeyDown={handleKeyDown}>
-				<FileTreeItemRow
-					ref={fileItemRowRef}
-					isRoot={isRoot}
-					id={id}
-					isFolder={folder !== null}
-					isRenaming={isRenaming}
-					showActions={showActions}
-					isExpanded={isExpanded}
-					actions={actions}
-					onDragStart={handleDragStart}
-					onRenameEnd={() => setIsRenaming(false)}
-					fullPath={fullPath}
-					onShowActions={() => setShowActions(true)}
-					onClick={handleClick}
-					onHideActions={() => setShowActions(false)}
-					onRenamingCancel={() => setIsRenaming(false)}
-				/>
+	const handleDelete = async () => {
+		if (folder) {
+			await dispatch(deleteFolder(id));
+			if (selectedFileId && getFolderChildById(folder, selectedFileId)) {
+				await navigate("/home", { replace: true });
+			}
+		} else {
+			await dispatch(deleteFile(id));
+			if (selectedFileId === id) {
+				await navigate("/home", { replace: true });
+			}
+		}
 
-				{folder && isExpanded && (
-					<FileTreeItemChildren
-						creatingNewFile={creatingNewFile}
-						creatingNewFolder={creatingNewFolder}
-						onMarkForDeletion={onMarkForDeletion}
-						onCreatingNewItemEnd={handleCreateNewItemEnd}
+		setIsDeleteDialogShown(false);
+		if (onDelete) onDelete();
+	};
+
+	useImperativeHandle(
+		ref,
+		() => ({
+			focus() {
+				fileTreeItemRowRef.current?.focus();
+			},
+		}),
+		[],
+	);
+
+	return (
+		<>
+			{isDeleteDialogShown && (
+				<ConfirmationDialog
+					text={`Are you sure you want to delete the selected ${
+						folder ? "folder" : "file"
+					}?`}
+					title={`Delete ${folder ? "folder" : "file"}`}
+					icon={mdiDeleteOutline}
+					onCancel={() => setIsDeleteDialogShown(false)}
+					onConfirm={() => void handleDelete()}
+				/>
+			)}
+
+			{(!folder || isRoot || folder.isVisible) && (
+				<div
+					className={`${styles.fileItemOuterContainer} ${dragCounter ? styles.dragOver : ""}`}
+					onDragEnter={handleDragEnter}
+					onDragOver={handleDragOver}
+					onDragLeave={handleDragLeave}
+					onDrop={e => void handleDrop(e)}
+					onKeyDown={handleKeyDown}>
+					<FileTreeItemRow
+						ref={fileTreeItemRowRef}
 						isRoot={isRoot}
-						folder={folder}
+						id={id}
+						isFolder={folder !== null}
+						isRenaming={isRenaming}
+						showActions={showActions}
+						isExpanded={isExpanded}
+						actions={actions}
+						onDragStart={handleDragStart}
+						onRenameEnd={() => setIsRenaming(false)}
 						fullPath={fullPath}
-						onCreateNewFileClick={() => setCreatingNewFile(true)}
+						onShowActions={() => setShowActions(true)}
+						onClick={handleClick}
+						onHideActions={() => setShowActions(false)}
+						onRenamingCancel={() => setIsRenaming(false)}
 					/>
-				)}
-			</div>
-		)
+
+					{folder && isExpanded && (
+						<FileTreeItemChildren
+							creatingNewFile={creatingNewFile}
+							creatingNewFolder={creatingNewFolder}
+							onCreatingNewItemEnd={handleCreateNewItemEnd}
+							isRoot={isRoot}
+							folder={folder}
+							fullPath={fullPath}
+							onCreateNewFileClick={() =>
+								setCreatingNewFile(true)
+							}
+							onDelete={() => fileTreeItemRowRef.current?.focus()}
+						/>
+					)}
+				</div>
+			)}
+		</>
 	);
 }
 

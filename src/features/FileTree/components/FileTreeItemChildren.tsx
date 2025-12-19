@@ -3,14 +3,13 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { useRef, useState } from "react";
 import UiFolder from "../../../types/ui/uiFolder";
-import FileTreeItem from "./FileTreeItem";
+import FileTreeItem, { FileTreeItemRef } from "./FileTreeItem";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	createFile,
 	createFolder,
 } from "../../../stores/fileSystem/fileSystemActions";
 import CancellableInput from "../../../components/CancellableInput/CancellableInput";
-import { FileTreeItemRowRef } from "./FileTreeItemRow";
 
 interface Props {
 	creatingNewFolder: boolean;
@@ -18,9 +17,9 @@ interface Props {
 	folder: UiFolder;
 	fullPath: string;
 	isRoot: boolean;
-	onMarkForDeletion: (id: string, isFolder: boolean) => void;
 	onCreatingNewItemEnd: () => void;
 	onCreateNewFileClick: () => void;
+	onDelete: () => void;
 }
 
 function FileTreeItemChildren({
@@ -29,9 +28,9 @@ function FileTreeItemChildren({
 	folder,
 	fullPath,
 	isRoot,
-	onMarkForDeletion,
 	onCreatingNewItemEnd,
 	onCreateNewFileClick,
+	onDelete,
 }: Props) {
 	// Creating new folder or file share the same controlled input.
 	const [newItemName, setNewItemName] = useState("");
@@ -57,7 +56,7 @@ function FileTreeItemChildren({
 	};
 
 	const handleFileTreeItemRowRef = (id: string) => {
-		return (ref: FileTreeItemRowRef | null) => {
+		return (ref: FileTreeItemRef | null) => {
 			if (id === autoFocusChildId.current && ref) {
 				ref.focus();
 				autoFocusChildId.current = null;
@@ -106,14 +105,14 @@ function FileTreeItemChildren({
 				<FileTreeItem
 					key={subFolder.id}
 					folder={subFolder}
-					onMarkForDeletion={onMarkForDeletion}
 					fullPath={
 						fullPath
 							? fullPath + "/" + subFolder.name
 							: subFolder.name
 					}
 					id={subFolder.id}
-					fileItemRowRef={handleFileTreeItemRowRef(subFolder.id)}
+					ref={handleFileTreeItemRowRef(subFolder.id)}
+					onDelete={onDelete}
 				/>
 			))}
 
@@ -123,14 +122,14 @@ function FileTreeItemChildren({
 						<FileTreeItem
 							key={file.id}
 							folder={null}
-							onMarkForDeletion={onMarkForDeletion}
 							fullPath={
 								fullPath
 									? fullPath + "/" + file.name
 									: file.name
 							}
 							id={file.id}
-							fileItemRowRef={handleFileTreeItemRowRef(file.id)}
+							ref={handleFileTreeItemRowRef(file.id)}
+							onDelete={onDelete}
 						/>
 					),
 			)}

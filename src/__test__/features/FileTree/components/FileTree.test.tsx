@@ -600,6 +600,47 @@ describe("FileTreeItem", () => {
 		);
 	});
 
+	it("Should focus parent folder after delete", async () => {
+		// Arrange
+
+		const Component = () => {
+			const root = useAppSelector(selectRootFolder);
+			const rootUiFolder = searchFolder(root, "");
+			return <FileTree folder={rootUiFolder} />;
+		};
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<Component />, {
+			preloadedState: {
+				fileSystem: {
+					rootFolder: root,
+					errorMessage: null,
+					successMessage: null,
+				},
+			},
+		});
+
+		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
+			Promise.resolve(createTestFolder("", ROOT_FOLDER_ID)),
+		);
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("test"),
+			keys: "[MouseRight>]",
+		});
+		await userEvent.click(screen.getByText("Delete"));
+		await userEvent.click(screen.getByText("Yes"));
+
+		// Assert
+
+		expect(screen.getByText("Files").parentElement).toBe(
+			document.activeElement,
+		);
+	});
+
 	it("Should hide actions menu when outside clicking", async () => {
 		// Arrange
 
