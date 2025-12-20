@@ -312,6 +312,10 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 		[],
 	);
 
+	useEffect(() => {
+		if (!isRenaming) fileTreeItemRowRef.current?.focus();
+	}, [isRenaming]);
+
 	return (
 		<>
 			{isDeleteDialogShown && (
