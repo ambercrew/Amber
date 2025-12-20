@@ -6,7 +6,7 @@ use std::{
 use crate::backend::{
     models::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
-        UpdateUserInformationDto, UserInformnationDto,
+        UpdateUserInformationDto, UserInformationDto,
     },
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
@@ -147,7 +147,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError> {
+    async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError> {
         let response = self
             .reqwest_client
             .get(self.backend_url.join("/api/v1/user").unwrap())
@@ -155,7 +155,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         let response = ensure_success_response(response).await?;
-        match response.json::<UserInformnationDto>().await {
+        match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
             Err(_) => Err(BrainyBackendClientError::UnexpectedResponse),
         }

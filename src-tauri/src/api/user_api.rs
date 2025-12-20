@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use brainy_core::backend::{
-    models::UserInformnationDto, traits::brainy_backend_client::BrainyBackendClient,
+    models::UserInformationDto, traits::brainy_backend_client::BrainyBackendClient,
 };
 use tauri::State;
 
@@ -10,7 +10,7 @@ use crate::api::ApiError;
 #[tauri::command]
 pub async fn get_user_information(
     backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
-) -> Result<UserInformnationDto, ApiError> {
+) -> Result<UserInformationDto, ApiError> {
     let result = backend_client.get_user_information().await?;
     Ok(result)
 }

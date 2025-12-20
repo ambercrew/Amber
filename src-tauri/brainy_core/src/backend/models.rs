@@ -21,7 +21,7 @@ pub struct SignInDto {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct UserInformnationDto {
+pub struct UserInformationDto {
     pub id: Guid,
     pub username: String,
     pub first_name: String,

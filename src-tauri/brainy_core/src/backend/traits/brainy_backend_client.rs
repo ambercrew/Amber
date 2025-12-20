@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use mockall::automock;
 use thiserror::Error;
 
-use crate::backend::models::{SyncedEntitiesPageDto, UserInformnationDto};
+use crate::backend::models::{SyncedEntitiesPageDto, UserInformationDto};
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BrainyBackendClientError {
@@ -47,7 +47,7 @@ pub trait BrainyBackendClient: Send + Sync {
 
     async fn sign_out(&self) -> Result<(), BrainyBackendClientError>;
 
-    async fn get_user_information(&self) -> Result<UserInformnationDto, BrainyBackendClientError>;
+    async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError>;
 
     fn is_signed_in(&self) -> bool;
 
