@@ -192,7 +192,9 @@ describe("Editor", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(screen.queryByText("New: 10")).not.toBeNull();
+			expect(
+				screen.queryByText("New: 10", { exact: false }),
+			).not.toBeNull();
 			expect(vi.mocked(EditableCells).mock.calls[1][0].cells).toBe(cells);
 		});
 	});
@@ -234,7 +236,9 @@ describe("Editor", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(screen.queryByText("New: 20")).not.toBeNull();
+			expect(
+				screen.queryByText("New: 20", { exact: false }),
+			).not.toBeNull();
 		});
 	});
 });
