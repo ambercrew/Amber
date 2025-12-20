@@ -84,15 +84,12 @@ function TitleBar({
 					<div>
 						<p className={styles.fileName}>{selectedFile?.name}</p>
 						<div className={styles.repetitionCounts}>
-							<span>New: {repetitionCounts.new}</span>
-							<span>&#x2022;</span>
 							<span>
-								Learn:&nbsp;
+								New: {repetitionCounts.new} &#x2022; Learn:{" "}
 								{repetitionCounts.learning +
-									repetitionCounts.relearning}
+									repetitionCounts.relearning}{" "}
+								&#x2022; Review: {repetitionCounts.review}
 							</span>
-							<span>&#x2022;</span>
-							<span>Review: {repetitionCounts.review}</span>
 						</div>
 					</div>
 				</div>
