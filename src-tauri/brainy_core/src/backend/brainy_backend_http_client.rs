@@ -15,10 +15,12 @@ use chrono::{DateTime, Utc};
 use keyring::Entry;
 use reqwest::{Response, StatusCode, Url};
 use reqwest_cookie_store::CookieStoreMutex;
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
 
 pub struct BrainyBackendHttpClient {
     backend_url: Url,
-    reqwest_client: reqwest::Client,
+    reqwest_client: ClientWithMiddleware,
     cookie_store: Arc<CookieStoreMutex>,
     keyring_entry: Option<Entry>,
 }
@@ -58,9 +60,15 @@ impl BrainyBackendHttpClient {
             cookie_store.lock().unwrap()
         );
 
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+
+        let client_with_middleware = ClientBuilder::new(reqwest_client.unwrap())
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build();
+
         Ok(Self {
             backend_url,
-            reqwest_client: reqwest_client.unwrap(),
+            reqwest_client: client_with_middleware,
             cookie_store,
             keyring_entry,
         })
@@ -253,7 +261,7 @@ impl BrainyBackendHttpClient {
 /// On 400 response it tries to parse the problem details and return it in a
 /// an appropriate error.
 async fn ensure_success_response(
-    response: Result<Response, reqwest::Error>,
+    response: Result<Response, reqwest_middleware::Error>,
 ) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
         if err.is_connect() {
