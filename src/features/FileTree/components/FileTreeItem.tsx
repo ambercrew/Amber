@@ -78,6 +78,7 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 		false,
 	);
 	const [searchParams] = useSearchParams();
+	const previousIsRenaming = useRef<boolean | null>(null);
 	const fileTreeItemRowRef = useRef<FileTreeItemRef | null>(null);
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
@@ -313,7 +314,10 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 	);
 
 	useEffect(() => {
-		if (!isRenaming) fileTreeItemRowRef.current?.focus();
+		if (!isRenaming && previousIsRenaming.current) {
+			fileTreeItemRowRef.current?.focus();
+		}
+		previousIsRenaming.current = isRenaming;
 	}, [isRenaming]);
 
 	return (
