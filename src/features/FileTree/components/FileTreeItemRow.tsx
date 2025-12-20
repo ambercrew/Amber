@@ -117,60 +117,63 @@ export default function FileTreeItemRow({
 		[],
 	);
 
+	const iconPath = isRoot
+		? mdiFileTree
+		: isFolder
+			? isExpanded
+				? mdiFolderOpenOutline
+				: mdiFolderOutline
+			: mdiFileDocumentOutline;
+
 	return (
 		<>
 			<div
-				className={`${styles.fileTreeRow}`}
+				className={`${styles.fileTreeRowContainer}`}
 				draggable={!isRoot && !isRenaming}
 				onDragStart={onDragStart}
 				onContextMenu={handleContextMenu}
 				ref={containerRef}>
-				<button
-					className={`${styles.fileTreeButton}
-                    ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
-					onClick={onClick}
-					ref={buttonRef}>
-					<Icon
-						path={
-							isRoot
-								? mdiFileTree
-								: isFolder
-									? isExpanded
-										? mdiFolderOpenOutline
-										: mdiFolderOutline
-									: mdiFileDocumentOutline
-						}
-						size={1}
-					/>
-					{isRenaming && (
-						<form onSubmit={e => void handleRenameSubmit(e)}>
-							<CancellableInput
-								onCancel={() => {
-									buttonRef.current?.focus();
-									onRenamingCancel();
-								}}
-								type="text"
-								value={newName}
-								onChange={e => setNewName(e.target.value)}
-								onFocus={e => e.target.select()}
-								autoFocus
-								className={`${styles.fileTreeRenameInput}`}
-							/>
-						</form>
-					)}
-					{!isRenaming && (
-						<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
-					)}
-				</button>
-
 				{!isRenaming && (
-					<button
-						title="Actions"
-						onClick={showActions ? onHideActions : onShowActions}
-						className={`${styles.fileTreeDots}
-                        ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
-						<Icon path={mdiDotsHorizontal} size={1} />
-					</button>
+					<>
+						<button
+							className={`${styles.fileTreeRow}
+                            ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
+							onClick={onClick}
+							ref={buttonRef}>
+							<Icon path={iconPath} size={1} />
+							<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
+						</button>
+						<button
+							title="Actions"
+							onClick={
+								showActions ? onHideActions : onShowActions
+							}
+							className={`${styles.fileTreeDots}
+                            ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
+							<Icon path={mdiDotsHorizontal} size={1} />
+						</button>
+					</>
+				)}
+
+				{isRenaming && (
+					<form
+						onSubmit={e => void handleRenameSubmit(e)}
+						className={`${styles.fileTreeRow} ${styles.withForm}`}>
+						<Icon path={iconPath} size={1} />
+
+						<CancellableInput
+							onCancel={() => {
+								buttonRef.current?.focus();
+								onRenamingCancel();
+							}}
+							type="text"
+							value={newName}
+							onChange={e => setNewName(e.target.value)}
+							onFocus={e => e.target.select()}
+							autoFocus
+							className={`${styles.fileTreeRowInput}`}
+						/>
+					</form>
 				)}
 			</div>
 			{showActions && (

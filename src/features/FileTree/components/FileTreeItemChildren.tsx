@@ -69,7 +69,7 @@ function FileTreeItemChildren({
 			className={`${styles.fileTreeItemChildren} ${isRoot && styles.root}`}>
 			{(creatingNewFile || creatingNewFolder) && (
 				<form
-					className={styles.fileTreeNewItemRow}
+					className={`${styles.fileTreeRow} ${styles.withForm} `}
 					onSubmit={e => void handleCreateNewItemSubmit(e)}>
 					<Icon
 						path={
@@ -86,6 +86,7 @@ function FileTreeItemChildren({
 						placeholder="Enter the name"
 						autoFocus
 						onCancel={onCreatingNewItemEnd}
+						className={`${styles.fileTreeRowInput}`}
 					/>
 				</form>
 			)}

@@ -12,16 +12,12 @@
 	}
 }
 
-.file-tree-row {
+.file-tree-row-container {
 	width: 100%;
 	transition: all var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
 	margin-bottom: var(--small-padding);
-
-	& form {
-		width: 100%;
-	}
 
 	&:hover > .file-tree-dots,
 	&:focus > .file-tree-dots,
@@ -30,9 +26,25 @@
 	}
 }
 
-.file-tree-button {
+.file-tree-row {
 	width: 100%;
 	padding: 10px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+
+	&.with-form {
+		padding: 0 var(--default-padding);
+		/* Added to make the forms have the same border as the buttons. */
+		border: 1px solid transparent;
+	}
+
+	& .file-tree-row-input {
+		border-width: 1px;
+		width: 100%;
+		font-size: inherit;
+	}
 
 	& p {
 		width: 80%;
@@ -41,24 +53,12 @@
 		overflow: hidden;
 		text-wrap: nowrap;
 	}
-}
 
-.file-tree-button,
-.file-tree-new-item-row {
-	display: flex;
-	align-items: center;
-	gap: 0.4rem;
-}
-
-.file-tree-new-item-row {
-	padding: var(--default-padding);
-}
-
-.file-tree-new-item-row input {
-	width: 100%;
-	padding: var(--default-padding);
-	border-width: 1px;
-	font-size: 1.6rem;
+	& .file-tree-row-input,
+	& p {
+		padding-right: var(--default-padding);
+		padding-left: var(--default-padding);
+	}
 }
 
 .file-tree-dots {
@@ -90,13 +90,6 @@
 		border-color: var(--primary-color-shade-20);
 		color: #fff;
 	}
-}
-
-.file-tree-rename-input {
-	padding: var(--default-padding);
-	border-width: 1px;
-	width: 100%;
-	font-size: 1.6rem;
 }
 
 .file-tree-item-children {
