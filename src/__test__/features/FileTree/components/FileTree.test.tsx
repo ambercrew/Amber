@@ -641,6 +641,39 @@ describe("FileTreeItem", () => {
 		);
 	});
 
+	it("Should keep focus after renaming", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+		renderWithProviders(<FileTree folder={root} />, {
+			preloadedState: {
+				fileSystem: {
+					rootFolder: root,
+					errorMessage: null,
+					successMessage: null,
+				},
+			},
+		});
+
+		vi.mocked(createFolder).mockReturnValue(Promise.resolve("1"));
+
+		// Act
+
+		await userEvent.pointer({
+			target: screen.getByText("test"),
+			keys: "[MouseRight>]",
+		});
+		await userEvent.click(screen.getByText("Rename"));
+		await userEvent.keyboard("test{Escape}");
+
+		// Assert
+
+		expect(screen.getByText("test").parentElement).toBe(
+			document.activeElement,
+		);
+	});
+
 	it("Should hide actions menu when outside clicking", async () => {
 		// Arrange
 
