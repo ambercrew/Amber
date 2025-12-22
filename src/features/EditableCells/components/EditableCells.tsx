@@ -80,18 +80,32 @@ function EditableCells({
 		onError,
 	});
 
-	useEffect(() => {
-		// Scroll to the selected cell when the search text is cleared.
-		if (
-			!searchText &&
-			searchText !== previousSearchText.current &&
-			selectedCellRef.current &&
-			containerRef.current
-		) {
+	let selectedCellIndex: number | null = cells.findIndex(
+		c => c.id === selectedCellId,
+	);
+	if (selectedCellIndex === -1) selectedCellIndex = null;
+
+	const scrollToCurrentCell = useCallback(() => {
+		if (!selectedCellRef.current || !containerRef.current) {
+			return;
+		}
+
+		if (selectedCellIndex === cells.length - 1) {
+			containerRef.current.scrollTo({
+				top: containerRef.current.scrollHeight,
+			});
+		} else {
 			scrollUntilVisible(containerRef.current, selectedCellRef.current);
 		}
+	}, [cells.length, selectedCellIndex]);
+
+	useEffect(() => {
+		// Scroll to the selected cell when the search text is cleared.
+		if (!searchText && searchText !== previousSearchText.current) {
+			scrollToCurrentCell();
+		}
 		previousSearchText.current = searchText;
-	}, [searchText]);
+	}, [searchText, scrollToCurrentCell]);
 
 	useEffect(() => {
 		const cb = async () => {
@@ -130,14 +144,9 @@ function EditableCells({
 	}, []);
 
 	useEffect(() => {
-		if (
-			selectedCellRef.current &&
-			containerRef.current &&
-			scrollToSelectedCellOnNextRender.current
-		) {
-			scrollUntilVisible(containerRef.current, selectedCellRef.current);
-		}
+		if (!scrollToSelectedCellOnNextRender.current) return;
 		scrollToSelectedCellOnNextRender.current = false;
+		scrollToCurrentCell();
 	});
 
 	const executeRequest = useCallback(
@@ -211,11 +220,7 @@ function EditableCells({
 			);
 			scrollToSelectedCellOnNextRender.current = true;
 		} else if (e.ctrlKey && e.key === " ") {
-			if (containerRef.current && selectedCellRef.current)
-				scrollUntilVisible(
-					containerRef.current,
-					selectedCellRef.current,
-				);
+			scrollToCurrentCell();
 		}
 	}, "keydown");
 
@@ -259,13 +264,6 @@ function EditableCells({
 		await onCellsUpdateSave();
 		scrollToSelectedCellOnNextRender.current = true;
 	};
-
-	let selectedCellIndex: number | null = cells.findIndex(
-		c => c.id === selectedCellId,
-	);
-	if (selectedCellIndex === -1) {
-		selectedCellIndex = null;
-	}
 
 	return (
 		<div

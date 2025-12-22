@@ -76,19 +76,32 @@ function renderEditableCells({
 	return renderWithProviders(<Component />);
 }
 
-describe("EditableCells scrolling", () => {
+describe("Scrolling", () => {
 	/** Cells which scrollIntoView was called on. */
-	let cellsScrolledTo: string[];
+	let cellsScrolledIntoView: string[];
+
+	/** Elements on which scrollTo was called on. */
+	let elementsScrolledTo: string[];
 
 	beforeEach(() => {
-		cellsScrolledTo = [];
+		cellsScrolledIntoView = [];
+		elementsScrolledTo = [];
 
 		Element.prototype.scrollIntoView = vi.fn().mockImplementation(function (
 			this: Element,
 		) {
 			const testId = this.getAttribute("data-testid");
 			if (testId?.startsWith("CellBlock-")) {
-				cellsScrolledTo.push(testId);
+				cellsScrolledIntoView.push(testId);
+			}
+		});
+
+		Element.prototype.scrollTo = vi.fn().mockImplementation(function (
+			this: Element,
+		) {
+			const testId = this.getAttribute("data-testid");
+			if (testId) {
+				elementsScrolledTo.push(testId);
 			}
 		});
 
@@ -134,8 +147,33 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toHaveLength(1);
+	});
+
+	it("Should scroll to the end of the editable cells when scrolling to the last cell", () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-2": {
+				top: 20,
+			},
+			EditableCells: {
+				top: 30,
+			},
+		});
+
+		// Act
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2)],
+			initialSelectedCellId: "2",
+		});
+
+		// Assert
+
+		expect(elementsScrolledTo).toContain("EditableCells");
+		expect(elementsScrolledTo).toHaveLength(1);
 	});
 
 	it("Should not scroll when selected using click", async () => {
@@ -160,7 +198,7 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toHaveLength(0);
+		expect(cellsScrolledIntoView).toHaveLength(0);
 	});
 
 	it("Should scroll when changing selected cell using ctrl + arrow down", async () => {
@@ -185,8 +223,8 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toHaveLength(1);
 	});
 
 	it("Should scroll when changing selected cell using ctrl + arrow up", async () => {
@@ -212,8 +250,8 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toHaveLength(1);
 	});
 
 	it("Should scroll when moving selected cell using ctrl + alt + arrow down", async () => {
@@ -229,11 +267,17 @@ describe("EditableCells scrolling", () => {
 		});
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			cells: [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
 			onCellsUpdateSave: () => [
 				createTestCell(1),
 				createTestCell(3),
 				createTestCell(2),
+				createTestCell(4),
 			],
 		});
 
@@ -244,8 +288,8 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toHaveLength(1);
 	});
 
 	it("Should scroll when moving selected cell using ctrl + alt + arrow up", async () => {
@@ -261,12 +305,18 @@ describe("EditableCells scrolling", () => {
 		});
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			cells: [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
 			initialSelectedCellId: "3",
 			onCellsUpdateSave: () => [
 				createTestCell(1),
 				createTestCell(3),
 				createTestCell(2),
+				createTestCell(4),
 			],
 		});
 
@@ -276,9 +326,9 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-3");
+		expect(cellsScrolledIntoView).toContain("CellBlock-3");
 		// Two times since first time is when initializing
-		expect(cellsScrolledTo).toHaveLength(2);
+		expect(cellsScrolledIntoView).toHaveLength(2);
 	});
 
 	it("Should scroll when inserting new cell", async () => {
@@ -295,10 +345,14 @@ describe("EditableCells scrolling", () => {
 
 		vi.mocked(createCell).mockReturnValue(Promise.resolve("3"));
 
-		const cells = [createTestCell(1), createTestCell(2)];
+		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
 		renderEditableCells({
 			cells,
-			onCellsUpdateSave: () => [...cells, createTestCell(3)],
+			onCellsUpdateSave: () => [
+				...cells,
+				createTestCell(3),
+				createTestCell(4),
+			],
 		});
 
 		// Act
@@ -308,8 +362,8 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-3");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-3");
+		expect(cellsScrolledIntoView).toHaveLength(1);
 	});
 
 	it("Should scroll when deleting Cell", async () => {
@@ -325,9 +379,18 @@ describe("EditableCells scrolling", () => {
 		});
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			cells: [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
 			initialSelectedCellId: "3",
-			onCellsUpdateSave: () => [createTestCell(1), createTestCell(2)],
+			onCellsUpdateSave: () => [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(4),
+			],
 		});
 
 		// Act
@@ -337,8 +400,8 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
-		expect(cellsScrolledTo).toHaveLength(1);
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toHaveLength(1);
 	});
 
 	it("Should scroll when emptying search box", async () => {
@@ -390,9 +453,9 @@ describe("EditableCells scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledTo).toContain("CellBlock-2");
+		expect(cellsScrolledIntoView).toContain("CellBlock-2");
 		// Two due to first time.
-		expect(cellsScrolledTo).toHaveLength(2);
+		expect(cellsScrolledIntoView).toHaveLength(2);
 	});
 
 	it("Should scroll when dropping", async () => {
@@ -408,12 +471,18 @@ describe("EditableCells scrolling", () => {
 		});
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			cells: [
+				createTestCell(1),
+				createTestCell(2),
+				createTestCell(3),
+				createTestCell(4),
+			],
 			initialSelectedCellId: "3",
 			onCellsUpdateSave: () => [
 				createTestCell(1),
 				createTestCell(3),
 				createTestCell(2),
+				createTestCell(4),
 			],
 		});
 
@@ -432,8 +501,8 @@ describe("EditableCells scrolling", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(cellsScrolledTo).toContain("CellBlock-3");
-			expect(cellsScrolledTo).toHaveLength(2);
+			expect(cellsScrolledIntoView).toContain("CellBlock-3");
+			expect(cellsScrolledIntoView).toHaveLength(2);
 		});
 	});
 });
@@ -443,6 +512,8 @@ describe("EditableCells logic", () => {
 
 	beforeEach(() => {
 		saveChangesMock = vi.fn();
+
+		Element.prototype.scrollTo = vi.fn();
 
 		// @ts-expect-error IntersectionObserver is not found by default on the testing library.
 		window.IntersectionObserver = class IntersectionObserver {
