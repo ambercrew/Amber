@@ -34,7 +34,7 @@ pub async fn create_cell(
     cell_type: CellType,
     index: u32,
 ) -> Result<Guid, ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     let id = cell_service
         .create_cell(file_id, content, cell_type, index)
         .await?;
@@ -48,7 +48,7 @@ pub async fn delete_cell(
     cell_service: State<'_, Arc<CellService>>,
     id: Guid,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     cell_service.delete_by_id(id).await?;
     context.save_changes().await?;
     Ok(())
@@ -61,7 +61,7 @@ pub async fn move_cell(
     id: Guid,
     new_index: u32,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     cell_service.move_cell(id, new_index).await.unwrap();
     context.save_changes().await?;
     Ok(())
@@ -72,7 +72,7 @@ pub async fn update_cells_contents(
     context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
     requests: Vec<UpdateCellRequest>,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
 
     for request in requests {
         let mut cell = context.cell_repository().get_by_id(request.id).await?;

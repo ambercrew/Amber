@@ -29,7 +29,7 @@ pub async fn register_review(
     rating: Rating,
     study_time: u32,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     cell_service
         .register_review(repetition_update, rating, study_time)
         .await?;

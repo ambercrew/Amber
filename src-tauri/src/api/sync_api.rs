@@ -13,7 +13,7 @@ pub async fn sync(
     context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
     sync_service: State<'_, Arc<SyncService>>,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     context
         .disable_foreign_key_constraint_for_current_transaction()
         .await?;

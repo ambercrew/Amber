@@ -30,8 +30,8 @@ pub trait RepositoriesContext: Send + Sync {
     fn sync_repository(&self) -> Arc<dyn SyncRepository>;
     /// All changes are put automatically inside a transaction, this this
     /// method commit the transaction.
-    async fn save_changes(&mut self) -> Result<(), RepositoriesContextError>;
-    async fn rollback(&mut self) -> Result<(), RepositoriesContextError>;
+    async fn save_changes(&self) -> Result<(), RepositoriesContextError>;
+    async fn rollback(&self) -> Result<(), RepositoriesContextError>;
     async fn disable_foreign_key_constraint_for_current_transaction(
         &self,
     ) -> Result<(), RepositoriesContextError>;

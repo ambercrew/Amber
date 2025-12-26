@@ -27,7 +27,7 @@ pub async fn reset_repetitions_for_cell(
     context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
     cell_id: Guid,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
     let mut cell = context.cell_repository().get_by_id(cell_id).await?;
     cell.reset_repetitions();
     context.cell_repository().update(&cell).await?;

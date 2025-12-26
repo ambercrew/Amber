@@ -61,7 +61,7 @@ pub async fn import(
     import_item_path: String,
     import_into_folder_id: Guid,
 ) -> Result<(), ApiError> {
-    let mut context = context.lock().await;
+    let context = context.lock().await;
 
     let mut file = match File::open(import_item_path).await {
         Err(err) => return Err(ApiError(err.to_string())),

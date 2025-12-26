@@ -82,7 +82,7 @@ impl SqliteRepositoriesContext {
     }
 
     /// Returns the old transaction.
-    async fn replace_current_transaction_with_new_one(&mut self) -> Transaction<'static, Sqlite> {
+    async fn replace_current_transaction_with_new_one(&self) -> Transaction<'static, Sqlite> {
         let mut guard = self.tx.lock().await;
         let new_tx = create_transaction(&self.pool).await;
         std::mem::replace(&mut *guard, new_tx)
@@ -123,7 +123,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
         self.sync_repository.clone()
     }
 
-    async fn save_changes(&mut self) -> Result<(), RepositoriesContextError> {
+    async fn save_changes(&self) -> Result<(), RepositoriesContextError> {
         log::info!("Saving changes");
 
         let old_tx = self.replace_current_transaction_with_new_one().await;
@@ -134,7 +134,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
         Ok(())
     }
 
-    async fn rollback(&mut self) -> Result<(), RepositoriesContextError> {
+    async fn rollback(&self) -> Result<(), RepositoriesContextError> {
         log::info!("Aborting transaction");
 
         let old_tx = self.replace_current_transaction_with_new_one().await;

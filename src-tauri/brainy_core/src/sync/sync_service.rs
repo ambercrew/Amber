@@ -535,7 +535,7 @@ mod tests {
     pub async fn sync_with_backend_new_entities_from_backend_inserted_new_entities() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
@@ -677,7 +677,7 @@ mod tests {
     pub async fn sync_with_backend_two_cells_with_same_index_corrected_index_and_sent_update() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let cell_in_database_id = Guid::new_v4();
         let cell_from_sync_id = Guid::new_v4();
 
@@ -767,7 +767,7 @@ mod tests {
     pub async fn sync_with_backend_deleted_entity_from_backend_processed_correctly() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
         let file_id = Guid::new_v4();
         context
@@ -827,7 +827,7 @@ mod tests {
     {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
 
         let file_id = Guid::new_v4();
@@ -937,7 +937,7 @@ mod tests {
      {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
 
         let file_id = Guid::new_v4();
@@ -1046,7 +1046,7 @@ mod tests {
     pub async fn sync_with_backend_valid_input_updated_sync_date_at_end() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
 
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
@@ -1087,7 +1087,7 @@ mod tests {
     pub async fn sync_with_backend_local_unsynced_file_snet_file() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1125,7 +1125,7 @@ mod tests {
     pub async fn sync_with_backend_local_file_already_synced_did_not_sned_file() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
 
         context
             .local_configuration_repository()
@@ -1172,7 +1172,7 @@ mod tests {
     pub async fn sync_with_backend_overwritten_change_from_backend_did_not_send_change() {
         // Arrange
 
-        let (mut context, mut backend_client) = create_test_dependencies().await;
+        let (context, mut backend_client) = create_test_dependencies().await;
         let folder_id = Guid::new_v4();
 
         context
