@@ -145,7 +145,7 @@ impl RepositoriesContext for SqliteRepositoriesContext {
         Ok(())
     }
 
-    async fn disable_foregin_key_contraint_for_current_transaction(
+    async fn disable_foreign_key_constraint_for_current_transaction(
         &self,
     ) -> Result<(), RepositoriesContextError> {
         let mut tx = self.tx.lock().await;

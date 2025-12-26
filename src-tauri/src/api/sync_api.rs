@@ -15,7 +15,7 @@ pub async fn sync(
 ) -> Result<(), ApiError> {
     let mut context = context.lock().await;
     context
-        .disable_foregin_key_contraint_for_current_transaction()
+        .disable_foreign_key_constraint_for_current_transaction()
         .await?;
 
     let result = sync_service.sync_with_backend().await;
