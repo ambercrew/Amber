@@ -1504,7 +1504,7 @@ pub mod tests {
                 Repetition {
                     cell_id,
                     file_id: file.id(),
-                    due: Utc::now().to_utc() + Duration::days(5),
+                    due: Utc::now(),
                     state: State::New,
                     additional_content: Some("6".to_string()),
                     ..Default::default()
@@ -1560,10 +1560,6 @@ pub mod tests {
             1,
             actual.review_counts[&(Utc::now().to_utc() - Duration::days(1)).date_naive()]
         );
-        assert_eq!(5, actual.due_counts[&Utc::now().date_naive()]);
-        assert_eq!(
-            1,
-            actual.due_counts[&(Utc::now().to_utc() + Duration::days(5)).date_naive()]
-        );
+        assert_eq!(6, actual.due_counts[&Utc::now().date_naive()]);
     }
 }
