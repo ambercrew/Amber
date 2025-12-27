@@ -137,11 +137,9 @@ function App() {
 
 			{errorMessage && (
 				<div className={styles.errorDialog}>
-					<Alert
-						message={errorMessage}
-						type="error"
-						onClose={() => setErrorMessage(null)}
-					/>
+					<Alert type="error" onClose={() => setErrorMessage(null)}>
+						<p>{errorMessage}</p>
+					</Alert>
 				</div>
 			)}
 

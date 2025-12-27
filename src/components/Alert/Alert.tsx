@@ -3,17 +3,17 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 
 interface Props {
-	message: string;
 	type: "error" | "primary";
 	className?: string;
+	children: React.ReactNode;
 	onClose?: () => void;
 }
 
-function Alert({ message, className, type, onClose }: Props) {
+function Alert({ className, type, children, onClose }: Props) {
 	return (
 		<div
 			className={`${styles.alert} ${type === "error" ? styles.error : styles.primary} ${className}`}>
-			<p>{message}</p>
+			{children}
 			{onClose && (
 				<button type="button" onClick={onClose}>
 					<Icon path={mdiCloseThick} size={1} />

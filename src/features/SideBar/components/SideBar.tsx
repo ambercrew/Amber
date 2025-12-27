@@ -152,19 +152,19 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 				{errorMessage && (
 					<Alert
 						className={styles.alert}
-						message={errorMessage}
 						onClose={() => dispatch(setErrorMessage(""))}
-						type="error"
-					/>
+						type="error">
+						<p>{errorMessage}</p>
+					</Alert>
 				)}
 
 				{successMessage && (
 					<Alert
 						className={styles.alert}
-						message={successMessage}
 						onClose={() => dispatch(setSuccessMessage(""))}
-						type="primary"
-					/>
+						type="primary">
+						<p>{successMessage}</p>
+					</Alert>
 				)}
 
 				<FileTree folder={rootUiFolder} />

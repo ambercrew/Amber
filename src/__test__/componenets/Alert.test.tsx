@@ -6,7 +6,11 @@ describe("Alert", () => {
 		// Arrange
 
 		const fn = vi.fn();
-		render(<Alert message="Error" type="error" onClose={fn} />);
+		render(
+			<Alert type="error" onClose={fn}>
+				<p>Error</p>
+			</Alert>,
+		);
 
 		// Act
 

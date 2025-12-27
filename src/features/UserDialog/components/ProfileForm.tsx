@@ -162,11 +162,9 @@ export default function ProfileForm({
 			/>
 
 			{errorMessage && (
-				<Alert
-					message={errorMessage}
-					className={styles.errorAlert}
-					type="error"
-				/>
+				<Alert className={styles.errorAlert} type="error">
+					<p>{errorMessage}</p>
+				</Alert>
 			)}
 
 			{isSendingRequest && (
