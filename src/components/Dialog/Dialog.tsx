@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
@@ -10,9 +10,6 @@ interface Props {
 /** Shows a dialog with an overlay that handles the hide logic such as hiding
  * on overlay click, pressing Escape. Additionally it moves the focus to the
  * element that had the focus before the dialog was shown.
- * If the children of the dialog is a form, and the dialog is not immediately
- * hidden after submit, stop the submit event propagation, otherwise the dialog,
- * might move the focus away!
  */
 export default function Dialog({ className, children, onHide }: Props) {
 	const [focusedElementBeforeView, setFocusedElementBeforeView] =
@@ -40,10 +37,10 @@ export default function Dialog({ className, children, onHide }: Props) {
 		}
 	};
 
-	const handleSubmit = () => {
-		// All submit calls are followed by closing the dialog.
-		focusedElementBeforeView?.focus();
-	};
+	// TODO: update tests
+	useEffect(() => {
+		return () => focusedElementBeforeView?.focus();
+	}, [focusedElementBeforeView]);
 
 	return (
 		<div
@@ -54,8 +51,7 @@ export default function Dialog({ className, children, onHide }: Props) {
 			}}
 			onKeyDown={e => e.stopPropagation()}
 			onKeyUp={handleKeyUp}
-			tabIndex={-1}
-			onSubmit={handleSubmit}>
+			tabIndex={-1}>
 			<div
 				className={`${styles.box} ${className}`}
 				onClick={e => e.stopPropagation()}>
