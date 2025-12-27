@@ -1,26 +1,26 @@
-import styles from "./styles.module.css";
+import styles from "../styles.module.css";
 import { useState } from "react";
-import useAppSelector from "../../../hooks/useAppSelector";
-import { selectUserInformation } from "../../../stores/user/userSelectors";
+import useAppSelector from "../../../../hooks/useAppSelector";
+import { selectUserInformation } from "../../../../stores/user/userSelectors";
 import Form, {
 	FormButtons,
 	FormHeader,
 	FormRows,
-} from "../../../components/Form/Form";
+} from "../../../../components/Form/Form";
 import { mdiAccountOutline } from "@mdi/js";
-import Alert from "../../../components/Alert/Alert";
-import Spinner from "../../../components/Spinner/Spinner";
-import useAppDispatch from "../../../hooks/useAppDispatch";
+import Alert from "../../../../components/Alert/Alert";
+import Spinner from "../../../../components/Spinner/Spinner";
+import useAppDispatch from "../../../../hooks/useAppDispatch";
 import {
 	setLoggedOf,
 	setUserInformation,
-} from "../../../stores/user/userReducer";
-import errorToString from "../../../utils/errorToString";
+} from "../../../../stores/user/userReducer";
+import errorToString from "../../../../utils/errorToString";
 import {
 	getUserInformation,
 	updateUserInformation,
-} from "../../../api/userApi";
-import { signOut } from "../../../api/authApi";
+} from "../../../../api/userApi";
+import { signOut } from "../../../../api/authApi";
 
 interface Props {
 	isSendingRequest: boolean;

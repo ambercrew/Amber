@@ -42,3 +42,12 @@ pub async fn sign_out(
 pub fn is_signed_in(backend_client: State<'_, Arc<dyn BrainyBackendClient>>) -> bool {
     backend_client.is_signed_in()
 }
+
+#[tauri::command]
+pub async fn verify_user_email(
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
+    verification_code: String,
+) -> Result<(), ApiError> {
+    backend_client.verify_user_email(verification_code).await?;
+    Ok(())
+}

@@ -27,6 +27,7 @@ pub struct UserInformationDto {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
+    pub is_email_verified: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -60,4 +61,10 @@ pub struct SyncEntityDto {
     pub created_date: DateTime<Utc>,
     pub entity_type: EntityType,
     pub data: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct VerifyEmailDto {
+    pub email_verification_code: String,
 }

@@ -1,16 +1,17 @@
 import styles from "./styles.module.css";
 import Dialog from "../../../components/Dialog/Dialog";
-import SignInForm from "./SignInForm";
+import SignInForm from "./Forms/SignInForm";
 import { useState } from "react";
-import SignUpForm from "./SignUpForm";
+import SignUpForm from "./Forms/SignUpForm";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
-import ProfileForm from "./ProfileForm";
+import ProfileForm from "./Forms/ProfileForm";
 
 interface Props {
 	onClose: () => void;
 }
 
+// TODO: update unit tests
 export default function UserDialog({ onClose }: Props) {
 	const [typeOfForm, setTypeOfForm] = useState<"sign-in" | "sign-up">(
 		"sign-in",
@@ -24,24 +25,25 @@ export default function UserDialog({ onClose }: Props) {
 
 	return (
 		<Dialog className={styles.box} onHide={handleClose}>
-			{!isSignedIn &&
-				(typeOfForm === "sign-in" ? (
-					<SignInForm
-						isSendingRequest={isSendingRequest}
-						onRequestStart={() => setIsSendingRequest(true)}
-						onRequestEnd={() => setIsSendingRequest(false)}
-						onClose={handleClose}
-						onSignUpClick={() => setTypeOfForm("sign-up")}
-					/>
-				) : (
-					<SignUpForm
-						isSendingRequest={isSendingRequest}
-						onRequestStart={() => setIsSendingRequest(true)}
-						onRequestEnd={() => setIsSendingRequest(false)}
-						onClose={handleClose}
-						onSignInClick={() => setTypeOfForm("sign-in")}
-					/>
-				))}
+			{!isSignedIn && typeOfForm === "sign-in" && (
+				<SignInForm
+					isSendingRequest={isSendingRequest}
+					onRequestStart={() => setIsSendingRequest(true)}
+					onRequestEnd={() => setIsSendingRequest(false)}
+					onClose={handleClose}
+					onSignUpClick={() => setTypeOfForm("sign-up")}
+				/>
+			)}
+
+			{!isSignedIn && typeOfForm === "sign-up" && (
+				<SignUpForm
+					isSendingRequest={isSendingRequest}
+					onRequestStart={() => setIsSendingRequest(true)}
+					onRequestEnd={() => setIsSendingRequest(false)}
+					onClose={handleClose}
+					onSignInClick={() => setTypeOfForm("sign-in")}
+				/>
+			)}
 
 			{isSignedIn && (
 				<ProfileForm

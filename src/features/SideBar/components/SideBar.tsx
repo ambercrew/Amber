@@ -28,9 +28,13 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
-import UserDialog from "../../UserDialog/components/UserDialog";
-import { selectIsSignedIn } from "../../../stores/user/userSelectors";
+import UserDialog from "../../UserDialogs/components/UserDialog";
+import {
+	selectIsSignedIn,
+	selectUserInformation,
+} from "../../../stores/user/userSelectors";
 import SyncRow from "./SyncRow";
+import VerifyEmailDialog from "../../UserDialogs/components/VerifyEmailDialog";
 
 interface Props {
 	isExpanded: boolean;
@@ -39,16 +43,18 @@ interface Props {
 	onSettingsClick: () => void;
 }
 
+// TODO: update tests
 function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
-	const [showAuthenticationDialog, setShowAuthenticationDialog] =
-		useState(false);
+	const [showUserDialog, setShowUserDialog] = useState(false);
+	const [showVerifyEmailDialog, setShowVerifyEmailDialog] = useState(false);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectErrorMessage);
 	const successMessage = useAppSelector(selectSuccessMessage);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const isSignedIn = useAppSelector(selectIsSignedIn);
+	const userInformation = useAppSelector(selectUserInformation);
 	const location = useLocation();
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
@@ -128,7 +134,9 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						<p>Settings</p>
 					</button>
 
-					{isSignedIn && <SyncRow />}
+					{isSignedIn && userInformation?.isEmailVerified && (
+						<SyncRow />
+					)}
 
 					<button
 						className={`${styles.row}`}
@@ -167,12 +175,20 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					</Alert>
 				)}
 
+				{!userInformation?.isEmailVerified && (
+					<button
+						className={`secondary ${styles.verifyButton}`}
+						onClick={() => setShowVerifyEmailDialog(true)}>
+						Verify your email!
+					</button>
+				)}
+
 				<FileTree folder={rootUiFolder} />
 			</div>
 
 			<button
 				className={`transparent ${styles.bottomButton}`}
-				onClick={() => setShowAuthenticationDialog(true)}>
+				onClick={() => setShowUserDialog(true)}>
 				{!isSignedIn && (
 					<>
 						<Icon path={mdiLogin} size={1} /> <p>Sign-in/up</p>
@@ -185,9 +201,13 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 				)}
 			</button>
 
-			{showAuthenticationDialog && (
-				<UserDialog
-					onClose={() => setShowAuthenticationDialog(false)}
+			{showUserDialog && (
+				<UserDialog onClose={() => setShowUserDialog(false)} />
+			)}
+
+			{showVerifyEmailDialog && (
+				<VerifyEmailDialog
+					onClose={() => setShowVerifyEmailDialog(false)}
 				/>
 			)}
 		</aside>

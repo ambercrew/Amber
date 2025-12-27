@@ -30,3 +30,7 @@ export function signOut(): Promise<boolean> {
 export function isSignedIn(): Promise<boolean> {
 	return invoke("is_signed_in");
 }
+
+export function verifyUserEmail(verificationCode: string): Promise<void> {
+	return invoke("verify_user_email", { verificationCode });
+}

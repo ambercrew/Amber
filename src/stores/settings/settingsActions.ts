@@ -5,7 +5,7 @@ import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Settings from "../../types/backend/model/settings";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
-import { selectIsSignedIn } from "../user/userSelectors";
+import { selectIsSignedIn, selectUserInformation } from "../user/userSelectors";
 
 export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
@@ -15,7 +15,12 @@ export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 export function initialLoadAndApplySettings() {
 	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		const settings = await getSettings();
-		if (settings.autoSync && selectIsSignedIn(getState())) {
+		// TODO: update tests
+		if (
+			settings.autoSync &&
+			selectIsSignedIn(getState()) &&
+			selectUserInformation(getState())?.isEmailVerified
+		) {
 			await dispatch(sync());
 		}
 		dispatch(setSettings(settings));

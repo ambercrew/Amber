@@ -116,6 +116,11 @@
 	margin: 4px var(--large-padding);
 }
 
+.verify-button {
+	margin: var(--default-padding) var(--large-padding) 0;
+	width: calc(100% - var(--large-padding) * 2);
+}
+
 .rows {
 	padding: var(--large-padding);
 	border-bottom: var(--border-seperator);

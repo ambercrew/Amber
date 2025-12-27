@@ -1,18 +1,18 @@
-import styles from "./styles.module.css";
+import styles from "../styles.module.css";
 import { useState } from "react";
-import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppDispatch from "../../../../hooks/useAppDispatch";
 import Form, {
 	FormButtons,
 	FormHeader,
 	FormRows,
-} from "../../../components/Form/Form";
+} from "../../../../components/Form/Form";
 import { mdiAccountPlusOutline } from "@mdi/js";
-import Alert from "../../../components/Alert/Alert";
-import Spinner from "../../../components/Spinner/Spinner";
-import { signUp } from "../../../api/authApi";
-import errorToString from "../../../utils/errorToString";
-import { setUserInformation } from "../../../stores/user/userReducer";
-import { getUserInformation } from "../../../api/userApi";
+import Alert from "../../../../components/Alert/Alert";
+import Spinner from "../../../../components/Spinner/Spinner";
+import { signUp } from "../../../../api/authApi";
+import errorToString from "../../../../utils/errorToString";
+import { setUserInformation } from "../../../../stores/user/userReducer";
+import { getUserInformation } from "../../../../api/userApi";
 
 interface Props {
 	isSendingRequest: boolean;

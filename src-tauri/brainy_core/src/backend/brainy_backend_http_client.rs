@@ -6,7 +6,7 @@ use std::{
 use crate::backend::{
     models::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
-        UpdateUserInformationDto, UserInformationDto,
+        UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
     },
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
@@ -144,6 +144,29 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
         ensure_success_response(response).await?;
         self.persist_cookies();
+        Ok(())
+    }
+
+    async fn verify_user_email(
+        &self,
+        verification_code: String,
+    ) -> Result<(), BrainyBackendClientError> {
+        log::info!("Verifying email with code '{verification_code}'");
+
+        let dto = VerifyEmailDto {
+            email_verification_code: verification_code,
+        };
+
+        let response = self
+            .reqwest_client
+            .post(self.backend_url.join("/api/v1/auth/verify-email").unwrap())
+            .json(&dto)
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+        self.persist_cookies();
+
         Ok(())
     }
 
