@@ -330,7 +330,7 @@ impl CellRepository for SqliteCellRepository {
             return Err(RepositoryError::UnknownError(err.to_string()));
         }
 
-        // Deleteing removed repetitions.
+        // Deleting removed repetitions.
 
         let mut query_builder: QueryBuilder<sqlx::Sqlite> =
             QueryBuilder::new("DELETE FROM repetitions WHERE cell_id = ");
@@ -909,7 +909,7 @@ pub mod tests {
     pub async fn get_by_id_valid_input_returned_cell_correctly() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -964,7 +964,7 @@ pub mod tests {
     pub async fn get_file_cells_ordered_by_index_valid_input_returned_files_ordered() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1010,7 +1010,7 @@ pub mod tests {
     pub async fn update_deleted_old_repetitions_and_added_new_ones() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1089,7 +1089,7 @@ pub mod tests {
     pub async fn search_cells_valid_input_searched_cells_correctly() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1136,7 +1136,7 @@ pub mod tests {
     pub async fn delete_by_id_cloze_cell_deleted_repetitions() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1183,7 +1183,7 @@ pub mod tests {
     pub async fn get_file_repetitions_returned_all_repetitions_correctly() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1235,7 +1235,7 @@ pub mod tests {
     pub async fn get_study_repetitions_valid_input_returned_count_correctly() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1326,7 +1326,7 @@ pub mod tests {
     pub async fn get_study_repetitions_for_all_files_valid_input_returned_count_correctly() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file1 = File::new_unchecked(
             Guid::new_v4(),
@@ -1443,7 +1443,7 @@ pub mod tests {
     async fn get_home_statistics_with_reviews_returned_correct_statistics() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),

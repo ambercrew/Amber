@@ -302,7 +302,7 @@ pub mod tests {
     pub async fn get_all_folders_valid_input_returned_all_files() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         context
             .folder_repository()
@@ -333,7 +333,7 @@ pub mod tests {
     pub async fn delete_by_id_valid_input_deleted_recursively() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let parent_id = Guid::new_v4();
         context

@@ -404,7 +404,7 @@ pub mod tests {
     pub async fn create_folder_existing_folder_returned_error() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         context
             .folder_repository()
@@ -438,7 +438,7 @@ pub mod tests {
     pub async fn create_folder_valid_input_created_folder() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         // Act
 
@@ -456,7 +456,7 @@ pub mod tests {
     pub async fn rename_folder_existing_folder_returned_error() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let folder_id = Guid::new_v4();
 
@@ -501,7 +501,7 @@ pub mod tests {
     pub async fn rename_folder_same_name_folder_not_changed() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let folder_id = Guid::new_v4();
 
@@ -541,7 +541,7 @@ pub mod tests {
     pub async fn rename_folder_valid_input_renamed_folder() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let folder_id = Guid::new_v4();
 
@@ -581,7 +581,7 @@ pub mod tests {
     pub async fn move_folder_to_nested_folder_error_returned() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id = Guid::new_v4();
@@ -625,7 +625,7 @@ pub mod tests {
     pub async fn move_folder_two_level_down_nested_folder_error_returned() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id1 = Guid::new_v4();
@@ -679,7 +679,7 @@ pub mod tests {
     pub async fn move_folder_existing_folder_error_returned() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id1 = Guid::new_v4();
@@ -735,7 +735,7 @@ pub mod tests {
     pub async fn move_folder_valid_input_moved_folder() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id1 = Guid::new_v4();
         let parent_folder_id2 = Guid::new_v4();
@@ -792,7 +792,7 @@ pub mod tests {
     pub async fn create_file_existing_file_returned_error() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         context
             .file_repository()
@@ -826,7 +826,7 @@ pub mod tests {
     pub async fn rename_file_existing_file_returned_error() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let file_id = Guid::new_v4();
 
@@ -871,7 +871,7 @@ pub mod tests {
     pub async fn rename_file_same_name_file_not_changed() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let file_id = Guid::new_v4();
 
@@ -907,7 +907,7 @@ pub mod tests {
     pub async fn rename_file_valid_input_renamed_file() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let file_id = Guid::new_v4();
 
@@ -943,7 +943,7 @@ pub mod tests {
     pub async fn move_file_existing_file_error_returned() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_file_id1 = Guid::new_v4();
@@ -999,7 +999,7 @@ pub mod tests {
     pub async fn move_file_valid_input_moved_file() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id1 = Guid::new_v4();
         let parent_folder_id2 = Guid::new_v4();
@@ -1056,7 +1056,7 @@ pub mod tests {
     pub async fn convert_folder_to_exported_item_valid_input_converted_folder_and_file() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let nested_folder_id = Guid::new_v4();
@@ -1151,7 +1151,7 @@ pub mod tests {
     pub async fn import_exported_item_valid_input_imported_folders_and_files() {
         // Arrange
 
-        let (mut context, service) = create_test_dependencies().await;
+        let (context, service) = create_test_dependencies().await;
 
         let parent_folder_id = Guid::new_v4();
         let nested_folder_id = Guid::new_v4();

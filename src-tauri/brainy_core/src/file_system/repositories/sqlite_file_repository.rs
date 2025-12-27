@@ -276,7 +276,7 @@ pub mod tests {
     pub async fn get_all_files_valid_input_returned_all_files() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         context
             .file_repository()
@@ -306,7 +306,7 @@ pub mod tests {
     pub async fn delete_by_id_valid_input_deleted_file() {
         // Arrange
 
-        let mut context = SqliteRepositoriesContext::create_testing_context().await;
+        let context = SqliteRepositoriesContext::create_testing_context().await;
 
         let file_id = Guid::new_v4();
         context
