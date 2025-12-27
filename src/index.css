@@ -30,7 +30,8 @@ body {
 	--primary-color-shade-10: #094944;
 	--primary-color-shade-20: #031c1a;
 	--primary-color-shade-50: #000;
-	--secondary-color: #e29c4a;
+	--secondary-color: #d97706;
+	--secondary-color-shade-10: #a75c05;
 	--red-color: #d52726;
 	--red-color-light-10: #e04f4e;
 
@@ -198,6 +199,28 @@ button.primary:not(:disabled):focus {
 
 button.primary:active {
 	background-color: var(--primary-color-shade-10);
+}
+
+button.secondary {
+	color: #fff;
+	background-color: var(--secondary-color);
+	border-color: var(--secondary-color);
+}
+
+button.secondary * {
+	color: #fff;
+}
+
+button.secondary:not(:disabled):focus {
+	box-shadow: var(--default-box-shadow);
+}
+
+button.secondary:active {
+	background-color: var(--secondary-color-shade-10);
+}
+
+button.secondary:focus {
+	outline-color: var(--secondary-color);
 }
 
 button.transparent:not(:disabled):hover {

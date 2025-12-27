@@ -7,16 +7,22 @@
 	justify-content: space-between;
 	align-items: center;
 
+	&[role="button"] {
+		cursor: pointer;
+	}
+
 	&.error {
 		background-color: var(--red-color);
 	}
 	&.primary {
 		background-color: var(--primary-color);
 	}
+	&.secondary {
+		background-color: var(--secondary-color);
+	}
 
 	& button {
-		padding: var(--default-padding) var(--smalll-padding);
-		margin-top: var(--small-padding);
+		padding: 2px;
 
 		&:hover {
 			opacity: 0.8;
