@@ -16,6 +16,7 @@ import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
 	mdiAccount,
+	mdiAlertCircleOutline,
 	mdiChevronLeft,
 	mdiCog,
 	mdiHelp,
@@ -179,7 +180,8 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					<button
 						className={`secondary ${styles.verifyButton}`}
 						onClick={() => setShowVerifyEmailDialog(true)}>
-						Verify your email!
+						<Icon path={mdiAlertCircleOutline} size={1} />
+						<p>Verify your email!</p>
 					</button>
 				)}
 

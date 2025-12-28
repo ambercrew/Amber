@@ -60,7 +60,7 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 					title="Verify your email address"
 				/>
 				<p className={`${styles.verifyEmailInstruction}`}>
-					We&apos;ve sent a verification code to{" "}
+					A verification code to is sent to{" "}
 					<b>{userInformation?.email}</b>. Please check your inbox and
 					enter the code below to verify your account.
 				</p>

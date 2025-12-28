@@ -119,6 +119,11 @@
 .verify-button {
 	margin: var(--default-padding) var(--large-padding) 0;
 	width: calc(100% - var(--large-padding) * 2);
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--small-padding);
 }
 
 .rows {
