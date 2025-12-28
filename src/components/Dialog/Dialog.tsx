@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
@@ -12,42 +12,35 @@ interface Props {
  * element that had the focus before the dialog was shown.
  */
 export default function Dialog({ className, children, onHide }: Props) {
-	const [focusedElementBeforeView, setFocusedElementBeforeView] =
-		useState<HTMLElement | null>(null);
-
-	if (
-		document.activeElement !== null &&
-		document.activeElement instanceof HTMLElement &&
-		focusedElementBeforeView === null
-	) {
-		setFocusedElementBeforeView(document.activeElement);
-	}
-
-	const handleHide = () => {
-		if (onHide) {
-			focusedElementBeforeView?.focus();
-			onHide();
-		}
-	};
+	const focusedElementBeforeView = useRef<HTMLElement | null>(
+		document.activeElement instanceof HTMLElement
+			? document.activeElement
+			: null,
+	);
 
 	const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		e.stopPropagation();
 		if (e.key === "Escape") {
-			handleHide();
+			if (onHide) onHide();
 		}
 	};
 
 	// TODO: update tests
 	useEffect(() => {
-		return () => focusedElementBeforeView?.focus();
-	}, [focusedElementBeforeView]);
+		const focusedElement = focusedElementBeforeView;
+
+		return () => {
+			if (document.activeElement === document.body)
+				focusedElement.current?.focus();
+		};
+	}, []);
 
 	return (
 		<div
 			className={styles.overlay}
 			onClick={e => {
 				e.stopPropagation();
-				handleHide();
+				if (onHide) onHide();
 			}}
 			onKeyDown={e => e.stopPropagation()}
 			onKeyUp={handleKeyUp}
