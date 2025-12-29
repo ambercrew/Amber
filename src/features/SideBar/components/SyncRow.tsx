@@ -73,14 +73,14 @@ export default function SyncRow() {
 			{showToast && (
 				<Toast
 					onHide={() => setShowToast(false)}
-					timeoutInMilliSeconds={5000}
-					text="✅ Sync completed"
-				/>
+					timeoutInMilliSeconds={5000}>
+					<p>Sync completed</p>
+				</Toast>
 			)}
 			{isSyncing && (
-				<Dialog className={styles.syncBox}>
-					<Spinner />
+				<Dialog className={styles.syncBox} focusTrap={false}>
 					<p>Please wait, syncing your data...</p>
+					<Spinner />
 				</Dialog>
 			)}
 			<button

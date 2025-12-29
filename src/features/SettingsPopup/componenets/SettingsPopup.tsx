@@ -62,7 +62,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 	};
 
 	return (
-		<Dialog className={styles.box} onHide={onClose}>
+		<Dialog className={styles.box} onHide={onClose} focusTrap={true}>
 			<Form onSubmit={e => void handleSubmit(e)}>
 				<FormHeader icon={mdiCog} title="Settings" />
 				{settings && (

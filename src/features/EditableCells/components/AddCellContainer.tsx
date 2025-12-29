@@ -62,7 +62,8 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 			{showAddNewCellPopup && (
 				<Dialog
 					className={styles.addCellDialog}
-					onHide={() => setShowAddNewCellPopup(false)}>
+					onHide={() => setShowAddNewCellPopup(false)}
+					focusTrap={true}>
 					<NewCellTypeSelector
 						onClick={cellType => {
 							onAddNewCell(cellType);

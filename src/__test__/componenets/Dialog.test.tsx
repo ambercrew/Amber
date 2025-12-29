@@ -9,7 +9,11 @@ describe("Dialog", () => {
 		// Arrange
 
 		const onHide = vi.fn();
-		const { container } = render(<Dialog onHide={onHide}>test</Dialog>);
+		const { container } = render(
+			<Dialog onHide={onHide} focusTrap={false}>
+				test
+			</Dialog>,
+		);
 		const overlay = container.getElementsByClassName(
 			dialogStyles.overlay,
 		)[0];
@@ -27,7 +31,11 @@ describe("Dialog", () => {
 		// Arrange
 
 		const onHide = vi.fn();
-		render(<Dialog onHide={onHide}>Dialog</Dialog>);
+		render(
+			<Dialog onHide={onHide} focusTrap={false}>
+				Dialog
+			</Dialog>,
+		);
 
 		// Act
 
@@ -51,7 +59,9 @@ describe("Dialog", () => {
 						Show dialog
 					</button>
 					{showDialog && (
-						<Dialog onHide={() => setShowDialog(false)}>
+						<Dialog
+							onHide={() => setShowDialog(false)}
+							focusTrap={false}>
 							Dialog
 						</Dialog>
 					)}
@@ -84,7 +94,9 @@ describe("Dialog", () => {
 						Show dialog
 					</button>
 					{showDialog && (
-						<Dialog onHide={() => setShowDialog(false)}>
+						<Dialog
+							onHide={() => setShowDialog(false)}
+							focusTrap={false}>
 							<form>
 								<button onClick={() => setShowDialog(false)}>
 									Submit

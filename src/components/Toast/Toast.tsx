@@ -2,13 +2,15 @@ import { useEffect } from "react";
 import styles from "./styles.module.css";
 
 interface Props {
-	text: string;
 	timeoutInMilliSeconds?: number;
+	className?: string;
+	children: React.ReactNode;
 	onHide: () => void;
 }
 
 export default function Toast({
-	text,
+	children,
+	className,
 	timeoutInMilliSeconds = 3000,
 	onHide,
 }: Props) {
@@ -18,9 +20,5 @@ export default function Toast({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	return (
-		<div className={styles.container}>
-			<p>{text}</p>
-		</div>
-	);
+	return <div className={`${styles.container} ${className}`}>{children}</div>;
 }

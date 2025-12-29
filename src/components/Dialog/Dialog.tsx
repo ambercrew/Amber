@@ -3,6 +3,8 @@ import styles from "./styles.module.css";
 import { FocusTrap } from "focus-trap-react";
 
 interface Props {
+	/** Should be true only when a dialog has a tabbable component.*/
+	focusTrap: boolean;
 	className?: string;
 	children: React.ReactNode;
 	onHide?: () => void;
@@ -12,7 +14,12 @@ interface Props {
  * on overlay click, pressing Escape. Additionally it moves the focus to the
  * element that had the focus before the dialog was shown.
  */
-export default function Dialog({ className, children, onHide }: Props) {
+export default function Dialog({
+	className,
+	children,
+	focusTrap,
+	onHide,
+}: Props) {
 	const focusedElementBeforeView = useRef<HTMLElement | null>(
 		document.activeElement instanceof HTMLElement
 			? document.activeElement
@@ -37,7 +44,7 @@ export default function Dialog({ className, children, onHide }: Props) {
 	}, []);
 
 	return (
-		<FocusTrap>
+		<FocusTrap active={focusTrap}>
 			<div
 				className={styles.overlay}
 				onClick={e => {
@@ -45,8 +52,7 @@ export default function Dialog({ className, children, onHide }: Props) {
 					if (onHide) onHide();
 				}}
 				onKeyDown={e => e.stopPropagation()}
-				onKeyUp={handleKeyUp}
-				tabIndex={-1}>
+				onKeyUp={handleKeyUp}>
 				<div
 					className={`${styles.box} ${className}`}
 					onClick={e => e.stopPropagation()}>

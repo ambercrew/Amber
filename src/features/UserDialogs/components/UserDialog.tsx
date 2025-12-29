@@ -24,7 +24,7 @@ export default function UserDialog({ onClose }: Props) {
 	};
 
 	return (
-		<Dialog className={styles.box} onHide={handleClose}>
+		<Dialog className={styles.box} onHide={handleClose} focusTrap={true}>
 			{!isSignedIn && typeOfForm === "sign-in" && (
 				<SignInForm
 					isSendingRequest={isSendingRequest}

@@ -22,6 +22,7 @@ interface Props {
 }
 
 // TODO: add resend email button
+// TODO: show automatically after signup
 export default function VerifyEmailDialog({ onClose }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [verificationCode, setVerificationCode] = useState("");
@@ -53,7 +54,7 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 	};
 
 	return (
-		<Dialog className={styles.box} onHide={handleClose}>
+		<Dialog className={styles.box} onHide={handleClose} focusTrap={true}>
 			<Form onSubmit={handleSubmit}>
 				<FormHeader
 					icon={mdiEmailCheckOutline}

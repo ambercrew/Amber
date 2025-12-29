@@ -19,18 +19,18 @@ function ConfirmationDialog({
 	onConfirm,
 }: Props) {
 	return (
-		<Dialog onHide={onCancel} className={styles.box}>
+		<Dialog onHide={onCancel} className={styles.box} focusTrap={true}>
 			<div className={`${styles.titleBar}`}>
 				<Icon path={icon} size={1.4} />
 				<p>{title}</p>
 			</div>
 			<p>{text}</p>
 			<div className={`${styles.buttonsRow}`}>
-				<button className="transparent" onClick={onConfirm}>
-					Yes
-				</button>
-				<button className="primary" onClick={onCancel} autoFocus>
+				<button className="transparent" onClick={onCancel}>
 					No
+				</button>
+				<button className="primary" onClick={onConfirm}>
+					Yes
 				</button>
 			</div>
 		</Dialog>
