@@ -22,7 +22,7 @@ interface Props {
 }
 
 // TODO: add resend email button
-// TODO: show automatically after signup
+// TODO: unit test - shows up automatically, submit and resend buttons
 export default function VerifyEmailDialog({ onClose }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [verificationCode, setVerificationCode] = useState("");

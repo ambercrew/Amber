@@ -54,6 +54,9 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	const successMessage = useAppSelector(selectSuccessMessage);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const [previousIsSignedIn, setPreviousIsSignedIn] = useState<
+		boolean | null
+	>(null);
 	const isSignedIn = useAppSelector(selectIsSignedIn);
 	const userInformation = useAppSelector(selectUserInformation);
 	const location = useLocation();
@@ -61,6 +64,13 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
+
+	if (previousIsSignedIn !== isSignedIn) {
+		setPreviousIsSignedIn(isSignedIn);
+		setShowVerifyEmailDialog(
+			isSignedIn && !userInformation?.isEmailVerified,
+		);
+	}
 
 	const handleToggleExpand = () => {
 		if (isExpanded) onCollapse();
