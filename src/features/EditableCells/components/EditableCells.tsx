@@ -86,9 +86,14 @@ function EditableCells({
 	if (selectedCellIndex === -1) selectedCellIndex = null;
 
 	const scrollToCurrentCell = useCallback(() => {
-		if (!selectedCellRef.current || !containerRef.current) {
+		if (
+			!selectedCellRef.current ||
+			!containerRef.current ||
+			!selectedCellIndex
+		) {
 			return;
 		}
+		scrollToSelectedCellOnNextRender.current = false;
 
 		if (selectedCellIndex === cells.length - 1) {
 			containerRef.current.scrollTo({
@@ -145,7 +150,6 @@ function EditableCells({
 
 	useEffect(() => {
 		if (!scrollToSelectedCellOnNextRender.current) return;
-		scrollToSelectedCellOnNextRender.current = false;
 		scrollToCurrentCell();
 	});
 
@@ -227,14 +231,11 @@ function EditableCells({
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId!, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-		if (cellId) {
-			setSelectedCellId(cellId);
-		} else {
-			return;
-		}
+		if (!cellId) return;
+		scrollToSelectedCellOnNextRender.current = true;
+		setSelectedCellId(cellId);
 		await saveChanges();
 		await onCellsUpdateSave();
-		scrollToSelectedCellOnNextRender.current = true;
 	};
 
 	const handleCellDeleteConfirm = async () => {
