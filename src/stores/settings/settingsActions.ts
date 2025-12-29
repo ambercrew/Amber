@@ -15,7 +15,6 @@ export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 export function initialLoadAndApplySettings() {
 	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		const settings = await getSettings();
-		// TODO: update tests
 		if (
 			settings.autoSync &&
 			selectIsSignedIn(getState()) &&
@@ -38,13 +37,13 @@ export function updateAndApplySettings(settings: Settings) {
 	};
 }
 
-// TODO: update tests
 async function applySettings(
 	settings: Settings,
 	dispatch: AppDispatch,
 	getState: () => RootState,
 ) {
 	if (settings.theme === "FollowSystem") {
+		// Making the window follow the operating system so that the next check is correct.
 		await getCurrentWebview().window.setTheme(null);
 	}
 
