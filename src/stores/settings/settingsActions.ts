@@ -38,19 +38,26 @@ export function updateAndApplySettings(settings: Settings) {
 	};
 }
 
+// TODO: update tests
 async function applySettings(
 	settings: Settings,
 	dispatch: AppDispatch,
 	getState: () => RootState,
 ) {
+	if (settings.theme === "FollowSystem") {
+		await getCurrentWebview().window.setTheme(null);
+	}
+
 	if (
 		settings.theme === "Dark" ||
 		(settings.theme === "FollowSystem" &&
 			window.matchMedia &&
 			window.matchMedia("(prefers-color-scheme: dark)").matches)
 	) {
+		await getCurrentWebview().window.setTheme("dark");
 		document.body.classList.add("dark");
 	} else {
+		await getCurrentWebview().window.setTheme("light");
 		document.body.classList.remove("dark");
 	}
 
