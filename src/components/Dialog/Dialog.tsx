@@ -33,7 +33,6 @@ export default function Dialog({
 		}
 	};
 
-	// TODO: update tests
 	useEffect(() => {
 		const focusedElement = focusedElementBeforeView;
 
@@ -44,7 +43,14 @@ export default function Dialog({
 	}, []);
 
 	return (
-		<FocusTrap active={focusTrap}>
+		<FocusTrap
+			active={focusTrap}
+			focusTrapOptions={{
+				tabbableOptions: {
+					displayCheck:
+						import.meta.env.MODE === "test" ? "none" : undefined,
+				},
+			}}>
 			<div
 				className={styles.overlay}
 				onClick={e => {
@@ -52,7 +58,8 @@ export default function Dialog({
 					if (onHide) onHide();
 				}}
 				onKeyDown={e => e.stopPropagation()}
-				onKeyUp={handleKeyUp}>
+				onKeyUp={handleKeyUp}
+				tabIndex={-1}>
 				<div
 					className={`${styles.box} ${className}`}
 					onClick={e => e.stopPropagation()}>

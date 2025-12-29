@@ -44,7 +44,6 @@ interface Props {
 	onSettingsClick: () => void;
 }
 
-// TODO: update tests
 function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [showUserDialog, setShowUserDialog] = useState(false);

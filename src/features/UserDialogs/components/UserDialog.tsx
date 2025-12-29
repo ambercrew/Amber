@@ -11,7 +11,6 @@ interface Props {
 	onClose: () => void;
 }
 
-// TODO: update unit tests
 export default function UserDialog({ onClose }: Props) {
 	const [typeOfForm, setTypeOfForm] = useState<"sign-in" | "sign-up">(
 		"sign-in",
