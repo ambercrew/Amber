@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./styles.module.css";
+import { FocusTrap } from "focus-trap-react";
 
 interface Props {
 	className?: string;
@@ -36,20 +37,22 @@ export default function Dialog({ className, children, onHide }: Props) {
 	}, []);
 
 	return (
-		<div
-			className={styles.overlay}
-			onClick={e => {
-				e.stopPropagation();
-				if (onHide) onHide();
-			}}
-			onKeyDown={e => e.stopPropagation()}
-			onKeyUp={handleKeyUp}
-			tabIndex={-1}>
+		<FocusTrap>
 			<div
-				className={`${styles.box} ${className}`}
-				onClick={e => e.stopPropagation()}>
-				{children}
+				className={styles.overlay}
+				onClick={e => {
+					e.stopPropagation();
+					if (onHide) onHide();
+				}}
+				onKeyDown={e => e.stopPropagation()}
+				onKeyUp={handleKeyUp}
+				tabIndex={-1}>
+				<div
+					className={`${styles.box} ${className}`}
+					onClick={e => e.stopPropagation()}>
+					{children}
+				</div>
 			</div>
-		</div>
+		</FocusTrap>
 	);
 }
