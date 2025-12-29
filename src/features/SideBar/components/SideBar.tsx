@@ -176,7 +176,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					</Alert>
 				)}
 
-				{!userInformation?.isEmailVerified && (
+				{isSignedIn && !userInformation?.isEmailVerified && (
 					<button
 						className={`secondary ${styles.verifyButton}`}
 						onClick={() => setShowVerifyEmailDialog(true)}>
