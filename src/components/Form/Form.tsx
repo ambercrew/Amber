@@ -21,7 +21,7 @@ interface FormHeaderProps {
 export function FormHeader({ icon, title }: FormHeaderProps) {
 	return (
 		<div className={`row ${styles.header}`}>
-			<Icon path={icon} size={1.2} />
+			<Icon path={icon} size={1.6} />
 			<p>{title}</p>
 		</div>
 	);

@@ -1,11 +1,7 @@
-:global(body.dark) .container {
-	background-color: var(--lighter-default-background-color);
-}
-
 .container {
 	max-width: fit-content;
 	position: relative;
-	background-color: var(--grey-background-color-shade-20);
+	background-color: var(--surface-background-color-shade-20);
 	position: relative;
 	border-radius: 20px;
 	padding: var(--large-padding);
@@ -35,8 +31,8 @@
 		top: 4px;
 		bottom: 4px;
 		left: 4px;
-		width: 2rem;
-		border-radius: 20px;
+		width: var(--xl-padding);
+		border-radius: 50%;
 		position: absolute;
 		transition: all var(--default-transition-time);
 		background-color: #fff;

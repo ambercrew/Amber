@@ -35,7 +35,7 @@
 .floating-menu {
 	position: absolute;
 	transform: translateY(-100%);
-	background-color: var(--default-background-color);
+	background-color: var(--surface-background-color-tint-10);
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
 	padding: var(--default-padding);
@@ -55,16 +55,9 @@
 	}
 }
 
-:global(body.dark) .floating-menu {
-	background-color: var(--light-default-background-color) !important;
-}
-
 .active-button {
-	background-color: var(--grey-background-color-shade-10) !important;
-}
-
-:global(body.dark) .active-button {
-	background-color: var(--default-background-color);
+	/* Adding important so that hover, or focus does not change background color. */
+	background-color: var(--surface-background-color-shade-10) !important;
 }
 
 .active-button:hover {

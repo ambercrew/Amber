@@ -29,8 +29,7 @@
 	}
 
 	& hr {
-		border-radius: var(--default-border-radius);
-		border-color: var(--hover-border-color);
+		border-color: var(--border-color);
 	}
 }
 
@@ -73,15 +72,15 @@
 			color: #fff;
 		}
 		& .hard-button {
-			background-color: #ff7d29;
+			background-color: #f97316;
 			color: #fff;
 		}
 		& .good-button {
-			background-color: green;
+			background-color: var(--review-color);
 			color: #fff;
 		}
 		& .easy-button {
-			background-color: var(--link-color);
+			background-color: var(--primary-color);
 			color: #fff;
 		}
 	}
@@ -117,7 +116,7 @@
 	}
 }
 
-@media (max-width: 58rem) {
+@media (max-width: 60rem) {
 	.bottom-bar {
 		display: flex;
 		justify-content: center;

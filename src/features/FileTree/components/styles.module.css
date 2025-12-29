@@ -70,9 +70,13 @@
 	transform: translateY(-50%);
 	border: 1px solid transparent;
 	border-radius: var(--default-border-radius);
+	height: 80%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 
 	&:hover {
-		background-color: var(--grey-background-color);
+		background-color: var(--surface-background-color);
 	}
 }
 
@@ -85,10 +89,14 @@
 		color: #fff;
 	}
 
+	&:active {
+		background-color: var(--primary-color-shade-20);
+	}
+
 	&:active,
 	&:focus {
-		border-color: var(--primary-color-shade-20);
 		color: #fff;
+		outline-color: #fff;
 	}
 }
 

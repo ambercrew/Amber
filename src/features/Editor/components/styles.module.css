@@ -10,7 +10,7 @@
 }
 
 .title-bar {
-	padding: var(--large-padding) var(--xxl-padding);
+	padding: var(--default-padding) var(--xl-padding);
 	background-color: var(--default-background-color);
 	position: sticky;
 	top: 0;

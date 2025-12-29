@@ -4,11 +4,11 @@
 }
 
 .header {
-	font-size: 1.8rem;
+	font-size: 2.2rem;
+	font-weight: 600;
 	gap: var(--default-padding);
-	border-bottom: 1px solid var(--border-color);
 	padding-bottom: var(--default-padding);
-	margin-bottom: var(--small-padding);
+	margin-bottom: var(--default-padding);
 }
 
 .rows {
@@ -21,11 +21,11 @@
 	font-size: 1.6rem;
 
 	& .row {
-		display: grid;
-		grid-template-columns: 18rem 1fr;
-		justify-content: center;
-		align-items: center;
-		gap: var(--small-padding);
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		width: 100%;
+		gap: var(--default-padding);
 
 		& input,
 		& select {
@@ -42,24 +42,13 @@
 }
 
 .buttons {
-	margin-top: var(--xxl-padding);
+	margin-top: var(--xl-padding);
 	display: flex;
 	gap: var(--default-padding);
 	justify-content: flex-end;
 
 	& button {
-		padding: var(--default-padding);
+		padding: var(--default-padding) var(--xl-padding);
 		font-size: 1.6rem;
-	}
-}
-
-@media (max-width: 46rem) {
-	.rows {
-		& .row {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			width: 100%;
-		}
 	}
 }

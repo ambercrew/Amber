@@ -198,7 +198,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				<div className={styles.editButtonContainer}>
 					<p>&nbsp;</p>
 					<button
-						className="row transparent grey-button"
+						className="row grey-button"
 						onClick={() =>
 							onEditButtonClick(
 								dueToday[currentCellIndex].fileId,

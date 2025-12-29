@@ -63,7 +63,7 @@
 .cell-block {
 	padding: var(--default-padding);
 	border-radius: var(--default-border-radius);
-	border: 1px solid transparent;
+	border: var(--default-border-width) solid transparent;
 	position: relative;
 	width: 100%;
 
@@ -75,7 +75,7 @@
 		position: absolute;
 		align-items: center;
 		justify-content: center;
-		background-color: var(--default-background-color);
+		background-color: var(--surface-background-color-tint-10);
 		z-index: 2;
 		right: 1.2rem;
 		top: 0;
@@ -94,7 +94,7 @@
 	}
 
 	& .drag:hover {
-		background-color: var(--grey-background-color);
+		background-color: var(--surface-background-color);
 	}
 
 	& .insert-cell-popup {
@@ -107,6 +107,7 @@
 
 	&.selected-cell {
 		border-color: var(--primary-color);
+		box-shadow: var(--default-box-shadow);
 	}
 
 	&.dragging {
@@ -128,12 +129,6 @@
 			color: #fff;
 			font-weight: 400;
 		}
-	}
-}
-
-:global(body.dark) .cell-block {
-	& .focus-tools {
-		background-color: var(--light-default-background-color);
 	}
 }
 
@@ -169,8 +164,4 @@
 	right: 0;
 	z-index: 1;
 	padding: var(--large-padding);
-}
-
-:global(body.dark) .repetitions-info-container {
-	background-color: var(--light-default-background-color);
 }

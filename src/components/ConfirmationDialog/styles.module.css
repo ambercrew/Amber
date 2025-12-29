@@ -21,5 +21,6 @@
 
 	& button {
 		font-size: 1.6rem;
+		padding: var(--default-padding) var(--large-padding);
 	}
 }

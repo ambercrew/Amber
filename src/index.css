@@ -22,77 +22,86 @@ body {
 	font-variation-settings: "wdth" 100;
 	font-weight: 400;
 	font-style: normal;
-	background-color: var(--body-background-color);
+	background-color: var(--default-background-color);
 	color: var(--text-color);
 
-	/* Colors */
-	--primary-color: #0f766e;
-	--primary-color-shade-10: #094944;
-	--primary-color-shade-20: #031c1a;
-	--primary-color-shade-50: #000;
-	--secondary-color: #d97706;
-	--secondary-color-shade-10: #a75c05;
-	--red-color: #d52726;
-	--red-color-light-10: #e04f4e;
+	--primary-color: #2563eb;
+	--primary-color-shade-10: #134cca;
+	--primary-color-shade-20: #0e3b9c;
+	--primary-color-tint-10: #3b82f6;
+	--primary-color-tint-20: #60a5fa;
 
-	--text-color: #333333;
-	--border-color: #e0e0e0;
-	--hover-border-color: #b3b3b3;
-	--link-color: #387adf;
-	--link-color-shade-10: #27559c;
-	--link-color-shade-20: #2d62b2;
-	--grey-background-color: #f2f2f2;
-	--grey-background-color-shade-10: #dadada;
-	--grey-background-color-shade-20: #c2c2c2;
-	--body-background-color: var(--grey-background-color);
+	--secondary-color-tint-10: #9b69f1;
+	--secondary-color: #7c3aed;
+	--secondary-color-shade-10: #6d28d9;
 
-	--default-background-color: #fff;
-	--side-bar-background-color: #fafafa;
+	--text-color: #2b2d42;
+	--text-color-secondary: #6c757d;
 
-	--new-color: var(--primary-color-shade-50);
+	--border-color: var(--surface-background-color-shade-10);
+	--hover-border-color: var(--surface-background-color-shade-20);
+
+	--surface-background-color-tint-10: rgb(248, 248, 249);
+	--surface-background-color: #e6e9ec;
+	--surface-background-color-shade-10: #c9d0d6;
+	--surface-background-color-shade-20: #acb6c0;
+	--surface-background-color-shade-30: #8f9caa;
+
+	--default-background-color: #ffffff;
+	--side-bar-background-color: #ffffff;
+
+	--red-color: #e71d36;
+	--new-color: var(--primary-color-shade-20);
 	--learning-color: var(--red-color);
-	--review-color: green;
+	--review-color: #10b981;
 
-	/* Spaces */
-	--default-border-radius: 6px;
+	--default-border-radius: 8px;
 	--small-padding: 4px;
-	--default-padding: 8px;
-	--large-padding: 16px;
-	--xl-padding: 24px;
-	--xxl-padding: 32px;
+	--default-padding: 10px;
+	--large-padding: 18px;
+	--xl-padding: 26px;
+	--xxl-padding: 34px;
 
-	/* Sizes */
-	--default-border-width: 2px;
+	--default-border-width: 1px;
 
-	/* Other */
 	--default-transition-time: 0.2s;
+
 	--default-box-shadow:
 		inset 0 0 0.5px 1px hsla(0, 0%, 100%, 0.075),
 		0 0 4px 1px rgba(0, 0, 0, 0.2);
-	--placeholder-color: rgb(110, 110, 110);
+
+	--placeholder-color: #adb5bd;
 }
 
+/* On dark theme, the roles of shade and tint colors are reversed. */
 body.dark {
-	/* Colors */
-	--text-color: #fff;
-	--border-color: #4a5258;
-	--hover-border-color: #6b7280;
-	--body-background-color: #1a1f23;
-	--default-background-color: #252b30;
-	--light-default-background-color: rgb(52, 59, 65);
-	--lighter-default-background-color: #4b555d;
+	--text-color: #f5f7fa;
+	--text-color-secondary: #b0bcc9;
 
-	--grey-background-color: #424242;
-	--grey-background-color-shade-10: #292929;
-	--grey-background-color-shade-20: #0f0f0f;
+	--primary-color-tint-10: #134cca;
+	--primary-color-tint-20: #0e3b9c;
+	--primary-color-shade-10: #3b82f6;
+	--primary-color-shade-20: #60a5fa;
 
-	--side-bar-background-color: #1e2428;
+	--secondary-color-shade-10: #9b69f1;
+	--secondary-color-tint-10: #6d28d9;
 
-	--new-color: var(--link-color);
-	--learning-color: var(--red-color-light-10);
-	--review-color: #0c0;
+	--border-color: #44464a;
+	--hover-border-color: #56585c;
+	--sidebar-border-color: #36383a;
 
-	--placeholder-color: #c8c8c8;
+	--default-background-color: #242426;
+	--side-bar-background-color: #232325;
+
+	--surface-background-color-tint-10: #2d2d2f;
+	--surface-background-color: #323234;
+	--surface-background-color-shade-10: #4b4b4e;
+	--surface-background-color-shade-20: #646468;
+	--surface-background-color-shade-30: #7d7d82;
+
+	--red-color: #ef4444;
+
+	--placeholder-color: #b8bec7;
 }
 
 .container {
@@ -117,24 +126,19 @@ a {
 a,
 a:visited,
 button.link {
-	color: var(--link-color);
+	color: var(--primary-color);
 	transition: var(--default-transition-time);
 	padding: 0;
 }
 
-a:focus,
-button.link:focus {
-	outline-color: var(--link-color);
-}
-
 a:hover,
 button.link:hover {
-	color: var(--link-color-shade-10);
+	color: var(--primary-color-shade-10);
 }
 
 a:active,
 button.link:active {
-	color: var(--link-color-shade-20);
+	color: var(--primary-color-shade-20);
 }
 
 .input,
@@ -220,31 +224,31 @@ button.secondary:active {
 }
 
 button.secondary:focus {
-	outline-color: var(--secondary-color);
+	outline-color: var(--secondary-color-shade-10);
 }
 
 button.transparent:not(:disabled):hover {
-	background-color: var(--grey-background-color);
+	background-color: var(--surface-background-color);
 }
 
 button.transparent:not(:disabled):active {
-	background-color: var(--grey-background-color-shade-10);
+	background-color: var(--surface-background-color-shade-10);
 }
 
 button.grey-button {
-	background-color: var(--grey-background-color-shade-10);
+	background-color: var(--surface-background-color);
+}
+
+button.grey-button:hover {
+	background-color: var(--surface-background-color-shade-10);
 }
 
 button.grey-button:active {
-	background-color: var(--grey-background-color-shade-20);
+	background-color: var(--surface-background-color-shade-20);
 }
 
 button.grey-button:focus {
-	border-color: var(--primary-color);
-}
-
-body.dark button.grey-button {
-	background-color: var(--grey-background-color);
+	outline-color: var(--surface-background-color-shade-30);
 }
 
 button.red {
@@ -268,10 +272,6 @@ h1 {
 
 .dimmed {
 	color: dimgray;
-}
-
-body.dark .overlay {
-	background-color: rgba(255, 255, 255, 0.2);
 }
 
 .center {
@@ -317,23 +317,14 @@ body.dark .overlay {
 }
 
 ::-webkit-scrollbar-track {
-	background: var(--body-background-color);
-	border-radius: var(--default-border-radius);
+	background: transparent;
 	margin: var(--small-padding) 0;
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--grey-background-color-shade-20);
+	background: var(--surface-background-color-shade-20);
 	border-radius: var(--default-border-radius);
 	transition: all 0.2s ease;
-}
-
-.dark ::-webkit-scrollbar-track {
-	background: var(--light-default-background-color);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-	background: var(--lighter-default-background-color);
 }
 
 ::-webkit-scrollbar-thumb:hover {

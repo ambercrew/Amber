@@ -19,10 +19,6 @@
 			transition: all var(--default-transition-time);
 			padding-top: var(--default-padding);
 
-			&:hover {
-				border-color: var(--hover-border-color);
-			}
-
 			&:focus {
 				box-shadow: var(--default-box-shadow);
 			}
