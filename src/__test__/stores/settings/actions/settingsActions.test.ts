@@ -11,6 +11,7 @@ import { setSettings } from "../../../../stores/settings/settingsReducer.ts";
 import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager.ts";
 import * as syncActions from "../../../../stores/sync/syncActions.ts";
 import { RootState } from "../../../../stores/store.ts";
+import { Window } from "@tauri-apps/api/window";
 
 vi.mock(import("@tauri-apps/api/webview"));
 vi.mock(import("../../../../api/settingsApi.ts"));
@@ -29,10 +30,13 @@ const getAndSetDefaultSettings = () => {
 	return settings;
 };
 
-const createGetState = (isSignedIn = true) => {
+const createGetState = (isSignedIn = true, isEmailVerified = true) => {
 	const state = {
 		user: {
 			isSignedIn,
+			userInformation: {
+				isEmailVerified,
+			},
 		},
 	} as RootState;
 
@@ -41,11 +45,17 @@ const createGetState = (isSignedIn = true) => {
 
 describe("initialLoadAndApplySettings", () => {
 	let setZoomMock: ReturnType<typeof vi.fn>;
+	let setThemeMock: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
 		setZoomMock = vi.fn();
+		setThemeMock = vi.fn();
+
 		vi.mocked(getCurrentWebview).mockReturnValue({
 			setZoom: setZoomMock,
+			window: {
+				setTheme: setThemeMock,
+			} as Partial<Window>,
 		} as Partial<Webview> as Webview);
 	});
 
@@ -72,6 +82,7 @@ describe("initialLoadAndApplySettings", () => {
 
 		expect(dispatch).toBeCalledWith(setSettings(settings));
 		expect(setZoomMock).toBeCalledWith(1.5);
+		expect(setThemeMock).toBeCalledWith("dark");
 		assert.isTrue(document.body.classList.contains("dark"));
 		expect(removeHandlerSpy).toBeCalledWith(
 			SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
@@ -124,9 +135,11 @@ describe("initialLoadAndApplySettings", () => {
 
 		expect(dispatch).toBeCalledWith(setSettings(settings));
 		assert.isTrue(document.body.classList.contains("dark"));
+		expect(setThemeMock).toBeCalledWith(null);
+		expect(setThemeMock).toBeCalledWith("dark");
 	});
 
-	it("Should sync when user is signed in and auto sync is enabled", async () => {
+	it("Should sync when user is signed in, auto sync is enabled, and email is verified", async () => {
 		// Arrange
 
 		const settings = getAndSetDefaultSettings();
@@ -138,11 +151,30 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch, createGetState(true, true));
 
 		// Assert
 
 		expect(syncSpy).toBeCalled();
+	});
+
+	it("Should not sync when email is not verified", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+		settings.autoSync = true;
+
+		const syncSpy = vi.spyOn(syncActions, "sync");
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = initialLoadAndApplySettings();
+		await cb(dispatch, createGetState(true, false));
+
+		// Assert
+
+		expect(syncSpy).not.toBeCalled();
 	});
 
 	it("Should not sync when user is not signed in", async () => {
