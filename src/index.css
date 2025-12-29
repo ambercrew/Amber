@@ -48,7 +48,7 @@ body {
 	--surface-background-color-shade-30: #8f9caa;
 
 	--default-background-color: #ffffff;
-	--side-bar-background-color: #ffffff;
+	--side-bar-background-color: var(--surface-background-color-tint-10);
 
 	--red-color: #e71d36;
 	--new-color: var(--primary-color-shade-20);
@@ -91,7 +91,6 @@ body.dark {
 	--sidebar-border-color: #36383a;
 
 	--default-background-color: #242426;
-	--side-bar-background-color: #232325;
 
 	--surface-background-color-tint-10: #2d2d2f;
 	--surface-background-color: #323234;
