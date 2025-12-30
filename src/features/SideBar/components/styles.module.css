@@ -73,12 +73,11 @@
 		}
 
 		& .rows {
-			display: block;
-			padding: var(--large-padding) var(--default-padding);
+			display: flex;
+			padding-right: var(--default-padding);
+			padding-left: var(--default-padding);
 
 			& .row {
-				padding: 12px var(--default-padding);
-				margin-bottom: 4px;
 				justify-content: center;
 
 				& p {
@@ -130,7 +129,7 @@
 	border-bottom: var(--border-separator);
 	display: flex;
 	flex-direction: column;
-	gap: var(--default-padding);
+	gap: var(--medium-padding);
 
 	.row {
 		display: flex;
@@ -139,7 +138,14 @@
 		gap: 12px;
 		width: 100%;
 		transition: all var(--default-transition-time);
-		padding: 12px;
+		padding: var(--default-padding);
+		font-size: 1.6rem;
+
+		/* Necessary so that the button has the same height when the sidebar is closed. */
+		height: calc(
+			1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
+				var(--default-padding) /* Height of padding */
+		);
 
 		&:hover {
 			background-color: var(--surface-background-color);
@@ -178,9 +184,15 @@
 	justify-content: center;
 	align-items: center;
 	gap: var(--default-padding);
-	padding: var(--large-padding);
 	border-radius: 0;
 	border-top: 1px solid var(--border-color);
+
+	padding: var(--large-padding);
+	/* Necessary so that the button has the same height when the sidebar is closed. */
+	height: calc(
+		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
+			var(--large-padding) /* Height of padding */
+	);
 }
 
 .sync-box {
