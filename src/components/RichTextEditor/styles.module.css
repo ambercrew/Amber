@@ -3,6 +3,7 @@
 	border: 1px solid var(--border-color);
 	border-radius: var(--default-border-radius);
 	transition: all var(--default-transition-time);
+	word-wrap: break-word;
 
 	&:hover {
 		border-color: var(--hover-border-color);
