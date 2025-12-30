@@ -10,7 +10,6 @@ import Settings from "../../../../types/backend/model/settings.ts";
 import { setSettings } from "../../../../stores/settings/settingsReducer.ts";
 import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager.ts";
 import * as syncActions from "../../../../stores/sync/syncActions.ts";
-import { RootState } from "../../../../stores/store.ts";
 import { Window } from "@tauri-apps/api/window";
 
 vi.mock(import("@tauri-apps/api/webview"));
@@ -28,19 +27,6 @@ const getAndSetDefaultSettings = () => {
 	const getSettingsMock = vi.mocked(getSettings);
 	getSettingsMock.mockReturnValue(Promise.resolve(settings));
 	return settings;
-};
-
-const createGetState = (isSignedIn = true, isEmailVerified = true) => {
-	const state = {
-		user: {
-			isSignedIn,
-			userInformation: {
-				isEmailVerified,
-			},
-		},
-	} as RootState;
-
-	return () => state;
 };
 
 describe("initialLoadAndApplySettings", () => {
@@ -76,7 +62,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 
 		// Assert
 
@@ -104,7 +90,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 
 		// Assert
 
@@ -129,7 +115,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 
 		// Assert
 
@@ -151,55 +137,11 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState(true, true));
+		await cb(dispatch);
 
 		// Assert
 
 		expect(syncSpy).toBeCalled();
-	});
-
-	it("Should not sync when email is not verified", async () => {
-		// Arrange
-
-		const settings = getAndSetDefaultSettings();
-		settings.autoSync = true;
-
-		const syncSpy = vi.spyOn(syncActions, "sync");
-		const dispatch = vi.fn();
-
-		// Act
-
-		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState(true, false));
-
-		// Assert
-
-		expect(syncSpy).not.toBeCalled();
-	});
-
-	it("Should not sync when user is not signed in", async () => {
-		// Arrange
-
-		const settings = getAndSetDefaultSettings();
-		settings.autoSync = true;
-
-		const addHandlerSpy = vi.spyOn(
-			defaultCloseRequestedEventManager,
-			"addHandler",
-		);
-		const syncSpy = vi.spyOn(syncActions, "sync");
-
-		const dispatch = vi.fn();
-
-		// Act
-
-		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState(false));
-		await addHandlerSpy.mock.calls[0][1].cb();
-
-		// Assert
-
-		expect(syncSpy).not.toBeCalled();
 	});
 
 	it("Should not sync when auto sync is disabled", async () => {
@@ -214,7 +156,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 
 		// Assert
 
@@ -237,7 +179,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 		await addHandlerSpy.mock.calls[0][1].cb();
 
 		// Assert
@@ -262,7 +204,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Act
 
 		const cb = initialLoadAndApplySettings();
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 		await addHandlerSpy.mock.calls[0][1].cb();
 
 		// Assert
@@ -282,7 +224,7 @@ describe("updateAndApplySettings", () => {
 		// Act
 
 		const cb = updateAndApplySettings(settings);
-		await cb(dispatch, createGetState());
+		await cb(dispatch);
 
 		// Assert
 

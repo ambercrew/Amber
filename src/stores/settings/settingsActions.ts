@@ -1,11 +1,10 @@
 import { getSettings, updateSettings } from "../../api/settingsApi";
-import { AppDispatch, RootState } from "../store";
+import { AppDispatch } from "../store";
 import { setSettings } from "./settingsReducer";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Settings from "../../types/backend/model/settings";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
-import { selectIsSignedIn, selectUserInformation } from "../user/userSelectors";
 
 export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
@@ -13,35 +12,25 @@ export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
  * applies them.
  */
 export function initialLoadAndApplySettings() {
-	return async function (dispatch: AppDispatch, getState: () => RootState) {
+	return async function (dispatch: AppDispatch) {
 		const settings = await getSettings();
-		if (
-			settings.autoSync &&
-			selectIsSignedIn(getState()) &&
-			selectUserInformation(getState())?.isEmailVerified
-		) {
-			await dispatch(sync());
-		}
 		dispatch(setSettings(settings));
-		await applySettings(settings, dispatch, getState);
+		await applySettings(settings, dispatch);
+		if (settings.autoSync) await dispatch(sync());
 	};
 }
 
 export function updateAndApplySettings(settings: Settings) {
-	return async function (dispatch: AppDispatch, getState: () => RootState) {
+	return async function (dispatch: AppDispatch) {
 		await updateSettings({
 			...settings,
 		});
 		dispatch(setSettings(settings));
-		await applySettings(settings, dispatch, getState);
+		await applySettings(settings, dispatch);
 	};
 }
 
-async function applySettings(
-	settings: Settings,
-	dispatch: AppDispatch,
-	getState: () => RootState,
-) {
+async function applySettings(settings: Settings, dispatch: AppDispatch) {
 	if (settings.theme === "FollowSystem") {
 		// Making the window follow the operating system so that the next check is correct.
 		await getCurrentWebview().window.setTheme(null);
@@ -68,8 +57,7 @@ async function applySettings(
 		SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 		{
 			cb: async () => {
-				if (settings.autoSync && selectIsSignedIn(getState()))
-					await dispatch(sync());
+				if (settings.autoSync) await dispatch(sync());
 			},
 			// Must be executed after everything.
 			priority: 9999,
