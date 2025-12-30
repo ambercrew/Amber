@@ -7,8 +7,7 @@
 	font-size: 2.2rem;
 	font-weight: 600;
 	gap: var(--default-padding);
-	padding-bottom: var(--default-padding);
-	margin-bottom: var(--default-padding);
+	margin-bottom: var(--large-padding);
 }
 
 .rows {
@@ -17,7 +16,7 @@
 	padding-top: var(--default-padding);
 	display: flex;
 	flex-direction: column;
-	gap: var(--large-padding);
+	gap: var(--default-padding);
 	font-size: 1.6rem;
 
 	& .row {
@@ -25,7 +24,7 @@
 		flex-direction: column;
 		align-items: flex-start;
 		width: 100%;
-		gap: var(--default-padding);
+		gap: var(--medium-padding);
 
 		& input,
 		& select {
@@ -42,13 +41,13 @@
 }
 
 .buttons {
-	margin-top: var(--xl-padding);
+	margin-top: var(--large-padding);
 	display: flex;
 	gap: var(--default-padding);
 	justify-content: flex-end;
 
 	& button {
-		padding: var(--default-padding) var(--xl-padding);
+		padding: var(--default-padding) var(--large-padding);
 		font-size: 1.6rem;
 	}
 }
