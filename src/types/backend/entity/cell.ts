@@ -2,8 +2,8 @@ import Repetition from "./repetition";
 
 export type CellType = "FlashCard" | "Note" | "Cloze" | "TrueFalse";
 export const allCellTypes: CellType[] = [
-	"Cloze",
 	"FlashCard",
+	"Cloze",
 	"Note",
 	"TrueFalse",
 ];
