@@ -181,8 +181,8 @@ function EditableCells({
 					selectedCellIndex + number,
 				);
 			});
-			await onCellsUpdateSave();
 			scrollToSelectedCellOnNextRender.current = true;
+			await onCellsUpdateSave();
 		}
 	};
 
@@ -207,22 +207,22 @@ function EditableCells({
 			const selectedCellIndex = filteredCells.findIndex(
 				c => c.id === selectedCellId,
 			);
+			scrollToSelectedCellOnNextRender.current = true;
 			setSelectedCellId(
 				filteredCells[
 					Math.min(filteredCells.length - 1, selectedCellIndex + 1)
 				].id,
 			);
-			scrollToSelectedCellOnNextRender.current = true;
 		} else if (e.ctrlKey && e.key === "ArrowUp") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
 			const selectedCellIndex = filteredCells.findIndex(
 				c => c.id === selectedCellId,
 			);
+			scrollToSelectedCellOnNextRender.current = true;
 			setSelectedCellId(
 				filteredCells[Math.max(0, selectedCellIndex - 1)].id,
 			);
-			scrollToSelectedCellOnNextRender.current = true;
 		} else if (e.ctrlKey && e.key === " ") {
 			scrollToCurrentCell();
 		}
@@ -242,6 +242,7 @@ function EditableCells({
 		ignoreCell(selectedCellId!);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
+		scrollToSelectedCellOnNextRender.current = true;
 		if (cellIndex > 0) {
 			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
@@ -249,7 +250,6 @@ function EditableCells({
 		} else {
 			setSelectedCellId(null);
 		}
-		scrollToSelectedCellOnNextRender.current = true;
 		await saveChanges();
 		await onCellsUpdateSave();
 	};
@@ -260,10 +260,10 @@ function EditableCells({
 		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 		if (index > draggedCellIndex) index--;
 		if (index === draggedCellIndex) return;
+		scrollToSelectedCellOnNextRender.current = true;
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await saveChanges();
 		await onCellsUpdateSave();
-		scrollToSelectedCellOnNextRender.current = true;
 	};
 
 	return (
