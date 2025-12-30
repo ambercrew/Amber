@@ -2,7 +2,6 @@
 	color: var(--primary-color);
 	font-weight: 600;
 	display: inline-block;
-	word-break: break-word;
 }
 
 .true-false-row {

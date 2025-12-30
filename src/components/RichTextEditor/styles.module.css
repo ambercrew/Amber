@@ -4,6 +4,7 @@
 	border-radius: var(--default-border-radius);
 	transition: all var(--default-transition-time);
 	word-wrap: break-word;
+	word-break: break-word;
 
 	&:hover {
 		border-color: var(--hover-border-color);
