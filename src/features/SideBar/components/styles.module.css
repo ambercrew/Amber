@@ -18,6 +18,8 @@
 
 	& .side-bar-top-container {
 		overflow-y: auto;
+		/* Necessary as the sidebar might show scrollbar when it is collapsing. */
+		overflow-x: hidden;
 	}
 
 	.header {
