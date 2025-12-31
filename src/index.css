@@ -104,6 +104,11 @@ body.dark {
 	--placeholder-color: #b8bec7;
 }
 
+/* Used to disable transitions, e.g. when changing theme or when loading the app. */
+body.no-transition * {
+	transition: none !important;
+}
+
 .container {
 	max-width: 1200px;
 	margin: 0 auto;
