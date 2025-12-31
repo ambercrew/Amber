@@ -119,7 +119,7 @@
 	position: absolute;
 	left: var(--sidebar-inner-horizontal-padding);
 	right: var(--sidebar-inner-horizontal-padding);
-	padding: var(--large-padding) var(--default-padding);
+	padding: var(--default-padding);
 	border-radius: var(--default-border-radius);
 	background-color: var(--default-background-color);
 	box-shadow: var(--default-box-shadow);
