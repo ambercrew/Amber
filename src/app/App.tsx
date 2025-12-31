@@ -7,7 +7,7 @@ import Home from "../features/Home/components/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
 import SideBar from "../features/SideBar/components/SideBar";
-import SettingsPopup from "../features/SettingsPopup/componenets/SettingsPopup";
+import SettingsPopup from "../features/SettingsPopup/components/SettingsPopup";
 import useGlobalKey from "../hooks/useGlobalKey";
 import {
 	Route,
