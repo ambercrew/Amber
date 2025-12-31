@@ -51,9 +51,11 @@ body {
 	--side-bar-background-color: var(--surface-background-color-tint-10);
 
 	--red-color: #e71d36;
+	--green-color: #10b981;
+
 	--new-color: var(--primary-color-shade-20);
 	--learning-color: var(--red-color);
-	--review-color: #10b981;
+	--review-color: var(--green-color);
 
 	--default-border-radius: 8px;
 	--small-padding: 4px;

@@ -20,6 +20,9 @@
 	&.secondary {
 		background-color: var(--secondary-color);
 	}
+	&.success {
+		background-color: var(--green-color);
+	}
 
 	& button {
 		padding: 2px;
