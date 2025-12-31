@@ -170,6 +170,21 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
+    async fn resend_email_verification_code(&self) -> Result<(), BrainyBackendClientError> {
+        let response = self
+            .reqwest_client
+            .post(
+                self.backend_url
+                    .join("/api/v1/auth/resend-verification")
+                    .unwrap(),
+            )
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+        Ok(())
+    }
+
     async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError> {
         let response = self
             .reqwest_client

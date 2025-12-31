@@ -52,6 +52,8 @@ pub trait BrainyBackendClient: Send + Sync {
         verification_code: String,
     ) -> Result<(), BrainyBackendClientError>;
 
+    async fn resend_email_verification_code(&self) -> Result<(), BrainyBackendClientError>;
+
     async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError>;
 
     fn is_signed_in(&self) -> bool;

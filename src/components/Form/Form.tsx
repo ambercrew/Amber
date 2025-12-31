@@ -27,7 +27,7 @@ export function FormHeader({ icon, title }: FormHeaderProps) {
 	);
 }
 
-interface FormRowsProps {
+export interface FormRowsProps {
 	rows: {
 		label: string;
 		labelHtmlFor: string;

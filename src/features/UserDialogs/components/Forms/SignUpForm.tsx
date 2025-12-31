@@ -160,7 +160,7 @@ export default function SignUpForm({
 			/>
 
 			{errorMessage && (
-				<Alert className={styles.errorAlert} type="error">
+				<Alert className={styles.alert} type="error">
 					<p>{errorMessage}</p>
 				</Alert>
 			)}

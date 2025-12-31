@@ -36,7 +36,7 @@ pub enum SettingsError {
     SavingError(String),
     #[error("No config directory is found on your system!")]
     NoConfigDirectory,
-    #[error("Brainy is not able to create config directoryon your system!")]
+    #[error("Brainy is not able to create config directory on your system!")]
     CannotCreateConfigDirectory(String),
 }
 

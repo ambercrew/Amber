@@ -34,3 +34,7 @@ export function isSignedIn(): Promise<boolean> {
 export function verifyUserEmail(verificationCode: string): Promise<void> {
 	return invoke("verify_user_email", { verificationCode });
 }
+
+export function resendEmailVerificationCode(): Promise<void> {
+	return invoke("resend_email_verification_code");
+}

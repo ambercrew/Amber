@@ -51,3 +51,11 @@ pub async fn verify_user_email(
     backend_client.verify_user_email(verification_code).await?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn resend_email_verification_code(
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
+) -> Result<(), ApiError> {
+    backend_client.resend_email_verification_code().await?;
+    Ok(())
+}
