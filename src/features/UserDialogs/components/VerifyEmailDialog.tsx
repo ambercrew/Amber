@@ -25,7 +25,6 @@ interface Props {
 	onClose: () => void;
 }
 
-// TODO: unit test - submit and resend buttons, and resend message
 export default function VerifyEmailDialog({ onClose }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [verificationCode, setVerificationCode] = useState("");
