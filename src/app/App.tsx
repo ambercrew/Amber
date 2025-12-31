@@ -22,7 +22,7 @@ import {
 } from "../config/constants";
 import FromRouteState from "../types/fromRouteState";
 import Searcher from "../features/Searcher/components/Searcher";
-import Updater from "../features/Updater/componenets/Updater";
+import Updater from "../features/Updater/components/Updater";
 import { loadInitialUserState } from "../stores/user/userActions";
 import {
 	defaultGlobalSyncEventManager,
