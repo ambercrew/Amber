@@ -89,13 +89,17 @@ function EditableCells({
 		if (
 			!selectedCellRef.current ||
 			!containerRef.current ||
-			!selectedCellIndex
+			selectedCellIndex === null
 		) {
 			return;
 		}
 		scrollToSelectedCellOnNextRender.current = false;
 
-		if (selectedCellIndex === cells.length - 1) {
+		if (selectedCellIndex === 0) {
+			containerRef.current.scrollTo({
+				top: 0,
+			});
+		} else if (selectedCellIndex === cells.length - 1) {
 			containerRef.current.scrollTo({
 				top: containerRef.current.scrollHeight,
 			});
