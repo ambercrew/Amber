@@ -81,7 +81,7 @@ describe("Scrolling", () => {
 	let cellsScrolledIntoView: string[];
 
 	/** Elements on which scrollTo was called on. */
-	let elementsScrolledTo: string[];
+	let elementsScrolledTo: { testId: string; top: number }[];
 
 	beforeEach(() => {
 		cellsScrolledIntoView = [];
@@ -98,10 +98,11 @@ describe("Scrolling", () => {
 
 		Element.prototype.scrollTo = vi.fn().mockImplementation(function (
 			this: Element,
+			options: ScrollToOptions,
 		) {
 			const testId = this.getAttribute("data-testid");
 			if (testId) {
-				elementsScrolledTo.push(testId);
+				elementsScrolledTo.push({ testId, top: options.top! });
 			}
 		});
 
@@ -172,7 +173,39 @@ describe("Scrolling", () => {
 
 		// Assert
 
-		expect(elementsScrolledTo).toContain("EditableCells");
+		const editableCells = screen.getByTestId("EditableCells");
+		expect(elementsScrolledTo).toContainEqual({
+			testId: "EditableCells",
+			top: editableCells.scrollHeight,
+		});
+		expect(elementsScrolledTo).toHaveLength(1);
+	});
+
+	it("Should scroll to the start of the editable cells when scrolling to the first cell", () => {
+		// Arrange
+
+		setBoundingClientRectByTestId({
+			"CellBlock-1": {
+				top: 20,
+			},
+			EditableCells: {
+				top: 30,
+			},
+		});
+
+		// Act
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2)],
+			initialSelectedCellId: "1",
+		});
+
+		// Assert
+
+		expect(elementsScrolledTo).toContainEqual({
+			testId: "EditableCells",
+			top: 0,
+		});
 		expect(elementsScrolledTo).toHaveLength(1);
 	});
 
