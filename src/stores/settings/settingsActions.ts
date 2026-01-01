@@ -32,7 +32,6 @@ export function updateAndApplySettings(settings: Settings) {
 
 async function applySettings(settings: Settings, dispatch: AppDispatch) {
 	try {
-		// TODO: update tests
 		document.body.classList.add("no-transition");
 
 		if (settings.theme === "FollowSystem") {

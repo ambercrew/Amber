@@ -69,7 +69,7 @@ describe("initialLoadAndApplySettings", () => {
 		expect(dispatch).toBeCalledWith(setSettings(settings));
 		expect(setZoomMock).toBeCalledWith(1.5);
 		expect(setThemeMock).toBeCalledWith("dark");
-		assert.isTrue(document.body.classList.contains("dark"));
+		expect(document.body.classList.contains("dark")).toBe(true);
 		expect(removeHandlerSpy).toBeCalledWith(
 			SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 		);
@@ -95,7 +95,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Assert
 
 		expect(dispatch).toBeCalledWith(setSettings(settings));
-		assert.isFalse(document.body.classList.contains("dark"));
+		expect(document.body.classList.contains("dark")).toBe(false);
 	});
 
 	it("Should use dark theme when system uses dark theme and current theme is to follow system", async () => {
@@ -120,7 +120,7 @@ describe("initialLoadAndApplySettings", () => {
 		// Assert
 
 		expect(dispatch).toBeCalledWith(setSettings(settings));
-		assert.isTrue(document.body.classList.contains("dark"));
+		expect(document.body.classList.contains("dark")).toBe(true);
 		expect(setThemeMock).toBeCalledWith(null);
 		expect(setThemeMock).toBeCalledWith("dark");
 	});
@@ -230,6 +230,39 @@ describe("updateAndApplySettings", () => {
 
 		expect(updateSettingsSpy).toBeCalled();
 		expect(dispatch).toBeCalledWith(setSettings(settings));
-		assert.isTrue(document.body.classList.contains("dark"));
+		expect(document.body.classList.contains("dark")).toBe(true);
+	});
+
+	it("Should add no-transition class when updating settings then remove it", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+
+		const setThemeMock = vi.fn();
+		setThemeMock.mockImplementation(() => {
+			// Asserting the no-transition class when applying the theme, no other way to do that.
+			expect(document.body.classList.contains("no-transition")).toBe(
+				true,
+			);
+		});
+
+		vi.mocked(getCurrentWebview).mockReturnValue({
+			setZoom: vi.fn(),
+			window: {
+				setTheme: setThemeMock,
+			} as Partial<Window>,
+		} as Partial<Webview> as Webview);
+
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = updateAndApplySettings(settings);
+		await cb(dispatch);
+
+		// Assert
+
+		expect(dispatch).toBeCalledWith(setSettings(settings));
+		expect(document.body.classList.contains("no-transition")).toBe(false);
 	});
 });
