@@ -173,7 +173,7 @@ export default function SignUpForm({
 									required
 								/>
 								<label htmlFor="terms-and-conditions">
-									I agree on to the{" "}
+									I agree to the{" "}
 									<button
 										className="link"
 										onClick={openTermsAndConditions}
