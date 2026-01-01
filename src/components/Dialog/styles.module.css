@@ -19,4 +19,6 @@
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
 	max-width: 80%;
+	max-height: 90vh;
+	overflow-y: auto;
 }
