@@ -182,7 +182,7 @@ button {
 	transition: var(--default-transition-time);
 	font-weight: 400;
 	background-color: transparent;
-	border: 1px solid transparent;
+	border: var(--default-border-width) solid transparent;
 }
 
 button:not(:disabled):hover {

@@ -37,7 +37,7 @@
 	&.with-form {
 		padding: 0 var(--default-padding);
 		/* Added to make the forms have the same border as the buttons. */
-		border: 1px solid transparent;
+		border: var(--default-border-width) solid transparent;
 	}
 
 	& .file-tree-row-input {
@@ -68,7 +68,7 @@
 	right: var(--small-padding);
 	top: 50%;
 	transform: translateY(-50%);
-	border: 1px solid transparent;
+	border: var(--default-border-width) solid transparent;
 	border-radius: var(--default-border-radius);
 	height: 80%;
 	display: flex;
