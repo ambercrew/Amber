@@ -125,44 +125,6 @@ describe("initialLoadAndApplySettings", () => {
 		expect(setThemeMock).toBeCalledWith("dark");
 	});
 
-	it("Should sync when user is signed in, auto sync is enabled, and email is verified", async () => {
-		// Arrange
-
-		const settings = getAndSetDefaultSettings();
-		settings.autoSync = true;
-
-		const syncSpy = vi.spyOn(syncActions, "sync");
-		const dispatch = vi.fn();
-
-		// Act
-
-		const cb = initialLoadAndApplySettings();
-		await cb(dispatch);
-
-		// Assert
-
-		expect(syncSpy).toBeCalled();
-	});
-
-	it("Should not sync when auto sync is disabled", async () => {
-		// Arrange
-
-		const settings = getAndSetDefaultSettings();
-		settings.autoSync = false;
-
-		const syncSpy = vi.spyOn(syncActions, "sync");
-		const dispatch = vi.fn();
-
-		// Act
-
-		const cb = initialLoadAndApplySettings();
-		await cb(dispatch);
-
-		// Assert
-
-		expect(syncSpy).not.toBeCalled();
-	});
-
 	it("Should sync on close", async () => {
 		// Arrange
 
@@ -184,11 +146,10 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Assert
 
-		// First time on start and second time on close.
-		expect(syncSpy).toBeCalledTimes(2);
+		expect(syncSpy).toBeCalledTimes(1);
 	});
 
-	it("Should not sync on close when auto sync is false", async () => {
+	it("Should not sync on close when auto-sync is false", async () => {
 		// Arrange
 
 		const settings = getAndSetDefaultSettings();

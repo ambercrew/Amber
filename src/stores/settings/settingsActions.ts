@@ -16,7 +16,7 @@ export function initialLoadAndApplySettings() {
 		const settings = await getSettings();
 		dispatch(setSettings(settings));
 		await applySettings(settings, dispatch);
-		if (settings.autoSync) await dispatch(sync());
+		return settings;
 	};
 }
 
@@ -53,6 +53,9 @@ async function applySettings(settings: Settings, dispatch: AppDispatch) {
 		}
 
 		await getCurrentWebview().setZoom(settings.zoomPercentage / 100);
+
+		// Adding the event to the close manager is done here,
+		// however sync on start is done on app start.
 		defaultCloseRequestedEventManager.removeHandler(
 			SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 		);

@@ -21,6 +21,8 @@ import editorStyles from "../../features/Editor/components/styles.module.css";
 import reviewerStyles from "../../features/Reviewer/components/styles.module.css";
 import searcherStyles from "../../features/Searcher/components/styles.module.css";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../config/constants";
+import { sync } from "../../stores/sync/syncActions";
+import Settings from "../../types/backend/model/settings";
 
 vi.mock(import("../../hooks/useAppDispatch"), () => ({
 	default: vi.fn(),
@@ -28,6 +30,7 @@ vi.mock(import("../../hooks/useAppDispatch"), () => ({
 vi.mock(import("../../stores/fileSystem/fileSystemActions"));
 vi.mock(import("../../stores/user/userActions"));
 vi.mock(import("../../stores/settings/settingsActions"));
+vi.mock(import("../../stores/sync/syncActions"));
 vi.mock(import("../../managers/closeRequestedEventManager"));
 vi.mock(import("@tauri-apps/api/core"));
 vi.mock(import("@tauri-apps/plugin-updater"));
@@ -58,6 +61,16 @@ describe("App", () => {
 		vi.mocked(initialLoadAndApplySettings).mockReturnValue(
 			expectedInitiateSettings,
 		);
+		dispatchMock.mockImplementation(cb => {
+			if (cb === expectedInitiateSettings) {
+				return Promise.resolve({
+					autoSync: true,
+				} as Partial<Settings>);
+			}
+		});
+
+		const expectedSync = vi.fn();
+		vi.mocked(sync).mockReturnValue(expectedSync);
 
 		// Act
 
@@ -69,6 +82,38 @@ describe("App", () => {
 			expect(dispatchMock).toBeCalledWith(expectedReviewTreeCb);
 			expect(dispatchMock).toBeCalledWith(expectedLoadSettingsCb);
 			expect(dispatchMock).toBeCalledWith(expectedInitiateSettings);
+			expect(dispatchMock).toBeCalledWith(expectedSync);
+		});
+	});
+
+	it("Should not auto-sync on start if it is not enabled", async () => {
+		// Arrange
+
+		const expectedInitiateSettings = vi.fn();
+		vi.mocked(initialLoadAndApplySettings).mockReturnValue(
+			expectedInitiateSettings,
+		);
+		dispatchMock.mockImplementation(cb => {
+			if (cb === expectedInitiateSettings) {
+				return Promise.resolve({
+					autoSync: false,
+				} as Partial<Settings>);
+			}
+		});
+
+		const expectedSync = vi.fn();
+		vi.mocked(sync).mockReturnValue(expectedSync);
+
+		// Act
+
+		renderWithProviders(<App />);
+		await Promise.resolve();
+
+		// Assert
+
+		await waitFor(() => {
+			expect(dispatchMock).toBeCalledWith(expectedInitiateSettings);
+			expect(dispatchMock).not.toBeCalledWith(expectedSync);
 		});
 	});
 
@@ -170,6 +215,8 @@ describe("App", () => {
 			expectedReviewTreeCb,
 		);
 		renderWithProviders(<App />);
+		// Waiting for async callback to finish.
+		await Promise.resolve();
 		const beforeTimes = dispatchMock.mock.calls.filter(
 			c => c[0] === expectedReviewTreeCb,
 		).length;
@@ -252,7 +299,7 @@ describe("App", () => {
 		expect(sideBar.className).toContain(sideBarStyles.closed);
 	});
 
-	it("Should render home when on /home", () => {
+	it("Should render home when on /home", async () => {
 		// Act
 
 		const { container } = renderWithProviders(<App />, {
@@ -263,12 +310,14 @@ describe("App", () => {
 
 		// Assert
 
-		expect(container.getElementsByClassName(homeStyles.home).length).toBe(
-			1,
-		);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(homeStyles.home).length,
+			).toBe(1);
+		});
 	});
 
-	it("Should render editor when on /editor", () => {
+	it("Should render editor when on /editor", async () => {
 		// Act
 
 		const { container } = renderWithProviders(<App />, {
@@ -279,12 +328,14 @@ describe("App", () => {
 
 		// Assert
 
-		expect(
-			container.getElementsByClassName(editorStyles.container).length,
-		).toBe(1);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(editorStyles.container).length,
+			).toBe(1);
+		});
 	});
 
-	it("Should render reviewer when on /reviewer", () => {
+	it("Should render reviewer when on /reviewer", async () => {
 		// Act
 
 		const { container } = renderWithProviders(<App />, {
@@ -295,12 +346,15 @@ describe("App", () => {
 
 		// Assert
 
-		expect(
-			container.getElementsByClassName(reviewerStyles.reviewer).length,
-		).toBe(1);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(reviewerStyles.reviewer)
+					.length,
+			).toBe(1);
+		});
 	});
 
-	it("Should render searcher when on /search", () => {
+	it("Should render searcher when on /search", async () => {
 		// Act
 
 		const { container } = renderWithProviders(<App />, {
@@ -311,12 +365,15 @@ describe("App", () => {
 
 		// Assert
 
-		expect(
-			container.getElementsByClassName(searcherStyles.container).length,
-		).toBe(1);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(searcherStyles.container)
+					.length,
+			).toBe(1);
+		});
 	});
 
-	it("Should add hidden class on work-area when screen is small and sidebar is expanded", () => {
+	it("Should add hidden class on work-area when screen is small and sidebar is expanded", async () => {
 		// Arrange
 
 		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX;
@@ -327,12 +384,14 @@ describe("App", () => {
 
 		// Assert
 
-		expect(container.getElementsByClassName(appStyles.hidden).length).toBe(
-			1,
-		);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(appStyles.hidden).length,
+			).toBe(1);
+		});
 	});
 
-	it("Should not add hidden class on work-area when screen is not small and sidebar is expanded", () => {
+	it("Should not add hidden class on work-area when screen is not small and sidebar is expanded", async () => {
 		// Arrange
 
 		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX + 1;
@@ -343,9 +402,11 @@ describe("App", () => {
 
 		// Assert
 
-		expect(container.getElementsByClassName(appStyles.hidden).length).toBe(
-			0,
-		);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(appStyles.hidden).length,
+			).toBe(0);
+		});
 	});
 
 	it("Should not add hidden class on work-area when screen is small and sidebar is not expanded", async () => {
@@ -360,9 +421,11 @@ describe("App", () => {
 
 		// Assert
 
-		expect(container.getElementsByClassName(appStyles.hidden).length).toBe(
-			0,
-		);
+		await waitFor(() => {
+			expect(
+				container.getElementsByClassName(appStyles.hidden).length,
+			).toBe(0);
+		});
 	});
 
 	it("Should collapse sidebar when navigating on small screen", async () => {
@@ -372,12 +435,11 @@ describe("App", () => {
 		renderWithProviders(<App />);
 
 		// Act
+		await waitFor(async () => {
+			await userEvent.click(screen.getByText("Search"));
 
-		await userEvent.click(screen.getByText("Search"));
+			// Assert
 
-		// Assert
-
-		await waitFor(() => {
 			const sideBar = screen.getByRole("complementary");
 			expect(sideBar.className).toContain(sideBarStyles.closed);
 		});

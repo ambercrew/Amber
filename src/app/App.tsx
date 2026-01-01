@@ -29,8 +29,11 @@ import {
 	ListenerType,
 } from "../stores/sync/managers/syncEventManager";
 import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
+import { sync } from "../stores/sync/syncActions";
+import Settings from "../types/backend/model/settings";
 
 function App() {
+	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [searchParams] = useSearchParams();
@@ -78,9 +81,19 @@ function App() {
 
 	useEffect(() => {
 		void (async () => {
+			let settings: Settings | null = null;
+			try {
+				// Settings must be loaded on start always before anything else!
+				settings = await dispatch(initialLoadAndApplySettings());
+			} finally {
+				setAreSettingsLoaded(true);
+			}
+
 			await dispatch(getReviewTreeFolderForRoot());
 			await dispatch(loadInitialUserState());
-			await dispatch(initialLoadAndApplySettings());
+
+			// Sync on app close is added as an event in the settings actions.
+			if (settings?.autoSync) await dispatch(sync());
 		})();
 
 		const contextMenuCb = (e: MouseEvent) => {
@@ -130,6 +143,9 @@ function App() {
 			search: searchParams.toString(),
 		});
 	};
+
+	// Used to avoid showing in wrong theme, or zoom before settings are loaded.
+	if (!areSettingsLoaded) return null;
 
 	return (
 		<div className={`${styles.workspace}`}>
