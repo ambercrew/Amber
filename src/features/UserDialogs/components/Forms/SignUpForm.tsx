@@ -13,6 +13,7 @@ import { signUp } from "../../../../api/authApi";
 import errorToString from "../../../../utils/errorToString";
 import { setUserInformation } from "../../../../stores/user/userReducer";
 import { getUserInformation } from "../../../../api/userApi";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 interface Props {
 	isSendingRequest: boolean;
@@ -59,6 +60,10 @@ export default function SignUpForm({
 		} finally {
 			onRequestEnd();
 		}
+	};
+
+	const openTermsAndConditions = () => {
+		void openUrl("https://google.com/");
 	};
 
 	return (
@@ -156,6 +161,29 @@ export default function SignUpForm({
 							/>
 						),
 					},
+					{
+						label: "",
+						labelHtmlFor: "",
+						children: (
+							<div className={`${styles.termsAndConditionsBox}`}>
+								<input
+									type="checkbox"
+									id="terms-and-conditions"
+									name="terms-and-conditions"
+									required
+								/>
+								<label htmlFor="terms-and-conditions">
+									I agree on to the{" "}
+									<button
+										className="link"
+										onClick={openTermsAndConditions}
+										type="button">
+										terms and conditions
+									</button>
+								</label>
+							</div>
+						),
+					},
 				]}
 			/>
 
@@ -175,7 +203,7 @@ export default function SignUpForm({
 						className={`link ${styles.buttonLink}`}
 						type="button"
 						onClick={onSignInClick}>
-						Alreday have an account? Sign-in instead
+						Already have an account? Sign-in instead
 					</button>
 
 					<FormButtons onClose={onClose} submitText="Sign-up" />
