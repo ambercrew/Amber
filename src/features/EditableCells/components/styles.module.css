@@ -17,8 +17,8 @@
 		width: 100%;
 		display: flex;
 		justify-content: center;
-		border: 1px solid transparent;
-		margin-top: 1rem;
+		border: var(--default-border-width) solid transparent;
+		padding-top: var(--default-padding);
 
 		& .add-button {
 			display: flex;
