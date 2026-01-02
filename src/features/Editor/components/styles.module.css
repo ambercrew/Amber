@@ -6,17 +6,17 @@
 }
 
 .editor {
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 }
 
 .title-bar {
-	padding: var(--default-padding) var(--xl-padding);
+	padding: var(--spacing-3) var(--spacing-5);
 	background-color: var(--default-background-color);
 	position: sticky;
 	top: 0;
 	z-index: 4;
 	display: flex;
-	gap: var(--large-padding);
+	gap: var(--spacing-4);
 	justify-content: space-between;
 	align-items: center;
 	border-bottom: 1px solid var(--border-color);
@@ -26,7 +26,7 @@
 		display: flex;
 		justify-content: space-between;
 		width: 100%;
-		gap: var(--default-padding);
+		gap: var(--spacing-3);
 
 		& > * {
 			min-width: 0;
@@ -61,7 +61,7 @@
 			align-items: center;
 			border: var(--default-border-width) solid var(--border-color);
 			margin-right: 4px;
-			padding: var(--default-padding);
+			padding: var(--spacing-3);
 
 			& .label {
 				font-size: 1.2rem;

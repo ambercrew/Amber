@@ -9,7 +9,7 @@
 }
 
 .search-input-container {
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 	border-bottom: 1px solid var(--border-color);
 
 	input {
@@ -18,10 +18,10 @@
 }
 
 .editable-cells {
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 }
 
 .no-search-label {
-	margin-top: var(--large-padding);
+	margin-top: var(--spacing-4);
 	text-align: center;
 }

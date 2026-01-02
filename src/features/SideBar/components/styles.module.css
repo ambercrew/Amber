@@ -26,8 +26,8 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--xl-padding);
-		padding-bottom: var(--default-padding);
+		padding: var(--spacing-5);
+		padding-bottom: var(--spacing-3);
 
 		& h2 {
 			font-size: 2rem;
@@ -35,7 +35,7 @@
 		}
 
 		& img {
-			margin-right: var(--default-padding);
+			margin-right: var(--spacing-3);
 			width: 2.8rem;
 		}
 
@@ -76,8 +76,8 @@
 
 		& .rows {
 			display: flex;
-			padding-right: var(--default-padding);
-			padding-left: var(--default-padding);
+			padding-right: var(--spacing-3);
+			padding-left: var(--spacing-3);
 
 			& .row {
 				justify-content: center;
@@ -113,25 +113,25 @@
 }
 
 .alert {
-	margin: 4px var(--large-padding);
+	margin: 4px var(--spacing-4);
 }
 
 .verify-button {
-	margin: var(--default-padding) var(--large-padding) 0;
-	width: calc(100% - var(--large-padding) * 2);
+	margin: var(--spacing-3) var(--spacing-4) 0;
+	width: calc(100% - var(--spacing-4) * 2);
 
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: var(--small-padding);
+	gap: var(--spacing-1);
 }
 
 .rows {
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 	border-bottom: var(--border-separator);
 	display: flex;
 	flex-direction: column;
-	gap: var(--medium-padding);
+	gap: var(--spacing-2);
 
 	.row {
 		display: flex;
@@ -140,13 +140,13 @@
 		gap: 12px;
 		width: 100%;
 		transition: all var(--default-transition-time);
-		padding: var(--default-padding);
+		padding: var(--spacing-3);
 		font-size: 1.6rem;
 
 		/* Necessary so that the button has the same height when the sidebar is closed. */
 		height: calc(
 			1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-				var(--default-padding) /* Height of padding */
+				var(--spacing-3) /* Height of padding */
 		);
 
 		&:hover {
@@ -185,15 +185,15 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: var(--default-padding);
+	gap: var(--spacing-3);
 	border-radius: 0;
 	border-top: 1px solid var(--border-color);
 
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 	/* Necessary so that the button has the same height when the sidebar is closed. */
 	height: calc(
 		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-			var(--large-padding) /* Height of padding */
+			var(--spacing-4) /* Height of padding */
 	);
 }
 
@@ -202,5 +202,5 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: var(--default-padding);
+	gap: var(--spacing-3);
 }

@@ -16,13 +16,13 @@
 	margin: 0 auto;
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
-	padding: var(--default-padding);
+	padding: var(--spacing-3);
 	overflow-x: auto;
 }
 
 .header {
 	border-bottom: 1px solid var(--border-color);
-	margin: var(--default-padding);
+	margin: var(--spacing-3);
 	font-weight: 400;
 }
 
@@ -30,7 +30,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--small-padding);
+	padding: var(--spacing-1);
 
 	& .buttons {
 		display: grid;
@@ -81,7 +81,7 @@
 
 .reviews-overview {
 	text-align: center;
-	margin: var(--default-padding);
+	margin: var(--spacing-3);
 }
 
 .review-heatmap {

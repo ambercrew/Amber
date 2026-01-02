@@ -3,33 +3,33 @@
 }
 
 .alert {
-	margin-top: var(--default-padding);
+	margin-top: var(--spacing-3);
 }
 
 .button-link {
 	font-size: 1.6rem;
 	text-align: left;
-	margin-top: var(--xl-padding);
+	margin-top: var(--spacing-5);
 }
 
 .spinner {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-top: var(--xl-padding);
+	margin-top: var(--spacing-5);
 }
 
 .verify-email-instruction {
-	margin: var(--large-padding) 0;
+	margin: var(--spacing-4) 0;
 }
 
 .terms-and-conditions-box {
 	display: flex;
 	align-items: center;
-	padding-left: var(--small-padding);
-	padding-bottom: var(--small-padding);
+	padding-left: var(--spacing-1);
+	padding-bottom: var(--spacing-1);
 
 	& input {
-		margin-right: var(--medium-padding);
+		margin-right: var(--spacing-2);
 	}
 }

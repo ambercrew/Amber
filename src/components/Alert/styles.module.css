@@ -1,7 +1,7 @@
 .alert {
 	font-size: 1.4rem;
 	color: #fff;
-	padding: var(--default-padding) var(--large-padding);
+	padding: var(--spacing-3) var(--spacing-4);
 	border-radius: var(--default-border-radius);
 	display: flex;
 	justify-content: space-between;

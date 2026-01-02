@@ -58,12 +58,13 @@ body {
 	--review-color: var(--green-color);
 
 	--default-border-radius: 8px;
-	--small-padding: 4px;
-	--medium-padding: 6px;
-	--default-padding: 10px;
-	--large-padding: 18px;
-	--xl-padding: 26px;
-	--xxl-padding: 34px;
+
+	--spacing-1: 4px;
+	--spacing-2: 6px;
+	--spacing-3: 10px;
+	--spacing-4: 18px;
+	--spacing-5: 26px;
+	--spacing-6: 34px;
 
 	--default-border-width: 1px;
 
@@ -153,7 +154,7 @@ input,
 select {
 	border-radius: var(--default-border-radius);
 	outline: none;
-	padding: var(--default-padding);
+	padding: var(--spacing-3);
 	border: var(--default-border-width) solid var(--border-color);
 	transition: var(--default-transition-time);
 	background-color: var(--default-background-color);
@@ -203,7 +204,7 @@ input[type="checkbox"]:checked::after {
 button {
 	font-size: 1.6rem;
 	border-radius: var(--default-border-radius);
-	padding: var(--default-padding);
+	padding: var(--spacing-3);
 	cursor: pointer;
 	transition: var(--default-transition-time);
 	font-weight: 400;
@@ -351,7 +352,7 @@ h1 {
 
 ::-webkit-scrollbar-track {
 	background: transparent;
-	margin: var(--small-padding) 0;
+	margin: var(--spacing-1) 0;
 }
 
 ::-webkit-scrollbar-thumb {

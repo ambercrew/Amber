@@ -1,13 +1,13 @@
 .flash-card {
 	display: flex;
 	flex-direction: column;
-	gap: var(--default-padding);
+	gap: var(--spacing-3);
 }
 
 .true-false {
 	display: flex;
 	flex-direction: column;
-	gap: var(--default-padding);
+	gap: var(--spacing-3);
 
 	& .buttons-row {
 		display: grid;
@@ -17,7 +17,7 @@
 		& button {
 			border: var(--default-border-width) solid var(--border-color);
 			transition: all var(--default-transition-time);
-			padding-top: var(--default-padding);
+			padding-top: var(--spacing-3);
 
 			&:focus {
 				box-shadow: var(--default-box-shadow);
@@ -37,7 +37,7 @@
  */
 :global(.cloze-node) {
 	display: inline-block;
-	padding: var(--small-padding);
+	padding: var(--spacing-1);
 	border-radius: var(--default-border-radius);
 	border: var(--default-border-width) solid var(--text-color);
 	margin: 1px 2px;

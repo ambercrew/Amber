@@ -4,7 +4,7 @@
 	background-color: var(--surface-background-color-shade-20);
 	position: relative;
 	border-radius: 20px;
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 	min-width: 5rem;
 	transition: all var(--default-transition-time);
 
@@ -48,7 +48,7 @@
 		top: 4px;
 		bottom: 4px;
 		left: 4px;
-		width: var(--xl-padding);
+		width: var(--spacing-5);
 		border-radius: 50%;
 		position: absolute;
 		transition: all var(--default-transition-time);

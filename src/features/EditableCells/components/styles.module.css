@@ -18,13 +18,13 @@
 		display: flex;
 		justify-content: center;
 		border: var(--default-border-width) solid transparent;
-		padding-top: var(--default-padding);
+		padding-top: var(--spacing-3);
 
 		& .add-button {
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			gap: var(--small-padding);
+			gap: var(--spacing-1);
 			font-size: 1.4rem;
 		}
 	}
@@ -40,9 +40,9 @@
 	flex-direction: column;
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
-	padding: var(--large-padding) var(--default-padding);
+	padding: var(--spacing-4) var(--spacing-3);
 	background: var(--default-background-color);
-	gap: var(--default-padding);
+	gap: var(--spacing-3);
 
 	& * {
 		font-size: 1.4rem;
@@ -61,7 +61,7 @@
 }
 
 .cell-block {
-	padding: var(--default-padding);
+	padding: var(--spacing-3);
 	border-radius: var(--default-border-radius);
 	border: var(--default-border-width) solid transparent;
 	position: relative;
@@ -117,13 +117,13 @@
 	& .cell-title {
 		font-size: 1.2rem;
 		text-transform: capitalize;
-		padding: var(--default-padding);
+		padding: var(--spacing-3);
 		border-radius: var(--default-border-radius);
 		background-color: var(--primary-color);
 		display: inline-flex;
 		gap: 4px;
 		align-items: center;
-		margin-bottom: var(--default-padding);
+		margin-bottom: var(--spacing-3);
 
 		& * {
 			color: #fff;
@@ -154,7 +154,7 @@
 	border-radius: var(--default-border-radius);
 	text-align: left;
 
-	padding: var(--default-padding);
+	padding: var(--spacing-3);
 	background-color: var(--default-background-color);
 	box-shadow: var(--default-box-shadow);
 	font-size: 1.4rem;
@@ -163,5 +163,5 @@
 	top: calc(100% + 4px);
 	right: 0;
 	z-index: 1;
-	padding: var(--large-padding);
+	padding: var(--spacing-4);
 }
