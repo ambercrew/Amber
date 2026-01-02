@@ -26,7 +26,10 @@
 .terms-and-conditions-box {
 	display: flex;
 	align-items: center;
-	gap: var(--small-padding);
 	padding-left: var(--small-padding);
 	padding-bottom: var(--small-padding);
+
+	& input {
+		margin-right: var(--medium-padding);
+	}
 }
