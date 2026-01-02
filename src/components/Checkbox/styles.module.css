@@ -9,8 +9,7 @@
 	transition: all var(--default-transition-time);
 
 	&:focus-within {
-		outline-color: 1px solid var(--primary-color);
-		outline-offset: 2px;
+		outline-color: var(--primary-color);
 	}
 
 	&:has(input:checked) {

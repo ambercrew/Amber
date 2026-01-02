@@ -2,8 +2,8 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	outline: 2px solid transparent;
-	outline-offset: 1px;
+	outline: var(--default-outline);
+	outline-offset: var(--default-outline-offset);
 }
 
 *:focus {
@@ -24,6 +24,10 @@ body {
 	font-style: normal;
 	background-color: var(--default-background-color);
 	color: var(--text-color);
+
+	--default-outline-width: 2px;
+	--default-outline: var(--default-outline-width) solid transparent;
+	--default-outline-offset: 1px;
 
 	--primary-color: #2563eb;
 	--primary-color-shade-10: #134cca;
@@ -176,7 +180,7 @@ select:focus {
 }
 
 input[type="checkbox"] {
-	outline: 2px solid transparent;
+	outline: var(--default-outline);
 }
 
 input[type="checkbox"]:focus {
