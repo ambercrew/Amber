@@ -11,3 +11,7 @@ export function updateUserInformation(
 ): Promise<void> {
 	return invoke("update_user_information", { firstName, lastName });
 }
+
+export function deleteUser(): Promise<void> {
+	return invoke("delete_user");
+}

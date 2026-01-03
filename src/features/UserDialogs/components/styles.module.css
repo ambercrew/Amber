@@ -9,7 +9,7 @@
 .button-link {
 	font-size: 1.6rem;
 	text-align: left;
-	margin-top: var(--spacing-5);
+	margin-top: var(--spacing-4);
 }
 
 .spinner {
@@ -26,8 +26,6 @@
 .terms-and-conditions-box {
 	display: flex;
 	align-items: center;
-	padding-left: var(--spacing-1);
-	padding-bottom: var(--spacing-1);
 
 	& input {
 		margin-right: var(--spacing-2);

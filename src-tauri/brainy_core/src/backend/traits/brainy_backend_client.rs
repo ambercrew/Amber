@@ -74,4 +74,6 @@ pub trait BrainyBackendClient: Send + Sync {
         &self,
         entities: &[SyncEntityDto],
     ) -> Result<(), BrainyBackendClientError>;
+
+    async fn delete_user(&self) -> Result<(), BrainyBackendClientError>;
 }

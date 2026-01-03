@@ -36,7 +36,7 @@ pub use auth_api::{
     is_signed_in, resend_email_verification_code, sign_in, sign_out, sign_up, verify_user_email,
 };
 
-pub use user_api::{get_user_information, update_user_information};
+pub use user_api::{delete_user, get_user_information, update_user_information};
 
 pub use sync_api::sync;
 

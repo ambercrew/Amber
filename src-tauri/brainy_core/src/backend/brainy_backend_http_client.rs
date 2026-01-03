@@ -276,6 +276,21 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 
         Ok(())
     }
+
+    async fn delete_user(&self) -> Result<(), BrainyBackendClientError> {
+        log::info!("Deleting user email.");
+
+        let response = self
+            .reqwest_client
+            .delete(self.backend_url.join("/api/v1/user").unwrap())
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+        self.persist_cookies();
+
+        Ok(())
+    }
 }
 
 impl BrainyBackendHttpClient {

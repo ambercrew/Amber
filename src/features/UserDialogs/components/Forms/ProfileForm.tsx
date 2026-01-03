@@ -21,6 +21,7 @@ import {
 	updateUserInformation,
 } from "../../../../api/userApi";
 import { signOut } from "../../../../api/authApi";
+import DeleteUserDialog from "../DeleteUserDialog";
 
 interface Props {
 	isSendingRequest: boolean;
@@ -29,6 +30,7 @@ interface Props {
 	onClose: () => void;
 }
 
+// TODO: update unit tests
 export default function ProfileForm({
 	isSendingRequest,
 	onRequestStart,
@@ -39,6 +41,7 @@ export default function ProfileForm({
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
 	const [errorMessage, setErrorMessage] = useState("");
+	const [showDeleteUserDialog, setShowDeleteUserDialog] = useState(false);
 	const dispatch = useAppDispatch();
 
 	const executeRequest = async (cb: () => Promise<void>) => {
@@ -82,96 +85,116 @@ export default function ProfileForm({
 	};
 
 	return (
-		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiAccountOutline} title="Profile" />
-			<FormRows
-				rows={[
-					{
-						label: "Firstname",
-						labelHtmlFor: "firstname",
-						children: (
-							<input
-								id="firstname"
-								type="text"
-								maxLength={50}
-								minLength={1}
-								value={firstName}
-								onChange={e => setFirstName(e.target.value)}
-								autoFocus
-								required
-							/>
-						),
-					},
-					{
-						label: "Lastname",
-						labelHtmlFor: "lastname",
-						children: (
-							<input
-								id="lastname"
-								type="text"
-								maxLength={50}
-								minLength={1}
-								value={lastName}
-								onChange={e => setLastName(e.target.value)}
-								required
-							/>
-						),
-					},
-					{
-						label: "Username",
-						labelHtmlFor: "username",
-						children: (
-							<input
-								id="username"
-								type="text"
-								maxLength={30}
-								minLength={3}
-								value={userInformation.username}
-								readOnly
-								required
-							/>
-						),
-					},
-					{
-						label: "Email",
-						labelHtmlFor: "email",
-						children: (
-							<input
-								id="email"
-								type="text"
-								maxLength={50}
-								value={userInformation.email}
-								readOnly
-								required
-							/>
-						),
-					},
-					{
-						children: (
-							<button
-								className="red"
-								type="button"
-								onClick={() => void handleSignOut()}>
-								Sign-out
-							</button>
-						),
-					},
-				]}
-			/>
+		<>
+			<Form onSubmit={e => void handleSubmit(e)}>
+				<FormHeader icon={mdiAccountOutline} title="Profile" />
+				<FormRows
+					rows={[
+						{
+							label: "Firstname",
+							labelHtmlFor: "firstname",
+							children: (
+								<input
+									id="firstname"
+									type="text"
+									maxLength={50}
+									minLength={1}
+									value={firstName}
+									onChange={e => setFirstName(e.target.value)}
+									autoFocus
+									required
+								/>
+							),
+						},
+						{
+							label: "Lastname",
+							labelHtmlFor: "lastname",
+							children: (
+								<input
+									id="lastname"
+									type="text"
+									maxLength={50}
+									minLength={1}
+									value={lastName}
+									onChange={e => setLastName(e.target.value)}
+									required
+								/>
+							),
+						},
+						{
+							label: "Username",
+							labelHtmlFor: "username",
+							children: (
+								<input
+									id="username"
+									type="text"
+									maxLength={30}
+									minLength={3}
+									value={userInformation.username}
+									readOnly
+									required
+								/>
+							),
+						},
+						{
+							label: "Email",
+							labelHtmlFor: "email",
+							children: (
+								<input
+									id="email"
+									type="text"
+									maxLength={50}
+									value={userInformation.email}
+									readOnly
+									required
+								/>
+							),
+						},
+						{
+							children: (
+								<button
+									className="red"
+									type="button"
+									onClick={() => void handleSignOut()}>
+									Sign-out
+								</button>
+							),
+						},
+						{
+							children: (
+								<button
+									className="link"
+									type="button"
+									onClick={() =>
+										setShowDeleteUserDialog(true)
+									}>
+									Delete my account
+								</button>
+							),
+						},
+					]}
+				/>
 
-			{errorMessage && (
-				<Alert className={styles.alert} type="error">
-					<p>{errorMessage}</p>
-				</Alert>
-			)}
+				{errorMessage && (
+					<Alert className={styles.alert} type="error">
+						<p>{errorMessage}</p>
+					</Alert>
+				)}
 
-			{isSendingRequest && (
-				<Spinner containerClassName={styles.spinner} />
-			)}
+				{isSendingRequest && (
+					<Spinner containerClassName={styles.spinner} />
+				)}
 
-			{!isSendingRequest && (
-				<FormButtons onClose={onClose} submitText="Update" />
+				{!isSendingRequest && (
+					<FormButtons onClose={onClose} submitText="Update" />
+				)}
+			</Form>
+
+			{showDeleteUserDialog && (
+				<DeleteUserDialog
+					onHide={() => setShowDeleteUserDialog(false)}
+				/>
 			)}
-		</Form>
+		</>
 	);
 }

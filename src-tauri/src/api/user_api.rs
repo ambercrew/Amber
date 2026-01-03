@@ -26,3 +26,11 @@ pub async fn update_user_information(
         .await?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn delete_user(
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
+) -> Result<(), ApiError> {
+    backend_client.delete_user().await?;
+    Ok(())
+}

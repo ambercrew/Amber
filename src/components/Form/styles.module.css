@@ -25,6 +25,7 @@
 		align-items: flex-start;
 		width: 100%;
 		gap: var(--spacing-2);
+		padding: var(--spacing-2);
 
 		& input,
 		& select {

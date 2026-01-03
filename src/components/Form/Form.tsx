@@ -53,15 +53,20 @@ export function FormRows({ rows }: FormRowsProps) {
 interface FormButtonsProps {
 	onClose: () => void;
 	submitText: string;
+	submitButtonType?: "primary" | "red";
 }
 
-export function FormButtons({ onClose, submitText }: FormButtonsProps) {
+export function FormButtons({
+	onClose,
+	submitText,
+	submitButtonType,
+}: FormButtonsProps) {
 	return (
 		<div className={styles.buttons}>
 			<button className="transparent" type="button" onClick={onClose}>
 				Cancel
 			</button>
-			<button className="primary" type="submit">
+			<button className={submitButtonType ?? "primary"} type="submit">
 				{submitText}
 			</button>
 		</div>

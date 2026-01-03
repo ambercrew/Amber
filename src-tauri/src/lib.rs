@@ -146,6 +146,7 @@ pub async fn run() -> Result<(), String> {
             // User
             get_user_information,
             update_user_information,
+            delete_user,
             // Sync
             sync,
         ])
