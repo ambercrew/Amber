@@ -18,7 +18,7 @@ interface Props {
 	onHide: () => void;
 }
 
-// TODO: unit test
+// TODO: unit test, also that it does nothing when input text and checkbox not written, and that it updates global state correctly.
 export default function DeleteUserDialog({ onHide }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [errorMessage, setErrorMessage] = useState("");
@@ -77,11 +77,11 @@ export default function DeleteUserDialog({ onHide }: Props) {
 								<div className={`${styles.checkboxRow}`}>
 									<input
 										type="checkbox"
-										id="terms-and-conditions"
-										name="terms-and-conditions"
+										id="delete-my-account"
+										name="delete-my-account"
 										required
 									/>
-									<label htmlFor="terms-and-conditions">
+									<label htmlFor="delete-my-account">
 										Delete my account
 									</label>
 								</div>
@@ -103,7 +103,7 @@ export default function DeleteUserDialog({ onHide }: Props) {
 				{!isSendingRequest && (
 					<FormButtons
 						onClose={onHide}
-						submitText="Delete my account"
+						submitText="Delete"
 						submitButtonType="red"
 					/>
 				)}
