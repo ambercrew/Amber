@@ -163,7 +163,7 @@ export default function SignUpForm({
 					},
 					{
 						children: (
-							<div className={`${styles.termsAndConditionsBox}`}>
+							<div className={`${styles.checkboxRow}`}>
 								<input
 									type="checkbox"
 									id="terms-and-conditions"

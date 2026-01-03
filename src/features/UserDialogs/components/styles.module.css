@@ -19,11 +19,11 @@
 	margin-top: var(--spacing-5);
 }
 
-.verify-email-instruction {
+.instruction-text {
 	margin: var(--spacing-4) 0;
 }
 
-.terms-and-conditions-box {
+.checkbox-row {
 	display: flex;
 	align-items: center;
 

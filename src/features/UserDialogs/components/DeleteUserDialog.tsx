@@ -19,7 +19,6 @@ interface Props {
 }
 
 // TODO: unit test
-// TODO: change css class names
 export default function DeleteUserDialog({ onHide }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [errorMessage, setErrorMessage] = useState("");
@@ -56,7 +55,7 @@ export default function DeleteUserDialog({ onHide }: Props) {
 					icon={mdiAccountRemoveOutline}
 					title="Delete your account"
 				/>
-				<p className={`${styles.verifyEmailInstruction}`}>
+				<p className={`${styles.instructionText}`}>
 					<b>Deleting your account cannot be undone.</b> If you are
 					sure, write &quot;DELETE MY ACCOUNT&quot; in the input field
 					and mark the checkbox.
@@ -75,8 +74,7 @@ export default function DeleteUserDialog({ onHide }: Props) {
 						},
 						{
 							children: (
-								<div
-									className={`${styles.termsAndConditionsBox}`}>
+								<div className={`${styles.checkboxRow}`}>
 									<input
 										type="checkbox"
 										id="terms-and-conditions"

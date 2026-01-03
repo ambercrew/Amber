@@ -114,7 +114,7 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 					icon={mdiEmailCheckOutline}
 					title="Verify your email address"
 				/>
-				<p className={`${styles.verifyEmailInstruction}`}>
+				<p className={`${styles.instructionText}`}>
 					A verification code to is sent to{" "}
 					<b>{userInformation?.email}</b>. Please check your inbox and
 					enter the code below to verify your account.
