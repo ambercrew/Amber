@@ -30,7 +30,6 @@ interface Props {
 	onClose: () => void;
 }
 
-// TODO: update unit tests
 export default function ProfileForm({
 	isSendingRequest,
 	onRequestStart,
