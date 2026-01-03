@@ -29,8 +29,8 @@ export function FormHeader({ icon, title }: FormHeaderProps) {
 
 export interface FormRowsProps {
 	rows: {
-		label: string;
-		labelHtmlFor: string;
+		label?: string;
+		labelHtmlFor?: string;
 		children: React.ReactNode;
 	}[];
 }
@@ -40,7 +40,9 @@ export function FormRows({ rows }: FormRowsProps) {
 		<div className={styles.rows}>
 			{rows.map((row, i) => (
 				<div key={i} className={styles.row}>
-					<label htmlFor={row.labelHtmlFor}>{row.label}</label>
+					{row.label && (
+						<label htmlFor={row.labelHtmlFor}>{row.label}</label>
+					)}
 					{row.children}
 				</div>
 			))}

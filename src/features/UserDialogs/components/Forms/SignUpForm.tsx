@@ -162,8 +162,6 @@ export default function SignUpForm({
 						),
 					},
 					{
-						label: "",
-						labelHtmlFor: "",
 						children: (
 							<div className={`${styles.termsAndConditionsBox}`}>
 								<input

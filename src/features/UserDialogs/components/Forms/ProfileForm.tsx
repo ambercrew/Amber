@@ -147,8 +147,6 @@ export default function ProfileForm({
 						),
 					},
 					{
-						label: "",
-						labelHtmlFor: "",
 						children: (
 							<button
 								className="red"

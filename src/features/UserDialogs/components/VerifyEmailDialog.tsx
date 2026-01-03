@@ -96,8 +96,6 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 
 	if (!showVerificationCodeSentSuccessMessage) {
 		formRowsProps.rows.push({
-			label: "",
-			labelHtmlFor: "",
 			children: (
 				<button
 					type="button"
