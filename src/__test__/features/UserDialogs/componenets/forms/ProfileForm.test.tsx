@@ -9,6 +9,8 @@ import {
 import { UserInformationDto } from "../../../../../types/backend/dto/userInformationDto.ts";
 import { signOut } from "../../../../../api/authApi.ts";
 import { UserState } from "../../../../../stores/user/userReducer.ts";
+import useAppSelector from "../../../../../hooks/useAppSelector.ts";
+import { selectIsSignedIn } from "../../../../../stores/user/userSelectors.ts";
 
 vi.mock(import("../../../../../api/authApi.ts"));
 vi.mock(import("../../../../../api/userApi.ts"));
@@ -124,25 +126,26 @@ describe("ProfileForm", () => {
 		const onRequestStartMock = vi.fn();
 		const onRequestEndMock = vi.fn();
 
-		const { store } = renderWithProviders(
-			<ProfileForm
-				isSendingRequest={false}
-				onClose={vi.fn()}
-				onRequestStart={onRequestStartMock}
-				onRequestEnd={onRequestEndMock}
-			/>,
-			{
-				preloadedState: {
-					user: {
-						userInformation: {
-							firstName: "",
-							lastName: "",
-						} as Partial<UserInformationDto> as UserInformationDto,
-						isSignedIn: true,
-					},
-				},
+		const Component = () => {
+			const isSignedIn = useAppSelector(selectIsSignedIn);
+
+			return (
+				isSignedIn && (
+					<ProfileForm
+						isSendingRequest={false}
+						onClose={vi.fn()}
+						onRequestStart={onRequestStartMock}
+						onRequestEnd={onRequestEndMock}
+					/>
+				)
+			);
+		};
+
+		const { store } = renderWithProviders(<Component />, {
+			preloadedState: {
+				user: createInitialUserState({ isSignedIn: true }),
 			},
-		);
+		});
 
 		// Act
 
