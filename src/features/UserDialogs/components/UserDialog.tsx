@@ -1,11 +1,11 @@
 import styles from "./styles.module.css";
 import Dialog from "../../../components/Dialog/Dialog";
-import SignInForm from "./Forms/SignInForm";
+import SignInForm from "./forms/SignInForm";
 import { useState } from "react";
-import SignUpForm from "./Forms/SignUpForm";
+import SignUpForm from "./forms/SignUpForm";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
-import ProfileForm from "./Forms/ProfileForm";
+import ProfileForm from "./forms/ProfileForm";
 
 interface Props {
 	onClose: () => void;
