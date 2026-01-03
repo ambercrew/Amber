@@ -18,7 +18,6 @@ interface Props {
 	onHide: () => void;
 }
 
-// TODO: unit test, also that it does nothing when input text and checkbox not written, and that it updates global state correctly.
 export default function DeleteUserDialog({ onHide }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [errorMessage, setErrorMessage] = useState("");
