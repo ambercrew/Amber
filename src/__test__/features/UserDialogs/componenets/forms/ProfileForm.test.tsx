@@ -7,7 +7,7 @@ import {
 	updateUserInformation,
 } from "../../../../../api/userApi.ts";
 import { UserInformationDto } from "../../../../../types/backend/dto/userInformationDto.ts";
-import { signOut } from "../../../../../api/authApi.ts";
+import { signOut, updatePassword } from "../../../../../api/authApi.ts";
 import { UserState } from "../../../../../stores/user/userReducer.ts";
 import useAppSelector from "../../../../../hooks/useAppSelector.ts";
 import { selectIsSignedIn } from "../../../../../stores/user/userSelectors.ts";
@@ -73,6 +73,7 @@ describe("ProfileForm", () => {
 			"New first name",
 			"New last name",
 		);
+		expect(vi.mocked(updatePassword)).not.toBeCalled();
 
 		expect(onRequestStartMock).toHaveBeenCalledBefore(onRequestEndMock);
 		expect(onRequestEndMock).toBeCalled();
@@ -114,6 +115,7 @@ describe("ProfileForm", () => {
 		// Assert
 
 		expect(vi.mocked(updateUserInformation)).not.toBeCalled();
+		expect(vi.mocked(updatePassword)).not.toBeCalled();
 
 		expect(onRequestStartMock).not.toBeCalled();
 		expect(onRequestEndMock).not.toBeCalled();
@@ -185,5 +187,80 @@ describe("ProfileForm", () => {
 		// Assert
 
 		expect(screen.queryByText("Delete your account")).not.toBeNull();
+	});
+
+	it("Should show error message when passwords do not match", async () => {
+		// Arrange
+
+		renderWithProviders(
+			<ProfileForm
+				isSendingRequest={false}
+				onClose={vi.fn()}
+				onRequestStart={vi.fn()}
+				onRequestEnd={vi.fn()}
+			/>,
+			{
+				preloadedState: {
+					user: createInitialUserState({ isSignedIn: true }),
+				},
+			},
+		);
+
+		// Act
+
+		await userEvent.click(screen.getByText("Current password"));
+		await userEvent.keyboard("testPassword123");
+
+		await userEvent.click(screen.getByText("New password"));
+		await userEvent.keyboard("newPassword");
+
+		await userEvent.click(screen.getByText("Confirm new password"));
+		await userEvent.keyboard("newPassword123");
+
+		await userEvent.click(screen.getByText("Update"));
+
+		// Assert
+
+		expect(screen.queryByText("Passwords do not match!")).not.toBeNull();
+		expect(vi.mocked(updatePassword)).not.toBeCalled();
+	});
+
+	it("Should update user passwords when input is given correctly", async () => {
+		// Arrange
+
+		renderWithProviders(
+			<ProfileForm
+				isSendingRequest={false}
+				onClose={vi.fn()}
+				onRequestStart={vi.fn()}
+				onRequestEnd={vi.fn()}
+			/>,
+			{
+				preloadedState: {
+					user: createInitialUserState({ isSignedIn: true }),
+				},
+			},
+		);
+
+		// Act
+
+		await userEvent.click(screen.getByText("Current password"));
+		await userEvent.keyboard("testPassword123");
+
+		await userEvent.click(screen.getByText("New password"));
+		await userEvent.keyboard("newPassword123");
+
+		await userEvent.click(screen.getByText("Confirm new password"));
+		await userEvent.keyboard("newPassword123");
+
+		await userEvent.click(screen.getByText("Update"));
+
+		// Assert
+
+		expect(vi.mocked(updatePassword)).toBeCalledWith(
+			"testPassword123",
+			"newPassword123",
+		);
+		expect(vi.mocked(updateUserInformation)).not.toBeCalled();
 	});
 });

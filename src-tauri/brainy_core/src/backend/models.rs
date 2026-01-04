@@ -68,3 +68,10 @@ pub struct SyncEntityDto {
 pub struct VerifyEmailDto {
     pub email_verification_code: String,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdatePasswordDto {
+    pub old_password: String,
+    pub new_password: String,
+}

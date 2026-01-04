@@ -143,6 +143,7 @@ pub async fn run() -> Result<(), String> {
             is_signed_in,
             verify_user_email,
             resend_email_verification_code,
+            update_password,
             // User
             get_user_information,
             update_user_information,

@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use brainy_core::backend::traits::brainy_backend_client::BrainyBackendClient;
+use brainy_core::backend::{
+    models::UpdatePasswordDto, traits::brainy_backend_client::BrainyBackendClient,
+};
 use tauri::State;
 
 use crate::api::ApiError;
@@ -57,5 +59,20 @@ pub async fn resend_email_verification_code(
     backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
 ) -> Result<(), ApiError> {
     backend_client.resend_email_verification_code().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_password(
+    backend_client: State<'_, Arc<dyn BrainyBackendClient>>,
+    old_password: String,
+    new_password: String,
+) -> Result<(), ApiError> {
+    backend_client
+        .update_password(UpdatePasswordDto {
+            old_password,
+            new_password,
+        })
+        .await?;
     Ok(())
 }

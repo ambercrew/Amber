@@ -20,7 +20,7 @@ import {
 	getUserInformation,
 	updateUserInformation,
 } from "../../../../api/userApi";
-import { signOut } from "../../../../api/authApi";
+import { signOut, updatePassword } from "../../../../api/authApi";
 import DeleteUserDialog from "../DeleteUserDialog";
 
 interface Props {
@@ -37,6 +37,9 @@ export default function ProfileForm({
 	onClose,
 }: Props) {
 	const userInformation = useAppSelector(selectUserInformation)!;
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmNewPassword, setConfirmNewPassword] = useState("");
 	const [firstName, setFirstName] = useState(userInformation.firstName);
 	const [lastName, setLastName] = useState(userInformation.lastName);
 	const [errorMessage, setErrorMessage] = useState("");
@@ -67,7 +70,13 @@ export default function ProfileForm({
 		e.preventDefault();
 		setErrorMessage("");
 
+		if (newPassword !== confirmNewPassword) {
+			setErrorMessage("Passwords do not match!");
+			return;
+		}
+
 		if (
+			newPassword.length === 0 &&
 			userInformation.firstName === firstName &&
 			userInformation.lastName === lastName
 		) {
@@ -76,9 +85,18 @@ export default function ProfileForm({
 		}
 
 		await executeRequest(async () => {
-			await updateUserInformation(firstName, lastName);
-			const userInformation = await getUserInformation();
-			dispatch(setUserInformation(userInformation));
+			if (newPassword.length > 0) {
+				await updatePassword(currentPassword, newPassword);
+			}
+
+			if (
+				userInformation.firstName !== firstName ||
+				userInformation.lastName !== lastName
+			) {
+				await updateUserInformation(firstName, lastName);
+				dispatch(setUserInformation(await getUserInformation()));
+			}
+
 			onClose();
 		});
 	};
@@ -146,6 +164,51 @@ export default function ProfileForm({
 									value={userInformation.email}
 									readOnly
 									required
+								/>
+							),
+						},
+						{
+							label: "Current password",
+							labelHtmlFor: "current-password",
+							children: (
+								<input
+									id="current-password"
+									type="password"
+									value={currentPassword}
+									onChange={e =>
+										setCurrentPassword(e.target.value)
+									}
+									minLength={8}
+								/>
+							),
+						},
+						{
+							label: "New password",
+							labelHtmlFor: "new-password",
+							children: (
+								<input
+									id="new-password"
+									type="password"
+									value={newPassword}
+									onChange={e =>
+										setNewPassword(e.target.value)
+									}
+									minLength={8}
+								/>
+							),
+						},
+						{
+							label: "Confirm new password",
+							labelHtmlFor: "confirm-password",
+							children: (
+								<input
+									id="confirm-password"
+									type="password"
+									value={confirmNewPassword}
+									onChange={e =>
+										setConfirmNewPassword(e.target.value)
+									}
+									minLength={8}
 								/>
 							),
 						},

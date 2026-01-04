@@ -33,7 +33,8 @@ pub use settings_api::{get_settings, update_settings};
 pub use review_api::{get_home_statistics, register_review};
 
 pub use auth_api::{
-    is_signed_in, resend_email_verification_code, sign_in, sign_out, sign_up, verify_user_email,
+    is_signed_in, resend_email_verification_code, sign_in, sign_out, sign_up, update_password,
+    verify_user_email,
 };
 
 pub use user_api::{delete_user, get_user_information, update_user_information};

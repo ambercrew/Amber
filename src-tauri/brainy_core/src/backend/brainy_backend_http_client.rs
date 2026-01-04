@@ -6,7 +6,7 @@ use std::{
 use crate::backend::{
     models::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
-        UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
+        UpdatePasswordDto, UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
     },
     traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
@@ -283,6 +283,29 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = self
             .reqwest_client
             .delete(self.backend_url.join("/api/v1/user").unwrap())
+            .send()
+            .await;
+
+        ensure_success_response(response).await?;
+        self.persist_cookies();
+
+        Ok(())
+    }
+
+    async fn update_password(
+        &self,
+        dto: UpdatePasswordDto,
+    ) -> Result<(), BrainyBackendClientError> {
+        log::info!("Updating user password.");
+
+        let response = self
+            .reqwest_client
+            .post(
+                self.backend_url
+                    .join("/api/v1/auth/update-password")
+                    .unwrap(),
+            )
+            .json(&dto)
             .send()
             .await;
 

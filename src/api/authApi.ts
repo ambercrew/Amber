@@ -38,3 +38,10 @@ export function verifyUserEmail(verificationCode: string): Promise<void> {
 export function resendEmailVerificationCode(): Promise<void> {
 	return invoke("resend_email_verification_code");
 }
+
+export function updatePassword(
+	oldPassword: string,
+	newPassword: string,
+): Promise<void> {
+	return invoke("update_password", { oldPassword, newPassword });
+}
