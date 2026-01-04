@@ -8,12 +8,16 @@
 	min-width: 5rem;
 	transition: all var(--default-transition-time);
 
-	&:focus-within {
-		outline-color: var(--primary-color);
-	}
-
 	&:has(input:checked) {
 		background-color: var(--primary-color);
+	}
+
+	&:focus-within {
+		outline-color: var(--surface-background-color-shade-20);
+	}
+
+	&:has(input:checked):focus-within {
+		outline-color: var(--primary-color);
 	}
 
 	& input {
@@ -26,6 +30,7 @@
 		right: 0;
 		background-color: transparent;
 		border-color: transparent;
+		outline: none;
 	}
 
 	& input:checked {
@@ -37,10 +42,6 @@
 	& input:checked::after {
 		display: none;
 		content: none !important;
-	}
-
-	& input:focus {
-		outline: none;
 	}
 
 	& input + .circle {
