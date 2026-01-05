@@ -7,7 +7,7 @@ import Home from "../features/Home/components/Home";
 import useAppDispatch from "../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
 import SideBar from "../features/SideBar/components/SideBar";
-import SettingsPopup from "../features/SettingsPopup/components/SettingsPopup";
+import Settings from "../features/Settings/components/Settings";
 import useGlobalKey from "../hooks/useGlobalKey";
 import {
 	Route,
@@ -217,10 +217,7 @@ function App() {
 			</div>
 
 			{showSettings && (
-				<SettingsPopup
-					onClose={() => setShowSettings(false)}
-					onError={setErrorMessage}
-				/>
+				<Settings onClose={() => setShowSettings(false)} />
 			)}
 		</div>
 	);

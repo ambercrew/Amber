@@ -1,8 +1,9 @@
-import { SecurityTabState, TabProps } from "../SettingsPopup";
 import { signOut } from "../../../../api/authApi";
 import { FormRows } from "../../../../components/Form/Form";
 import useAppDispatch from "../../../../hooks/useAppDispatch";
 import { setLoggedOf } from "../../../../stores/user/userReducer";
+import { SecurityTabState } from "../../types/securityTabState";
+import { TabProps } from "../../types/tabProps";
 
 export default function SecurityTab({
 	state,

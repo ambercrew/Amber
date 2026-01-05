@@ -1,6 +1,6 @@
 import Settings, { Theme } from "../../../../types/backend/model/settings";
 import { FormRows } from "../../../../components/Form/Form";
-import { TabProps } from "../SettingsPopup";
+import { TabProps } from "../../types/tabProps";
 
 export default function AppearanceTab({ state, setState }: TabProps) {
 	const updateSettings = (newSettings: Partial<Settings>) => {

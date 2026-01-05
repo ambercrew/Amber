@@ -1,6 +1,6 @@
 import { FormRows } from "../../../../components/Form/Form";
 import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto";
-import { TabProps } from "../SettingsPopup";
+import { TabProps } from "../../types/tabProps";
 
 export default function ProfileTab({ state, setState }: TabProps) {
 	const updateUserInformation = (newValues: Partial<UserInformationDto>) => {

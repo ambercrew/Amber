@@ -12,7 +12,7 @@ export enum SettingsTab {
 	Security = "Security",
 }
 
-export const settingsTabIcon: Record<SettingsTab, string> = {
+export const settingsTabIcons: Record<SettingsTab, string> = {
 	[SettingsTab.Appearance]: mdiPaletteOutline,
 	[SettingsTab.Data]: mdiServerOutline,
 	[SettingsTab.Profile]: mdiAccountOutline,

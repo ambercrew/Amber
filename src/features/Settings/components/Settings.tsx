@@ -1,6 +1,5 @@
 import styles from "./styles.module.css";
 import { useState } from "react";
-import Settings from "../../../types/backend/model/settings";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import Dialog from "../../../components/Dialog/Dialog";
 import Form, { FormButtons, FormHeader } from "../../../components/Form/Form";
@@ -10,9 +9,8 @@ import SideBar from "./SideBar";
 import DataTab from "./tabs/DataTab";
 import errorToString from "../../../utils/errorToString";
 import { updateAndApplySettings } from "../../../stores/settings/settingsActions";
-import { SettingsTab, settingsTabIcon } from "../types/SettingsTab";
+import { SettingsTab, settingsTabIcons } from "../types/settingsTab";
 import AppearanceTab from "./tabs/AppearanceTab";
-import { UserInformationDto } from "../../../types/backend/dto/userInformationDto";
 import {
 	selectIsSignedIn,
 	selectUserInformation,
@@ -28,40 +26,21 @@ import {
 import { setUserInformation } from "../../../stores/user/userReducer";
 import { updatePassword } from "../../../api/authApi";
 import Spinner from "../../../components/Spinner/Spinner";
+import { SettingsState } from "../types/settingsState";
 
 interface Props {
 	onClose: () => void;
 }
 
-// TODO: move some of these interfaces
-export interface SecurityTabState {
-	currentPassword: string;
-	newPassword: string;
-	confirmNewPassword: string;
-	showDeleteUserDialog: boolean;
-}
-
-export interface SettingsPopupState {
-	localSettings: Settings | null;
-	userInformation: UserInformationDto | null;
-	securityTabState: SecurityTabState;
-}
-
-export interface TabProps {
-	state: SettingsPopupState;
-	setState: (newState: SettingsPopupState) => void;
-	executeRequest: (cb: () => Promise<void>) => Promise<void>;
-}
-
 // TODO: update tests
-function SettingsPopup({ onClose }: Props) {
+export default function Settings({ onClose }: Props) {
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [selectedTab, setSelectedTab] = useState(SettingsTab.Appearance);
 	const [errorMessage, setErrorMessage] = useState("");
 
 	const globalSettings = useAppSelector(selectSettings);
 	const userInformation = useAppSelector(selectUserInformation);
-	const [state, setState] = useState<SettingsPopupState>({
+	const [state, setState] = useState<SettingsState>({
 		localSettings: globalSettings,
 		securityTabState: {
 			currentPassword: "",
@@ -173,7 +152,7 @@ function SettingsPopup({ onClose }: Props) {
 				onSubmit={e => void handleSubmit(e)}
 				className={`${styles.form} ${isSendingRequest && styles.sendingRequest}`}>
 				<FormHeader
-					icon={settingsTabIcon[selectedTab]}
+					icon={settingsTabIcons[selectedTab]}
 					title={selectedTab}
 				/>
 
@@ -210,5 +189,3 @@ function SettingsPopup({ onClose }: Props) {
 		</Dialog>
 	);
 }
-
-export default SettingsPopup;

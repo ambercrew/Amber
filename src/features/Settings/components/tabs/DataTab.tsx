@@ -4,7 +4,7 @@ import CheckBox from "../../../../components/Checkbox/Checkbox";
 import Icon from "@mdi/react";
 import { mdiFolderOpenOutline } from "@mdi/js";
 import Settings from "../../../../types/backend/model/settings";
-import { TabProps } from "../SettingsPopup";
+import { TabProps } from "../../types/tabProps";
 
 export default function DataTab({ state, setState }: TabProps) {
 	const updateSettings = (newSettings: Partial<Settings>) => {

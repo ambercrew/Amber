@@ -2,7 +2,7 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
-import { SettingsTab, settingsTabIcon } from "../types/SettingsTab";
+import { SettingsTab, settingsTabIcons } from "../types/settingsTab";
 
 interface Props {
 	selectedTab: SettingsTab;
@@ -45,7 +45,7 @@ function SideBarRow({ tab, selectedTab, onTabChange }: SideBarRowProps) {
 		<button
 			className={`${selectedTab === tab ? "primary" : "transparent"} ${styles.row}`}
 			onClick={() => onTabChange(tab)}>
-			<Icon path={settingsTabIcon[tab]} size={1} />
+			<Icon path={settingsTabIcons[tab]} size={1} />
 			<p>{tab}</p>
 		</button>
 	);
