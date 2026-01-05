@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import DeleteUserDialog from "../../../../features/UserDialogs/components/DeleteUserDialog";
+import DeleteUserDialog from "../../../../features/AuthDialog/components/DeleteUserDialog.tsx";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import { screen } from "@testing-library/react";
 import { deleteUser } from "../../../../api/userApi.ts";

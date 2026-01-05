@@ -1,12 +1,12 @@
 import userEvent from "@testing-library/user-event";
-import { getUserInformation } from "../../../../api/userApi";
-import VerifyEmailDialog from "../../../../features/UserDialogs/components/VerifyEmailDialog";
-import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto";
-import { renderWithProviders } from "../../../test-utils/renderWithProviders";
+import { getUserInformation } from "../../../../api/userApi.ts";
+import VerifyEmailDialog from "../../../../features/AuthDialog/components/VerifyEmailDialog.tsx";
+import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto.ts";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import {
 	resendEmailVerificationCode,
 	verifyUserEmail,
-} from "../../../../api/authApi";
+} from "../../../../api/authApi.ts";
 import { screen } from "@testing-library/react";
 
 vi.mock(import("../../../../api/authApi.ts"));

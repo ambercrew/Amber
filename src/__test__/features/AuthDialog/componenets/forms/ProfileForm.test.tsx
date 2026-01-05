@@ -1,5 +1,5 @@
 import userEvent from "@testing-library/user-event";
-import ProfileForm from "../../../../../features/UserDialogs/components/forms/ProfileForm.tsx";
+import ProfileForm from "../../../../../features/AuthDialog/components/forms/ProfileForm.tsx";
 import { renderWithProviders } from "../../../../test-utils/renderWithProviders.tsx";
 import { screen } from "@testing-library/react";
 import {

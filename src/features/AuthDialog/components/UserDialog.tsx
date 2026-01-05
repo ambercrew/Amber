@@ -3,9 +3,6 @@ import Dialog from "../../../components/Dialog/Dialog";
 import SignInForm from "./forms/SignInForm";
 import { useState } from "react";
 import SignUpForm from "./forms/SignUpForm";
-import useAppSelector from "../../../hooks/useAppSelector";
-import { selectIsSignedIn } from "../../../stores/user/userSelectors";
-import ProfileForm from "./forms/ProfileForm";
 
 interface Props {
 	onClose: () => void;
@@ -16,7 +13,6 @@ export default function UserDialog({ onClose }: Props) {
 		"sign-in",
 	);
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
-	const isSignedIn = useAppSelector(selectIsSignedIn);
 
 	const handleClose = () => {
 		if (!isSendingRequest) onClose();
@@ -24,7 +20,7 @@ export default function UserDialog({ onClose }: Props) {
 
 	return (
 		<Dialog className={styles.box} onHide={handleClose} focusTrap={true}>
-			{!isSignedIn && typeOfForm === "sign-in" && (
+			{typeOfForm === "sign-in" && (
 				<SignInForm
 					isSendingRequest={isSendingRequest}
 					onRequestStart={() => setIsSendingRequest(true)}
@@ -34,22 +30,13 @@ export default function UserDialog({ onClose }: Props) {
 				/>
 			)}
 
-			{!isSignedIn && typeOfForm === "sign-up" && (
+			{typeOfForm === "sign-up" && (
 				<SignUpForm
 					isSendingRequest={isSendingRequest}
 					onRequestStart={() => setIsSendingRequest(true)}
 					onRequestEnd={() => setIsSendingRequest(false)}
 					onClose={handleClose}
 					onSignInClick={() => setTypeOfForm("sign-in")}
-				/>
-			)}
-
-			{isSignedIn && (
-				<ProfileForm
-					isSendingRequest={isSendingRequest}
-					onRequestStart={() => setIsSendingRequest(true)}
-					onRequestEnd={() => setIsSendingRequest(false)}
-					onClose={handleClose}
 				/>
 			)}
 		</Dialog>

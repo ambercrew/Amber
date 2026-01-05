@@ -5,12 +5,13 @@ import styles from "./styles.module.css";
  * in styling.
  */
 export default function Form({
+	className,
 	...props
 }: React.DetailedHTMLProps<
 	React.InputHTMLAttributes<HTMLFormElement>,
 	HTMLFormElement
 >) {
-	return <form {...props} className={styles.form} />;
+	return <form {...props} className={`${styles.form} ${className}`} />;
 }
 
 interface FormHeaderProps {

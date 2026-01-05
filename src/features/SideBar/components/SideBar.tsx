@@ -15,7 +15,6 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
-	mdiAccount,
 	mdiAlertCircleOutline,
 	mdiChevronLeft,
 	mdiCog,
@@ -29,13 +28,13 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useLocation, useNavigate } from "react-router";
-import UserDialog from "../../UserDialogs/components/UserDialog";
+import UserDialog from "../../AuthDialog/components/UserDialog";
 import {
 	selectIsSignedIn,
 	selectUserInformation,
 } from "../../../stores/user/userSelectors";
 import SyncRow from "./SyncRow";
-import VerifyEmailDialog from "../../UserDialogs/components/VerifyEmailDialog";
+import VerifyEmailDialog from "../../AuthDialog/components/VerifyEmailDialog";
 
 interface Props {
 	isExpanded: boolean;
@@ -197,20 +196,13 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 				<FileTree folder={rootUiFolder} />
 			</div>
 
-			<button
-				className={`transparent ${styles.bottomButton}`}
-				onClick={() => setShowUserDialog(true)}>
-				{!isSignedIn && (
-					<>
-						<Icon path={mdiLogin} size={1} /> <p>Sign-in/up</p>
-					</>
-				)}
-				{isSignedIn && (
-					<>
-						<Icon path={mdiAccount} size={1} /> <p>Profile</p>
-					</>
-				)}
-			</button>
+			{!isSignedIn && (
+				<button
+					className={`transparent ${styles.bottomButton}`}
+					onClick={() => setShowUserDialog(true)}>
+					<Icon path={mdiLogin} size={1} /> <p>Sign-in/up</p>
+				</button>
+			)}
 
 			{showUserDialog && (
 				<UserDialog onClose={() => setShowUserDialog(false)} />
