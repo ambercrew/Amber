@@ -21,7 +21,7 @@ import {
 	mdiFileSearchOutline,
 	mdiHelpCircleOutline,
 	mdiHomeOutline,
-	mdiLogin,
+	mdiLoginVariant,
 	mdiMagnify,
 } from "@mdi/js";
 import Icon from "@mdi/react";
@@ -201,7 +201,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 				<button
 					className={`transparent ${styles.bottomButton}`}
 					onClick={() => setShowUserDialog(true)}>
-					<Icon path={mdiLogin} size={1} /> <p>Sign-in/up</p>
+					<Icon path={mdiLoginVariant} size={1} /> <p>Sign-in/up</p>
 				</button>
 			)}
 
