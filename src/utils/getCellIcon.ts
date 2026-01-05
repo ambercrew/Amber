@@ -1,7 +1,7 @@
 import {
 	mdiCardMultipleOutline,
 	mdiCheckCircleOutline,
-	mdiDotsHorizontal,
+	mdiDotsHorizontalCircleOutline,
 	mdiNoteOutline,
 } from "@mdi/js";
 import { CellType } from "../types/backend/entity/cell";
@@ -13,7 +13,7 @@ function getCellIcon(cellType: CellType): string {
 		case "Note":
 			return mdiNoteOutline;
 		case "Cloze":
-			return mdiDotsHorizontal;
+			return mdiDotsHorizontalCircleOutline;
 		case "TrueFalse":
 			return mdiCheckCircleOutline;
 	}

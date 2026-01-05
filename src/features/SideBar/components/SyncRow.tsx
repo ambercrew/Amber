@@ -1,6 +1,6 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { mdiSync } from "@mdi/js";
+import { mdiAccountSyncOutline } from "@mdi/js";
 import Dialog from "../../../components/Dialog/Dialog";
 import Spinner from "../../../components/Spinner/Spinner";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -87,7 +87,7 @@ export default function SyncRow() {
 				className={`${styles.row}`}
 				title="Sync (Ctrl + Shift + Y)"
 				onClick={() => void dispatch(sync())}>
-				<Icon path={mdiSync} size="1em" />
+				<Icon path={mdiAccountSyncOutline} size="1em" />
 				<p>Sync</p>
 			</button>
 		</>

@@ -17,9 +17,10 @@ import searchFolder from "../utils/searchFolder";
 import {
 	mdiAlertCircleOutline,
 	mdiChevronLeft,
-	mdiCog,
-	mdiHelp,
-	mdiHome,
+	mdiCogOutline,
+	mdiFileSearchOutline,
+	mdiHelpCircleOutline,
+	mdiHomeOutline,
 	mdiLogin,
 	mdiMagnify,
 } from "@mdi/js";
@@ -120,7 +121,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						} ${styles.row}`}
 						title="Home (Ctrl + H)"
 						onClick={() => void navigate("/home")}>
-						<Icon path={mdiHome} size="1em" />
+						<Icon path={mdiHomeOutline} size="1em" />
 						<p>Home</p>
 					</button>
 
@@ -131,7 +132,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						} ${styles.row}`}
 						title="Search (Ctrl + Shift + F)"
 						onClick={() => void navigate("/search")}>
-						<Icon path={mdiMagnify} size="1em" />
+						<Icon path={mdiFileSearchOutline} size="1em" />
 						<p>Search</p>
 					</button>
 
@@ -139,7 +140,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						className={`${styles.row}`}
 						title="Settings (Ctrl + P)"
 						onClick={handleSettingsButtonClick}>
-						<Icon path={mdiCog} size="1em" />
+						<Icon path={mdiCogOutline} size="1em" />
 						<p>Settings</p>
 					</button>
 
@@ -151,7 +152,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						className={`${styles.row}`}
 						title="Help (F1)"
 						onClick={openHelpWebsite}>
-						<Icon path={mdiHelp} size="1em" />
+						<Icon path={mdiHelpCircleOutline} size="1em" />
 						<p>Help</p>
 					</button>
 				</div>
