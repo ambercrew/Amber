@@ -41,7 +41,7 @@
 	}
 
 	& .file-tree-row-input {
-		border-width: 1px;
+		border-width: var(--default-border-width);
 		width: 100%;
 		font-size: inherit;
 	}
@@ -103,7 +103,7 @@
 .file-tree-item-children {
 	padding-left: var(--spacing-4);
 	transition: all var(--default-transition-time);
-	border-left: 1px solid var(--border-color);
+	border-left: var(--default-border-width) solid var(--border-color);
 
 	&:hover {
 		border-left-color: var(--hover-border-color);

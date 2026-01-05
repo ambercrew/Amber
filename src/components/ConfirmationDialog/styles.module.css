@@ -20,7 +20,7 @@
 	margin-top: var(--spacing-3);
 
 	& button {
-		font-size: 1.6rem;
-		padding: var(--spacing-3) var(--spacing-4);
+		padding-right: var(--spacing-4);
+		padding-left: var(--spacing-4);
 	}
 }

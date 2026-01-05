@@ -10,7 +10,7 @@
 
 .search-input-container {
 	padding: var(--spacing-4);
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: var(--default-border-width) solid var(--border-color);
 
 	input {
 		font-size: 1.4rem;

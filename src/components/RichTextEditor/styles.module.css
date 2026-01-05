@@ -68,6 +68,6 @@
 
 .vertical-border {
 	height: 1.6rem;
-	border-right: 1px solid var(--text-color);
+	border-right: var(--default-border-width) solid var(--text-color);
 	margin: 0 4px;
 }

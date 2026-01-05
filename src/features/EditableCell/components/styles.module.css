@@ -17,7 +17,6 @@
 		& button {
 			border: var(--default-border-width) solid var(--border-color);
 			transition: all var(--default-transition-time);
-			padding-top: var(--spacing-3);
 
 			&:focus {
 				box-shadow: var(--default-box-shadow);
@@ -46,7 +45,7 @@
 		content: attr(index);
 		padding-right: 2px;
 		margin-right: 2px;
-		border-right: 1px solid var(--text-color);
+		border-right: var(--default-border-width) solid var(--text-color);
 		font-weight: normal;
 		font-style: normal;
 	}

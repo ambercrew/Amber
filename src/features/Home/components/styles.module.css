@@ -21,7 +21,7 @@
 }
 
 .header {
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: var(--default-border-width) solid var(--border-color);
 	margin: var(--spacing-3);
 	font-weight: 400;
 }

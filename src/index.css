@@ -65,6 +65,8 @@ body {
 
 	--spacing-1: 4px;
 	--spacing-2: 6px;
+	/*TODO: rename*/
+	--spacing-25: 8px;
 	--spacing-3: 10px;
 	--spacing-4: 18px;
 	--spacing-5: 26px;
@@ -96,7 +98,6 @@ body.dark {
 
 	--border-color: #44464a;
 	--hover-border-color: #56585c;
-	--sidebar-border-color: #36383a;
 
 	--default-background-color: #242426;
 
@@ -143,6 +144,17 @@ button.link {
 	padding: 0;
 }
 
+body.dark a,
+body.dark a:visited,
+body.dark button.link {
+	color: var(--primary-color-shade-10);
+}
+
+body.dark a:hover,
+body.dark button.link:hover {
+	color: var(--primary-color-shade-20);
+}
+
 a:hover,
 button.link:hover {
 	color: var(--primary-color-shade-10);
@@ -158,13 +170,17 @@ input,
 select {
 	border-radius: var(--default-border-radius);
 	outline: none;
-	padding: var(--spacing-3);
+	padding: var(--spacing-25) var(--spacing-3);
 	border: var(--default-border-width) solid var(--border-color);
 	transition: var(--default-transition-time);
 	background-color: var(--default-background-color);
 	color: var(--text-color);
 	appearance: none;
 	-webkit-appearance: none;
+}
+
+input[type="checkbox"] {
+	padding: var(--spacing-3);
 }
 
 .input:hover,
@@ -210,16 +226,12 @@ input[type="checkbox"]:checked::after {
 button {
 	font-size: 1.6rem;
 	border-radius: var(--default-border-radius);
-	padding: var(--spacing-3);
+	padding: var(--spacing-25) var(--spacing-3);
 	cursor: pointer;
 	transition: var(--default-transition-time);
 	font-weight: 400;
 	background-color: transparent;
 	border: var(--default-border-width) solid transparent;
-}
-
-button:not(:disabled):hover {
-	opacity: 0.9;
 }
 
 button:disabled {

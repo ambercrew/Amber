@@ -19,7 +19,7 @@
 	gap: var(--spacing-4);
 	justify-content: space-between;
 	align-items: center;
-	border-bottom: 1px solid var(--border-color);
+	border-bottom: var(--default-border-width) solid var(--border-color);
 
 	.title-and-search-button {
 		min-width: 0;
@@ -61,7 +61,6 @@
 			align-items: center;
 			border: var(--default-border-width) solid var(--border-color);
 			margin-right: 4px;
-			padding: var(--spacing-3);
 
 			& .label {
 				font-size: 1.2rem;

@@ -10,10 +10,6 @@
 	align-items: center;
 	gap: 4px;
 
-	& * {
-		font-size: 1.2rem;
-	}
-
 	& button {
 		border: var(--default-border-width) solid var(--border-color);
 		transition: var(--default-transition-time) all;
@@ -41,10 +37,6 @@
 
 		&.correct:not(disabled) {
 			border-color: var(--primary-color);
-
-			&:focus {
-				border-color: var(--review-color);
-			}
 		}
 	}
 }
