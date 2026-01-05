@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import Settings from "../../types/backend/model/settings";
 
-interface SettingsState {
+export interface SettingsState {
 	settings: Settings | null;
 }
 

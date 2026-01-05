@@ -32,7 +32,6 @@ interface Props {
 	onClose: () => void;
 }
 
-// TODO: update tests
 export default function Settings({ onClose }: Props) {
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [selectedTab, setSelectedTab] = useState(SettingsTab.Appearance);
@@ -94,7 +93,7 @@ export default function Settings({ onClose }: Props) {
 			}
 		}
 
-		const zoomPercentage = state.localSettings?.zoomPercentage ?? 0;
+		const zoomPercentage = state.localSettings?.zoomPercentage ?? 100;
 		if (zoomPercentage < 50 || zoomPercentage > 200) {
 			setErrorMessage("Zoom percentage must be between 50% and 200%");
 			return;

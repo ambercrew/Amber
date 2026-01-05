@@ -41,7 +41,7 @@ export default function ProfileTab({ state, setState }: TabProps) {
 						labelHtmlFor: "last-name",
 						children: (
 							<input
-								id="las-tname"
+								id="last-name"
 								type="text"
 								maxLength={50}
 								minLength={1}

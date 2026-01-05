@@ -18,7 +18,6 @@ interface Props {
 	onHide: () => void;
 }
 
-// TODO: move to settings folder since iti s used only there, move css classes too
 export default function DeleteUserDialog({ onHide }: Props) {
 	const [isSendingRequest, startRequest] = useTransition();
 	const [errorMessage, setErrorMessage] = useState("");

@@ -9,7 +9,6 @@ interface Props {
 	onTabChange: (newTab: SettingsTab) => void;
 }
 
-// TODO: update tests
 export default function SideBar({ selectedTab, onTabChange }: Props) {
 	const isSignedIn = useAppSelector(selectIsSignedIn);
 
