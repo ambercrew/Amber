@@ -9,7 +9,7 @@
 .title-bar {
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-3);
+	gap: var(--spacing-4);
 	font-size: 2.4rem;
 }
 
@@ -17,10 +17,10 @@
 	display: flex;
 	justify-content: end;
 	gap: 6px;
-	margin-top: var(--spacing-3);
+	margin-top: var(--spacing-4);
 
 	& button {
-		padding-right: var(--spacing-4);
-		padding-left: var(--spacing-4);
+		padding-right: var(--spacing-5);
+		padding-left: var(--spacing-5);
 	}
 }

@@ -3,24 +3,24 @@
 }
 
 .alert {
-	margin-top: var(--spacing-3);
+	margin-top: var(--spacing-4);
 }
 
 .button-link {
 	font-size: 1.6rem;
 	text-align: left;
-	margin-top: var(--spacing-4);
+	margin-top: var(--spacing-5);
 }
 
 .spinner {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-top: var(--spacing-5);
+	margin-top: var(--spacing-6);
 }
 
 .instruction-text {
-	margin: var(--spacing-4) 0;
+	margin: var(--spacing-5) 0;
 }
 
 .checkbox-row {

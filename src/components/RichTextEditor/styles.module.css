@@ -16,17 +16,17 @@
 }
 
 .title {
-	padding-left: var(--spacing-3);
+	padding-left: var(--spacing-4);
 }
 
 .editor {
 	min-height: calc(1.4rem + 4 * var(--spacing-1));
-	padding: var(--spacing-1) var(--spacing-3);
+	padding: var(--spacing-1) var(--spacing-4);
 	outline: none;
 
 	ul,
 	ol {
-		margin-left: var(--spacing-6);
+		margin-left: var(--spacing-7);
 	}
 
 	a {
@@ -40,7 +40,7 @@
 	background-color: var(--surface-background-color-tint-10);
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
-	padding: var(--spacing-3);
+	padding: var(--spacing-4);
 	display: flex;
 	flex-direction: row;
 	align-items: center;

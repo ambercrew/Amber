@@ -26,8 +26,8 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-5);
-		padding-bottom: var(--spacing-3);
+		padding: var(--spacing-6);
+		padding-bottom: var(--spacing-4);
 
 		& h2 {
 			font-size: 2rem;
@@ -35,7 +35,7 @@
 		}
 
 		& img {
-			margin-right: var(--spacing-3);
+			margin-right: var(--spacing-4);
 			width: 2.8rem;
 		}
 
@@ -76,8 +76,8 @@
 
 		& .rows {
 			display: flex;
-			padding-right: var(--spacing-3);
-			padding-left: var(--spacing-3);
+			padding-right: var(--spacing-4);
+			padding-left: var(--spacing-4);
 
 			& .row {
 				justify-content: center;
@@ -113,12 +113,12 @@
 }
 
 .alert {
-	margin: 4px var(--spacing-4);
+	margin: 4px var(--spacing-5);
 }
 
 .verify-button {
-	margin: var(--spacing-3) var(--spacing-4) 0;
-	width: calc(100% - var(--spacing-4) * 2);
+	margin: var(--spacing-4) var(--spacing-5) 0;
+	width: calc(100% - var(--spacing-5) * 2);
 
 	display: flex;
 	align-items: center;
@@ -127,7 +127,7 @@
 }
 
 .rows {
-	padding: var(--spacing-4);
+	padding: var(--spacing-5);
 	border-bottom: var(--border-separator);
 	display: flex;
 	flex-direction: column;
@@ -140,13 +140,13 @@
 		gap: 12px;
 		width: 100%;
 		transition: all var(--default-transition-time);
-		padding: var(--spacing-3);
+		padding: var(--spacing-4);
 		font-size: 1.6rem;
 
 		/* Necessary so that the button has the same height when the sidebar is closed. */
 		height: calc(
 			1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-				var(--spacing-3) /* Height of padding */
+				var(--spacing-4) /* Height of padding */
 		);
 
 		&:hover {
@@ -185,15 +185,15 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: var(--spacing-3);
+	gap: var(--spacing-4);
 	border-radius: 0;
 	border-top: var(--default-border-width) solid var(--border-color);
 
-	padding: var(--spacing-4);
+	padding: var(--spacing-5);
 	/* Necessary so that the button has the same height when the sidebar is closed. */
 	height: calc(
 		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-			var(--spacing-4) /* Height of padding */
+			var(--spacing-5) /* Height of padding */
 	);
 }
 
@@ -202,5 +202,5 @@
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: var(--spacing-3);
+	gap: var(--spacing-4);
 }

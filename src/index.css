@@ -65,12 +65,11 @@ body {
 
 	--spacing-1: 4px;
 	--spacing-2: 6px;
-	/*TODO: rename*/
-	--spacing-25: 8px;
-	--spacing-3: 10px;
-	--spacing-4: 18px;
-	--spacing-5: 26px;
-	--spacing-6: 34px;
+	--spacing-3: 8px;
+	--spacing-4: 10px;
+	--spacing-5: 18px;
+	--spacing-6: 26px;
+	--spacing-7: 34px;
 
 	--default-border-width: 1px;
 
@@ -170,7 +169,7 @@ input,
 select {
 	border-radius: var(--default-border-radius);
 	outline: none;
-	padding: var(--spacing-25) var(--spacing-3);
+	padding: var(--spacing-3) var(--spacing-4);
 	border: var(--default-border-width) solid var(--border-color);
 	transition: var(--default-transition-time);
 	background-color: var(--default-background-color);
@@ -180,7 +179,7 @@ select {
 }
 
 input[type="checkbox"] {
-	padding: var(--spacing-3);
+	padding: var(--spacing-4);
 }
 
 .input:hover,
@@ -226,7 +225,7 @@ input[type="checkbox"]:checked::after {
 button {
 	font-size: 1.6rem;
 	border-radius: var(--default-border-radius);
-	padding: var(--spacing-25) var(--spacing-3);
+	padding: var(--spacing-3) var(--spacing-4);
 	cursor: pointer;
 	transition: var(--default-transition-time);
 	font-weight: 400;

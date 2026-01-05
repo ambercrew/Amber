@@ -16,13 +16,13 @@
 	margin: 0 auto;
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);
-	padding: var(--spacing-3);
+	padding: var(--spacing-4);
 	overflow-x: auto;
 }
 
 .header {
 	border-bottom: var(--default-border-width) solid var(--border-color);
-	margin: var(--spacing-3);
+	margin: var(--spacing-4);
 	font-weight: 400;
 }
 
@@ -81,7 +81,7 @@
 
 .reviews-overview {
 	text-align: center;
-	margin: var(--spacing-3);
+	margin: var(--spacing-4);
 }
 
 .review-heatmap {

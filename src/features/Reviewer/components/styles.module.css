@@ -9,7 +9,7 @@
 }
 
 .container {
-	padding: var(--spacing-6);
+	padding: var(--spacing-7);
 	text-align: center;
 	width: 100%;
 	margin: 0 auto;
@@ -27,7 +27,7 @@
 
 	& ol,
 	& ul {
-		margin: 0 var(--spacing-6);
+		margin: 0 var(--spacing-7);
 	}
 
 	& hr {
@@ -37,7 +37,7 @@
 
 .bottom-bar {
 	background-color: var(--default-background-color);
-	padding: var(--spacing-3) var(--spacing-4);
+	padding: var(--spacing-4) var(--spacing-5);
 	padding-top: 0;
 	display: grid;
 	grid-template-columns: 1fr 2fr 1fr;
@@ -49,8 +49,8 @@
 	}
 
 	& button {
-		padding-right: var(--spacing-4);
-		padding-left: var(--spacing-4);
+		padding-right: var(--spacing-5);
+		padding-left: var(--spacing-5);
 		box-shadow: var(--default-box-shadow);
 	}
 
@@ -100,7 +100,7 @@
 
 		& button {
 			box-shadow: none;
-			gap: var(--spacing-3);
+			gap: var(--spacing-4);
 		}
 	}
 
@@ -114,7 +114,7 @@
 		}
 
 		& div {
-			gap: var(--spacing-3);
+			gap: var(--spacing-4);
 		}
 	}
 }
