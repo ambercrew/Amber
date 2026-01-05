@@ -6,7 +6,7 @@ import Form, {
 	FormHeader,
 	FormRows,
 } from "../../../../components/Form/Form";
-import { mdiAccountPlusOutline } from "@mdi/js";
+import { mdiAccountBoxPlusOutline } from "@mdi/js";
 import Alert from "../../../../components/Alert/Alert";
 import Spinner from "../../../../components/Spinner/Spinner";
 import { signUp } from "../../../../api/authApi";
@@ -68,7 +68,7 @@ export default function SignUpForm({
 
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiAccountPlusOutline} title="Sign-up" />
+			<FormHeader icon={mdiAccountBoxPlusOutline} title="Sign-up" />
 			<FormRows
 				rows={[
 					{

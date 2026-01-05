@@ -6,7 +6,7 @@ import Form, {
 	FormHeader,
 	FormRows,
 } from "../../../../components/Form/Form";
-import { mdiLogin } from "@mdi/js";
+import { mdiLoginVariant } from "@mdi/js";
 import Alert from "../../../../components/Alert/Alert";
 import Spinner from "../../../../components/Spinner/Spinner";
 import { setUserInformation } from "../../../../stores/user/userReducer";
@@ -54,7 +54,7 @@ export default function SignInForm({
 
 	return (
 		<Form onSubmit={e => void handleSubmit(e)}>
-			<FormHeader icon={mdiLogin} title="Sign-in" />
+			<FormHeader icon={mdiLoginVariant} title="Sign-in" />
 			<FormRows
 				rows={[
 					{
