@@ -30,7 +30,7 @@ import {
 } from "../stores/sync/managers/syncEventManager";
 import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
 import { sync } from "../stores/sync/syncActions";
-import Settings from "../types/backend/model/settings";
+import SettingsType from "../types/backend/model/settings";
 
 function App() {
 	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);
@@ -81,7 +81,7 @@ function App() {
 
 	useEffect(() => {
 		void (async () => {
-			let settings: Settings | null = null;
+			let settings: SettingsType | null = null;
 			try {
 				// Settings must be loaded on start always before anything else!
 				settings = await dispatch(initialLoadAndApplySettings());
