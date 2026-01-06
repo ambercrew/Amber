@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import { SettingsTab, settingsTabIcons } from "../types/settingsTab";
-import useIsSmallScreen from "../../../hooks/useIsSmallScrenn";
+import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 
 interface Props {
 	selectedTab: SettingsTab;

@@ -31,8 +31,7 @@ import { setUserInformation } from "../../../stores/user/userReducer";
 import { updatePassword } from "../../../api/authApi";
 import Spinner from "../../../components/Spinner/Spinner";
 import { SettingsState } from "../types/settingsState";
-// TODO: fix typo
-import useIsSmallScreen from "../../../hooks/useIsSmallScrenn";
+import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 import { mdiMenu } from "@mdi/js";
 import Icon from "@mdi/react";
 

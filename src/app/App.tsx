@@ -31,7 +31,7 @@ import {
 import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
 import { sync } from "../stores/sync/syncActions";
 import SettingsType from "../types/backend/model/settings";
-import useIsSmallScreen from "../hooks/useIsSmallScrenn";
+import useIsSmallScreen from "../hooks/useIsSmallScreen";
 
 function App() {
 	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);
