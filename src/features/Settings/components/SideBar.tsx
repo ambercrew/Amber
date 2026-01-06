@@ -3,14 +3,21 @@ import styles from "./styles.module.css";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSignedIn } from "../../../stores/user/userSelectors";
 import { SettingsTab, settingsTabIcons } from "../types/settingsTab";
+import useIsSmallScreen from "../../../hooks/useIsSmallScrenn";
 
 interface Props {
 	selectedTab: SettingsTab;
+	className: string;
 	onTabChange: (newTab: SettingsTab) => void;
 }
 
-export default function SideBar({ selectedTab, onTabChange }: Props) {
+export default function SideBar({
+	selectedTab,
+	className,
+	onTabChange,
+}: Props) {
 	const isSignedIn = useAppSelector(selectIsSignedIn);
+	const isSmallScreen = useIsSmallScreen();
 
 	const rows = Object.values(SettingsTab)
 		.filter(tab => {
@@ -27,22 +34,34 @@ export default function SideBar({ selectedTab, onTabChange }: Props) {
 				tab={tab}
 				selectedTab={selectedTab}
 				onTabChange={onTabChange}
+				isSmallScreen={isSmallScreen}
 			/>
 		));
 
-	return <div className={styles.sideBar}>{...rows}</div>;
+	return (
+		<div className={`${styles.sideBar} ${className}`}>
+			<p className={styles.header}>Settings</p>
+			{...rows}
+		</div>
+	);
 }
 
 interface SideBarRowProps {
 	tab: SettingsTab;
 	selectedTab: SettingsTab;
+	isSmallScreen: boolean;
 	onTabChange: (newTab: SettingsTab) => void;
 }
 
-function SideBarRow({ tab, selectedTab, onTabChange }: SideBarRowProps) {
+function SideBarRow({
+	tab,
+	selectedTab,
+	isSmallScreen,
+	onTabChange,
+}: SideBarRowProps) {
 	return (
 		<button
-			className={`${selectedTab === tab ? "primary" : "transparent"} ${styles.row}`}
+			className={`${!isSmallScreen && selectedTab === tab ? "primary" : "transparent"} ${styles.row}`}
 			onClick={() => onTabChange(tab)}>
 			<Icon path={settingsTabIcons[tab]} size={1} />
 			<p>{tab}</p>

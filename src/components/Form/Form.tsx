@@ -15,14 +15,16 @@ export default function Form({
 }
 
 interface FormHeaderProps {
-	icon: string;
+	icon?: string | null;
 	title: string;
 }
+
+export const FORM_HEADER_ICON_SIZE = 1.6;
 
 export function FormHeader({ icon, title }: FormHeaderProps) {
 	return (
 		<div className={`row ${styles.header}`}>
-			<Icon path={icon} size={1.6} />
+			{icon && <Icon path={icon} size={FORM_HEADER_ICON_SIZE} />}
 			<p>{title}</p>
 		</div>
 	);

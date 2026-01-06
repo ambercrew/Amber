@@ -10,7 +10,6 @@
 
 .side-bar {
 	width: 20rem;
-	max-width: 40%;
 	background-color: var(--side-bar-background-color);
 	padding: var(--spacing-4);
 
@@ -20,12 +19,25 @@
 
 	border-right: var(--default-border-width) solid var(--border-color);
 
+	& .header {
+		font-weight: 600;
+		text-align: center;
+		margin: var(--spacing-4) 0;
+	}
+
 	& .row {
 		display: flex;
 		flex-direction: row;
 		gap: var(--spacing-4);
 		align-items: center;
 	}
+}
+
+.header-container {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-2);
+	margin-bottom: var(--spacing-3);
 }
 
 .form {
@@ -40,4 +52,20 @@
 
 .alert {
 	margin-top: var(--spacing-4);
+}
+
+/* TODO: can probably ignore the media query here and on sidebar by an extra class */
+/* Must be synced with the hook */
+@media (max-width: 720px) {
+	.side-bar {
+		width: 100%;
+
+		&.hidden {
+			display: none;
+		}
+	}
+
+	.form.hidden {
+		display: none;
+	}
 }

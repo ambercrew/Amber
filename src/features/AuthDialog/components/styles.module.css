@@ -20,7 +20,7 @@
 }
 
 .instruction-text {
-	margin: var(--spacing-5) 0;
+	margin-top: var(--spacing-6);
 }
 
 .checkbox-row {
