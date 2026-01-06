@@ -48,6 +48,10 @@
 	&.sending-request {
 		pointer-events: none;
 	}
+
+	& .expand-button {
+		padding: var(--spacing-1);
+	}
 }
 
 .alert {

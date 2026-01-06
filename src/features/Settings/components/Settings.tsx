@@ -179,7 +179,7 @@ export default function Settings({ onClose }: Props) {
 					{isSmallScreen && (
 						<button
 							type="button"
-							className="transparent"
+							className={`transparent ${styles.expandButton}`}
 							onClick={() => setIsSideBarExpanded(true)}>
 							<Icon path={mdiMenu} size={FORM_HEADER_ICON_SIZE} />
 						</button>
