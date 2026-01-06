@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import {
 	mdiDotsHorizontal,
 	mdiFileDocumentOutline,
-	mdiFileTree,
+	mdiFileTreeOutline,
 	mdiFolderOpenOutline,
 	mdiFolderOutline,
 } from "@mdi/js";
@@ -118,7 +118,7 @@ export default function FileTreeItemRow({
 	);
 
 	const iconPath = isRoot
-		? mdiFileTree
+		? mdiFileTreeOutline
 		: isFolder
 			? isExpanded
 				? mdiFolderOpenOutline
