@@ -8,13 +8,14 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	gap: 4px;
+	gap: var(--spacing-4);
 
 	& button {
 		border: var(--default-border-width) solid var(--border-color);
 		transition: var(--default-transition-time) all;
-		width: 12rem;
 		max-width: 50%;
+		padding-left: var(--spacing-7);
+		padding-right: var(--spacing-7);
 
 		&:hover {
 			border-color: var(--hover-border-color);
