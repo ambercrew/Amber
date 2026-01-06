@@ -54,10 +54,8 @@
 	margin-top: var(--spacing-4);
 }
 
-/* TODO: can probably ignore the media query here and on sidebar by an extra class */
-/* Must be synced with the hook */
-@media (max-width: 720px) {
-	.side-bar {
+.small-screen {
+	& .side-bar {
 		width: 100%;
 
 		&.hidden {
@@ -65,7 +63,7 @@
 		}
 	}
 
-	.form.hidden {
+	& .form.hidden {
 		display: none;
 	}
 }

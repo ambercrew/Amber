@@ -52,7 +52,8 @@
 	}
 
 	&.closed {
-		width: 62px;
+		/* Important so that it overrides the small screen class. */
+		width: 62px !important;
 		overflow: hidden;
 
 		& .side-bar-top-container > * {
@@ -94,20 +95,17 @@
 	}
 }
 
-/* This must be synced with SMALL_SCREEN_MAX_WIDTH_IN_PX constant */
-@media (max-width: 720px) {
-	.side-bar {
-		width: 100vw;
-		transition: none;
+.side-bar.small-screen {
+	width: 100vw;
+	transition: none;
 
+	& .toggle-button {
+		display: none;
+	}
+
+	&.closed {
 		.toggle-button {
-			display: none;
-		}
-
-		&.closed {
-			.toggle-button {
-				display: block;
-			}
+			display: block;
 		}
 	}
 }

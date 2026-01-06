@@ -159,7 +159,10 @@ export default function Settings({ onClose }: Props) {
 	const tabProps = { state, setState, executeRequest };
 
 	return (
-		<Dialog className={styles.box} onHide={onClose} focusTrap={true}>
+		<Dialog
+			className={`${styles.box} ${isSmallScreen && styles.smallScreen}`}
+			onHide={onClose}
+			focusTrap={true}>
 			<SideBar
 				selectedTab={selectedTab}
 				onTabChange={handleTabChange}

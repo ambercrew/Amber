@@ -36,6 +36,7 @@ import {
 } from "../../../stores/user/userSelectors";
 import SyncRow from "./SyncRow";
 import VerifyEmailDialog from "../../AuthDialog/components/VerifyEmailDialog";
+import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 
 interface Props {
 	isExpanded: boolean;
@@ -59,6 +60,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	const isSignedIn = useAppSelector(selectIsSignedIn);
 	const userInformation = useAppSelector(selectUserInformation);
 	const location = useLocation();
+	const isSmallScreen = useIsSmallScreen();
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
@@ -96,7 +98,8 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	};
 
 	return (
-		<aside className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
+		<aside
+			className={`${styles.sideBar} ${!isExpanded && styles.closed} ${isSmallScreen && styles.smallScreen}`}>
 			<div className={styles.sideBarTopContainer}>
 				<div className={styles.header}>
 					<div className={styles.titleRow}>
