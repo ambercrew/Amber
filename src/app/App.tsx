@@ -31,6 +31,7 @@ import {
 import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
 import { sync } from "../stores/sync/syncActions";
 import SettingsType from "../types/backend/model/settings";
+import useIsSmallScreen from "../hooks/useIsSmallScrenn";
 
 function App() {
 	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);
@@ -42,21 +43,12 @@ function App() {
 		string | null
 	>(null);
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
-	const [isSmallScreen, setIsSmallScreen] = useState(
-		window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX,
-	);
 	const location = useLocation();
 	const [previousLocation, setPreviousLocation] = useState(location);
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
+	const isSmallScreen = useIsSmallScreen();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-
-	useEffect(() => {
-		const cb = () =>
-			setIsSmallScreen(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX);
-		window.addEventListener("resize", cb);
-		return () => window.removeEventListener("resize", cb);
-	}, []);
 
 	if (location !== previousLocation) {
 		setPreviousLocation(location);
