@@ -97,7 +97,7 @@ impl Settings {
     }
 }
 
-async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
+pub async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
     let dir_path = match dirs::config_dir() {
         Some(dir) => dir.join("Brainy"),
         None => return Err(SettingsError::NoConfigDirectory),

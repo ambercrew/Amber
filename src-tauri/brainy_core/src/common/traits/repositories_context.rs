@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use thiserror::Error;
 
 use crate::{
+    backup::repositories::traits::backup_repository::BackupRepository,
     cells::repositories::traits::{
         cell_repository::CellRepository, review_repository::ReviewRepository,
     },
@@ -28,6 +29,7 @@ pub trait RepositoriesContext: Send + Sync {
     fn review_repository(&self) -> Arc<dyn ReviewRepository>;
     fn local_configuration_repository(&self) -> Arc<dyn LocalConfigurationRepository>;
     fn sync_repository(&self) -> Arc<dyn SyncRepository>;
+    fn backup_repository(&self) -> Arc<dyn BackupRepository>;
     /// All changes are put automatically inside a transaction, this this
     /// method commit the transaction.
     async fn save_changes(&self) -> Result<(), RepositoriesContextError>;

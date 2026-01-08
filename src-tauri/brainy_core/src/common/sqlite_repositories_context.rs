@@ -9,6 +9,10 @@ use thiserror::Error;
 use tokio::sync::Mutex;
 
 use crate::{
+    backup::{
+        repositories::traits::backup_repository::BackupRepository,
+        sqlite_backup_repository::SqliteBackupRepository,
+    },
     cells::repositories::{
         sqlite_cell_repository::SqliteCellRepository,
         sqlite_review_repository::SqliteReviewRepository,
@@ -38,6 +42,7 @@ pub struct SqliteRepositoriesContext {
     review_repository: Arc<SqliteReviewRepository>,
     local_configuration_repository: Arc<SqliteLocalConfigurationRepository>,
     sync_repository: Arc<SqliteSyncRepository>,
+    backup_repository: Arc<SqliteBackupRepository>,
 }
 
 #[derive(Debug, Error)]
@@ -78,6 +83,7 @@ impl SqliteRepositoriesContext {
                 tx.clone(),
             )),
             sync_repository: Arc::new(SqliteSyncRepository::new(arc_pool.clone(), tx.clone())),
+            backup_repository: Arc::new(SqliteBackupRepository::new(arc_pool.clone())),
         })
     }
 
@@ -121,6 +127,10 @@ impl RepositoriesContext for SqliteRepositoriesContext {
 
     fn sync_repository(&self) -> Arc<dyn SyncRepository> {
         self.sync_repository.clone()
+    }
+
+    fn backup_repository(&self) -> Arc<dyn BackupRepository> {
+        self.backup_repository.clone()
     }
 
     async fn save_changes(&self) -> Result<(), RepositoriesContextError> {

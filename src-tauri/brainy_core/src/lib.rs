@@ -1,4 +1,5 @@
 pub mod backend;
+pub mod backup;
 pub mod cells;
 pub mod common;
 pub mod file_system;

@@ -1,13 +1,14 @@
 mod api;
 mod dto;
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use brainy_core::{
     backend::{
         brainy_backend_http_client::BrainyBackendHttpClient,
         traits::brainy_backend_client::BrainyBackendClient,
     },
+    backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES},
     cells::cell_service::CellService,
     common::{
         sqlite_repositories_context::SqliteRepositoriesContext,
@@ -88,6 +89,11 @@ pub async fn run() -> Result<(), String> {
                 cell_service.clone(),
             )));
 
+            let backup_service = BackupService::new(
+                repositories_context.local_configuration_repository(),
+                repositories_context.backup_repository(),
+            );
+
             app.manage(
                 Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
             );
@@ -101,6 +107,24 @@ pub async fn run() -> Result<(), String> {
                     .expect("no main window")
                     .set_title("Brainy - development");
             }
+
+            // Starting backup service.
+            tokio::spawn(async move {
+                let mut interval =
+                    tokio::time::interval(Duration::from_mins(TIME_BETWEEN_BACKUPS_IN_MINUTES));
+
+                loop {
+                    interval.tick().await;
+
+                    if let Err(err) = backup_service.ensure_backup().await {
+                        log::error!(
+                            "An error happened when saving a backup of your files {:?}",
+                            err
+                        );
+                    }
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
