@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
 use thiserror::Error;
@@ -11,15 +11,12 @@ use crate::{
         entities::LocalConfiguration,
         repositories::traits::local_configuration_repository::LocalConfigurationRepository,
     },
-    settings::{SettingsError, get_settings_dir},
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BackupServiceError {
     #[error("{0}")]
     UnknownRepositoryError(#[from] RepositoryError),
-    #[error("{0}")]
-    SettingsError(#[from] SettingsError),
     #[error("The application is not able to list the entries in the settings folder!")]
     CannotListEntriesInFolder(String),
 }
@@ -32,17 +29,19 @@ const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
+    directory: PathBuf,
 }
 
-// TODO: unit test
 impl BackupService {
     pub fn new(
         local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
         backup_repository: Arc<dyn BackupRepository>,
+        directory: PathBuf,
     ) -> Self {
         Self {
             local_configuration_repository,
             backup_repository,
+            directory,
         }
     }
 
@@ -60,7 +59,7 @@ impl BackupService {
 
         self.create_backup().await?;
         self.update_last_backup_date_to_now().await?;
-        delete_extra_backups().await?;
+        self.delete_extra_backups().await?;
 
         Ok(())
     }
@@ -86,7 +85,7 @@ impl BackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let backup_path = get_settings_dir().await?.join(backup_name);
+        let backup_path = self.directory.join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -107,56 +106,57 @@ impl BackupService {
         log::info!("Updating last backup date to now.");
         Ok(())
     }
-}
 
-async fn delete_extra_backups() -> Result<(), BackupServiceError> {
-    // TODO: error handling, look at all .unwrap calls
+    async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
+        let mut current_backups = Vec::new();
 
-    let mut current_backups = Vec::new();
-    let settings_dir = get_settings_dir().await?;
-
-    let mut entries = match fs::read_dir(settings_dir).await {
-        Ok(entries) => entries,
-        Err(err) => {
-            return Err(BackupServiceError::CannotListEntriesInFolder(
-                err.to_string(),
-            ));
-        }
-    };
-
-    while let Some(entry) = entries.next_entry().await.unwrap() {
-        let path = entry.path();
-
-        if !path.is_file() {
-            continue;
-        }
-
-        match path.extension() {
-            Some(ext) if ext == "backup" => (),
-            _ => continue,
-        };
-
-        let string_path = path.file_name().unwrap().to_string_lossy();
-        log::info!("Found backup with path {string_path}");
-
-        // Unwrap since we know it has an extension!
-        let date_part = string_path.split('.').next().unwrap();
-        match NaiveDateTime::parse_from_str(date_part, DATETIME_FORMAT_IN_FILE_NAMES) {
-            Ok(date) => {
-                current_backups.push((date, path));
+        let mut entries = match fs::read_dir(&self.directory).await {
+            Ok(entries) => entries,
+            Err(err) => {
+                return Err(BackupServiceError::CannotListEntriesInFolder(
+                    err.to_string(),
+                ));
             }
-            Err(_) => continue,
         };
-    }
 
-    if current_backups.len() >= MAX_NUMBER_OF_BACKUPS {
-        current_backups.sort_by_key(|a| a.0);
-        log::info!(
-            "Deleting old backup with path {}",
-            current_backups[0].1.to_string_lossy()
-        );
-        let _ = fs::remove_file(current_backups[0].1.clone()).await;
-    }
+        while let Some(entry) = entries.next_entry().await.unwrap() {
+            let path = entry.path();
 
-    Ok(())
+            if !path.is_file() {
+                continue;
+            }
+
+            match path.extension() {
+                Some(ext) if ext == "backup" => (),
+                _ => continue,
+            };
+
+            let string_path = path.file_name().unwrap().to_string_lossy();
+            log::info!("Found backup with path {string_path}");
+
+            // Unwrap since we know it has an extension!
+            let date_part = string_path.split('.').next().unwrap();
+            match NaiveDateTime::parse_from_str(date_part, DATETIME_FORMAT_IN_FILE_NAMES) {
+                Ok(date) => {
+                    current_backups.push((date, path));
+                }
+                Err(_) => continue,
+            };
+        }
+
+        if current_backups.len() >= MAX_NUMBER_OF_BACKUPS {
+            current_backups.sort_by_key(|a| a.0);
+            log::info!(
+                "Deleting old backup with path {}",
+                current_backups[0].1.to_string_lossy()
+            );
+            let _ = fs::remove_file(current_backups[0].1.clone()).await;
+        }
+
+        Ok(())
+    }
 }
+
+// TODO:
+#[cfg(test)]
+pub mod tests {}

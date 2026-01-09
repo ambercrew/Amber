@@ -36,8 +36,8 @@ pub enum SettingsError {
     SavingError(String),
     #[error("No config directory is found on your system!")]
     NoConfigDirectory,
-    #[error("Brainy is not able to create config directory on your system!")]
-    CannotCreateConfigDirectory(String),
+    #[error("Brainy is not able to create settings directory on your system!")]
+    CannotCreateSettingsDirectory(String),
 }
 
 #[cfg(not(debug_assertions))]
@@ -104,6 +104,8 @@ pub async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
     };
     match fs::create_dir_all(dir_path.clone()).await {
         Ok(_) => Ok(dir_path),
-        Err(err) => Err(SettingsError::CannotCreateConfigDirectory(err.to_string())),
+        Err(err) => Err(SettingsError::CannotCreateSettingsDirectory(
+            err.to_string(),
+        )),
     }
 }

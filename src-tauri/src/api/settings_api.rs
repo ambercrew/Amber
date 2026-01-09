@@ -3,6 +3,7 @@ use tauri::AppHandle;
 
 use crate::{api::ApiError, dto::update_settings_request::UpdateSettingsRequest};
 
+// TODO: use mutexes instead of reading from disk each time, and add unit tests to settings
 #[tauri::command]
 pub async fn get_settings() -> Result<Settings, ApiError> {
     Ok(Settings::init_settings_and_get().await?)

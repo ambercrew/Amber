@@ -15,7 +15,7 @@ use brainy_core::{
         traits::repositories_context::RepositoriesContext,
     },
     file_system::file_system_service::FileSystemService,
-    settings::Settings,
+    settings::{Settings, get_settings_dir},
     sync::sync_service::SyncService,
 };
 use reqwest::Url;
@@ -29,6 +29,9 @@ use tokio::sync::Mutex;
 pub async fn run() -> Result<(), String> {
     simple_logger::init_with_level(log::Level::Info).unwrap();
 
+    let settings_directory = get_settings_dir()
+        .await
+        .expect("Cannot get settings directory!");
     let settings = &Settings::init_settings_and_get().await.unwrap();
 
     let repositories_context = SqliteRepositoriesContext::new_with_migration(&format!(
@@ -92,6 +95,7 @@ pub async fn run() -> Result<(), String> {
             let backup_service = BackupService::new(
                 repositories_context.local_configuration_repository(),
                 repositories_context.backup_repository(),
+                settings_directory,
             );
 
             app.manage(
