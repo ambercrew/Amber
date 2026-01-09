@@ -10,6 +10,7 @@ use tokio::{
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
+    pub settings_dir: PathBuf,
     pub database_location: String,
     pub theme: Theme,
     pub zoom_percentage: f64,
@@ -47,15 +48,16 @@ const SETTINGS_FILE_NAME: &str = "settings.dev.json";
 
 const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 
+// TODO: unit test
 impl Settings {
     /// Initializes the settings if not found and then return it, the settings
     /// is automatically saved into a file if not found.
-    pub async fn init_settings_and_get() -> Result<Self, SettingsError> {
-        let settings_dir = get_settings_dir().await?;
+    pub async fn init_settings_and_get(settings_dir: PathBuf) -> Result<Self, SettingsError> {
         if settings_dir.join(SETTINGS_FILE_NAME).exists() {
-            Settings::read_settings_from_file().await
+            Settings::read_settings_from_file(settings_dir).await
         } else {
             let settings = Settings {
+                settings_dir: settings_dir.clone(),
                 database_location: settings_dir
                     .join(DEFAULT_DATABASE_FILE_NAME)
                     .to_str()
@@ -70,8 +72,8 @@ impl Settings {
         }
     }
 
-    async fn read_settings_from_file() -> Result<Self, SettingsError> {
-        let settings_path = get_settings_dir().await?.join(SETTINGS_FILE_NAME);
+    async fn read_settings_from_file(settings_dir: PathBuf) -> Result<Self, SettingsError> {
+        let settings_path = settings_dir.join(SETTINGS_FILE_NAME);
         log::info!("Reading settings from '{SETTINGS_FILE_NAME}'.");
         let mut file = match File::open(settings_path).await {
             Err(err) => return Err(SettingsError::ErrorOpeningFile(err.to_string())),
@@ -88,9 +90,9 @@ impl Settings {
     }
 
     pub async fn save_to_disk(&self) -> Result<(), SettingsError> {
-        let dir = get_settings_dir().await?.join(SETTINGS_FILE_NAME);
-        log::info!("Saving settings into '{}'.", dir.to_str().unwrap());
-        match fs::write(dir, serde_json::to_string(self).unwrap()).await {
+        let path = self.settings_dir.join(SETTINGS_FILE_NAME);
+        log::info!("Saving settings into '{}'.", path.to_str().unwrap());
+        match fs::write(path, serde_json::to_string(self).unwrap()).await {
             Ok(_) => Ok(()),
             Err(err) => Err(SettingsError::ErrorOpeningFile(err.to_string())),
         }

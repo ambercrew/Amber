@@ -1,20 +1,25 @@
+use std::sync::Arc;
+
 use brainy_core::settings::Settings;
-use tauri::AppHandle;
+use tauri::{AppHandle, State};
+use tokio::sync::Mutex;
 
 use crate::{api::ApiError, dto::update_settings_request::UpdateSettingsRequest};
 
-// TODO: use mutexes instead of reading from disk each time, and add unit tests to settings
 #[tauri::command]
-pub async fn get_settings() -> Result<Settings, ApiError> {
-    Ok(Settings::init_settings_and_get().await?)
+pub async fn get_settings(settings: State<'_, Arc<Mutex<Settings>>>) -> Result<Settings, ApiError> {
+    let settings = settings.lock().await;
+    Ok(settings.clone())
 }
 
 #[tauri::command]
 pub async fn update_settings(
+    settings: State<'_, Arc<Mutex<Settings>>>,
     app_handle: AppHandle,
     new_settings: UpdateSettingsRequest,
 ) -> Result<(), ApiError> {
-    let mut settings = Settings::init_settings_and_get().await?;
+    let mut settings = settings.lock().await;
+
     let mut restart = false;
     if let Some(database_location) = new_settings.database_location
         && settings.database_location != database_location

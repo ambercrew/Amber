@@ -29,7 +29,7 @@ const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
-    directory: PathBuf,
+    backup_directory: PathBuf,
 }
 
 impl BackupService {
@@ -41,7 +41,7 @@ impl BackupService {
         Self {
             local_configuration_repository,
             backup_repository,
-            directory,
+            backup_directory: directory,
         }
     }
 
@@ -85,7 +85,7 @@ impl BackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let backup_path = self.directory.join(backup_name);
+        let backup_path = self.backup_directory.join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -110,7 +110,7 @@ impl BackupService {
     async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
         let mut current_backups = Vec::new();
 
-        let mut entries = match fs::read_dir(&self.directory).await {
+        let mut entries = match fs::read_dir(&self.backup_directory).await {
             Ok(entries) => entries,
             Err(err) => {
                 return Err(BackupServiceError::CannotListEntriesInFolder(

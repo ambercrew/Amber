@@ -32,7 +32,9 @@ pub async fn run() -> Result<(), String> {
     let settings_directory = get_settings_dir()
         .await
         .expect("Cannot get settings directory!");
-    let settings = &Settings::init_settings_and_get().await.unwrap();
+    let settings = Settings::init_settings_and_get(settings_directory.clone())
+        .await
+        .unwrap();
 
     let repositories_context = SqliteRepositoriesContext::new_with_migration(&format!(
         "sqlite:///{}",
@@ -103,6 +105,8 @@ pub async fn run() -> Result<(), String> {
             );
 
             app.manage(backend_client);
+
+            app.manage(Arc::new(Mutex::new(settings)));
 
             #[cfg(dev)]
             {
