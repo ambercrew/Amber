@@ -97,9 +97,15 @@ impl SqliteRepositoriesContext {
     #[cfg(test)]
     /// Creates an in-memory context with migration for testing.
     pub async fn create_testing_context() -> Self {
-        SqliteRepositoriesContext::new_with_migration("sqlite::memory:")
-            .await
-            .unwrap()
+        use crate::test_utils::create_temp_directory;
+
+        let path = create_temp_directory().await.join("brainy.db");
+        SqliteRepositoriesContext::new_with_migration(&format!(
+            "sqlite:///{}",
+            path.to_string_lossy()
+        ))
+        .await
+        .unwrap()
     }
 }
 

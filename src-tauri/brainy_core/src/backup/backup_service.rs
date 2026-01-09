@@ -157,6 +157,117 @@ impl BackupService {
     }
 }
 
-// TODO:
 #[cfg(test)]
-pub mod tests {}
+pub mod tests {
+    use super::*;
+    use crate::{
+        common::{
+            sqlite_repositories_context::SqliteRepositoriesContext,
+            traits::repositories_context::RepositoriesContext,
+        },
+        test_utils::create_temp_directory,
+    };
+
+    struct TestDependencies {
+        service: BackupService,
+        context: SqliteRepositoriesContext,
+        backup_directory: PathBuf,
+    }
+
+    async fn create_test_dependencies() -> TestDependencies {
+        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let backup_directory = create_temp_directory().await;
+        let service = BackupService::new(
+            context.local_configuration_repository(),
+            context.backup_repository(),
+            backup_directory.clone(),
+        );
+
+        TestDependencies {
+            service,
+            context,
+            backup_directory,
+        }
+    }
+
+    #[tokio::test]
+    pub async fn ensure_backup_no_backups_created_backup() {
+        // Arrange
+
+        let TestDependencies {
+            context,
+            backup_directory,
+            service,
+        } = create_test_dependencies().await;
+
+        // Inserting a random row in the database to see if it exists in the new backup.
+        context
+            .local_configuration_repository()
+            .upsert(&LocalConfiguration {
+                name: "test_configuration".into(),
+                value: "value".into(),
+            })
+            .await
+            .unwrap();
+        context.save_changes().await.unwrap();
+
+        // Act
+
+        service.ensure_backup().await.unwrap();
+
+        // Assert
+
+        let mut dir_entries = fs::read_dir(backup_directory).await.unwrap();
+        let backup = dir_entries.next_entry().await.unwrap().unwrap();
+        let backup_context =
+            SqliteRepositoriesContext::new_with_migration(backup.path().to_str().unwrap())
+                .await
+                .unwrap();
+
+        let configuration = backup_context
+            .local_configuration_repository()
+            .get_by_name("test_configuration")
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(configuration.value, "value");
+    }
+
+    #[tokio::test]
+    pub async fn ensure_backup_two_calls_in_row_only_created_backup_once() {
+        // Arrange
+
+        let TestDependencies {
+            backup_directory,
+            service,
+            context,
+        } = create_test_dependencies().await;
+
+        // Act
+
+        service.ensure_backup().await.unwrap();
+
+        // Assert
+
+        let mut dir_entries = fs::read_dir(backup_directory).await.unwrap();
+        dir_entries.next_entry().await.unwrap().unwrap();
+        assert!(dir_entries.next_entry().await.unwrap().is_none());
+
+        let last_backup_date = DateTime::parse_from_rfc3339(
+            &context
+                .local_configuration_repository()
+                .get_by_name(LAST_BACKUP_DATE_CONFIGURATION_NAME)
+                .await
+                .unwrap()
+                .unwrap()
+                .value,
+        )
+        .unwrap()
+        .with_timezone(&Utc);
+
+        assert!((Utc::now() - last_backup_date) <= Duration::seconds(5));
+    }
+
+    // TODO: test deleting old backups
+}

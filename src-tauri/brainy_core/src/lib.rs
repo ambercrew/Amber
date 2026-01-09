@@ -6,6 +6,8 @@ pub mod file_system;
 pub mod local_configurations;
 pub mod settings;
 pub mod sync;
+#[cfg(test)]
+pub mod test_utils;
 
 pub type Guid = uuid::Uuid;
 

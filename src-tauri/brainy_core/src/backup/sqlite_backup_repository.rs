@@ -21,7 +21,7 @@ impl SqliteBackupRepository {
 #[async_trait]
 impl BackupRepository for SqliteBackupRepository {
     async fn create_backup(&self, path: &str) -> Result<(), RepositoryError> {
-        let result = sqlx::query!("VACUUM INTO $1", path)
+        let result = sqlx::query!("VACUUM main INTO $1", path)
             .execute(&*self.pool)
             .await;
 
