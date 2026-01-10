@@ -8,12 +8,12 @@ import {
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { readImage } from "@tauri-apps/plugin-clipboard-manager";
 import { $createImageNode } from "./ImageNode";
+import { QUALITY_THRESHOLD_IN_PIXELS_WHEN_PASTING } from "../../constants";
 
 export function ImagePlugin() {
 	const [editor] = useLexicalComposerContext();
 
 	useEffect(() => {
-		// TODO: compress image
 		return editor.registerCommand(
 			PASTE_COMMAND,
 			() => {
@@ -37,8 +37,17 @@ export function ImagePlugin() {
 
 						ctx.putImageData(imageData, 0, 0);
 
-						// Convert canvas to base64 PNG.
-						const base64data = canvas.toDataURL("image/png");
+						// Choosing quality for the image for compression.
+						let quality =
+							QUALITY_THRESHOLD_IN_PIXELS_WHEN_PASTING /
+							Math.max(size.width, size.height);
+						quality = Math.min(quality, 1);
+
+						// Convert canvas to base64.
+						const base64data = canvas.toDataURL(
+							"image/jpeg",
+							quality,
+						);
 
 						editor.update(() => {
 							const selection = $getSelection();
