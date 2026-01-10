@@ -25,6 +25,8 @@ import { FloatingMenuButtonProps } from "./Plugins/FloatingMenuPlugin/FloatingMe
 import DefaultShortcutPlugin from "./Plugins/DefaultShortcutsPlugin";
 import ListCommandsPluginHandler from "./Plugins/ListCommandsPluginHandler/ListCommandsPluginHandler";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
+import { ImagePlugin } from "./Plugins/ImagePlugin/ImagePlugin";
+import ImageNode from "./Plugins/ImagePlugin/ImageNode";
 
 interface Props {
 	content: string;
@@ -96,7 +98,7 @@ function Editor({
 	const initialConfig: InitialConfigType = {
 		namespace: "BrainyEditor",
 		onError: console.error,
-		nodes: [ListNode, ListItemNode, ...(extraNodes ?? [])],
+		nodes: [ListNode, ListItemNode, ImageNode, ...(extraNodes ?? [])],
 		theme: {
 			text: {
 				// Global class names in index.css.
@@ -144,6 +146,7 @@ function Editor({
 			{autofocus && <AutoFocusPlugin />}
 			<ListPlugin />
 			<ListCommandsPluginHandler />
+			<ImagePlugin />
 			<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
 			<DefaultShortcutPlugin />
 			{plugins}

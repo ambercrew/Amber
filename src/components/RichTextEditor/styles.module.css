@@ -5,6 +5,7 @@
 	transition: all var(--default-transition-time);
 	word-wrap: break-word;
 	word-break: break-word;
+	overflow: auto;
 
 	&:hover {
 		border-color: var(--hover-border-color);
@@ -70,4 +71,24 @@
 	height: 1.6rem;
 	border-right: var(--default-border-width) solid var(--text-color);
 	margin: 0 4px;
+}
+
+.image-container {
+	position: relative;
+	display: inline-block;
+
+	& .resize-circle {
+		display: none;
+
+		position: absolute;
+		width: var(--spacing-4);
+		height: var(--spacing-4);
+		background-color: var(--text-color);
+		border: var(--default-border-width) solid var(--border-color);
+	}
+
+	&:hover .resize-circle,
+	&:focus-within .resize-circle {
+		display: block;
+	}
 }

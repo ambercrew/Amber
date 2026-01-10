@@ -43,7 +43,8 @@ pub async fn run() -> Result<(), String> {
     .await
     .unwrap();
 
-    let mut tauri_builder = tauri::Builder::default();
+    let mut tauri_builder =
+        tauri::Builder::default().plugin(tauri_plugin_clipboard_manager::init());
 
     let backend_url = Url::parse("http://localhost:5078").unwrap();
     let backend_client =
