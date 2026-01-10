@@ -16,6 +16,7 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 	}
 
 	static clone(node: ImageNode) {
+		// TODO: error on start
 		const clone = $createImageNode({
 			src: node.src,
 			width: node.width,

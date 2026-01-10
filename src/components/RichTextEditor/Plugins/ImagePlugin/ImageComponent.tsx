@@ -46,25 +46,32 @@ export default function ImageComponent({
 		let newHeight = startPos.current.height;
 
 		const onMouseMove = (moveEvent: MouseEvent) => {
-			const deltaX = moveEvent.clientX - startPos.current.x;
-			const deltaY = moveEvent.clientY - startPos.current.y;
+			let deltaX = moveEvent.clientX - startPos.current.x;
+			let deltaY = moveEvent.clientY - startPos.current.y;
 
-			if (direction === "se") {
-				newWidth = startPos.current.width + deltaX;
-				newHeight = startPos.current.height + deltaY;
-			} else if (direction === "sw") {
-				newWidth = startPos.current.width - deltaX;
-				newHeight = startPos.current.height + deltaY;
+			if (direction === "sw") {
+				deltaX *= -1;
 			} else if (direction === "ne") {
-				newWidth = startPos.current.width + deltaX;
-				newHeight = startPos.current.height - deltaY;
+				deltaY *= -1;
 			} else if (direction === "nw") {
-				newWidth = startPos.current.width - deltaX;
-				newHeight = startPos.current.height - deltaY;
+				deltaX *= -1;
+				deltaY *= -1;
 			}
 
-			newWidth = Math.max(50, Math.min(800, newWidth));
-			newHeight = Math.max(50, Math.min(800, newHeight));
+			const scaleFactor =
+				1 +
+				(deltaX / startPos.current.width +
+					deltaY / startPos.current.height) /
+					2;
+
+			newWidth = Math.max(12, startPos.current.width * scaleFactor);
+			newHeight = Math.max(12, startPos.current.height * scaleFactor);
+
+			// Making sure that aspect ratio is still the same after clipping to
+			// minimum width and height.
+			const aspectRatio =
+				startPos.current.width / startPos.current.height;
+			newHeight = newWidth / aspectRatio;
 
 			setCurrentWidth(newWidth);
 			setCurrentHeight(newHeight);
@@ -76,7 +83,6 @@ export default function ImageComponent({
 			editor.update(() => {
 				const node = editor.getEditorState()._nodeMap.get(nodeKey);
 				if ($isImageNode(node)) {
-					console.log("in here", newWidth, newHeight);
 					node.setWidthAndHeight(newWidth, newHeight);
 				}
 			});
@@ -88,7 +94,6 @@ export default function ImageComponent({
 		document.addEventListener("mouseup", onMouseUp);
 	};
 
-	// TODO: maintain image ratio
 	return (
 		<div
 			className={styles.imageContainer}
