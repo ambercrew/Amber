@@ -144,7 +144,7 @@ impl BackupService {
             };
         }
 
-        if current_backups.len() >= MAX_NUMBER_OF_BACKUPS {
+        if current_backups.len() > MAX_NUMBER_OF_BACKUPS {
             current_backups.sort_by_key(|a| a.0);
             log::info!(
                 "Deleting old backup with path {}",
@@ -175,7 +175,15 @@ pub mod tests {
     }
 
     async fn create_test_dependencies() -> TestDependencies {
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let path = create_temp_directory().await.join("brainy.db");
+        // Must use database that is saved on disk for backups to work.
+        let context = SqliteRepositoriesContext::new_with_migration(&format!(
+            "sqlite:///{}",
+            path.to_string_lossy()
+        ))
+        .await
+        .unwrap();
+
         let backup_directory = create_temp_directory().await;
         let service = BackupService::new(
             context.local_configuration_repository(),
@@ -269,5 +277,90 @@ pub mod tests {
         assert!((Utc::now() - last_backup_date) <= Duration::seconds(5));
     }
 
-    // TODO: test deleting old backups
+    #[tokio::test]
+    pub async fn ensure_backup_multiple_files_deleted_oldest_file() {
+        // Arrange
+
+        let TestDependencies {
+            context,
+            backup_directory,
+            service,
+        } = create_test_dependencies().await;
+
+        let mut oldest_backup_path = None;
+
+        for i in 0..MAX_NUMBER_OF_BACKUPS {
+            let path = backup_directory.join(format!(
+                "{}.backup",
+                Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
+                    .unwrap()
+                    .format(DATETIME_FORMAT_IN_FILE_NAMES)
+            ));
+
+            context
+                .backup_repository()
+                .create_backup(&path.to_string_lossy())
+                .await
+                .unwrap();
+
+            if oldest_backup_path.is_none() {
+                oldest_backup_path = Some(path);
+            }
+        }
+
+        // Act
+
+        service.ensure_backup().await.unwrap();
+
+        // Assert
+
+        assert!(!oldest_backup_path.unwrap().exists());
+    }
+
+    #[tokio::test]
+    pub async fn ensure_backup_other_files_than_backup_did_not_count_them_as_backups() {
+        // Arrange
+
+        let TestDependencies {
+            context,
+            backup_directory,
+            service,
+        } = create_test_dependencies().await;
+
+        let mut oldest_backup_path = None;
+
+        for i in 0..MAX_NUMBER_OF_BACKUPS - 1 {
+            let path = backup_directory.join(format!(
+                "{}.backup",
+                Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
+                    .unwrap()
+                    .format(DATETIME_FORMAT_IN_FILE_NAMES)
+            ));
+
+            context
+                .backup_repository()
+                .create_backup(&path.to_string_lossy())
+                .await
+                .unwrap();
+
+            if oldest_backup_path.is_none() {
+                oldest_backup_path = Some(path);
+            }
+        }
+
+        fs::write(backup_directory.join("settings.json"), "1234")
+            .await
+            .unwrap();
+        fs::write(backup_directory.join("test.backup"), "1234")
+            .await
+            .unwrap();
+
+        // Act
+
+        service.ensure_backup().await.unwrap();
+
+        // Assert
+
+        assert!(oldest_backup_path.unwrap().exists());
+    }
 }
