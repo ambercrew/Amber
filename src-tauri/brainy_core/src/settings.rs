@@ -48,7 +48,6 @@ const SETTINGS_FILE_NAME: &str = "settings.dev.json";
 
 const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 
-// TODO: unit test
 impl Settings {
     /// Initializes the settings if not found and then return it, the settings
     /// is automatically saved into a file if not found.
@@ -109,5 +108,69 @@ pub async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
         Err(err) => Err(SettingsError::CannotCreateSettingsDirectory(
             err.to_string(),
         )),
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use crate::test_utils::create_temp_directory;
+
+    use super::*;
+
+    #[tokio::test]
+    pub async fn init_settings_and_get_new_settings_created_and_saved_to_disk() {
+        // Arrange
+
+        let directory = create_temp_directory().await;
+
+        // Act
+
+        Settings::init_settings_and_get(directory.clone())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(directory.join(SETTINGS_FILE_NAME).exists());
+
+        let mut file_content = String::new();
+        File::open(directory.join(SETTINGS_FILE_NAME))
+            .await
+            .unwrap()
+            .read_to_string(&mut file_content)
+            .await
+            .unwrap();
+
+        let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
+        assert_eq!(settings.settings_dir, directory);
+        assert_eq!(
+            settings.database_location,
+            directory.join(DEFAULT_DATABASE_FILE_NAME)
+        );
+        assert_eq!(settings.theme, Theme::FollowSystem);
+        assert_eq!(settings.zoom_percentage, 100f64);
+        assert!(settings.auto_sync);
+    }
+
+    #[tokio::test]
+    pub async fn init_settings_and_get_existing_setting_read_from_disk() {
+        // Arrange
+
+        let directory = create_temp_directory().await;
+        let mut settings = Settings::init_settings_and_get(directory.clone())
+            .await
+            .unwrap();
+        settings.zoom_percentage = 1f64;
+        settings.save_to_disk().await.unwrap();
+
+        // Act
+
+        let actual = Settings::init_settings_and_get(directory.clone())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(actual.zoom_percentage, 1f64);
     }
 }
