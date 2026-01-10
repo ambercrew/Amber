@@ -5,7 +5,6 @@
 	transition: all var(--default-transition-time);
 	word-wrap: break-word;
 	word-break: break-word;
-	overflow: auto;
 
 	&:hover {
 		border-color: var(--hover-border-color);
@@ -76,6 +75,10 @@
 .image-container {
 	position: relative;
 	display: inline-block;
+
+	& img {
+		max-width: 100%;
+	}
 
 	--resize-circle-size: 12px;
 	--move-by: calc(var(--resize-circle-size) / -2);
