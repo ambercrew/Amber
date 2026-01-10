@@ -99,17 +99,19 @@ export default function ImageComponent({
 			className={styles.imageContainer}
 			ref={containerRef}
 			onClick={() => setShowResize(true)}>
-			<img
-				ref={imgRef}
-				src={src}
-				style={{
-					width: `${currentWidth}px`,
-					height: `${currentHeight}px`,
-					display: "block",
-					cursor: isResizing ? "nwse-resize" : "default",
-				}}
-				draggable={false}
-			/>
+			{src && (
+				<img
+					ref={imgRef}
+					src={src}
+					style={{
+						width: `${currentWidth}px`,
+						height: `${currentHeight}px`,
+						display: "block",
+						cursor: isResizing ? "nwse-resize" : "default",
+					}}
+					draggable={false}
+				/>
+			)}
 			{showResize && (
 				<>
 					<div
