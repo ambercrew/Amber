@@ -2,7 +2,14 @@ import { JSX } from "react";
 import { DecoratorNode, NodeKey, DOMExportOutput, LexicalNode } from "lexical";
 import ImageComponent from "./ImageComponent";
 
-// TODO: copy and paste from another cell does not work
+interface SerializedImageNode {
+	src: string;
+	width: number;
+	height: number;
+	type: "image";
+	version: 1;
+}
+
 export default class ImageNode extends DecoratorNode<JSX.Element> {
 	src: string;
 	width: number;
@@ -27,8 +34,6 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 
 	createDOM() {
 		const div = document.createElement("div");
-		div.style.display = "inline-block";
-		div.style.position = "relative";
 		return div;
 	}
 
@@ -59,9 +64,9 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 
 	exportDOM(): DOMExportOutput {
 		const element = document.createElement("img");
-		element.src = this.src;
-		element.width = this.width;
-		element.height = this.height;
+		element.setAttribute("src", this.src);
+		element.setAttribute("width", String(this.width));
+		element.setAttribute("height", String(this.height));
 		return { element };
 	}
 
@@ -86,6 +91,21 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 			},
 			// This is necessary due to the return type of MarkNode super class.
 		} as unknown as null;
+	}
+
+	exportJSON(): SerializedImageNode {
+		return {
+			src: this.src,
+			width: this.width,
+			height: this.height,
+			type: "image",
+			version: 1,
+		};
+	}
+
+	static importJSON(serializedNode: SerializedImageNode): ImageNode {
+		const { src, width, height } = serializedNode;
+		return $createImageNode({ src, width, height });
 	}
 
 	static getType() {
