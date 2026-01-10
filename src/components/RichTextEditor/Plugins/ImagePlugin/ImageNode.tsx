@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { DecoratorNode, NodeKey, DOMExportOutput, LexicalNode } from "lexical";
 import ImageComponent from "./ImageComponent";
 
+// TODO: copy and paste from another cell does not work
 export default class ImageNode extends DecoratorNode<JSX.Element> {
 	src: string;
 	width: number;

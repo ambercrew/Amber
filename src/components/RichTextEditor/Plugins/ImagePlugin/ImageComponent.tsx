@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { NodeKey } from "lexical";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $isImageNode } from "./ImageNode";
+import useOutsideClick from "../../../../hooks/useOutsideClick";
 
 export default function ImageComponent({
 	src,
@@ -20,7 +21,13 @@ export default function ImageComponent({
 	const [isResizing, setIsResizing] = useState(false);
 	const [currentWidth, setCurrentWidth] = useState(width);
 	const [currentHeight, setCurrentHeight] = useState(height);
+	const [showResize, setShowResize] = useState(false);
 	const startPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
+	const containerRef = useRef<HTMLDivElement | null>(null);
+
+	useOutsideClick(containerRef as React.RefObject<HTMLElement>, () =>
+		setShowResize(false),
+	);
 
 	const onResizeStart = (
 		e: React.MouseEvent,
@@ -81,9 +88,12 @@ export default function ImageComponent({
 		document.addEventListener("mouseup", onMouseUp);
 	};
 
-	// TODO: maintain image ratio, top and right things on the style should be consistent with spacing
+	// TODO: maintain image ratio
 	return (
-		<div className={styles.imageContainer}>
+		<div
+			className={styles.imageContainer}
+			ref={containerRef}
+			onClick={() => setShowResize(true)}>
 			<img
 				ref={imgRef}
 				src={src}
@@ -95,43 +105,26 @@ export default function ImageComponent({
 				}}
 				draggable={false}
 			/>
-			{/* Resize handles */}
-			<div
-				style={{
-					right: -4,
-					bottom: -4,
-					cursor: "nwse-resize",
-				}}
-				className={styles.resizeCircle}
-				onMouseDown={e => onResizeStart(e, "se")}
-			/>
-			<div
-				style={{
-					cursor: "nesw-resize",
-					left: -4,
-					bottom: -4,
-				}}
-				className={styles.resizeCircle}
-				onMouseDown={e => onResizeStart(e, "sw")}
-			/>
-			<div
-				style={{
-					right: -4,
-					top: -4,
-					cursor: "nesw-resize",
-				}}
-				className={styles.resizeCircle}
-				onMouseDown={e => onResizeStart(e, "ne")}
-			/>
-			<div
-				style={{
-					left: -4,
-					top: -4,
-					cursor: "nwse-resize",
-				}}
-				className={styles.resizeCircle}
-				onMouseDown={e => onResizeStart(e, "nw")}
-			/>
+			{showResize && (
+				<>
+					<div
+						className={`${styles.resizeCircle} ${styles.bottomRight}`}
+						onMouseDown={e => onResizeStart(e, "se")}
+					/>
+					<div
+						className={`${styles.resizeCircle} ${styles.bottomLeft}`}
+						onMouseDown={e => onResizeStart(e, "sw")}
+					/>
+					<div
+						className={`${styles.resizeCircle} ${styles.topRight}`}
+						onMouseDown={e => onResizeStart(e, "ne")}
+					/>
+					<div
+						className={`${styles.resizeCircle} ${styles.topLeft}`}
+						onMouseDown={e => onResizeStart(e, "nw")}
+					/>
+				</>
+			)}
 		</div>
 	);
 }

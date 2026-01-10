@@ -77,18 +77,39 @@
 	position: relative;
 	display: inline-block;
 
-	& .resize-circle {
-		display: none;
+	--resize-circle-size: 12px;
+	--move-by: calc(var(--resize-circle-size) / -2);
 
+	& .resize-circle {
 		position: absolute;
-		width: var(--spacing-4);
-		height: var(--spacing-4);
+		width: var(--resize-circle-size);
+		height: var(--resize-circle-size);
 		background-color: var(--text-color);
 		border: var(--default-border-width) solid var(--border-color);
+		border-radius: var(--default-border-radius);
 	}
 
-	&:hover .resize-circle,
-	&:focus-within .resize-circle {
-		display: block;
+	& .bottom-right {
+		right: var(--move-by);
+		bottom: var(--move-by);
+		cursor: nwse-resize;
+	}
+
+	& .bottom-left {
+		left: var(--move-by);
+		bottom: var(--move-by);
+		cursor: nesw-resize;
+	}
+
+	& .top-right {
+		right: var(--move-by);
+		top: var(--move-by);
+		cursor: nesw-resize;
+	}
+
+	& .top-left {
+		left: var(--move-by);
+		top: var(--move-by);
+		cursor: nwse-resize;
 	}
 }
