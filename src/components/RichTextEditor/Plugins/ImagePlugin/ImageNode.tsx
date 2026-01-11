@@ -34,6 +34,9 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 
 	createDOM() {
 		const div = document.createElement("div");
+		// This two properties are necessary to make the image selectable.
+		div.style.display = "inline-block";
+		div.style.position = "relative";
 		return div;
 	}
 
