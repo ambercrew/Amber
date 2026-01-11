@@ -29,7 +29,11 @@ export function ImagePlugin() {
 					}
 				}
 
-				if (!anyImage) return false;
+				// WebkitGtk on linux always gives an empty list of files and items
+				// in the event, so we should always call readImage on it.
+				const isLinux = navigator.userAgent.includes("Linux");
+
+				if (!anyImage && !isLinux) return false;
 
 				readImage()
 					.then(async img => {
@@ -79,7 +83,7 @@ export function ImagePlugin() {
 						/* No need to do anything on error, since they only fire when the content is not an image. */
 					});
 
-				return true;
+				return anyImage;
 			},
 			COMMAND_PRIORITY_HIGH,
 		);
