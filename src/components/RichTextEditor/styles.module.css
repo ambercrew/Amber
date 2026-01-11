@@ -23,6 +23,7 @@
 	min-height: calc(1.4rem + 4 * var(--spacing-1));
 	padding: var(--spacing-1) var(--spacing-4);
 	outline: none;
+	overflow: auto;
 
 	ul,
 	ol {
@@ -76,8 +77,8 @@
 	position: relative;
 	display: inline-block;
 
-	& img {
-		max-width: 100%;
+	&.selected {
+		outline: var(--default-outline-width) dashed var(--text-color);
 	}
 
 	--resize-circle-size: 12px;

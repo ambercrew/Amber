@@ -96,7 +96,7 @@ export default function ImageComponent({
 
 	return (
 		<div
-			className={styles.imageContainer}
+			className={`${styles.imageContainer} ${showResize && styles.selected}`}
 			ref={containerRef}
 			onClick={() => setShowResize(true)}>
 			{src && (
