@@ -16,7 +16,21 @@ export function ImagePlugin() {
 	useEffect(() => {
 		return editor.registerCommand(
 			PASTE_COMMAND,
-			() => {
+			(e: ClipboardEvent) => {
+				let anyImage = false;
+				for (const item of e.clipboardData?.items ?? []) {
+					if (item.type.startsWith("image/")) {
+						anyImage = true;
+					}
+				}
+				for (const file of e.clipboardData?.files ?? []) {
+					if (file.type.startsWith("image/")) {
+						anyImage = true;
+					}
+				}
+
+				if (!anyImage) return false;
+
 				readImage()
 					.then(async img => {
 						const rgba = await img.rgba();
@@ -65,7 +79,7 @@ export function ImagePlugin() {
 						/* No need to do anything on error, since they only fire when the content is not an image. */
 					});
 
-				return false;
+				return true;
 			},
 			COMMAND_PRIORITY_HIGH,
 		);

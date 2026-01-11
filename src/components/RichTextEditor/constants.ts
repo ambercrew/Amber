@@ -2,4 +2,4 @@
  * when pasting. Higher value indicate higher quality, while smaller value
  * indicates lower quality.
  */
-export const QUALITY_THRESHOLD_IN_PIXELS_WHEN_PASTING = 720;
+export const QUALITY_THRESHOLD_IN_PIXELS_WHEN_PASTING = 600;
