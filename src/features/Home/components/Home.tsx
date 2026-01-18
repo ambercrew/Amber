@@ -104,7 +104,12 @@ function Home({ onStudyClick, onError }: Props) {
 				</div>
 				{rootFolder &&
 					rootFolder.files.length + rootFolder.subfolders.length ===
-						0 && <p>Create a file to see it in the review tree.</p>}
+						0 && (
+						<div className={styles.row}>
+							<p>Create a file to see it in the review tree.</p>
+						</div>
+					)}
+
 				{rootFolder && (
 					<ReviewTree
 						folder={rootFolder}

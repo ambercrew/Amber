@@ -22,8 +22,9 @@
 
 .header {
 	border-bottom: var(--default-border-width) solid var(--border-color);
-	margin: var(--spacing-4);
+	margin: var(--spacing-4) 0;
 	font-weight: 400;
+	min-width: fit-content;
 }
 
 .row {
@@ -55,8 +56,8 @@
 
 	& .columns {
 		display: grid;
-		grid-template-columns: repeat(3, 5rem);
-		gap: 1rem;
+		grid-template-columns: repeat(3, 6rem);
+		gap: var(--spacing-4);
 		text-align: center;
 	}
 
