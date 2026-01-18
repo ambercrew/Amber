@@ -1,6 +1,6 @@
 [package]
 name = "Brainy"
-version = "1.1.0"
+version = "1.0.0"
 description = "Brainy"
 authors = ["Rami Alkawadri"]
 edition = "2024"
