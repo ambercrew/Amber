@@ -4,6 +4,7 @@ use lol_html::html_content::Element;
 use lol_html::{RewriteStrSettings, element, rewrite_str};
 use thiserror::Error;
 
+use crate::file_system::value_objects::fsrs_profile_choice::FsrsProfileChoice;
 use crate::{
     Guid,
     cells::{
@@ -70,7 +71,7 @@ impl FileSystemService {
             });
         }
 
-        let folder = Folder::new(None, parent_id, name);
+        let folder = Folder::new(None, parent_id, name, FsrsProfileChoice::Inherit);
         self.folder_repository.create(&folder).await?;
 
         log::info!("Created folder with id {}", folder.id());
@@ -185,7 +186,7 @@ impl FileSystemService {
             });
         }
 
-        let file = File::new(None, parent_id, name);
+        let file = File::new(None, parent_id, name, FsrsProfileChoice::Inherit);
         self.file_repository.create(&file).await?;
         log::info!("Created file with id {}", file.id());
 
@@ -412,6 +413,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -466,6 +468,7 @@ pub mod tests {
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
                 "folder 1".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -475,6 +478,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "folder 2".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -511,6 +515,7 @@ pub mod tests {
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -551,6 +556,7 @@ pub mod tests {
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -592,6 +598,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -601,6 +608,7 @@ pub mod tests {
                 Some(child_folder_id),
                 Some(parent_folder_id),
                 "nested folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -637,6 +645,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -646,6 +655,7 @@ pub mod tests {
                 Some(child_folder_id1),
                 Some(parent_folder_id),
                 "nested folder 1".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -655,6 +665,7 @@ pub mod tests {
                 Some(child_folder_id2),
                 Some(child_folder_id1),
                 "nested folder 2".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -691,6 +702,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -700,6 +712,7 @@ pub mod tests {
                 Some(child_folder_id1),
                 Some(parent_folder_id),
                 "child folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -709,6 +722,7 @@ pub mod tests {
                 Some(child_folder_id2),
                 Some(ROOT_FOLDER_ID),
                 "child folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -747,6 +761,7 @@ pub mod tests {
                 Some(parent_folder_id1),
                 Some(ROOT_FOLDER_ID),
                 "parent folder 1".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -756,6 +771,7 @@ pub mod tests {
                 Some(parent_folder_id2),
                 Some(ROOT_FOLDER_ID),
                 "parent folder 2".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -765,6 +781,7 @@ pub mod tests {
                 Some(child_folder_id),
                 Some(parent_folder_id1),
                 "child folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -800,6 +817,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -836,6 +854,7 @@ pub mod tests {
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
                 "file 1".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -845,6 +864,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "file 2".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -881,6 +901,7 @@ pub mod tests {
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -917,6 +938,7 @@ pub mod tests {
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -955,6 +977,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -964,6 +987,7 @@ pub mod tests {
                 Some(child_file_id1),
                 Some(parent_folder_id),
                 "child file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -973,6 +997,7 @@ pub mod tests {
                 Some(child_file_id2),
                 Some(ROOT_FOLDER_ID),
                 "child file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1011,6 +1036,7 @@ pub mod tests {
                 Some(parent_folder_id1),
                 Some(ROOT_FOLDER_ID),
                 "parent folder 1".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1020,6 +1046,7 @@ pub mod tests {
                 Some(parent_folder_id2),
                 Some(ROOT_FOLDER_ID),
                 "parent folder 2".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1029,6 +1056,7 @@ pub mod tests {
                 Some(child_file_id),
                 Some(parent_folder_id1),
                 "child file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1068,6 +1096,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1077,6 +1106,7 @@ pub mod tests {
                 Some(nested_folder_id),
                 Some(parent_folder_id),
                 "nested folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1086,6 +1116,7 @@ pub mod tests {
                 Some(file_id),
                 Some(nested_folder_id),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1163,6 +1194,7 @@ pub mod tests {
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
                 "parent folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1172,6 +1204,7 @@ pub mod tests {
                 Some(nested_folder_id),
                 Some(parent_folder_id),
                 "nested folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1181,6 +1214,7 @@ pub mod tests {
                 Some(file_id),
                 Some(nested_folder_id),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();

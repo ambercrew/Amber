@@ -24,6 +24,9 @@ use crate::{
         sqlite_folder_repository::SqliteFolderRepository,
         traits::{file_repository::FileRepository, folder_repository::FolderRepository},
     },
+    fsrs::entities::repositories::{
+        sqlite_fsrs_repository::SqliteFsrsRepository, traits::fsrs_repository::FsrsRepository,
+    },
     local_configurations::repositories::{
         sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         traits::local_configuration_repository::LocalConfigurationRepository,
@@ -43,6 +46,7 @@ pub struct SqliteRepositoriesContext {
     local_configuration_repository: Arc<SqliteLocalConfigurationRepository>,
     sync_repository: Arc<SqliteSyncRepository>,
     backup_repository: Arc<SqliteBackupRepository>,
+    fsrs_repository: Arc<SqliteFsrsRepository>,
 }
 
 #[derive(Debug, Error)]
@@ -84,6 +88,7 @@ impl SqliteRepositoriesContext {
             )),
             sync_repository: Arc::new(SqliteSyncRepository::new(arc_pool.clone(), tx.clone())),
             backup_repository: Arc::new(SqliteBackupRepository::new(arc_pool.clone())),
+            fsrs_repository: Arc::new(SqliteFsrsRepository::new(arc_pool.clone(), tx.clone())),
         })
     }
 
@@ -94,7 +99,7 @@ impl SqliteRepositoriesContext {
         std::mem::replace(&mut *guard, new_tx)
     }
 
-    #[cfg(test)]
+    #[cfg(any(test, feature = "test-utils"))]
     /// Creates an in-memory context with migration for testing.
     pub async fn create_testing_context() -> Self {
         SqliteRepositoriesContext::new_with_migration("sqlite::memory:")
@@ -131,6 +136,10 @@ impl RepositoriesContext for SqliteRepositoriesContext {
 
     fn backup_repository(&self) -> Arc<dyn BackupRepository> {
         self.backup_repository.clone()
+    }
+
+    fn fsrs_repository(&self) -> Arc<dyn FsrsRepository> {
+        self.fsrs_repository.clone()
     }
 
     async fn save_changes(&self) -> Result<(), RepositoriesContextError> {

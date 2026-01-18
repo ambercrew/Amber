@@ -20,7 +20,7 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 					)}
 				</p>
 				<button
-					className={styles.againButton}
+					className="red"
 					onClick={() => onClick(Rating.Again)}
 					disabled={disabled}
 					title="(1)">
@@ -65,7 +65,7 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 					)}
 				</p>
 				<button
-					className={styles.easyButton}
+					className="primary"
 					onClick={() => onClick(Rating.Easy)}
 					disabled={disabled}
 					title="(4)">

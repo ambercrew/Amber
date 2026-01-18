@@ -24,7 +24,13 @@ export const FORM_HEADER_ICON_SIZE = 1.6;
 export function FormHeader({ icon, title }: FormHeaderProps) {
 	return (
 		<div className={`row ${styles.header}`}>
-			{icon && <Icon path={icon} size={FORM_HEADER_ICON_SIZE} />}
+			{icon && (
+				<Icon
+					path={icon}
+					size={FORM_HEADER_ICON_SIZE}
+					className={styles.icon}
+				/>
+			)}
 			<p>{title}</p>
 		</div>
 	);

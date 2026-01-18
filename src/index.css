@@ -55,6 +55,9 @@ body {
 	--side-bar-background-color: var(--surface-background-color-tint-10);
 
 	--red-color: #e71d36;
+	--red-color-shade-10: #db172f;
+	--red-color-shade-20: #ca152c;
+
 	--green-color: #0faa77;
 
 	--new-color: var(--primary-color-shade-20);
@@ -123,6 +126,7 @@ body.no-transition * {
 }
 
 input::placeholder,
+textarea::placeholder,
 button:disabled {
 	color: var(--placeholder-color);
 }
@@ -130,9 +134,16 @@ button:disabled {
 button,
 button:hover,
 input,
+textarea,
 select,
 a {
 	color: inherit;
+}
+
+select {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 a,
@@ -166,6 +177,7 @@ button.link:active {
 
 .input,
 input,
+textarea,
 select {
 	border-radius: var(--default-border-radius);
 	outline: none;
@@ -184,12 +196,14 @@ input[type="checkbox"] {
 
 .input:hover,
 input:hover,
+textarea:hover,
 select:hover {
 	border-color: var(--hover-border-color);
 }
 
 .input:focus,
 input:focus,
+textarea:focus,
 select:focus {
 	border-color: var(--primary-color);
 }
@@ -252,7 +266,12 @@ button.primary:not(:disabled):focus {
 	box-shadow: var(--default-box-shadow);
 }
 
+button.primary:hover {
+	opacity: 0.9;
+}
+
 button.primary:active {
+	opacity: 1;
 	background-color: var(--primary-color-shade-10);
 }
 
@@ -305,6 +324,14 @@ button.grey-button:focus {
 button.red {
 	background-color: var(--red-color);
 	color: #fff;
+}
+
+button.red:hover {
+	background-color: var(--red-color-shade-10);
+}
+
+button.red:active {
+	background-color: var(--red-color-shade-20);
 }
 
 button.red:focus {
@@ -384,4 +411,9 @@ h1 {
 
 ::-webkit-scrollbar-thumb:active {
 	background: var(--primary-color-shade-10);
+}
+
+::selection {
+	background-color: var(--primary-color);
+	color: #fff;
 }

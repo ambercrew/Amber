@@ -39,6 +39,7 @@ impl FolderRepository for SqliteFolderRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM folders
             WHERE id = $1"#,
@@ -61,6 +62,7 @@ impl FolderRepository for SqliteFolderRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM folders"#,
         )
@@ -81,6 +83,7 @@ impl FolderRepository for SqliteFolderRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM folders
             WHERE parent_id = $1"#,
@@ -106,6 +109,7 @@ impl FolderRepository for SqliteFolderRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM folders
             WHERE modified_date >= datetime($1)"#,
@@ -149,6 +153,7 @@ impl FolderRepository for SqliteFolderRepository {
         let parent_id = folder.parent_id();
         let created_date = folder.created_date();
         let modified_date = folder.modified_date();
+        let fsrs_profile_choice = Option::<Guid>::from(folder.fsrs_profile_choice());
 
         let result = sqlx::query!(
             "INSERT INTO folders(
@@ -156,13 +161,15 @@ impl FolderRepository for SqliteFolderRepository {
                 created_date,
                 modified_date,
                 name,
-                parent_id)
-            VALUES ($1, datetime($2), datetime($3), $4, $5)",
+                parent_id,
+                fsrs_profile_id)
+            VALUES ($1, datetime($2), datetime($3), $4, $5, $6)",
             folder_id,
             created_date,
             modified_date,
             folder_name,
-            parent_id
+            parent_id,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -182,19 +189,23 @@ impl FolderRepository for SqliteFolderRepository {
         let parent_id = folder.parent_id();
         let created_date = folder.created_date();
         let modified_date = folder.modified_date();
+        let fsrs_profile_choice = Option::<Guid>::from(folder.fsrs_profile_choice());
+
         let result = sqlx::query!(
             "UPDATE folders SET
                 id = $1,
                 created_date = datetime($2),
                 modified_date = datetime($3),
                 name = $4,
-                parent_id = $5
+                parent_id = $5,
+                fsrs_profile_id = $6
             WHERE id = $1",
             folder_id,
             created_date,
             modified_date,
             folder_name,
-            parent_id
+            parent_id,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -217,23 +228,32 @@ impl FolderRepository for SqliteFolderRepository {
         let folder_name = folder.name().to_string();
         let parent_id = folder.parent_id();
         let created_date = folder.created_date();
+        let fsrs_profile_choice = Option::<Guid>::from(folder.fsrs_profile_choice());
+
         let result = sqlx::query!(
             r#"INSERT INTO folders(
                 id,
                 name,
                 parent_id,
                 modified_date,
-                created_date)
-            VALUES ($1, $2, $3, datetime($4), datetime($5))
+                created_date,
+                fsrs_profile_id)
+            VALUES ($1, $2, $3, datetime($4), datetime($5), $6)
             ON CONFLICT(id) DO UPDATE
-            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4), created_date = datetime($5)
+            SET id = $1,
+                name = $2,
+                parent_id = $3,
+                modified_date = datetime($4),
+                created_date = datetime($5),
+                fsrs_profile_id = $6
             WHERE modified_date <= datetime($4)
             "#,
             folder_id,
             folder_name,
             parent_id,
             modified_date,
-            created_date
+            created_date,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -270,6 +290,7 @@ mod folder_row {
         pub modified_date: DateTime<Utc>,
         pub parent_id: Option<Guid>,
         pub name: String,
+        pub fsrs_profile_id: Option<Guid>,
     }
 
     impl From<FolderRow> for Folder {
@@ -280,6 +301,7 @@ mod folder_row {
                 value.modified_date,
                 value.parent_id,
                 FileSystemItemName::new_unchecked(value.name),
+                value.fsrs_profile_id.into(),
             )
         }
     }
@@ -293,7 +315,9 @@ pub mod tests {
             sqlite_repositories_context::SqliteRepositoriesContext,
             traits::repositories_context::RepositoriesContext,
         },
-        file_system::entities::file::File,
+        file_system::{
+            entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        },
     };
 
     use super::*;
@@ -310,6 +334,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -342,6 +367,7 @@ pub mod tests {
                 Some(parent_id),
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -351,6 +377,7 @@ pub mod tests {
                 None,
                 Some(parent_id),
                 "sub folder".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -360,6 +387,7 @@ pub mod tests {
                 None,
                 Some(parent_id),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();

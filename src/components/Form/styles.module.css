@@ -7,6 +7,17 @@
 	font-size: 2.2rem;
 	font-weight: 600;
 	gap: var(--spacing-4);
+
+	& .icon {
+		flex-shrink: 0;
+	}
+
+	& p {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		flex-shrink: 1;
+	}
 }
 
 .rows {
@@ -27,7 +38,8 @@
 		padding: var(--spacing-2);
 
 		& input,
-		& select {
+		& select,
+		& textarea {
 			font-size: 1.4rem;
 		}
 		& label {

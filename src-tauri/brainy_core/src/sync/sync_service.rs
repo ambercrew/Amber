@@ -31,6 +31,9 @@ use crate::{
         },
         value_objects::file_system_item_name::FileSystemItemName,
     },
+    fsrs::entities::{
+        fsrs_profile::FsrsProfile, repositories::traits::fsrs_repository::FsrsRepository,
+    },
     generated_code::{self},
     local_configurations::{
         entities::LocalConfiguration,
@@ -65,6 +68,7 @@ pub struct SyncService {
     review_repository: Arc<dyn ReviewRepository>,
     sync_repository: Arc<dyn SyncRepository>,
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
+    fsrs_repository: Arc<dyn FsrsRepository>,
     cell_service: Arc<CellService>,
 }
 
@@ -78,6 +82,7 @@ impl SyncService {
         review_repository: Arc<dyn ReviewRepository>,
         sync_repository: Arc<dyn SyncRepository>,
         local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
+        fsrs_repository: Arc<dyn FsrsRepository>,
         cell_service: Arc<CellService>,
     ) -> Self {
         Self {
@@ -88,6 +93,7 @@ impl SyncService {
             review_repository,
             sync_repository,
             local_configuration_repository,
+            fsrs_repository,
             cell_service,
         }
     }
@@ -140,7 +146,7 @@ impl SyncService {
         Ok(())
     }
 
-    /// This function fetches and proccess the next sync page.
+    /// This function fetches and process the next sync page.
     /// Returns whether there are more pages to sync or not.
     async fn fetch_and_process_next_sync_page(
         &self,
@@ -176,6 +182,28 @@ impl SyncService {
             .unwrap();
 
         let change_count = match synced_entity.entity_type {
+            EntityType::FsrsProfile => {
+                let fsrs_profile = generated_code::FsrsProfile::decode(&bytes[..]).unwrap();
+                let entity = FsrsProfile::new_unchecked(
+                    synced_entity.entity_id,
+                    synced_entity.created_date,
+                    fsrs_profile.modified_date.unwrap().into_datetime(),
+                    fsrs_profile.name,
+                    fsrs_profile.request_retention,
+                    fsrs_profile.maximum_interval,
+                    fsrs_profile.weights,
+                );
+
+                #[cfg(debug_assertions)]
+                log::info!("Parsed entity {:#?}", entity);
+
+                self.fsrs_repository
+                    .upsert_with_modified_date_if_modified_before(
+                        &entity,
+                        fsrs_profile.modified_date.unwrap().into_datetime(),
+                    )
+                    .await?
+            }
             EntityType::Folder => {
                 let folder = generated_code::Folder::decode(&bytes[..]).unwrap();
                 let entity = Folder::new_unchecked(
@@ -184,6 +212,7 @@ impl SyncService {
                     folder.modified_date.unwrap().into_datetime(),
                     folder.parent_id.map(|val| Guid::parse_str(&val).unwrap()),
                     FileSystemItemName::new_unchecked(folder.name),
+                    folder.fsrs_profile_id.into(),
                 );
 
                 #[cfg(debug_assertions)]
@@ -204,6 +233,7 @@ impl SyncService {
                     file.modified_date.unwrap().into_datetime(),
                     file.parent_id.map(|val| Guid::parse_str(&val).unwrap()),
                     FileSystemItemName::new_unchecked(file.name),
+                    file.fsrs_profile_id.into(),
                 );
 
                 #[cfg(debug_assertions)]
@@ -327,6 +357,30 @@ impl SyncService {
 
         let mut synced_entities = Vec::<SyncEntityDto>::new();
 
+        for fsrs_profile in self
+            .fsrs_repository
+            .get_all_modified_on_or_after(last_sync_date)
+            .await?
+        {
+            let data = generated_code::FsrsProfile {
+                modified_date: Some(fsrs_profile.modified_date().into_timestamp()),
+                name: fsrs_profile.name().to_string(),
+                request_retention: fsrs_profile.request_retention(),
+                maximum_interval: fsrs_profile.maximum_interval(),
+                weights: fsrs_profile.weights().to_vec(),
+            }
+            .into_base64();
+
+            let dto = SyncEntityDto {
+                entity_id: fsrs_profile.id(),
+                created_date: fsrs_profile.created_date(),
+                entity_type: EntityType::FsrsProfile,
+                data,
+            };
+
+            synced_entities.push(dto);
+        }
+
         for folder in self
             .folder_repository
             .get_all_modified_on_or_after(last_sync_date)
@@ -336,6 +390,8 @@ impl SyncService {
                 modified_date: Some(folder.modified_date().into_timestamp()),
                 name: folder.name().to_string(),
                 parent_id: folder.parent_id().map(|value| value.into()),
+                fsrs_profile_id: Option::<Guid>::from(folder.fsrs_profile_choice())
+                    .map(|id| id.into()),
             }
             .into_base64();
 
@@ -358,6 +414,8 @@ impl SyncService {
                 modified_date: Some(file.modified_date().into_timestamp()),
                 name: file.name().to_string(),
                 parent_id: file.parent_id().map(|value| value.into()),
+                fsrs_profile_id: Option::<Guid>::from(file.fsrs_profile_choice())
+                    .map(|id| id.into()),
             }
             .into_base64();
 
@@ -495,7 +553,7 @@ mod tests {
     use chrono::Duration;
 
     use crate::{
-        ROOT_FOLDER_ID,
+        DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID,
         backend::{
             models::SyncedEntitiesPageDto, traits::brainy_backend_client::MockBrainyBackendClient,
         },
@@ -505,6 +563,7 @@ mod tests {
             sqlite_repositories_context::SqliteRepositoriesContext,
             traits::repositories_context::RepositoriesContext,
         },
+        file_system::value_objects::fsrs_profile_choice::FsrsProfileChoice,
     };
 
     use super::*;
@@ -527,6 +586,7 @@ mod tests {
             context.review_repository(),
             context.sync_repository(),
             context.local_configuration_repository(),
+            context.fsrs_repository(),
             Arc::new(cell_service),
         )
     }
@@ -539,9 +599,25 @@ mod tests {
         let user_id = Guid::new_v4();
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
+        let fsrs_profile_id = Guid::new_v4();
         let file_modified_date = Utc::now() - Duration::hours(8);
 
         let synced_entities: Vec<SyncedEntity> = vec![
+            SyncedEntity {
+                user_id,
+                entity_id: fsrs_profile_id,
+                entity_type: EntityType::FsrsProfile,
+                created_date: Utc::now(),
+                last_sync_date: Utc::now(),
+                data: generated_code::FsrsProfile {
+                    modified_date: Some(Utc::now().into_timestamp()),
+                    name: "test profile".into(),
+                    request_retention: 10f64,
+                    maximum_interval: 8f64,
+                    weights: vec![1f64],
+                }
+                .into_base64(),
+            },
             SyncedEntity {
                 user_id,
                 entity_id: Guid::new_v4(),
@@ -552,6 +628,7 @@ mod tests {
                     modified_date: Some(Utc::now().into_timestamp()),
                     name: "test".into(),
                     parent_id: Some(ROOT_FOLDER_ID.into()),
+                    fsrs_profile_id: None,
                 }
                 .into_base64(),
             },
@@ -565,6 +642,7 @@ mod tests {
                     modified_date: Some(file_modified_date.into_timestamp()),
                     name: "test".into(),
                     parent_id: Some(ROOT_FOLDER_ID.into()),
+                    fsrs_profile_id: Some(fsrs_profile_id.to_string()),
                 }
                 .into_base64(),
             },
@@ -639,17 +717,32 @@ mod tests {
 
         // Assert
 
+        let fsrs_profiles = context
+            .fsrs_repository()
+            .get_all_fsrs_profiles()
+            .await
+            .unwrap();
+        // Default & new profile.
+        assert_eq!(2, fsrs_profiles.len());
+        assert!(
+            fsrs_profiles
+                .iter()
+                .any(|f| f.name() == "test profile" && f.request_retention() == 10f64)
+        );
+
         let folders = context.folder_repository().get_all_folders().await.unwrap();
         assert_eq!(2, folders.len());
         assert!(folders.iter().any(|f| f.name()
             == FileSystemItemName::new_unchecked("test".to_string())
-            && f.parent_id() == Some(ROOT_FOLDER_ID)));
+            && f.parent_id() == Some(ROOT_FOLDER_ID)
+            && f.fsrs_profile_choice() == FsrsProfileChoice::Inherit));
 
         let files = context.file_repository().get_all_files().await.unwrap();
         assert_eq!(1, files.len());
         assert!(files.iter().any(|f| f.name()
             == FileSystemItemName::new_unchecked("test".to_string())
             && f.parent_id() == Some(ROOT_FOLDER_ID)
+            && f.fsrs_profile_choice() == FsrsProfileChoice::Id(fsrs_profile_id)
             && (f.modified_date() - file_modified_date) <= Duration::seconds(1)));
 
         let cells = context
@@ -687,6 +780,7 @@ mod tests {
             Utc::now(),
             Some(ROOT_FOLDER_ID),
             "test".try_into().unwrap(),
+            FsrsProfileChoice::Inherit,
         );
         context.file_repository().create(&file).await.unwrap();
         context
@@ -778,6 +872,7 @@ mod tests {
                 Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 FileSystemItemName::new_unchecked("name".to_string()),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -823,7 +918,7 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn sync_with_backend_existing_entit_with_older_modified_date_locally_entity_updated()
+    pub async fn sync_with_backend_existing_entity_with_older_modified_date_locally_entity_updated()
     {
         // Arrange
 
@@ -841,6 +936,7 @@ mod tests {
                 Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 FileSystemItemName::new_unchecked("old name".to_string()),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -873,6 +969,7 @@ mod tests {
                     modified_date: Some(Utc::now().into_timestamp()),
                     name: "new name".into(),
                     parent_id: Some(ROOT_FOLDER_ID.into()),
+                    fsrs_profile_id: None,
                 }
                 .into_base64(),
             },
@@ -888,6 +985,21 @@ mod tests {
                     cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
                     file_id: file_id.to_string(),
                     ..Default::default()
+                }
+                .into_base64(),
+            },
+            SyncedEntity {
+                user_id,
+                entity_id: DEFAULT_FSRS_PROFILE_ID,
+                entity_type: EntityType::FsrsProfile,
+                created_date: Utc::now(),
+                last_sync_date: Utc::now(),
+                data: generated_code::FsrsProfile {
+                    modified_date: Some(Utc::now().into_timestamp()),
+                    name: "new name".into(),
+                    request_retention: 10f64,
+                    maximum_interval: 8f64,
+                    weights: vec![1f64],
                 }
                 .into_base64(),
             },
@@ -930,6 +1042,14 @@ mod tests {
             .unwrap();
         assert_eq!(1, cells.len());
         assert!(cells.iter().any(|c| c.content() == "new content"));
+
+        let fsrs_profiles = context
+            .fsrs_repository()
+            .get_all_fsrs_profiles()
+            .await
+            .unwrap();
+        assert_eq!(1, fsrs_profiles.len());
+        assert!(fsrs_profiles.iter().any(|c| c.name() == "new name"));
     }
 
     #[tokio::test]
@@ -954,6 +1074,7 @@ mod tests {
                     modified_date: Some(Utc::now().into_timestamp()),
                     name: "new name".into(),
                     parent_id: Some(ROOT_FOLDER_ID.into()),
+                    fsrs_profile_id: None,
                 }
                 .into_base64(),
             },
@@ -982,6 +1103,7 @@ mod tests {
                 Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 FileSystemItemName::new_unchecked("old name".to_string()),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1084,7 +1206,7 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn sync_with_backend_local_unsynced_file_snet_file() {
+    pub async fn sync_with_backend_local_unsynced_file_sent_file() {
         // Arrange
 
         let (context, mut backend_client) = create_test_dependencies().await;
@@ -1095,6 +1217,7 @@ mod tests {
             Utc::now(),
             Some(ROOT_FOLDER_ID),
             FileSystemItemName::new_unchecked("name".to_string()),
+            FsrsProfileChoice::Inherit,
         );
         context.file_repository().create(&file).await.unwrap();
         context.save_changes().await.unwrap();
@@ -1110,8 +1233,8 @@ mod tests {
 
         backend_client
             .expect_send_synced_entities()
-            // The count should be 2 due to the root folder
-            .withf(move |value| value.len() == 2)
+            // The count should be 2 due to the root folder and default FSRS profile.
+            .withf(move |value| value.len() == 3)
             .returning(move |_| Ok(()));
 
         let service = create_sync_service(&context, backend_client);
@@ -1122,7 +1245,7 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn sync_with_backend_local_file_already_synced_did_not_sned_file() {
+    pub async fn sync_with_backend_local_file_already_synced_did_not_send_file() {
         // Arrange
 
         let (context, mut backend_client) = create_test_dependencies().await;
@@ -1142,6 +1265,7 @@ mod tests {
             Utc::now() - Duration::seconds(10),
             Some(ROOT_FOLDER_ID),
             FileSystemItemName::new_unchecked("name".to_string()),
+            FsrsProfileChoice::Inherit,
         );
         context.file_repository().create(&file).await.unwrap();
         context.save_changes().await.unwrap();
@@ -1157,8 +1281,8 @@ mod tests {
 
         backend_client
             .expect_send_synced_entities()
-            // The count should be 1 due to the root folder.
-            .withf(move |value| value.len() == 1)
+            // The count should be 2 due to the root folder and default FSRS profile.
+            .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
         let service = create_sync_service(&context, backend_client);
@@ -1183,6 +1307,7 @@ mod tests {
                 Utc::now(),
                 None,
                 FileSystemItemName::new_unchecked("test".to_string()),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -1197,6 +1322,7 @@ mod tests {
                 modified_date: Some(Utc::now().into_timestamp()),
                 name: "test".into(),
                 parent_id: Some(ROOT_FOLDER_ID.into()),
+                fsrs_profile_id: None,
             }
             .into_base64(),
         }];
@@ -1212,8 +1338,8 @@ mod tests {
 
         backend_client
             .expect_send_synced_entities()
-            // The count should be 1 due to the root folder, the created folder should not be sent.
-            .withf(move |value| value.len() == 1)
+            // The count should be 2 due to the root folder, and FSRS profile, the created folder should not be sent.
+            .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
         let service = create_sync_service(&context, backend_client);

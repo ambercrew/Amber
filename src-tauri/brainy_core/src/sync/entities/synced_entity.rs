@@ -26,4 +26,5 @@ pub enum EntityType {
     Repetition = 4,
     Review = 5,
     DeletedEntity = 6,
+    FsrsProfile = 7,
 }

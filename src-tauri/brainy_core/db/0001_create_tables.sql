@@ -1,17 +1,53 @@
+CREATE TABLE fsrs_profiles(
+    id                          TEXT        NOT NULL        PRIMARY KEY,
+    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    name                        TEXT        NOT NULL,
+    request_retention           REAL        NOT NULL,
+    maximum_interval            REAL        NOT NULL,
+    weights                     TEXT        NOT NULL
+);
+
+INSERT INTO fsrs_profiles(
+    id,
+    name,
+    request_retention,
+    maximum_interval,
+    weights) VALUES (
+    X'00000000000000000000000000000001',
+    'Default',
+    0.9,
+    36500,
+    '0.212 1.2931 2.3065 8.2956 6.4133 0.8334 3.0194 0.001 1.8722 0.1666 0.796 1.4835 0.0614 0.2629 1.6483 0.6014 1.8729 0.5425 0.0912 0.0658 0.1542'
+);
+
+-------------------------------------------------------------------------
+
 CREATE TABLE folders(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     name                        TEXT        NOT NULL,
     parent_id                   TEXT,
-    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
+    fsrs_profile_id             TEXT,
+    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (fsrs_profile_id) REFERENCES fsrs_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX folders_modified_date_index ON folders(modified_date);
 CREATE INDEX folders_parent_id ON folders(parent_id);
 
 -- The id of root is 00000000-0000-0000-0000-000000000001
-INSERT INTO folders(id, name, parent_id) VALUES (X'00000000000000000000000000000001', 'root', NULL);
+INSERT INTO folders(
+    id,
+    name,
+    parent_id,
+    fsrs_profile_id) VALUES (
+    X'00000000000000000000000000000001', 
+    'root',
+    NULL,
+    X'00000000000000000000000000000001'
+);
 
 -------------------------------------------------------------------------
 
@@ -21,7 +57,9 @@ CREATE TABLE files(
     modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     name                        TEXT        NOT NULL,
     parent_id                   TEXT        NOT NULL,
-    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
+    fsrs_profile_id             TEXT,
+    FOREIGN KEY (parent_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (fsrs_profile_id) REFERENCES fsrs_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX files_modified_date_index ON files(modified_date);

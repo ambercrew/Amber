@@ -2,6 +2,7 @@ mod auth_api;
 mod cell_api;
 mod export_import_api;
 mod file_system_api;
+mod fsrs_api;
 mod repetition_api;
 mod review_api;
 mod search_api;
@@ -14,8 +15,8 @@ use std::error::Error;
 pub use repetition_api::{get_study_repetition_counts, reset_repetitions_for_cell};
 
 pub use cell_api::{
-    create_cell, delete_cell, get_cells_for_files, get_file_cells_ordered_by_index, move_cell,
-    update_cells_contents,
+    create_cell, delete_cell, get_cells_for_files_with_fsrs_profile_ids,
+    get_file_cells_ordered_by_index, move_cell, update_cells_contents,
 };
 
 pub use file_system_api::{
@@ -39,6 +40,13 @@ pub use auth_api::{
 
 pub use user_api::{delete_user, get_user_information, update_user_information};
 
+pub use fsrs_api::{
+    create_profile, delete_fsrs_profile, get_all_fsrs_profiles, get_file_fsrs_profile,
+    get_folder_fsrs_profile, get_fsrs_profile_choice_for_file, get_fsrs_profile_choice_for_folder,
+    get_parent_fsrs_profile_for_file, get_parent_fsrs_profile_for_folder,
+    set_fsrs_profile_choice_for_file, set_fsrs_profile_choice_for_folder, update_profile,
+};
+
 pub use sync_api::sync;
 
 #[derive(Serialize)]
@@ -49,7 +57,7 @@ where
     T: Error,
 {
     fn from(value: T) -> Self {
-        log::error!("An error occured: {:#?}", value);
+        log::error!("An error occurred: {:#?}", value);
         ApiError(value.to_string())
     }
 }

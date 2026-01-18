@@ -38,6 +38,7 @@ impl FileRepository for SqliteFileRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM files
             WHERE id = $1"#,
@@ -60,6 +61,7 @@ impl FileRepository for SqliteFileRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM files"#,
         )
@@ -80,6 +82,7 @@ impl FileRepository for SqliteFileRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM files
             WHERE parent_id = $1"#,
@@ -105,6 +108,7 @@ impl FileRepository for SqliteFileRepository {
                 created_date as "created_date: _",
                 modified_date as "modified_date: _",
                 parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
                 name
             FROM files
             WHERE modified_date >= datetime($1)"#,
@@ -148,6 +152,7 @@ impl FileRepository for SqliteFileRepository {
         let file_name = file.name().to_string();
         let parent_id = file.parent_id();
         let modified_date = file.modified_date();
+        let fsrs_profile_choice = Option::<Guid>::from(file.fsrs_profile_choice());
 
         let result = sqlx::query!(
             "INSERT INTO files(
@@ -155,13 +160,15 @@ impl FileRepository for SqliteFileRepository {
                 created_date,
                 modified_date,
                 name,
-                parent_id)
-            VALUES ($1, datetime($2), datetime($3), $4, $5)",
+                parent_id,
+                fsrs_profile_id)
+            VALUES ($1, datetime($2), datetime($3), $4, $5, $6)",
             file_id,
             created_date,
             modified_date,
             file_name,
-            parent_id
+            parent_id,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -181,6 +188,7 @@ impl FileRepository for SqliteFileRepository {
         let file_name = file.name().to_string();
         let parent_id = file.parent_id();
         let modified_date = file.modified_date();
+        let fsrs_profile_choice = Option::<Guid>::from(file.fsrs_profile_choice());
 
         let result = sqlx::query!(
             "UPDATE files SET
@@ -188,13 +196,15 @@ impl FileRepository for SqliteFileRepository {
                 created_date = datetime($2),
                 modified_date = datetime($3),
                 name = $4,
-                parent_id = $5
+                parent_id = $5,
+                fsrs_profile_id = $6
             WHERE id = $1",
             file_id,
             created_date,
             modified_date,
             file_name,
-            parent_id
+            parent_id,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -217,23 +227,32 @@ impl FileRepository for SqliteFileRepository {
         let file_name = file.name().to_string();
         let parent_id = file.parent_id();
         let created_date = file.created_date();
+        let fsrs_profile_choice = Option::<Guid>::from(file.fsrs_profile_choice());
+
         let result = sqlx::query!(
             r#"INSERT INTO files(
                 id,
                 name,
                 parent_id,
                 modified_date,
-                created_date)
-            VALUES ($1, $2, $3, datetime($4), datetime($5))
+                created_date,
+                fsrs_profile_id)
+            VALUES ($1, $2, $3, datetime($4), datetime($5), $6)
             ON CONFLICT(id) DO UPDATE
-            SET id = $1, name = $2, parent_id = $3, modified_date = datetime($4), created_date = datetime($5)
+            SET id = $1,
+                name = $2,
+                parent_id = $3,
+                modified_date = datetime($4),
+                created_date = datetime($5),
+                fsrs_profile_id = $6
             WHERE modified_date <= datetime($4)
             "#,
             file_id,
             file_name,
             parent_id,
             modified_date,
-            created_date
+            created_date,
+            fsrs_profile_choice
         )
         .execute(&mut *tx)
         .await;
@@ -259,6 +278,34 @@ impl FileRepository for SqliteFileRepository {
     }
 }
 
+mod file_row {
+    use chrono::{DateTime, Utc};
+
+    use super::*;
+
+    pub(super) struct FileRow {
+        pub id: Guid,
+        pub created_date: DateTime<Utc>,
+        pub modified_date: DateTime<Utc>,
+        pub parent_id: Option<Guid>,
+        pub name: String,
+        pub fsrs_profile_id: Option<Guid>,
+    }
+
+    impl From<FileRow> for File {
+        fn from(value: FileRow) -> Self {
+            File::new_unchecked(
+                value.id,
+                value.created_date,
+                value.modified_date,
+                value.parent_id,
+                FileSystemItemName::new_unchecked(value.name.clone()),
+                value.fsrs_profile_id.into(),
+            )
+        }
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use crate::{
@@ -267,7 +314,9 @@ pub mod tests {
             sqlite_repositories_context::SqliteRepositoriesContext,
             traits::repositories_context::RepositoriesContext,
         },
-        file_system::entities::file::File,
+        file_system::{
+            entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        },
     };
 
     use super::*;
@@ -284,6 +333,7 @@ pub mod tests {
                 None,
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -315,6 +365,7 @@ pub mod tests {
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
+                FsrsProfileChoice::Inherit,
             ))
             .await
             .unwrap();
@@ -333,31 +384,5 @@ pub mod tests {
 
         let actual = context.file_repository().get_all_files().await.unwrap();
         assert_eq!(0, actual.len());
-    }
-}
-
-mod file_row {
-    use chrono::{DateTime, Utc};
-
-    use super::*;
-
-    pub(super) struct FileRow {
-        pub id: Guid,
-        pub created_date: DateTime<Utc>,
-        pub modified_date: DateTime<Utc>,
-        pub parent_id: Option<Guid>,
-        pub name: String,
-    }
-
-    impl From<FileRow> for File {
-        fn from(value: FileRow) -> Self {
-            File::new_unchecked(
-                value.id,
-                value.created_date,
-                value.modified_date,
-                value.parent_id,
-                FileSystemItemName::new_unchecked(value.name.clone()),
-            )
-        }
     }
 }

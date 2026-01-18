@@ -10,6 +10,7 @@ import {
 	mdiFolderPlusOutline,
 	mdiImport,
 	mdiPencilOutline,
+	mdiTuneVariant,
 } from "@mdi/js";
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import { Action } from "../types/action.ts";
@@ -48,6 +49,7 @@ import {
 import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog.tsx";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";
+import FsrsDialog from "./FsrsDialog.tsx";
 
 interface Props {
 	folder: UiFolder | null;
@@ -68,6 +70,7 @@ export interface FileTreeItemRef {
 function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 	const isRoot = id === ROOT_FOLDER_ID;
 	const [isDeleteDialogShown, setIsDeleteDialogShown] = useState(false);
+	const [isFsrsDialogShown, setIsFsrsDialogShown] = useState(false);
 	const [showActions, setShowActions] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
@@ -133,6 +136,11 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 			},
 		);
 	}
+	actions.push({
+		iconName: mdiTuneVariant,
+		text: "FSRS Profile",
+		onClick: () => setIsFsrsDialogShown(true),
+	});
 
 	actions.push({
 		iconName: mdiExport,
@@ -331,6 +339,15 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 					icon={mdiDeleteOutline}
 					onCancel={() => setIsDeleteDialogShown(false)}
 					onConfirm={() => void handleDelete()}
+				/>
+			)}
+
+			{isFsrsDialogShown && (
+				<FsrsDialog
+					id={id}
+					isFolder={folder !== null}
+					name={getFileName(fullPath)}
+					onClose={() => setIsFsrsDialogShown(false)}
 				/>
 			)}
 

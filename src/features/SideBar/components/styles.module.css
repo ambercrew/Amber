@@ -28,6 +28,7 @@
 		align-items: center;
 		padding: var(--spacing-6);
 		padding-bottom: var(--spacing-4);
+		height: 7rem;
 
 		& h2 {
 			font-size: 2rem;
@@ -36,7 +37,7 @@
 
 		& img {
 			margin-right: var(--spacing-4);
-			width: 2.8rem;
+			width: 3.2rem;
 		}
 
 		& .toggle-button {

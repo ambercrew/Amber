@@ -15,6 +15,7 @@ use brainy_core::{
         traits::repositories_context::RepositoriesContext,
     },
     file_system::file_system_service::FileSystemService,
+    fsrs::fsrs_service::FsrsService,
     settings::{Settings, get_settings_dir},
     sync::sync_service::SyncService,
 };
@@ -92,7 +93,13 @@ pub async fn run() -> Result<(), String> {
                 repositories_context.review_repository(),
                 repositories_context.sync_repository(),
                 repositories_context.local_configuration_repository(),
+                repositories_context.fsrs_repository(),
                 cell_service.clone(),
+            )));
+
+            app.manage(Arc::new(FsrsService::new(
+                repositories_context.folder_repository(),
+                repositories_context.fsrs_repository(),
             )));
 
             let backup_service = BackupService::new(
@@ -140,7 +147,7 @@ pub async fn run() -> Result<(), String> {
             // Cells
             create_cell,
             delete_cell,
-            get_cells_for_files,
+            get_cells_for_files_with_fsrs_profile_ids,
             get_file_cells_ordered_by_index,
             move_cell,
             update_cells_contents,
@@ -183,6 +190,19 @@ pub async fn run() -> Result<(), String> {
             delete_user,
             // Sync
             sync,
+            // FSRS
+            get_all_fsrs_profiles,
+            get_file_fsrs_profile,
+            get_folder_fsrs_profile,
+            get_parent_fsrs_profile_for_file,
+            get_parent_fsrs_profile_for_folder,
+            create_profile,
+            update_profile,
+            get_fsrs_profile_choice_for_file,
+            get_fsrs_profile_choice_for_folder,
+            set_fsrs_profile_choice_for_file,
+            set_fsrs_profile_choice_for_folder,
+            delete_fsrs_profile,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

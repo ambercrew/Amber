@@ -1,6 +1,11 @@
 use chrono::{DateTime, Utc};
 
-use crate::{Guid, file_system::value_objects::file_system_item_name::FileSystemItemName};
+use crate::{
+    Guid,
+    file_system::value_objects::{
+        file_system_item_name::FileSystemItemName, fsrs_profile_choice::FsrsProfileChoice,
+    },
+};
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -9,6 +14,7 @@ pub struct Folder {
     modified_date: DateTime<Utc>,
     parent_id: Option<Guid>,
     name: FileSystemItemName,
+    fsrs_profile_choice: FsrsProfileChoice,
 }
 
 impl Folder {
@@ -16,6 +22,7 @@ impl Folder {
         id: Option<Guid>,
         parent_id: Option<Guid>,
         name: FileSystemItemName,
+        fsrs_profile_choice: FsrsProfileChoice,
     ) -> Folder {
         Folder {
             id: id.unwrap_or(Guid::new_v4()),
@@ -23,16 +30,18 @@ impl Folder {
             modified_date: Utc::now(),
             parent_id,
             name,
+            fsrs_profile_choice,
         }
     }
 
-    /// Used for unit testing, or repositories when reconsturcting a folder.
+    /// Used for unit testing, or repositories when reconstructing a folder.
     pub fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,
         modified_date: DateTime<Utc>,
         parent_id: Option<Guid>,
         name: FileSystemItemName,
+        fsrs_profile_choice: FsrsProfileChoice,
     ) -> Self {
         Folder {
             id,
@@ -40,6 +49,7 @@ impl Folder {
             modified_date,
             parent_id,
             name,
+            fsrs_profile_choice,
         }
     }
 
@@ -70,6 +80,14 @@ impl Folder {
     pub(in crate::file_system) fn set_parent_id(&mut self, parent_id: Option<Guid>) {
         self.parent_id = parent_id;
     }
+
+    pub fn fsrs_profile_choice(&self) -> FsrsProfileChoice {
+        self.fsrs_profile_choice
+    }
+
+    pub fn set_fsrs_profile_choice(&mut self, fsrs_profile_choice: FsrsProfileChoice) {
+        self.fsrs_profile_choice = fsrs_profile_choice;
+    }
 }
 
 #[cfg(test)]
@@ -84,7 +102,12 @@ pub mod tests {
 
         // Act
 
-        let actual = Folder::new(Some(id), None, "test".try_into().unwrap());
+        let actual = Folder::new(
+            Some(id),
+            None,
+            "test".try_into().unwrap(),
+            FsrsProfileChoice::Inherit,
+        );
 
         // Assert
 
@@ -104,6 +127,7 @@ pub mod tests {
             None,
             Some(Guid::new_v4()),
             FileSystemItemName::new_unchecked("test".to_string()),
+            FsrsProfileChoice::Inherit,
         );
 
         // Assert

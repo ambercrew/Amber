@@ -4,16 +4,26 @@ import "google/protobuf/timestamp.proto";
 
 package generated_code;
 
+message FsrsProfile {
+  google.protobuf.Timestamp modified_date = 1;
+  string name = 2;
+  double request_retention = 3;
+  double maximum_interval = 4;
+  repeated double weights = 5;
+}
+
 message Folder {
   google.protobuf.Timestamp modified_date = 1;
   string name = 2;
   optional string parent_id = 3;
+  optional string fsrs_profile_id = 4;
 }
 
 message File {
   google.protobuf.Timestamp modified_date = 1;
   string name = 2;
   optional string parent_id = 3;
+  optional string fsrs_profile_id = 4;
 }
 
 message Cell {

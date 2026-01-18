@@ -34,3 +34,6 @@ prost-build = "0.14.1"
 
 [dev-dependencies]
 mockall = "0.14.0"
+
+[features]
+test-utils = []

@@ -70,21 +70,21 @@
 			text-decoration: underline;
 		}
 
-		& .again-button {
-			background-color: var(--red-color);
-			color: #fff;
-		}
 		& .hard-button {
 			background-color: #f97316;
 			color: #fff;
+
+			&:focus {
+				outline-color: #f97316;
+			}
 		}
 		& .good-button {
 			background-color: var(--review-color);
 			color: #fff;
-		}
-		& .easy-button {
-			background-color: var(--primary-color);
-			color: #fff;
+
+			&:focus {
+				outline-color: var(--review-color);
+			}
 		}
 	}
 
