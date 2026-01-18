@@ -20,28 +20,28 @@ tauri-build = { version = "2.5.3", features = [] }
 [dependencies]
 async-trait = "0.1.89"
 brainy_core = { path = "./brainy_core" }
-chrono = { version = "0.4.42", features = ["serde"] }
+chrono = { version = "0.4.43", features = ["serde"] }
 log = "0.4.29"
-prost = "0.14"
-prost-types = "0.14.1"
-reqwest = { version = "0.12.25" }
+prost = "0.14.3"
+prost-types = "0.14.3"
+reqwest = { version = "0.13.1" }
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
+serde_json = "1.0.149"
 simple_logger = "5.1.0"
 tauri = { version = "2.9.5", features = ["test"] }
 tauri-plugin-clipboard-manager = "2"
-tauri-plugin-dialog = "2.4.2"
-tauri-plugin-opener = "2.5.2"
+tauri-plugin-dialog = "2.6.0"
+tauri-plugin-opener = "2.5.3"
 tauri-plugin-process = "2.3.1"
 thiserror = "2.0.17"
-tokio = { version = "1.48.0", features = ["full"] }
+tokio = { version = "1.49.0", features = ["full"] }
 uuid = { version = "1.19.0", features = [ "v4", "serde" ] }
 
 [dev-dependencies]
 brainy_core = { path = "./brainy_core", features = ["test-utils"] }
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = "2.3.6"
+tauri-plugin-single-instance = "2.3.7"
 tauri-plugin-updater = "2.9.0"
 tauri-plugin-window-state = "2.4.1"
 
