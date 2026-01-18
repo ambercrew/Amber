@@ -12,7 +12,7 @@ import FsrsDialog from "../../../../features/FileTree/components/FsrsDialog.tsx"
 import FsrsProfile from "../../../../types/backend/entity/fsrsProfile.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import { screen, waitFor } from "@testing-library/react";
-import { FsrsProfileChoice } from "../../../../types/backend/value_objects/fsrsProfileChoice.ts";
+import { FsrsProfileChoice } from "../../../../types/backend/valueObjects/fsrsProfileChoice.ts";
 
 vi.mock(import("../../../../api/fsrsApi.ts"));
 

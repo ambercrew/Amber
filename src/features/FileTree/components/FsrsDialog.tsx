@@ -29,7 +29,7 @@ import { ROOT_FOLDER_ID } from "../../../config/constants";
 import {
 	FsrsProfileChoice,
 	FsrsProfileChoiceId,
-} from "../../../types/backend/value_objects/fsrsProfileChoice";
+} from "../../../types/backend/valueObjects/fsrsProfileChoice";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 
 interface FsrsDialogState {

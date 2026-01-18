@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import FsrsProfile from "../types/backend/entity/fsrsProfile";
-import { FsrsProfileChoice } from "../types/backend/value_objects/fsrsProfileChoice";
+import { FsrsProfileChoice } from "../types/backend/valueObjects/fsrsProfileChoice";
 
 export function getAllFsrsProfiles(): Promise<FsrsProfile[]> {
 	return invoke("get_all_fsrs_profiles");

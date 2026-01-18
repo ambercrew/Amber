@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Cell from "../../../types/backend/entity/cell";
-import FlashCard from "../../../types/backend/value_objects/flashCard";
+import FlashCard from "../../../types/backend/valueObjects/flashCard";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 import { LexicalEditor } from "lexical";

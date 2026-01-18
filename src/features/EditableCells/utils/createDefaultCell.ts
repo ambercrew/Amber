@@ -1,6 +1,6 @@
 import Cell, { CellType } from "../../../types/backend/entity/cell";
-import FlashCard from "../../../types/backend/value_objects/flashCard";
-import TrueFalse from "../../../types/backend/value_objects/trueFalse";
+import FlashCard from "../../../types/backend/valueObjects/flashCard";
+import TrueFalse from "../../../types/backend/valueObjects/trueFalse";
 
 function createDefaultCell(cellType: CellType, fileId: string, index: number) {
 	const cell: Cell = {
