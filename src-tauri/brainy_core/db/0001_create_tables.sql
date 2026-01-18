@@ -8,6 +8,7 @@ CREATE TABLE fsrs_profiles(
     weights                     TEXT        NOT NULL
 );
 
+-- The id of root is 00000000-0000-0000-0000-000000000002
 INSERT INTO fsrs_profiles(
     id,
     name,
