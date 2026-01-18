@@ -63,6 +63,7 @@ body {
 	--new-color: var(--primary-color-shade-20);
 	--learning-color: var(--red-color);
 	--review-color: var(--green-color);
+	--hard-color: #f97316;
 
 	--default-border-radius: 8px;
 

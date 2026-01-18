@@ -71,16 +71,35 @@
 		}
 
 		& .hard-button {
-			background-color: #f97316;
+			background-color: var(--hard-color);
 			color: #fff;
 
+			&:hover {
+				opacity: 0.9;
+			}
+
+			&:active {
+				opacity: 1;
+				filter: brightness(80%);
+			}
+
 			&:focus {
-				outline-color: #f97316;
+				outline-color: var(--hard-color);
 			}
 		}
+
 		& .good-button {
 			background-color: var(--review-color);
 			color: #fff;
+
+			&:hover {
+				opacity: 0.9;
+			}
+
+			&:active {
+				opacity: 1;
+				filter: brightness(80%);
+			}
 
 			&:focus {
 				outline-color: var(--review-color);
