@@ -21,7 +21,7 @@ import {
 /** Used to say how many cells are always eagerly loaded from the current
  * selected cell.
  */
-const EAGER_LOAD_DISTANCE_FROM_SELECTED = 4;
+const EAGER_LOAD_DISTANCE_FROM_SELECTED = 3;
 
 interface Props {
 	cells: Cell[];

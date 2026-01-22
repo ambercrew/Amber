@@ -10,7 +10,7 @@ interface Props {
 
 export default function RenderIfVisible({
 	defaultHeight = 250,
-	visibleOffset = 600,
+	visibleOffset = 300,
 	children,
 	stayRendered = false,
 	root,
