@@ -62,7 +62,7 @@ export default function SignUpForm({
 		}
 	};
 
-	const openTermsAndConditions = () => {
+	const openTermsAndPrivacy = () => {
 		void openUrl("https://google.com/");
 	};
 
@@ -166,17 +166,17 @@ export default function SignUpForm({
 							<div className={`${styles.checkboxRow}`}>
 								<input
 									type="checkbox"
-									id="terms-and-conditions"
-									name="terms-and-conditions"
+									id="terms-and-privacy"
+									name="terms-and-privacy"
 									required
 								/>
-								<label htmlFor="terms-and-conditions">
+								<label htmlFor="terms-and-privacy">
 									I agree to the{" "}
 									<button
 										className="link"
-										onClick={openTermsAndConditions}
+										onClick={openTermsAndPrivacy}
 										type="button">
-										terms and conditions
+										Terms &amp; Privacy
 									</button>
 								</label>
 							</div>

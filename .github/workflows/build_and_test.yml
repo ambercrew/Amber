@@ -23,6 +23,7 @@ jobs:
                   cargo install sqlx-cli
             - name: Build Rust Project
               run: |
+                  cd src-tauri
                   cargo build --verbose
             - name: Run Rust Tests
               run: |
