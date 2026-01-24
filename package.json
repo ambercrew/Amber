@@ -13,7 +13,8 @@
 		"uitest": "vitest --ui",
 		"coverage": "vitest run --coverage",
 		"format": "prettier . --write",
-		"prepare": "husky",
+		"prepare": "husky && npm run install-rust-tools",
+		"install-rust-tools": "(rustup component add rustfmt clippy && cargo install sqlx-cli) || echo '⚠️ Warning: Rust tools installation failed. Please install manually: rustfmt, clippy, and sqlx-cli'",
 		"devtools": "react-devtools",
 		"update-npm": "ncu --upgrade --cooldown 14"
 	},
