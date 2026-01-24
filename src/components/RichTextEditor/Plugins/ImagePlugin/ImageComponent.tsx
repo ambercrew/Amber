@@ -17,17 +17,18 @@ export default function ImageComponent({
 	nodeKey: NodeKey;
 }) {
 	const [editor] = useLexicalComposerContext();
-	const imgRef = useRef<HTMLImageElement>(null);
 	const [isResizing, setIsResizing] = useState(false);
 	const [currentWidth, setCurrentWidth] = useState(width);
 	const [currentHeight, setCurrentHeight] = useState(height);
 	const [showResize, setShowResize] = useState(false);
+	const imgRef = useRef<HTMLImageElement>(null);
 	const startPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
 	const containerRef = useRef<HTMLDivElement | null>(null);
+	const hideResizeOnOutsideClick = useRef(true);
 
-	useOutsideClick(containerRef as React.RefObject<HTMLElement>, () =>
-		setShowResize(false),
-	);
+	useOutsideClick(containerRef as React.RefObject<HTMLElement>, () => {
+		if (hideResizeOnOutsideClick.current) setShowResize(false);
+	});
 
 	const onResizeStart = (
 		e: React.MouseEvent,
@@ -88,6 +89,14 @@ export default function ImageComponent({
 			});
 			document.removeEventListener("mousemove", onMouseMove);
 			document.removeEventListener("mouseup", onMouseUp);
+
+			/* A mouse up triggers a click event that might be outside the image
+			 * or inside it. Therefore, setTimeout is used as a trick to force the
+			 * resize to still be shown on the click event that triggers after the
+			 * mouse up.
+			 */
+			hideResizeOnOutsideClick.current = false;
+			setTimeout(() => (hideResizeOnOutsideClick.current = true), 0);
 		};
 
 		document.addEventListener("mousemove", onMouseMove);
