@@ -6,6 +6,11 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: var(--spacing-2);
+
+	& p {
+		word-break: break-all;
+	}
 
 	&[role="button"] {
 		cursor: pointer;
