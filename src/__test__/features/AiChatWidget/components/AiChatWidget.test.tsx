@@ -37,6 +37,12 @@ function renderComponent({ enableAi = true }) {
 	});
 }
 
+async function openChat() {
+	await userEvent.click(
+		await screen.findByTitle("Open AI assistant (Ctrl + J)"),
+	);
+}
+
 describe("AiChatWidget", () => {
 	it("Should not show open chat button when AI is not enabled", () => {
 		// Act
@@ -45,7 +51,7 @@ describe("AiChatWidget", () => {
 
 		// Assert
 
-		expect(screen.queryByTitle("Open AI assistant")).toBeNull();
+		expect(screen.queryByTitle("Open AI assistant (Ctrl + J)")).toBeNull();
 	});
 
 	it("Should get all chats initial", async () => {
@@ -74,7 +80,7 @@ describe("AiChatWidget", () => {
 
 		// Act
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByText("+ New chat"));
 
 		// Assert
@@ -127,7 +133,7 @@ describe("AiChatWidget", () => {
 
 		// Act & Assert
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByText("+ New chat"));
 
 		await userEvent.click(await screen.findByText("chat 1"));
@@ -170,7 +176,7 @@ describe("AiChatWidget", () => {
 
 		// Act & Assert
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByText("+ New chat"));
 
 		await userEvent.click(await screen.findByText("chat 1"));
@@ -207,7 +213,7 @@ describe("AiChatWidget", () => {
 
 		// Act & Assert
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByRole("textbox"));
 		await userEvent.keyboard("hello{Enter}");
 		expect(await screen.findByRole("textbox")).toHaveTextContent("");
@@ -278,7 +284,7 @@ describe("AiChatWidget", () => {
 
 		// Act & Assert
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByRole("textbox"));
 		await userEvent.keyboard("hello{Enter}");
 		expect(await screen.findByRole("textbox")).toHaveTextContent("");
@@ -326,7 +332,7 @@ describe("AiChatWidget", () => {
 
 		// Act
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByRole("textbox"));
 		await userEvent.keyboard("hello{Enter}");
 		await userEvent.click(screen.getByTitle("Stop"));
@@ -354,6 +360,24 @@ describe("AiChatWidget", () => {
 		expect(vi.mocked(stopAiGeneration)).toBeCalled();
 	});
 
+	it("Should open chat when shortcut is pressed", async () => {
+		// Arrange
+
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockReturnValue(
+			Promise.resolve([]),
+		);
+
+		renderComponent({});
+
+		// Act
+
+		await userEvent.keyboard("{Control>}j");
+
+		// Assert
+
+		expect(screen.queryByRole("textbox")).not.toBeNull();
+	});
+
 	it("Should hide the chat when Escape is pressed", async () => {
 		// Arrange
 
@@ -365,7 +389,7 @@ describe("AiChatWidget", () => {
 
 		// Act
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByRole("textbox"));
 		await userEvent.keyboard("{Escape}");
 
@@ -385,7 +409,7 @@ describe("AiChatWidget", () => {
 
 		// Act
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		await userEvent.click(await screen.findByRole("textbox"));
 		await userEvent.keyboard("First{Shift>}{Enter}Second");
 
@@ -422,7 +446,7 @@ describe("AiChatWidget", () => {
 
 		// Act
 
-		await userEvent.click(await screen.findByTitle("Open AI assistant"));
+		await openChat();
 		const element = await screen.findByTestId("messages-container");
 		Object.defineProperty(element, "scrollHeight", {
 			value: 10,

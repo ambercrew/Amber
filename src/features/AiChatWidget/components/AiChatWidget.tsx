@@ -28,6 +28,7 @@ import Chat from "../../../types/backend/entity/chat";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
+import useGlobalKey from "../../../hooks/useGlobalKey";
 
 export default function AiChatWidget() {
 	const settings = useAppSelector(selectSettings);
@@ -48,6 +49,12 @@ function AiChatWidgetInner() {
 		useState<string>(NEW_SESSION_VALUE);
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 	const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+
+	useGlobalKey(e => {
+		if (e.ctrlKey && e.key.toLowerCase() === "j") {
+			setIsOpen(isOpen => !isOpen);
+		}
+	});
 
 	const handleChangeSelectedChatId = async (newChatId: string) => {
 		if (newChatId !== selectedChatId) {
@@ -314,7 +321,7 @@ function AiChatWidgetInner() {
 					<button
 						className={`primary ${styles.floatingButton}`}
 						onClick={() => setIsOpen(true)}
-						title="Open AI assistant">
+						title="Open AI assistant (Ctrl + J)">
 						<Icon path={mdiRobotOutline} size={1.6} />
 					</button>
 				)}
