@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     api::ApiError,
-    dto::{
+    api::dto::{
         cell_with_fsrs_profile_id::CellWithFsrsProfileId, update_cell_request::UpdateCellRequest,
     },
 };

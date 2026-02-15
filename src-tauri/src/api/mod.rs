@@ -1,6 +1,7 @@
 mod ai_api;
 mod auth_api;
 mod cell_api;
+mod dto;
 mod export_import_api;
 mod file_system_api;
 mod fsrs_api;

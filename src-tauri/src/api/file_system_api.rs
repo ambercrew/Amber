@@ -7,7 +7,7 @@ use brainy_core::{
 use tauri::State;
 use tokio::sync::Mutex;
 
-use crate::{api::ApiError, dto::review_tree_folder::ReviewTreeFolder};
+use crate::{api::ApiError, api::dto::review_tree_folder::ReviewTreeFolder};
 
 #[tauri::command]
 pub async fn get_review_tree_folder_for_root(

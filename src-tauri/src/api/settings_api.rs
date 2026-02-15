@@ -4,7 +4,7 @@ use brainy_core::settings::Settings;
 use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
-use crate::{api::ApiError, dto::update_settings_request::UpdateSettingsRequest};
+use crate::{api::ApiError, api::dto::update_settings_request::UpdateSettingsRequest};
 
 #[tauri::command]
 pub async fn get_settings(settings: State<'_, Arc<Mutex<Settings>>>) -> Result<Settings, ApiError> {
