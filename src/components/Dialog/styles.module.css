@@ -14,7 +14,7 @@
 }
 
 .box {
-	padding: var(--spacing-6) var(--spacing-5);
+	padding: var(--spacing-6);
 	background: var(--default-background-color);
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--default-box-shadow);

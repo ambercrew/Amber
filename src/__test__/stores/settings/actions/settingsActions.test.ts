@@ -23,6 +23,8 @@ const getAndSetDefaultSettings = () => {
 		databaseLocation: "",
 		theme: "Dark",
 		zoomPercentage: 150,
+		enableAi: true,
+		ollamaModelName: "",
 	};
 	const getSettingsMock = vi.mocked(getSettings);
 	getSettingsMock.mockReturnValue(Promise.resolve(settings));

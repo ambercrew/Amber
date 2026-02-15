@@ -4,6 +4,7 @@ mod dto;
 use std::{sync::Arc, time::Duration};
 
 use brainy_core::{
+    ai_integration::{ai_service::AiService, ai_state::AiState},
     backend::{
         brainy_backend_http_client::BrainyBackendHttpClient,
         traits::brainy_backend_client::BrainyBackendClient,
@@ -108,13 +109,23 @@ pub async fn run() -> Result<(), String> {
                 settings_directory,
             );
 
+            app.manage(backend_client);
+
+            let settings = Arc::new(Mutex::new(settings));
+
+            app.manage(settings.clone());
+
+            let ai_state = Arc::new(AiState::default());
+            app.manage(Arc::new(AiService::new(
+                settings,
+                ai_state.clone(),
+                repositories_context.ai_repository(),
+            )));
+            app.manage(ai_state);
+
             app.manage(
                 Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
             );
-
-            app.manage(backend_client);
-
-            app.manage(Arc::new(Mutex::new(settings)));
 
             #[cfg(dev)]
             {
@@ -203,6 +214,12 @@ pub async fn run() -> Result<(), String> {
             set_fsrs_profile_choice_for_file,
             set_fsrs_profile_choice_for_folder,
             delete_fsrs_profile,
+            // AI
+            stream_ai_response,
+            stop_ai_generation,
+            get_all_ai_chats_sorted_by_date_desc,
+            delete_ai_chat,
+            get_chat_messages_ordered,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

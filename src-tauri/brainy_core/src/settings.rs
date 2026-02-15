@@ -15,6 +15,9 @@ pub struct Settings {
     pub theme: Theme,
     pub zoom_percentage: f64,
     pub auto_sync: bool,
+
+    pub enable_ai: bool,
+    pub ollama_model_name: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -65,6 +68,8 @@ impl Settings {
                 theme: Theme::FollowSystem,
                 zoom_percentage: 100f64,
                 auto_sync: true,
+                enable_ai: true,
+                ollama_model_name: None,
             };
             settings.save_to_disk().await?;
             Ok(settings)

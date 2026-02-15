@@ -50,7 +50,7 @@ function ReviewHeatmapColumn({
 									: colors.dueFromColorLightTheme,
 								isDarkTheme
 									? colors.dueToColorDarkTheme
-									: colors.dueToColorLighTheme,
+									: colors.dueToColorLightTheme,
 							);
 				text = `${dueCounts} due on ${formattedDate}`;
 			} else {

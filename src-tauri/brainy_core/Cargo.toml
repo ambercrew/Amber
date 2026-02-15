@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2024"
 
 [dependencies]
+async-stream = "0.3.6"
 async-trait = "0.1.88"
 base64 = "0.22.1"
 chrono = { version = "0.4.41", features = ["serde"] }
@@ -21,12 +22,15 @@ reqwest = { version = "0.12.28", features = ["json", "cookies"] }
 reqwest-middleware = { version = "0.4.2", features = ["json"] }
 reqwest-retry = "0.8.0"
 reqwest_cookie_store = "0.9.0"
+rig-core = "0.29.0"
+schemars = "1.2.0"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.143"
 serde_repr = "0.1.20"
 sqlx = { version = "0.8.6", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite", "chrono", "uuid" ] }
 thiserror = "2.0.12"
 tokio = { version = "1.46.1", features = ["full"] }
+tokio-stream = "0.1.18"
 uuid = { version = "1.17.0", features = [ "v4", "serde" ] }
 
 [build-dependencies]

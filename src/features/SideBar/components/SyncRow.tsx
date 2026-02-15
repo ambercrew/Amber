@@ -84,7 +84,7 @@ export default function SyncRow() {
 				</Dialog>
 			)}
 			<button
-				className={`${styles.row}`}
+				className={`transparent ${styles.row}`}
 				title="Sync (Ctrl + Shift + Y)"
 				onClick={() => void dispatch(sync())}>
 				<Icon path={mdiAccountSyncOutline} size="1em" />

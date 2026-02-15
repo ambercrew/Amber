@@ -15,6 +15,7 @@
 	flex-direction: column;
 	justify-content: space-between;
 	height: 100vh;
+	z-index: 6;
 
 	& .side-bar-top-container {
 		overflow-y: auto;
@@ -131,32 +132,21 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-2);
+}
 
-	.row {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		gap: 12px;
-		width: 100%;
-		transition: all var(--default-transition-time);
-		padding: var(--spacing-4);
-		font-size: 1.6rem;
+.row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: var(--spacing-4);
+	width: 100%;
+	padding: var(--spacing-4);
 
-		/* Necessary so that the button has the same height when the sidebar is closed. */
-		height: calc(
-			1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-				var(--spacing-4) /* Height of padding */
-		);
-
-		&:hover {
-			background-color: var(--surface-background-color);
-		}
-
-		&.active {
-			background: var(--primary-color);
-			color: #fff;
-		}
-	}
+	/* Necessary so that the button has the same height when the sidebar is closed. */
+	height: calc(
+		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
+			var(--spacing-4) /* Height of padding */
+	);
 }
 
 .search-input-container {

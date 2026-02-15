@@ -41,6 +41,7 @@
 		"lexical": "0.39.0",
 		"react": "19.2.3",
 		"react-dom": "19.2.3",
+		"react-markdown": "^10.1.0",
 		"react-redux": "9.2.0",
 		"react-router": "7.12.0",
 		"react-tooltip": "5.30.0",

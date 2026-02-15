@@ -1,6 +1,7 @@
 import Settings, { Theme } from "../../../../types/backend/model/settings";
 import { FormRows } from "../../../../components/Form/Form";
 import { TabProps } from "../../types/tabProps";
+import Select from "../../../../components/Select/Select";
 
 export default function AppearanceTab({ state, setState }: TabProps) {
 	const updateSettings = (newSettings: Partial<Settings>) => {
@@ -21,21 +22,30 @@ export default function AppearanceTab({ state, setState }: TabProps) {
 						label: "Theme",
 						labelHtmlFor: "theme",
 						children: (
-							<select
-								value={state.localSettings?.theme}
+							<Select
+								currentValue={state.localSettings?.theme}
 								id="theme"
-								onChange={e =>
+								onChangeValue={value =>
 									updateSettings({
-										theme: e.target.value as Theme,
+										theme: value as Theme,
 									})
 								}
-								autoFocus>
-								<option value="FollowSystem">
-									Follow system
-								</option>
-								<option value="Light">Light</option>
-								<option value="Dark">Dark</option>
-							</select>
+								options={[
+									{
+										value: "FollowSystem",
+										label: "Follow system",
+									},
+									{
+										value: "Light",
+										label: "Light",
+									},
+									{
+										value: "Dark",
+										label: "Dark",
+									},
+								]}
+								autoFocus
+							/>
 						),
 					},
 					{

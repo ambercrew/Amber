@@ -33,7 +33,7 @@ vi.mock(import("../../stores/settings/settingsActions"));
 vi.mock(import("../../stores/sync/syncActions"));
 vi.mock(import("../../managers/closeRequestedEventManager"));
 vi.mock(import("../../api/cellApi.ts"), () => ({
-	getCellsForFiles: () => Promise.resolve([]),
+	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
 }));
 vi.mock(import("@tauri-apps/api/core"));
 vi.mock(import("@tauri-apps/plugin-updater"));

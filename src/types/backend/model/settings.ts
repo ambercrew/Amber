@@ -5,4 +5,7 @@ export default interface Settings {
 	theme: Theme;
 	zoomPercentage: number;
 	autoSync: boolean;
+
+	enableAi: boolean;
+	ollamaModelName: string | null;
 }

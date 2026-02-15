@@ -23,7 +23,13 @@ function Alert({ className, type, children, onClose, ...props }: Props) {
 			{...props}>
 			{children}
 			{onClose && (
-				<button type="button" onClick={onClose}>
+				<button
+					type="button"
+					onClick={onClose}
+					className={`
+                    ${type === "error" && "red"}
+                    ${type === "primary" && "primary"}
+                    `}>
 					<Icon path={mdiCloseThick} size={1} />
 				</button>
 			)}

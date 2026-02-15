@@ -192,7 +192,7 @@ describe("Reviewer", () => {
 			expect.anything(),
 		);
 
-		expect(screen.getByTestId("location-display")).toHaveTextContent(
+		expect(await screen.findByTestId("location-display")).toHaveTextContent(
 			"/home",
 		);
 	});

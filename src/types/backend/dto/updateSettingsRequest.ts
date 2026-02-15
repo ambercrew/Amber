@@ -5,4 +5,7 @@ export default interface UpdateSettingsRequest {
 	theme: Theme | null;
 	zoomPercentage: number | null;
 	autoSync: boolean | null;
+
+	enableAi: boolean | null;
+	ollamaModelName: string | null;
 }

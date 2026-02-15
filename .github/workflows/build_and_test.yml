@@ -18,13 +18,13 @@ jobs:
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-                  sudo apt install protobuf-compiler
+                  sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf protobuf-compiler
                   cargo install sqlx-cli
             - name: Build Rust Project
               run: |
                   cd src-tauri
-                  cargo build --verbose
+                  cargo clean
+                  cargo build
             - name: Run Rust Tests
               run: |
                   cd src-tauri

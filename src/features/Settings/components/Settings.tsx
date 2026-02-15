@@ -34,6 +34,7 @@ import { SettingsState } from "../types/settingsState";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 import { mdiMenu } from "@mdi/js";
 import Icon from "@mdi/react";
+import AiTab from "./tabs/AiTab";
 
 interface Props {
 	onClose: () => void;
@@ -203,6 +204,7 @@ export default function Settings({ onClose }: Props) {
 				{selectedTab === SettingsTab.Security && (
 					<SecurityTab {...tabProps} />
 				)}
+				{selectedTab === SettingsTab.Ai && <AiTab {...tabProps} />}
 
 				{errorMessage && (
 					<Alert

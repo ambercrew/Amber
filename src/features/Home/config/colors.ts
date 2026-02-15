@@ -3,16 +3,16 @@ import RGB from "../../../types/ui/rgb";
 export const colors = {
 	// Primary color tint-10 in RGB.
 	reviewFromColor: {
-		r: 59,
-		g: 130,
-		b: 246,
+		r: 48,
+		g: 107,
+		b: 236,
 	} as RGB,
 
 	// Primary color shade-10 in RGB.
 	reviewToColor: {
-		r: 19,
-		g: 76,
-		b: 202,
+		r: 21,
+		g: 84,
+		b: 224,
 	} as RGB,
 
 	dueFromColorLightTheme: {
@@ -21,7 +21,7 @@ export const colors = {
 		b: 180,
 	} as RGB,
 
-	dueToColorLighTheme: {
+	dueToColorLightTheme: {
 		r: 60,
 		g: 60,
 		b: 60,

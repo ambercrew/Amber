@@ -1,3 +1,4 @@
+mod ai_api;
 mod auth_api;
 mod cell_api;
 mod export_import_api;
@@ -49,8 +50,19 @@ pub use fsrs_api::{
 
 pub use sync_api::sync;
 
+pub use ai_api::{
+    delete_ai_chat, get_all_ai_chats_sorted_by_date_desc, get_chat_messages_ordered,
+    stop_ai_generation, stream_ai_response,
+};
+
 #[derive(Serialize)]
 pub struct ApiError(String);
+
+impl ApiError {
+    pub fn new(err: String) -> Self {
+        Self(err)
+    }
+}
 
 impl<T> From<T> for ApiError
 where

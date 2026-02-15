@@ -31,6 +31,7 @@ import {
 	FsrsProfileChoiceId,
 } from "../../../types/backend/valueObjects/fsrsProfileChoice";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
+import Select, { Option } from "../../../components/Select/Select";
 
 interface FsrsDialogState {
 	profileChoice: FsrsProfileChoice;
@@ -189,6 +190,20 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 		});
 	};
 
+	const selectOptions: Option[] = [];
+	if (!isRoot) {
+		selectOptions.push({
+			label: "Inherit from parent",
+			value: "inherit",
+		});
+	}
+	selectOptions.push(
+		...allFsrsProfiles.map(profile => ({
+			label: profile.name,
+			value: profile.id,
+		})),
+	);
+
 	return (
 		<>
 			<Dialog onHide={onClose} focusTrap className={styles.fsrsDialog}>
@@ -207,9 +222,9 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 									children: (
 										<div
 											className={styles.chooseProfileRow}>
-											<select
+											<Select
 												id="profile"
-												value={
+												currentValue={
 													state.profileChoice.type ===
 													"inherit"
 														? state.profileChoice
@@ -217,28 +232,14 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 														: state.profileChoice
 																.content
 												}
-												onChange={e =>
+												onChangeValue={value =>
 													void handleChangeProfileChoice(
-														e.target.value,
+														value,
 													)
 												}
-												autoFocus>
-												{!isRoot && (
-													<option value="inherit">
-														Inherit from parent
-													</option>
-												)}
-
-												{allFsrsProfiles.map(
-													profile => (
-														<option
-															value={profile.id}
-															key={profile.id}>
-															{profile.name}
-														</option>
-													),
-												)}
-											</select>
+												autoFocus
+												options={selectOptions}
+											/>
 
 											<button
 												className="transparent"

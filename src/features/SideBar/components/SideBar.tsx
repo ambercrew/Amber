@@ -103,7 +103,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 			<div className={styles.sideBarTopContainer}>
 				<div className={styles.header}>
 					<div className={styles.titleRow}>
-						<img src="icon.svg" />
+						<img src="icon.svg" alt="logo" />
 						<h2>Brainy</h2>
 					</div>
 
@@ -118,9 +118,10 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 				<div className={styles.rows}>
 					<button
 						className={`${
-							(location.pathname === "/" ||
-								location.pathname.startsWith("/home")) &&
-							styles.active
+							location.pathname === "/" ||
+							location.pathname.startsWith("/home")
+								? "primary"
+								: "transparent"
 						} ${styles.row}`}
 						title="Home (Ctrl + H)"
 						onClick={() => void navigate("/home")}>
@@ -130,8 +131,9 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 
 					<button
 						className={`${
-							location.pathname.startsWith("/search") &&
-							styles.active
+							location.pathname.startsWith("/search")
+								? "primary"
+								: "transparent"
 						} ${styles.row}`}
 						title="Search (Ctrl + Shift + F)"
 						onClick={() => void navigate("/search")}>
@@ -140,7 +142,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					</button>
 
 					<button
-						className={`${styles.row}`}
+						className={`transparent ${styles.row}`}
 						title="Settings (Ctrl + P)"
 						onClick={handleSettingsButtonClick}>
 						<Icon path={mdiCogOutline} size="1em" />
@@ -152,7 +154,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					)}
 
 					<button
-						className={`${styles.row}`}
+						className={`transparent ${styles.row}`}
 						title="Help (F1)"
 						onClick={openHelpWebsite}>
 						<Icon path={mdiHelpCircleOutline} size="1em" />

@@ -68,17 +68,15 @@ export default function DataTab({ state, setState }: TabProps) {
 						label: "Sync on startup and on close",
 						labelHtmlFor: "auto-sync",
 						children: (
-							<div style={{ padding: "4px" }}>
-								<CheckBox
-									id="auto-sync"
-									checked={state.localSettings.autoSync}
-									onChange={e =>
-										updateSettings({
-											autoSync: e.target.checked,
-										})
-									}
-								/>
-							</div>
+							<CheckBox
+								id="auto-sync"
+								checked={state.localSettings.autoSync}
+								onChange={e =>
+									updateSettings({
+										autoSync: e.target.checked,
+									})
+								}
+							/>
 						),
 					},
 				]}

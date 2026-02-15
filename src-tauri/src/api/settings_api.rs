@@ -36,6 +36,12 @@ pub async fn update_settings(
     if let Some(auto_sync) = new_settings.auto_sync {
         settings.auto_sync = auto_sync;
     }
+    if let Some(enable_ai) = new_settings.enable_ai {
+        settings.enable_ai = enable_ai;
+    }
+    if let Some(ollama_model_name) = new_settings.ollama_model_name {
+        settings.ollama_model_name = ollama_model_name;
+    }
     settings.save_to_disk().await?;
 
     if restart {

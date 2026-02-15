@@ -9,6 +9,9 @@ use thiserror::Error;
 use tokio::sync::Mutex;
 
 use crate::{
+    ai_integration::repositories::{
+        sqlite_ai_repository::SqliteAiRepository, traits::ai_repository::AiRepository,
+    },
     backup::{
         repositories::traits::backup_repository::BackupRepository,
         sqlite_backup_repository::SqliteBackupRepository,
@@ -47,6 +50,7 @@ pub struct SqliteRepositoriesContext {
     sync_repository: Arc<SqliteSyncRepository>,
     backup_repository: Arc<SqliteBackupRepository>,
     fsrs_repository: Arc<SqliteFsrsRepository>,
+    ai_repository: Arc<SqliteAiRepository>,
 }
 
 #[derive(Debug, Error)]
@@ -89,6 +93,7 @@ impl SqliteRepositoriesContext {
             sync_repository: Arc::new(SqliteSyncRepository::new(arc_pool.clone(), tx.clone())),
             backup_repository: Arc::new(SqliteBackupRepository::new(arc_pool.clone())),
             fsrs_repository: Arc::new(SqliteFsrsRepository::new(arc_pool.clone(), tx.clone())),
+            ai_repository: Arc::new(SqliteAiRepository::new(arc_pool.clone(), tx.clone())),
         })
     }
 
@@ -140,6 +145,10 @@ impl RepositoriesContext for SqliteRepositoriesContext {
 
     fn fsrs_repository(&self) -> Arc<dyn FsrsRepository> {
         self.fsrs_repository.clone()
+    }
+
+    fn ai_repository(&self) -> Arc<dyn AiRepository> {
+        self.ai_repository.clone()
     }
 
     async fn save_changes(&self) -> Result<(), RepositoriesContextError> {

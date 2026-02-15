@@ -1,0 +1,136 @@
+.container {
+	position: fixed;
+	right: var(--spacing-4);
+	bottom: var(--spacing-4);
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-4);
+	align-items: flex-end;
+	z-index: 5;
+}
+
+.chat-panel {
+	box-shadow: var(--default-box-shadow);
+	width: 32rem;
+	max-width: 80vw;
+	border-radius: var(--default-border-radius);
+
+	& .header {
+		background-color: var(--default-background-color);
+		display: flex;
+		gap: var(--spacing-4);
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--spacing-2) var(--spacing-4);
+
+		border: var(--default-border-width) solid var(--border-color);
+
+		border-radius: var(--default-border-radius);
+		border-bottom-right-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+
+	& .messages {
+		background-color: var(--surface-background-color-tint-10);
+		padding: var(--spacing-4);
+		height: 32rem;
+		max-height: 50vh;
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-4);
+		overflow-y: auto;
+
+		border-right: var(--default-border-width) solid var(--border-color);
+		border-left: var(--default-border-width) solid var(--border-color);
+
+		& .message {
+			background-color: var(--default-background-color);
+			max-width: 90%;
+			padding: var(--spacing-2);
+			border-radius: var(--default-border-radius);
+			border: var(--default-border-width) solid var(--border-color);
+			word-break: break-all;
+		}
+
+		.spinner::after {
+			content: "⠋";
+			animation: spin 1s steps(10) infinite;
+			color: var(--primary-color);
+		}
+
+		& ol,
+		& ul {
+			margin: 0 var(--spacing-8);
+		}
+
+		& .human {
+			align-self: flex-end;
+			background-color: var(--primary-color);
+			color: #fff;
+			border-color: var(--primary-color);
+		}
+	}
+
+	& form {
+		background-color: var(--default-background-color);
+		border: var(--default-border-width) solid var(--border-color);
+		padding: var(--spacing-2) var(--spacing-4);
+		display: flex;
+		gap: var(--spacing-3);
+		align-items: center;
+
+		border-bottom-right-radius: var(--default-border-radius);
+		border-bottom-left-radius: var(--default-border-radius);
+
+		& textarea {
+			width: 100%;
+			font-size: 1.4rem;
+			resize: none;
+			min-height: 3.6rem;
+			max-height: 8rem;
+		}
+	}
+}
+
+.spinner::after {
+	content: "⠋";
+	animation: spin 1s steps(10) infinite;
+}
+
+@keyframes spin {
+	0% {
+		content: "⠋";
+	}
+	10% {
+		content: "⠙";
+	}
+	20% {
+		content: "⠹";
+	}
+	30% {
+		content: "⠸";
+	}
+	40% {
+		content: "⠼";
+	}
+	50% {
+		content: "⠴";
+	}
+	60% {
+		content: "⠦";
+	}
+	70% {
+		content: "⠧";
+	}
+	80% {
+		content: "⠇";
+	}
+	90% {
+		content: "⠏";
+	}
+}
+
+.floating-button {
+	box-shadow: var(--default-box-shadow);
+}
