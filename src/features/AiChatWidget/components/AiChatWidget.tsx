@@ -244,7 +244,7 @@ function AiChatWidgetInner() {
 								<button
 									onClick={() => setIsOpen(false)}
 									className="transparent"
-									title="Close chat">
+									title="Close chat (Ctrl + J)">
 									<Icon path={mdiClose} size={1} />
 								</button>
 							</div>

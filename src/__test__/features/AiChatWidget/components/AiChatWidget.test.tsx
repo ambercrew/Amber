@@ -360,7 +360,7 @@ describe("AiChatWidget", () => {
 		expect(vi.mocked(stopAiGeneration)).toBeCalled();
 	});
 
-	it("Should open chat when shortcut is pressed", async () => {
+	it("Should toggle chat when shortcut is pressed", async () => {
 		// Arrange
 
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockReturnValue(
@@ -369,13 +369,12 @@ describe("AiChatWidget", () => {
 
 		renderComponent({});
 
-		// Act
+		// Act & Assert
 
 		await userEvent.keyboard("{Control>}j");
-
-		// Assert
-
 		expect(screen.queryByRole("textbox")).not.toBeNull();
+		await userEvent.keyboard("{Control>}j");
+		expect(screen.queryByRole("textbox")).toBeNull();
 	});
 
 	it("Should hide the chat when Escape is pressed", async () => {
