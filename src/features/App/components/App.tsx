@@ -1,14 +1,14 @@
-import Editor from "../features/Editor/components/Editor";
+import Editor from "../../Editor/components/Editor";
 import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
-import Alert from "../components/Alert/Alert";
-import Reviewer from "../features/Reviewer/components/Reviewer";
-import Home from "../features/Home/components/Home";
-import useAppDispatch from "../hooks/useAppDispatch";
-import { getReviewTreeFolderForRoot } from "../stores/fileSystem/fileSystemActions";
-import SideBar from "../features/SideBar/components/SideBar";
-import Settings from "../features/Settings/components/Settings";
-import useGlobalKey from "../hooks/useGlobalKey";
+import Alert from "../../../components/Alert/Alert";
+import Reviewer from "../../Reviewer/components/Reviewer";
+import Home from "../../Home/components/Home";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
+import SideBar from "../../SideBar/components/SideBar";
+import Settings from "../../Settings/components/Settings";
+import useGlobalKey from "../../../hooks/useGlobalKey";
 import {
 	Route,
 	Routes,
@@ -19,19 +19,19 @@ import {
 import {
 	FILE_ID_QUERY_PARAMETER,
 	SMALL_SCREEN_MAX_WIDTH_IN_PX,
-} from "../config/constants";
-import FromRouteState from "../types/fromRouteState";
-import Searcher from "../features/Searcher/components/Searcher";
-import Updater from "../features/Updater/components/Updater";
-import { loadInitialUserState } from "../stores/user/userActions";
+} from "../../../config/constants";
+import FromRouteState from "../../../types/fromRouteState";
+import Searcher from "../../Searcher/components/Searcher";
+import Updater from "../../Updater/components/Updater";
+import { loadInitialUserState } from "../../../stores/user/userActions";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../stores/sync/managers/syncEventManager";
-import { initialLoadAndApplySettings } from "../stores/settings/settingsActions";
-import { sync } from "../stores/sync/syncActions";
-import SettingsType from "../types/backend/model/settings";
-import useIsSmallScreen from "../hooks/useIsSmallScreen";
+} from "../../../stores/sync/managers/syncEventManager";
+import { initialLoadAndApplySettings } from "../../../stores/settings/settingsActions";
+import { sync } from "../../../stores/sync/syncActions";
+import SettingsType from "../../../types/backend/model/settings";
+import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 
 function App() {
 	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);

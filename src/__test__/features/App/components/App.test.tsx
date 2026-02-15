@@ -1,16 +1,16 @@
-import App from "../../app/App";
-import { renderWithProviders } from "../test-utils/renderWithProviders";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { getReviewTreeFolderForRoot } from "../../stores/fileSystem/fileSystemActions";
+import App from "../../../../features/App/components/App.tsx";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
+import useAppDispatch from "../../../../hooks/useAppDispatch.ts";
+import { getReviewTreeFolderForRoot } from "../../../../stores/fileSystem/fileSystemActions.ts";
 import { screen, waitFor } from "@testing-library/react";
-import { loadInitialUserState } from "../../stores/user/userActions";
-import { initialLoadAndApplySettings } from "../../stores/settings/settingsActions";
+import { loadInitialUserState } from "../../../../stores/user/userActions.ts";
+import { initialLoadAndApplySettings } from "../../../../stores/settings/settingsActions.ts";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../stores/sync/managers/syncEventManager";
+} from "../../../../stores/sync/managers/syncEventManager.ts";
 import userEvent from "@testing-library/user-event";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { ask } from "@tauri-apps/plugin-dialog";
@@ -20,19 +20,19 @@ import homeStyles from "../../features/Home/components/styles.module.css";
 import editorStyles from "../../features/Editor/components/styles.module.css";
 import reviewerStyles from "../../features/Reviewer/components/styles.module.css";
 import searcherStyles from "../../features/Searcher/components/styles.module.css";
-import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../config/constants";
-import { sync } from "../../stores/sync/syncActions";
-import Settings from "../../types/backend/model/settings";
+import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../../config/constants.ts";
+import { sync } from "../../../../stores/sync/syncActions.ts";
+import Settings from "../../../../types/backend/model/settings.ts";
 
-vi.mock(import("../../hooks/useAppDispatch"), () => ({
+vi.mock(import("../../../../hooks/useAppDispatch.ts"), () => ({
 	default: vi.fn(),
 }));
-vi.mock(import("../../stores/fileSystem/fileSystemActions"));
-vi.mock(import("../../stores/user/userActions"));
-vi.mock(import("../../stores/settings/settingsActions"));
-vi.mock(import("../../stores/sync/syncActions"));
-vi.mock(import("../../managers/closeRequestedEventManager"));
-vi.mock(import("../../api/cellApi.ts"), () => ({
+vi.mock(import("../../../../stores/fileSystem/fileSystemActions.ts"));
+vi.mock(import("../../../../stores/user/userActions.ts"));
+vi.mock(import("../../../../stores/settings/settingsActions.ts"));
+vi.mock(import("../../../../stores/sync/syncActions.ts"));
+vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
+vi.mock(import("../../../../api/cellApi.ts"), () => ({
 	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
 }));
 vi.mock(import("@tauri-apps/api/core"));
