@@ -1,12 +1,20 @@
 use rig::{
     completion::{self, CompletionError, CompletionModel, CompletionRequest},
+    streaming::{self},
+};
+
+#[cfg(not(test))]
+use rig::{
     message::ToolCall,
-    providers::ollama,
     streaming::{
-        self, RawStreamingChoice, RawStreamingToolCall, StreamedAssistantContent,
+        RawStreamingChoice, RawStreamingToolCall, StreamedAssistantContent,
         StreamingCompletionResponse,
     },
 };
+
+#[cfg(not(test))]
+use rig::providers::ollama;
+#[cfg(not(test))]
 use tokio_stream::StreamExt;
 
 #[cfg(test)]
@@ -18,6 +26,7 @@ use crate::ai_integration::clients::multi_completion_client::{
 
 #[derive(Clone)]
 pub enum MultiCompletionModel {
+    #[cfg(not(test))]
     Ollama(ollama::CompletionModel),
     #[cfg(test)]
     Mock(MockClient),
@@ -32,6 +41,7 @@ impl CompletionModel for MultiCompletionModel {
 
     fn make(client: &Self::Client, model: impl Into<String>) -> Self {
         match client {
+            #[cfg(not(test))]
             MultiCompletionClient::Ollama(client) => {
                 MultiCompletionModel::Ollama(ollama::CompletionModel::make(client, model))
             }
@@ -47,6 +57,7 @@ impl CompletionModel for MultiCompletionModel {
         request: rig::completion::CompletionRequest,
     ) -> Result<completion::CompletionResponse<Self::Response>, CompletionError> {
         match self {
+            #[cfg(not(test))]
             Self::Ollama(completion_model) => {
                 completion_model.completion(request).await.map(|val| {
                     completion::CompletionResponse {
@@ -69,6 +80,7 @@ impl CompletionModel for MultiCompletionModel {
     ) -> Result<streaming::StreamingCompletionResponse<Self::StreamingResponse>, CompletionError>
     {
         match self {
+            #[cfg(not(test))]
             Self::Ollama(completion_model) => {
                 let stream = completion_model.stream(request).await?;
                 let mapped_stream =
@@ -81,6 +93,7 @@ impl CompletionModel for MultiCompletionModel {
     }
 }
 
+#[cfg(not(test))]
 fn to_raw_streaming_choice<R>(
     content: StreamedAssistantContent<R>,
 ) -> RawStreamingChoice<MultiStreamingResponse>
@@ -109,6 +122,7 @@ where
     }
 }
 
+#[cfg(not(test))]
 fn to_raw_streaming_call(tool_call: ToolCall) -> RawStreamingToolCall {
     RawStreamingToolCall {
         id: tool_call.id,

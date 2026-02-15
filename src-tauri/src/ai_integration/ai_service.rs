@@ -53,6 +53,7 @@ pub enum AiServiceError {
     #[error("Ai is not enabled in settings!")]
     AiNotEnabled,
     #[error("Ollama model name is not filled in settings!")]
+    #[cfg(not(test))]
     OllamaModelNameIsNotFilled,
     #[error("An unknown error has happened!")]
     UnknownError(String),

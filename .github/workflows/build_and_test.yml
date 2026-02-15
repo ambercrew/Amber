@@ -23,16 +23,12 @@ jobs:
                   cargo install sqlx-cli
             - name: Build Rust Project
               run: |
-                  # TODO: check if the ywork
                   cd src-tauri
-                  pwd
-                  ls 
-                  cargo clean
                   cargo build
             - name: Run Rust Tests
               run: |
                   cd src-tauri
-                  cargo test --verbose --workspace
+                  cargo test --verbose
 
     build_node:
         runs-on: ubuntu-latest

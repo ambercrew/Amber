@@ -14,6 +14,8 @@ mod test_utils;
 
 use std::{sync::Arc, time::Duration};
 
+#[cfg(test)]
+use crate::ai_integration::clients::mock_client::MockClient;
 use crate::{
     ai_integration::{ai_service::AiService, ai_state::AiState},
     backend::{
@@ -171,6 +173,12 @@ pub async fn run() -> Result<(), String> {
                 settings,
                 ai_state.clone(),
                 repositories_context.ai_repository(),
+                #[cfg(test)]
+                MockClient {
+                    model: None,
+                    stream_fn: Arc::new(None),
+                    completion_fn: Arc::new(None),
+                },
             )));
             app.manage(ai_state);
 
