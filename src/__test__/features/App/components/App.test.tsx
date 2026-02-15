@@ -14,12 +14,12 @@ import {
 import userEvent from "@testing-library/user-event";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { ask } from "@tauri-apps/plugin-dialog";
-import appStyles from "../../app/styles.module.css";
-import sideBarStyles from "../../features/SideBar/components/styles.module.css";
-import homeStyles from "../../features/Home/components/styles.module.css";
-import editorStyles from "../../features/Editor/components/styles.module.css";
-import reviewerStyles from "../../features/Reviewer/components/styles.module.css";
-import searcherStyles from "../../features/Searcher/components/styles.module.css";
+import appStyles from "../../../../features/App/components/styles.module.css";
+import sideBarStyles from "../../../../features/SideBar/components/styles.module.css";
+import homeStyles from "../../../../features/Home/components/styles.module.css";
+import editorStyles from "../../../../features/Editor/components/styles.module.css";
+import reviewerStyles from "../../../../features/Reviewer/components/styles.module.css";
+import searcherStyles from "../../../../features/Searcher/components/styles.module.css";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../../config/constants.ts";
 import { sync } from "../../../../stores/sync/syncActions.ts";
 import Settings from "../../../../types/backend/model/settings.ts";
