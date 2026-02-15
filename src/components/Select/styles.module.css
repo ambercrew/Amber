@@ -39,14 +39,14 @@
 	padding: var(--spacing-3);
 	max-height: 24rem;
 	overflow-y: auto;
+	overflow-x: hidden;
 
 	& > button {
+		flex-shrink: 0;
 		padding: var(--spacing-3) var(--spacing-4);
-
-		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-
+		overflow: hidden;
 		&.selected {
 			background-color: var(--surface-background-color);
 		}

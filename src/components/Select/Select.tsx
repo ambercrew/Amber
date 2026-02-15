@@ -80,7 +80,8 @@ export default function Select({
 				onClick={() => setIsOpen(!isOpen)}
 				ref={dropDownRef}
 				className={`select ${styles.dropDownButton}`}
-				type="button">
+				type="button"
+				title={selectedLabel}>
 				<p>{selectedLabel}</p>
 				<Icon
 					className={styles.icon}
