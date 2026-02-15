@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use rig::agent::StreamingPromptHook;
+use rig::agent::{HookAction, StreamingPromptHook, ToolCallHookAction};
 
 use crate::ai_integration::{
     ai_state::AiState,
@@ -17,11 +17,12 @@ impl StateCancellationHook {
         Self { state }
     }
 
-    fn cancel_based_on_state(&self, cancel_sig: rig::agent::CancelSignal) {
+    fn cancel_based_on_state(&self) -> HookAction {
         if self.state.generation_cancelled() {
-            log::info!("Cancelling generation of AI.");
-            cancel_sig.cancel_with_reason("Cancelled due to state update.");
+            log::info!("Cancelling the generation of response.");
+            HookAction::terminate("Cancelled due to state update.");
         }
+        HookAction::cont()
     }
 }
 
@@ -30,32 +31,24 @@ impl StreamingPromptHook<MultiCompletionModel> for StateCancellationHook {
         &self,
         _: &rig::message::Message,
         _: &[rig::message::Message],
-        cancel_sig: rig::agent::CancelSignal,
-    ) {
-        self.cancel_based_on_state(cancel_sig);
+    ) -> HookAction {
+        self.cancel_based_on_state()
     }
 
-    async fn on_text_delta(&self, _: &str, _: &str, cancel_sig: rig::agent::CancelSignal) {
-        self.cancel_based_on_state(cancel_sig);
+    async fn on_text_delta(&self, _: &str, _: &str) -> HookAction {
+        self.cancel_based_on_state()
     }
 
-    async fn on_tool_call_delta(
-        &self,
-        _: &str,
-        _: Option<&str>,
-        _: &str,
-        cancel_sig: rig::agent::CancelSignal,
-    ) {
-        self.cancel_based_on_state(cancel_sig);
+    async fn on_tool_call_delta(&self, _: &str, _: &str, _: Option<&str>, _: &str) -> HookAction {
+        self.cancel_based_on_state()
     }
 
     async fn on_stream_completion_response_finish(
         &self,
         _: &rig::message::Message,
         _: &<MultiCompletionModel as rig::completion::CompletionModel>::StreamingResponse,
-        cancel_sig: rig::agent::CancelSignal,
-    ) {
-        self.cancel_based_on_state(cancel_sig);
+    ) -> HookAction {
+        self.cancel_based_on_state()
     }
 
     async fn on_tool_call(
@@ -63,9 +56,12 @@ impl StreamingPromptHook<MultiCompletionModel> for StateCancellationHook {
         _: &str,
         _: Option<String>,
         _: &str,
-        cancel_sig: rig::agent::CancelSignal,
-    ) {
-        self.cancel_based_on_state(cancel_sig);
+        _: &str,
+    ) -> ToolCallHookAction {
+        match self.cancel_based_on_state() {
+            HookAction::Continue => ToolCallHookAction::Continue,
+            HookAction::Terminate { reason } => ToolCallHookAction::terminate(reason),
+        }
     }
 
     async fn on_tool_result(
@@ -74,8 +70,8 @@ impl StreamingPromptHook<MultiCompletionModel> for StateCancellationHook {
         _: Option<String>,
         _: &str,
         _: &str,
-        cancel_sig: rig::agent::CancelSignal,
-    ) {
-        self.cancel_based_on_state(cancel_sig);
+        _: &str,
+    ) -> HookAction {
+        self.cancel_based_on_state()
     }
 }

@@ -110,12 +110,19 @@ where
             reasoning: reasoning.reasoning[0].clone(),
             signature: reasoning.signature,
         },
-        StreamedAssistantContent::ToolCallDelta { id, content } => {
-            RawStreamingChoice::ToolCallDelta { id, content }
-        }
-        StreamedAssistantContent::ToolCall(tool_call) => {
-            RawStreamingChoice::ToolCall(to_raw_streaming_call(tool_call))
-        }
+        StreamedAssistantContent::ToolCallDelta {
+            id,
+            internal_call_id,
+            content,
+        } => RawStreamingChoice::ToolCallDelta {
+            id,
+            internal_call_id,
+            content,
+        },
+        StreamedAssistantContent::ToolCall {
+            tool_call,
+            internal_call_id,
+        } => RawStreamingChoice::ToolCall(to_raw_streaming_call(tool_call, internal_call_id)),
         StreamedAssistantContent::Final(response) => {
             RawStreamingChoice::FinalResponse(response.into())
         }
@@ -123,7 +130,7 @@ where
 }
 
 #[cfg(not(test))]
-fn to_raw_streaming_call(tool_call: ToolCall) -> RawStreamingToolCall {
+fn to_raw_streaming_call(tool_call: ToolCall, internal_call_id: String) -> RawStreamingToolCall {
     RawStreamingToolCall {
         id: tool_call.id,
         call_id: tool_call.call_id,
@@ -131,5 +138,6 @@ fn to_raw_streaming_call(tool_call: ToolCall) -> RawStreamingToolCall {
         arguments: tool_call.function.arguments,
         signature: tool_call.signature,
         additional_params: tool_call.additional_params,
+        internal_call_id,
     }
 }

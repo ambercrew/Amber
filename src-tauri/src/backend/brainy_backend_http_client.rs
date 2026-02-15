@@ -246,8 +246,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = self
             .reqwest_client
             .get(self.backend_url.join("/api/v1/sync").unwrap())
-            .query(&[("date", date.to_rfc3339())])
-            .query(&[("page", page)])
+            .query(&[("date", date.to_rfc3339()), ("page", page.to_string())])
             .send()
             .await;
 
