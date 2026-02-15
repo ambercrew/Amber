@@ -23,6 +23,7 @@
 		"*.rs": "cargo fmt --manifest-path ./src-tauri/Cargo.toml --"
 	},
 	"dependencies": {
+		"@fontsource-variable/noto-sans": "^5.2.10",
 		"@lexical/html": "0.40.0",
 		"@lexical/list": "0.40.0",
 		"@lexical/mark": "0.40.0",
