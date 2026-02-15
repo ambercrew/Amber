@@ -25,7 +25,8 @@ jobs:
               run: |
                   # TODO: check if the ywork
                   cd src-tauri
-                  ls pwd
+                  pwd
+                  ls 
                   cargo clean
                   cargo build
             - name: Run Rust Tests
