@@ -19,10 +19,13 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf protobuf-compiler
+                  ls
                   cargo install sqlx-cli
             - name: Build Rust Project
               run: |
+                  # TODO: check if the ywork
                   cd src-tauri
+                  ls pwd
                   cargo clean
                   cargo build
             - name: Run Rust Tests

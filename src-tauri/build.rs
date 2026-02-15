@@ -2,6 +2,7 @@ use std::{env, fs, path::PathBuf, process::Command};
 
 fn main() {
     setup_sqlx();
+    prost_build::compile_protos(&["protobuff/sync_objects.proto"], &["protobuff/"]).unwrap();
     tauri_build::build()
 }
 
@@ -27,14 +28,7 @@ fn setup_sqlx() {
     }
 
     let output = Command::new("sqlx")
-        .args([
-            "migrate",
-            "run",
-            "--source",
-            "brainy_core/db",
-            "--database-url",
-            &db_url,
-        ])
+        .args(["migrate", "run", "--source", "migrations"])
         .output()
         .expect("Could not run sqlx command, ensure that it is installed");
 
