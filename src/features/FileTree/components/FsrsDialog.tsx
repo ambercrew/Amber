@@ -113,7 +113,7 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 		return weightsAsNumber;
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.SubmitEvent) => {
 		e.preventDefault();
 
 		const weightsAsNumber = verifyWeightsAndGetAsNumbers();

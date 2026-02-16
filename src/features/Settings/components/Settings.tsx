@@ -83,7 +83,7 @@ export default function Settings({ onClose }: Props) {
 		}
 	};
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
 		if (isSignedIn) {

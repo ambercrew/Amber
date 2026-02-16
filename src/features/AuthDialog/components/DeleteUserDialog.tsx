@@ -24,7 +24,7 @@ export default function DeleteUserDialog({ onHide }: Props) {
 	const [inputText, setInputText] = useState("");
 	const dispatch = useAppDispatch();
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setErrorMessage("");
 

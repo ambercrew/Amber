@@ -1,4 +1,3 @@
-// TODO: refactor file
 mod ai_integration;
 mod backend;
 mod backup;

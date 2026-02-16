@@ -89,7 +89,9 @@ export default function FileTreeItemRow({
 		};
 	}, [onHideActions]);
 
-	const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleRenameSubmit = async (
+		e: React.SubmitEvent<HTMLFormElement>,
+	) => {
 		e.preventDefault();
 
 		if (isFolder) await dispatch(renameFolder(id, newName));

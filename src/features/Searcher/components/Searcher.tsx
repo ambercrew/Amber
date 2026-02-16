@@ -49,7 +49,7 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 		}
 	}, "keydown");
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: React.SubmitEvent) => {
 		e.preventDefault();
 		searchParams.set(searchTextQueryParameter, searchText);
 		setSearchParams(searchParams);

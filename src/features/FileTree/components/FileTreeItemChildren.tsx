@@ -39,7 +39,7 @@ function FileTreeItemChildren({
 	const dispatch = useAppDispatch();
 
 	const handleCreateNewItemSubmit = async (
-		e: React.FormEvent<HTMLFormElement>,
+		e: React.SubmitEvent<HTMLFormElement>,
 	) => {
 		e.preventDefault();
 		if (creatingNewFolder) {

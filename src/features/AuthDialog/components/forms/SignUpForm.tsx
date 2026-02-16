@@ -39,7 +39,7 @@ export default function SignUpForm({
 	const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setErrorMessage("");
 
