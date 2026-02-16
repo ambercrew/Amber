@@ -29,10 +29,15 @@
 
 .options {
 	position: absolute;
+	transform: translateY(100%);
+	bottom: 0;
+
+	border: var(--default-border-width) solid var(--hover-border-color);
+
 	width: 100%;
 	background-color: var(--default-background-color);
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
+
 	display: flex;
 	flex-direction: column;
 	gap: var(--spacing-2);
@@ -40,6 +45,7 @@
 	max-height: 24rem;
 	overflow-y: auto;
 	overflow-x: hidden;
+	box-shadow: var(--default-box-shadow);
 
 	& > button {
 		flex-shrink: 0;
@@ -47,11 +53,5 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		overflow: hidden;
-		&.selected {
-			background-color: var(--surface-background-color);
-		}
 	}
-
-	bottom: 0;
-	transform: translateY(100%);
 }
