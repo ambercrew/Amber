@@ -27,7 +27,7 @@ body {
 
 	--default-outline-width: 2px;
 	--default-outline: var(--default-outline-width) solid transparent;
-	--default-outline-offset: 1px;
+	--default-outline-offset: 2px;
 
 	--primary-color: #2563eb;
 	--primary-color-shade-10: #1554e0;
