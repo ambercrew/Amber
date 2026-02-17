@@ -6,7 +6,8 @@
 	outline-offset: var(--default-outline-offset);
 }
 
-*:focus {
+*:focus,
+.focus {
 	outline-color: var(--primary-color);
 }
 
