@@ -39,4 +39,8 @@ impl Chat {
     pub fn created_date(&self) -> DateTime<Utc> {
         self.created_date
     }
+
+    pub fn set_title(&mut self, title: String) {
+        self.title = title;
+    }
 }

@@ -5,6 +5,7 @@ import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	getAllAiChatsSortedByDateDesc,
 	getChatMessagesOrdered,
+	renameAiChat,
 	stopAiGeneration,
 	streamAiResponse,
 } from "../../../../api/aiApi.ts";
@@ -457,5 +458,33 @@ describe("AiChatWidget", () => {
 		// Assert
 
 		expect(element.scrollTop).toBe(10);
+	});
+
+	it("Should be able to rename chat", async () => {
+		// Arrange
+
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockReturnValue(
+			Promise.resolve([
+				{
+					id: "chat-1",
+					title: "chat 1",
+					createdDate: "date",
+				},
+			]),
+		);
+
+		renderComponent({});
+
+		// Act
+
+		await openChat();
+		await userEvent.click(await screen.findByText("+ New chat"));
+		await userEvent.click(await screen.findByText("chat 1"));
+		await userEvent.click(await screen.findByTitle("Rename chat"));
+		await userEvent.keyboard("{Backspace>100}New name{Enter}");
+
+		// Assert
+
+		expect(vi.mocked(renameAiChat)).toBeCalledWith("chat-1", "New name");
 	});
 });

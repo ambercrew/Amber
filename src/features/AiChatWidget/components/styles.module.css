@@ -1,3 +1,7 @@
+.floating-button {
+	box-shadow: var(--default-box-shadow);
+}
+
 .container {
 	position: fixed;
 	right: var(--spacing-4);
@@ -131,6 +135,6 @@
 	}
 }
 
-.floating-button {
-	box-shadow: var(--default-box-shadow);
+.rename-dialog {
+	width: 52rem;
 }

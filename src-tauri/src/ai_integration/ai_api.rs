@@ -76,3 +76,16 @@ pub async fn get_chat_messages_ordered(
         .await?;
     Ok(messages)
 }
+
+#[tauri::command]
+pub async fn rename_ai_chat(
+    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
+    id: Guid,
+    new_title: String,
+) -> Result<(), ApiError> {
+    let context = context.lock().await;
+    let mut chat = context.ai_repository().get_chat_by_id(id).await?;
+    chat.set_title(new_title);
+    context.ai_repository().upsert_chat(&chat).await?;
+    Ok(())
+}

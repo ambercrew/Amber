@@ -39,9 +39,7 @@
 
 		& input,
 		& select,
-		& textarea {
-			font-size: 1.4rem;
-		}
+		& textarea,
 		& label {
 			font-size: 1.6rem;
 		}

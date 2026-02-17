@@ -72,10 +72,17 @@ export function FormButtons({
 }: FormButtonsProps) {
 	return (
 		<div className={styles.buttons}>
-			<button className="transparent" type="button" onClick={onClose}>
+			<button
+				className="transparent"
+				type="button"
+				title="Cancel"
+				onClick={onClose}>
 				Cancel
 			</button>
-			<button className={submitButtonType ?? "primary"} type="submit">
+			<button
+				className={submitButtonType ?? "primary"}
+				title={submitText}
+				type="submit">
 				{submitText}
 			</button>
 		</div>

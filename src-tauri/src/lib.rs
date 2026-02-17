@@ -37,7 +37,7 @@ use tauri::Manager;
 
 use ai_integration::ai_api::{
     delete_ai_chat, get_all_ai_chats_sorted_by_date_desc, get_chat_messages_ordered,
-    stop_ai_generation, stream_ai_response,
+    rename_ai_chat, stop_ai_generation, stream_ai_response,
 };
 use backend::api::auth_api::{
     is_signed_in, resend_email_verification_code, sign_in, sign_out, sign_up, update_password,
@@ -246,38 +246,39 @@ pub async fn run() -> Result<(), String> {
             export_folder,
             import,
             // Auth
-            sign_in,
-            sign_up,
-            sign_out,
             is_signed_in,
-            verify_user_email,
             resend_email_verification_code,
+            sign_in,
+            sign_out,
+            sign_up,
             update_password,
+            verify_user_email,
             // User
+            delete_user,
             get_user_information,
             update_user_information,
-            delete_user,
             // Sync
             sync,
             // FSRS
+            create_profile,
+            delete_fsrs_profile,
             get_all_fsrs_profiles,
             get_file_fsrs_profile,
             get_folder_fsrs_profile,
-            get_parent_fsrs_profile_for_file,
-            get_parent_fsrs_profile_for_folder,
-            create_profile,
-            update_profile,
             get_fsrs_profile_choice_for_file,
             get_fsrs_profile_choice_for_folder,
+            get_parent_fsrs_profile_for_file,
+            get_parent_fsrs_profile_for_folder,
             set_fsrs_profile_choice_for_file,
             set_fsrs_profile_choice_for_folder,
-            delete_fsrs_profile,
+            update_profile,
             // AI
-            stream_ai_response,
-            stop_ai_generation,
-            get_all_ai_chats_sorted_by_date_desc,
             delete_ai_chat,
+            get_all_ai_chats_sorted_by_date_desc,
             get_chat_messages_ordered,
+            rename_ai_chat,
+            stop_ai_generation,
+            stream_ai_response,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -83,6 +83,26 @@ impl AiRepository for SqliteAiRepository {
         }
     }
 
+    async fn get_chat_by_id(&self, id: Guid) -> Result<Chat, RepositoryError> {
+        let chat_row = sqlx::query_as!(
+            ChatRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                title
+            FROM ai_chats
+            WHERE id = $1"#,
+            id
+        )
+        .fetch_one(&*self.pool)
+        .await;
+
+        match chat_row {
+            Ok(chat_row) => Ok(chat_row.into()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+        }
+    }
+
     async fn upsert_message(&self, message: &Message) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

@@ -3,6 +3,7 @@ import {
 	mdiAttachment,
 	mdiClose,
 	mdiDeleteOutline,
+	mdiPencilOutline,
 	mdiRobotOutline,
 	mdiSendVariantOutline,
 	mdiStopCircleOutline,
@@ -15,6 +16,7 @@ import {
 	deleteAiChat,
 	getAllAiChatsSortedByDateDesc,
 	getChatMessagesOrdered,
+	renameAiChat,
 	stopAiGeneration,
 	streamAiResponse,
 } from "../../../api/aiApi";
@@ -29,6 +31,12 @@ import ConfirmationDialog from "../../../components/ConfirmationDialog/Confirmat
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import Dialog from "../../../components/Dialog/Dialog";
+import Form, {
+	FormButtons,
+	FormHeader,
+	FormRows,
+} from "../../../components/Form/Form";
 
 export default function AiChatWidget() {
 	const settings = useAppSelector(selectSettings);
@@ -40,9 +48,11 @@ const NEW_SESSION_VALUE = "new-session";
 function AiChatWidgetInner() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [showDeleteChatDialog, setShowDeleteChatDialog] = useState(false);
+	const [newTitle, setNewTitle] = useState("");
+	const [showRenameDialog, setShowRenameDialog] = useState(false);
 	const [userPrompt, setUserPrompt] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
-	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const [isStreamingResponse, setIsStreamingResponse] = useState(false);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [chats, setChats] = useState<Chat[]>([]);
 	const [selectedChatId, setSelectedChatId] =
@@ -71,10 +81,10 @@ function AiChatWidgetInner() {
 	};
 
 	const sendMessage = async () => {
-		if (!userPrompt || isSendingRequest) return;
+		if (!userPrompt || isStreamingResponse) return;
 
 		setErrorMessage("");
-		setIsSendingRequest(true);
+		setIsStreamingResponse(true);
 		setMessages(messages => [
 			...messages,
 			{
@@ -118,7 +128,7 @@ function AiChatWidgetInner() {
 					];
 				});
 			} else if (event.event === "finished") {
-				setIsSendingRequest(false);
+				setIsStreamingResponse(false);
 			} else if (event.event === "error") {
 				setErrorMessage(event.data);
 			}
@@ -133,7 +143,7 @@ function AiChatWidgetInner() {
 			);
 		} catch (e) {
 			setErrorMessage(errorToString(e));
-			setIsSendingRequest(false);
+			setIsStreamingResponse(false);
 		} finally {
 			setMessages(await getChatMessagesOrdered(updatedChatId));
 		}
@@ -198,6 +208,25 @@ function AiChatWidgetInner() {
 		setChats(await getAllAiChatsSortedByDateDesc());
 	};
 
+	const handleRenameSubmit = async (e: React.SubmitEvent) => {
+		e.stopPropagation();
+		e.preventDefault();
+		setShowRenameDialog(false);
+
+		try {
+			await renameAiChat(selectedChatId, newTitle);
+			setChats(await getAllAiChatsSortedByDateDesc());
+		} catch (e) {
+			setErrorMessage(errorToString(e));
+		}
+	};
+
+	const handleShowRenameDialog = () => {
+		setShowRenameDialog(true);
+		const chat = chats.find(c => c.id === selectedChatId)!;
+		setNewTitle(chat.title);
+	};
+
 	return (
 		<>
 			{showDeleteChatDialog && (
@@ -209,6 +238,44 @@ function AiChatWidgetInner() {
 					onConfirm={() => void handleDelete()}
 				/>
 			)}
+
+			{showRenameDialog && (
+				<Dialog
+					focusTrap={true}
+					className={styles.renameDialog}
+					onHide={() => setShowRenameDialog(false)}>
+					<Form onSubmit={e => void handleRenameSubmit(e)}>
+						<FormHeader
+							icon={mdiPencilOutline}
+							title="Enter new name"
+						/>
+						<FormRows
+							rows={[
+								{
+									children: (
+										<input
+											type="text"
+											id="new-name"
+											value={newTitle}
+											onChange={e =>
+												setNewTitle(e.target.value)
+											}
+											required
+											autoFocus
+										/>
+									),
+									labelHtmlFor: "new-name",
+								},
+							]}
+						/>
+						<FormButtons
+							onClose={() => setShowRenameDialog(false)}
+							submitText="Rename"
+						/>
+					</Form>
+				</Dialog>
+			)}
+
 			<div className={styles.container}>
 				{isOpen && (
 					<div className={styles.chatPanel}>
@@ -230,6 +297,15 @@ function AiChatWidgetInner() {
 								]}
 							/>
 							<div className="row">
+								<button
+									onClick={handleShowRenameDialog}
+									className="transparent"
+									title="Rename chat"
+									disabled={
+										selectedChatId === NEW_SESSION_VALUE
+									}>
+									<Icon path={mdiPencilOutline} size={1} />
+								</button>
 								<button
 									onClick={() =>
 										setShowDeleteChatDialog(true)
@@ -259,7 +335,7 @@ function AiChatWidgetInner() {
 									key={i}
 									className={`${styles.message} ${styles[message.role]}`}>
 									<Markdown>{message.content}</Markdown>
-									{isSendingRequest &&
+									{isStreamingResponse &&
 										i === messages.length - 1 && (
 											<div
 												className={
@@ -293,7 +369,7 @@ function AiChatWidgetInner() {
 								title="Add attachment">
 								<Icon path={mdiAttachment} size={1} />
 							</button>
-							{!isSendingRequest && (
+							{!isStreamingResponse && (
 								<button className="transparent" title="Send">
 									<Icon
 										path={mdiSendVariantOutline}
@@ -302,7 +378,7 @@ function AiChatWidgetInner() {
 								</button>
 							)}
 
-							{isSendingRequest && (
+							{isStreamingResponse && (
 								<button
 									className="transparent"
 									title="Stop"

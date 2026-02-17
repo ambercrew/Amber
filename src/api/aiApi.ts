@@ -30,3 +30,7 @@ export function deleteAiChat(id: string): Promise<string> {
 export function getChatMessagesOrdered(id: string): Promise<Message[]> {
 	return invoke("get_chat_messages_ordered", { id });
 }
+
+export function renameAiChat(id: string, newTitle: string): Promise<void> {
+	return invoke("rename_ai_chat", { id, newTitle });
+}
