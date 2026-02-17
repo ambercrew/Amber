@@ -32,6 +32,7 @@ import { initialLoadAndApplySettings } from "../../../stores/settings/settingsAc
 import { sync } from "../../../stores/sync/syncActions";
 import SettingsType from "../../../types/backend/model/settings";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
+import AiChatWidget from "../../AiChatWidget/components/AiChatWidget";
 
 function App() {
 	const [areSettingsLoaded, setAreSettingsLoaded] = useState(false);
@@ -211,6 +212,8 @@ function App() {
 			{showSettings && (
 				<Settings onClose={() => setShowSettings(false)} />
 			)}
+
+			<AiChatWidget />
 		</div>
 	);
 }

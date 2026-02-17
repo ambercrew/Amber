@@ -234,7 +234,10 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 
 			<div className={styles.bottomBar}>
 				<div className={styles.editButtonContainer}>
-					<p>&nbsp;</p>
+					<Timer
+						key={dueToday[currentCellIndex]?.repetition.id ?? 0}
+						onTimeUpdate={handleTimeUpdate}
+					/>
 					<button
 						className="row grey-button"
 						onClick={() =>
@@ -290,11 +293,6 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 						recordLog={recordLog}
 					/>
 				)}
-
-				<Timer
-					key={dueToday[currentCellIndex]?.repetition.id ?? 0}
-					onTimeUpdate={handleTimeUpdate}
-				/>
 			</div>
 		</div>
 	);
