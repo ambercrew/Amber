@@ -317,6 +317,7 @@ pub mod tests {
                         choice: OneOrMany::one(tool_call),
                         raw_response: MultiResponse::Mock,
                         usage: Usage::default(),
+                        message_id: None,
                     };
                 }
 
@@ -422,6 +423,7 @@ pub mod tests {
                         choice: OneOrMany::one(tool_call),
                         raw_response: MultiResponse::Mock,
                         usage: Usage::default(),
+                        message_id: None,
                     };
                 }
 
@@ -501,6 +503,7 @@ pub mod tests {
                         choice: OneOrMany::one(tool_call),
                         raw_response: MultiResponse::Mock,
                         usage: Usage::default(),
+                        message_id: None,
                     };
                 }
 

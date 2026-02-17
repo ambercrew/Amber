@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use rig::agent::{HookAction, StreamingPromptHook, ToolCallHookAction};
+use rig::agent::{HookAction, PromptHook, ToolCallHookAction};
 
 use crate::ai_integration::{
     ai_state::AiState,
@@ -26,11 +26,21 @@ impl StateCancellationHook {
     }
 }
 
-impl StreamingPromptHook<MultiCompletionModel> for StateCancellationHook {
+impl PromptHook<MultiCompletionModel> for StateCancellationHook {
     async fn on_completion_call(
         &self,
         _: &rig::message::Message,
         _: &[rig::message::Message],
+    ) -> HookAction {
+        self.cancel_based_on_state()
+    }
+
+    async fn on_completion_response(
+        &self,
+        _: &rig::message::Message,
+        _: &rig::completion::CompletionResponse<
+            <MultiCompletionModel as rig::completion::CompletionModel>::Response,
+        >,
     ) -> HookAction {
         self.cancel_based_on_state()
     }

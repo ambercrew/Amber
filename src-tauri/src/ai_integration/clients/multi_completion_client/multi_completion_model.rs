@@ -64,6 +64,7 @@ impl CompletionModel for MultiCompletionModel {
                         choice: val.choice,
                         usage: val.usage,
                         raw_response: val.raw_response.into(),
+                        message_id: val.message_id,
                     }
                 })
             }
@@ -107,8 +108,7 @@ where
         }
         StreamedAssistantContent::Reasoning(reasoning) => RawStreamingChoice::Reasoning {
             id: reasoning.id,
-            reasoning: reasoning.reasoning[0].clone(),
-            signature: reasoning.signature,
+            content: reasoning.content[0].clone(),
         },
         StreamedAssistantContent::ToolCallDelta {
             id,
