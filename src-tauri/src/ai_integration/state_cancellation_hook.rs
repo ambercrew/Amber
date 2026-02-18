@@ -20,9 +20,10 @@ impl StateCancellationHook {
     fn cancel_based_on_state(&self) -> HookAction {
         if self.state.generation_cancelled() {
             log::info!("Cancelling the generation of response.");
-            HookAction::terminate("Cancelled due to state update.");
+            HookAction::terminate("Cancelled due to state update.")
+        } else {
+            HookAction::cont()
         }
-        HookAction::cont()
     }
 }
 
