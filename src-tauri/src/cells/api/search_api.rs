@@ -1,18 +1,22 @@
 use std::sync::Arc;
 
 use crate::{
-    cells::entities::cell::Cell,
-    common::{api_error::ApiError, traits::repositories_context::RepositoriesContext},
+    cells::{entities::cell::Cell, repositories::traits::cell_repository::CellRepository},
+    common::api_error::ApiError,
 };
+use injector::injector::Injector;
 use tauri::State;
-use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn search_cells(
-    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
+    injector: State<'_, Arc<Injector>>,
     search_text: String,
 ) -> Result<Vec<Cell>, ApiError> {
-    let context = context.lock().await;
-    let cells = context.cell_repository().search_cells(&search_text).await?;
+    let scope = injector.start_scope();
+    let cells = scope
+        .resolve::<dyn CellRepository>()
+        .await
+        .search_cells(&search_text)
+        .await?;
     Ok(cells)
 }

@@ -28,7 +28,7 @@ jobs:
             - name: Run Rust Tests
               run: |
                   cd src-tauri
-                  cargo test --verbose
+                  cargo test --workspace --verbose
 
     build_node:
         runs-on: ubuntu-latest

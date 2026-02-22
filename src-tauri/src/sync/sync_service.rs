@@ -2,6 +2,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use base64::{Engine as _, engine::general_purpose};
 use chrono::{DateTime, TimeZone, Utc};
+use injector_derive::ScopeInjectable;
 use prost::Message;
 use thiserror::Error;
 
@@ -61,6 +62,7 @@ pub enum SyncError {
     CellServiceError(#[from] CellServiceError),
 }
 
+#[derive(ScopeInjectable)]
 pub struct SyncService {
     backend_client: Arc<dyn BrainyBackendClient>,
     folder_repository: Arc<dyn FolderRepository>,
@@ -74,31 +76,6 @@ pub struct SyncService {
 }
 
 impl SyncService {
-    #[allow(clippy::too_many_arguments)]
-    pub fn new(
-        backend_client: Arc<dyn BrainyBackendClient>,
-        folder_repository: Arc<dyn FolderRepository>,
-        file_repository: Arc<dyn FileRepository>,
-        cell_repository: Arc<dyn CellRepository>,
-        review_repository: Arc<dyn ReviewRepository>,
-        sync_repository: Arc<dyn SyncRepository>,
-        local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
-        fsrs_repository: Arc<dyn FsrsRepository>,
-        cell_service: Arc<CellService>,
-    ) -> Self {
-        Self {
-            backend_client,
-            folder_repository,
-            file_repository,
-            cell_repository,
-            review_repository,
-            sync_repository,
-            local_configuration_repository,
-            fsrs_repository,
-            cell_service,
-        }
-    }
-
     /// Gets the entities from the backend since last sync and upload all changed
     /// entities that are not overwritten from the sync.
     pub async fn sync_with_backend(&self) -> Result<(), SyncError> {
@@ -552,51 +529,62 @@ impl SyncService {
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
+    use injector::{injector::Injector, register_scope};
 
     use crate::{
         DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID,
         backend::{
             models::SyncedEntitiesPageDto, traits::brainy_backend_client::MockBrainyBackendClient,
         },
-        cells::entities::{cell::CellType, repetition::State, review::Rating},
+        cells::{
+            entities::{cell::CellType, repetition::State, review::Rating},
+            repositories::{
+                sqlite_cell_repository::SqliteCellRepository,
+                sqlite_review_repository::SqliteReviewRepository,
+            },
+        },
         common::{
             extensions::{into_base64::IntoBase64, into_timestamp::IntoTimestamp},
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+            unit_of_work_ext::UnitOfWorkExt,
         },
-        file_system::value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        file_system::{
+            repositories::{
+                sqlite_file_repository::SqliteFileRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
+            },
+            value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        },
+        fsrs::entities::repositories::sqlite_fsrs_repository::SqliteFsrsRepository,
+        local_configurations::repositories::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+        sync::repositories::sqlite_sync_repository::SqliteSyncRepository,
+        test_utils::create_test_injector,
     };
 
     use super::*;
 
-    async fn create_test_dependencies() -> (SqliteRepositoriesContext, MockBrainyBackendClient) {
-        let context = SqliteRepositoriesContext::create_testing_context().await;
-        (context, MockBrainyBackendClient::new())
-    }
-
-    fn create_sync_service(
-        context: &SqliteRepositoriesContext,
-        backend_client: MockBrainyBackendClient,
-    ) -> SyncService {
-        let cell_service = CellService::new(context.cell_repository(), context.review_repository());
-        SyncService::new(
-            Arc::new(backend_client),
-            context.folder_repository(),
-            context.file_repository(),
-            context.cell_repository(),
-            context.review_repository(),
-            context.sync_repository(),
-            context.local_configuration_repository(),
-            context.fsrs_repository(),
-            Arc::new(cell_service),
-        )
+    async fn get_test_dependencies(backend_client: MockBrainyBackendClient) -> Injector {
+        let mut injector = create_test_injector().await;
+        injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(backend_client));
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+        register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+        register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
+        register_scope!(
+            injector,
+            dyn LocalConfigurationRepository,
+            SqliteLocalConfigurationRepository
+        );
+        register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
+        register_scope!(injector, CellService);
+        register_scope!(injector, SyncService);
+        injector
     }
 
     #[tokio::test]
     pub async fn sync_with_backend_new_entities_from_backend_inserted_new_entities() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
@@ -696,6 +684,7 @@ mod tests {
             },
         ];
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -709,17 +698,24 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let fsrs_profiles = context
-            .fsrs_repository()
+        let fsrs_profiles = scope
+            .resolve::<dyn FsrsRepository>()
+            .await
             .get_all_fsrs_profiles()
             .await
             .unwrap();
@@ -731,14 +727,24 @@ mod tests {
                 .any(|f| f.name() == "test profile" && f.request_retention() == 10f64)
         );
 
-        let folders = context.folder_repository().get_all_folders().await.unwrap();
+        let folders = scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .get_all_folders()
+            .await
+            .unwrap();
         assert_eq!(2, folders.len());
         assert!(folders.iter().any(|f| f.name()
             == FileSystemItemName::new_unchecked("test".to_string())
             && f.parent_id() == Some(ROOT_FOLDER_ID)
             && f.fsrs_profile_choice() == FsrsProfileChoice::Inherit));
 
-        let files = context.file_repository().get_all_files().await.unwrap();
+        let files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
         assert_eq!(1, files.len());
         assert!(files.iter().any(|f| f.name()
             == FileSystemItemName::new_unchecked("test".to_string())
@@ -746,8 +752,9 @@ mod tests {
             && f.fsrs_profile_choice() == FsrsProfileChoice::Id(fsrs_profile_id)
             && (f.modified_date() - file_modified_date) <= Duration::seconds(1)));
 
-        let cells = context
-            .cell_repository()
+        let cells = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_file_cells_ordered_by_index(file_id)
             .await
             .unwrap();
@@ -759,8 +766,9 @@ mod tests {
             && c.searchable_content() == "search"));
         assert_eq!(1, cells[0].repetitions().len());
 
-        let home_statistics = context
-            .cell_repository()
+        let home_statistics = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_home_statistics()
             .await
             .unwrap();
@@ -771,7 +779,6 @@ mod tests {
     pub async fn sync_with_backend_two_cells_with_same_index_corrected_index_and_sent_update() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let cell_in_database_id = Guid::new_v4();
         let cell_from_sync_id = Guid::new_v4();
 
@@ -783,22 +790,6 @@ mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
-        context
-            .cell_repository()
-            .create(&Cell::new_unchecked(
-                cell_in_database_id,
-                Utc::now(),
-                Utc::now(),
-                file.id(),
-                "".to_string(),
-                CellType::Note,
-                1,
-                "".to_string(),
-                Vec::new(),
-            ))
-            .await
-            .unwrap();
 
         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
             user_id: Guid::new_v4(),
@@ -817,6 +808,7 @@ mod tests {
             .into_base64(),
         }];
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -832,17 +824,47 @@ mod tests {
             .withf(move |value| value.iter().any(|s| s.entity_id == cell_in_database_id))
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&file)
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn CellRepository>()
+            .await
+            .create(&Cell::new_unchecked(
+                cell_in_database_id,
+                Utc::now(),
+                Utc::now(),
+                file.id(),
+                "".to_string(),
+                CellType::Note,
+                1,
+                "".to_string(),
+                Vec::new(),
+            ))
+            .await
+            .unwrap();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let cells = context
-            .cell_repository()
+        let cells = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -862,22 +884,8 @@ mod tests {
     pub async fn sync_with_backend_deleted_entity_from_backend_processed_correctly() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
         let file_id = Guid::new_v4();
-        context
-            .file_repository()
-            .create(&File::new_unchecked(
-                file_id,
-                Utc::now(),
-                Utc::now(),
-                Some(ROOT_FOLDER_ID),
-                FileSystemItemName::new_unchecked("name".to_string()),
-                FsrsProfileChoice::Inherit,
-            ))
-            .await
-            .unwrap();
-        context.save_changes().await.unwrap();
 
         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
             user_id,
@@ -892,6 +900,8 @@ mod tests {
             .into_base64(),
         }];
 
+        let mut backend_client = MockBrainyBackendClient::new();
+
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -905,16 +915,42 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&File::new_unchecked(
+                file_id,
+                Utc::now(),
+                Utc::now(),
+                Some(ROOT_FOLDER_ID),
+                FileSystemItemName::new_unchecked("name".to_string()),
+                FsrsProfileChoice::Inherit,
+            ))
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let files = context.file_repository().get_all_files().await.unwrap();
+        let files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
         assert_eq!(0, files.len());
     }
 
@@ -923,41 +959,9 @@ mod tests {
     {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
-
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
-
-        context
-            .file_repository()
-            .create(&File::new_unchecked(
-                file_id,
-                Utc::now(),
-                Utc::now(),
-                Some(ROOT_FOLDER_ID),
-                FileSystemItemName::new_unchecked("old name".to_string()),
-                FsrsProfileChoice::Inherit,
-            ))
-            .await
-            .unwrap();
-
-        context
-            .cell_repository()
-            .create(&Cell::new_unchecked(
-                cell_id,
-                Utc::now(),
-                Utc::now(),
-                file_id,
-                "old content".to_string(),
-                CellType::FlashCard,
-                1,
-                "".to_string(),
-                Vec::new(),
-            ))
-            .await
-            .unwrap();
-        context.save_changes().await.unwrap();
 
         let synced_entities: Vec<SyncedEntity> = vec![
             SyncedEntity {
@@ -1006,6 +1010,7 @@ mod tests {
             },
         ];
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1019,16 +1024,59 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&File::new_unchecked(
+                file_id,
+                Utc::now(),
+                Utc::now() - Duration::minutes(2),
+                Some(ROOT_FOLDER_ID),
+                FileSystemItemName::new_unchecked("old name".to_string()),
+                FsrsProfileChoice::Inherit,
+            ))
+            .await
+            .unwrap();
+
+        scope
+            .resolve::<dyn CellRepository>()
+            .await
+            .create(&Cell::new_unchecked(
+                cell_id,
+                Utc::now(),
+                Utc::now() - Duration::minutes(1),
+                file_id,
+                "old content".to_string(),
+                CellType::FlashCard,
+                1,
+                "".to_string(),
+                Vec::new(),
+            ))
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let files = context.file_repository().get_all_files().await.unwrap();
+        let files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
         assert_eq!(1, files.len());
         assert!(
             files
@@ -1036,16 +1084,18 @@ mod tests {
                 .any(|f| f.name() == FileSystemItemName::new_unchecked("new name".to_string()))
         );
 
-        let cells = context
-            .cell_repository()
+        let cells = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_file_cells_ordered_by_index(file_id)
             .await
             .unwrap();
         assert_eq!(1, cells.len());
         assert!(cells.iter().any(|c| c.content() == "new content"));
 
-        let fsrs_profiles = context
-            .fsrs_repository()
+        let fsrs_profiles = scope
+            .resolve::<dyn FsrsRepository>()
+            .await
             .get_all_fsrs_profiles()
             .await
             .unwrap();
@@ -1058,9 +1108,7 @@ mod tests {
      {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let user_id = Guid::new_v4();
-
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
 
@@ -1096,36 +1144,7 @@ mod tests {
             },
         ];
 
-        context
-            .file_repository()
-            .create(&File::new_unchecked(
-                file_id,
-                Utc::now(),
-                Utc::now(),
-                Some(ROOT_FOLDER_ID),
-                FileSystemItemName::new_unchecked("old name".to_string()),
-                FsrsProfileChoice::Inherit,
-            ))
-            .await
-            .unwrap();
-
-        context
-            .cell_repository()
-            .create(&Cell::new_unchecked(
-                cell_id,
-                Utc::now(),
-                Utc::now(),
-                file_id,
-                "old content".to_string(),
-                CellType::FlashCard,
-                1,
-                "".to_string(),
-                Vec::new(),
-            ))
-            .await
-            .unwrap();
-        context.save_changes().await.unwrap();
-
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1139,16 +1158,59 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&File::new_unchecked(
+                file_id,
+                Utc::now(),
+                Utc::now(),
+                Some(ROOT_FOLDER_ID),
+                FileSystemItemName::new_unchecked("old name".to_string()),
+                FsrsProfileChoice::Inherit,
+            ))
+            .await
+            .unwrap();
+
+        scope
+            .resolve::<dyn CellRepository>()
+            .await
+            .create(&Cell::new_unchecked(
+                cell_id,
+                Utc::now(),
+                Utc::now(),
+                file_id,
+                "old content".to_string(),
+                CellType::FlashCard,
+                1,
+                "".to_string(),
+                Vec::new(),
+            ))
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let files = context.file_repository().get_all_files().await.unwrap();
+        let files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
         assert_eq!(1, files.len());
         assert!(
             files
@@ -1156,8 +1218,9 @@ mod tests {
                 .any(|f| f.name() == FileSystemItemName::new_unchecked("new name".to_string()))
         );
 
-        let cells = context
-            .cell_repository()
+        let cells = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_file_cells_ordered_by_index(file_id)
             .await
             .unwrap();
@@ -1169,8 +1232,7 @@ mod tests {
     pub async fn sync_with_backend_valid_input_updated_sync_date_at_end() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
-
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1184,17 +1246,24 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
 
         // Act
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_sync_date_configuration = context
-            .local_configuration_repository()
+        let actual_sync_date_configuration = scope
+            .resolve::<dyn LocalConfigurationRepository>()
+            .await
             .get_by_name(LAST_SYNC_DATE_CONFIGURATION_NAME)
             .await
             .unwrap()
@@ -1210,8 +1279,6 @@ mod tests {
     pub async fn sync_with_backend_local_unsynced_file_sent_file() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
-
         let file = File::new_unchecked(
             Guid::new_v4(),
             Utc::now(),
@@ -1220,9 +1287,8 @@ mod tests {
             FileSystemItemName::new_unchecked("name".to_string()),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
-        context.save_changes().await.unwrap();
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1238,27 +1304,30 @@ mod tests {
             .withf(move |value| value.len() == 3)
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&file)
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act & Assert
 
-        service.sync_with_backend().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
     pub async fn sync_with_backend_local_file_already_synced_did_not_send_file() {
         // Arrange
-
-        let (context, mut backend_client) = create_test_dependencies().await;
-
-        context
-            .local_configuration_repository()
-            .upsert(&LocalConfiguration {
-                name: LAST_SYNC_DATE_CONFIGURATION_NAME.to_string(),
-                value: Utc::now().to_rfc3339(),
-            })
-            .await
-            .unwrap();
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1268,9 +1337,8 @@ mod tests {
             FileSystemItemName::new_unchecked("name".to_string()),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
-        context.save_changes().await.unwrap();
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1286,32 +1354,42 @@ mod tests {
             .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn LocalConfigurationRepository>()
+            .await
+            .upsert(&LocalConfiguration {
+                name: LAST_SYNC_DATE_CONFIGURATION_NAME.to_string(),
+                value: Utc::now().to_rfc3339(),
+            })
+            .await
+            .unwrap();
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&file)
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act & Assert
 
-        service.sync_with_backend().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
     pub async fn sync_with_backend_overwritten_change_from_backend_did_not_send_change() {
         // Arrange
 
-        let (context, mut backend_client) = create_test_dependencies().await;
         let folder_id = Guid::new_v4();
-
-        context
-            .folder_repository()
-            .create(&Folder::new_unchecked(
-                folder_id,
-                Utc::now(),
-                Utc::now(),
-                None,
-                FileSystemItemName::new_unchecked("test".to_string()),
-                FsrsProfileChoice::Inherit,
-            ))
-            .await
-            .unwrap();
 
         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
             user_id: Guid::new_v4(),
@@ -1328,6 +1406,7 @@ mod tests {
             .into_base64(),
         }];
 
+        let mut backend_client = MockBrainyBackendClient::new();
         backend_client
             .expect_get_synced_entities_after_ordered_by_created_date()
             .returning(move |_, _| {
@@ -1343,11 +1422,31 @@ mod tests {
             .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
-        let service = create_sync_service(&context, backend_client);
+        let injector = get_test_dependencies(backend_client).await;
+        let scope = injector.start_scope();
+
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(&Folder::new_unchecked(
+                folder_id,
+                Utc::now(),
+                Utc::now(),
+                None,
+                FileSystemItemName::new_unchecked("test".to_string()),
+                FsrsProfileChoice::Inherit,
+            ))
+            .await
+            .unwrap();
 
         // Act & Assert
 
-        service.sync_with_backend().await.unwrap();
-        context.save_changes().await.unwrap();
+        scope
+            .resolve::<SyncService>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
     }
 }

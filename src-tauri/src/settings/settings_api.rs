@@ -4,21 +4,26 @@ use crate::{
     common::api_error::ApiError,
     settings::{Settings, dto::update_settings_request::UpdateSettingsRequest},
 };
+use injector::injector::Injector;
 use tauri::{AppHandle, State};
 use tokio::sync::Mutex;
 
 #[tauri::command]
-pub async fn get_settings(settings: State<'_, Arc<Mutex<Settings>>>) -> Result<Settings, ApiError> {
+pub async fn get_settings(injector: State<'_, Arc<Injector>>) -> Result<Settings, ApiError> {
+    let scope = injector.start_scope();
+    let settings = scope.resolve::<Mutex<Settings>>().await;
     let settings = settings.lock().await;
     Ok(settings.clone())
 }
 
 #[tauri::command]
 pub async fn update_settings(
-    settings: State<'_, Arc<Mutex<Settings>>>,
+    injector: State<'_, Arc<Injector>>,
     app_handle: AppHandle,
     new_settings: UpdateSettingsRequest,
 ) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let settings = scope.resolve::<Mutex<Settings>>().await;
     let mut settings = settings.lock().await;
 
     let mut restart = false;

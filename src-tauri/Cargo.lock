@@ -12,6 +12,8 @@ dependencies = [
  "chrono",
  "cookie_store",
  "dirs",
+ "injector",
+ "injector_derive",
  "keyring",
  "log",
  "lol_html",
@@ -2371,6 +2373,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a588916bfdfd92e71cacef98a63d9b1f0d74d6599980d11894290e7ddefffcf7"
 dependencies = [
  "cfb",
+]
+
+[[package]]
+name = "injector"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "injector_derive",
+ "tokio",
+]
+
+[[package]]
+name = "injector_derive"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.99",
 ]
 
 [[package]]

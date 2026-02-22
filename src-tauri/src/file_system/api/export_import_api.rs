@@ -2,23 +2,26 @@ use std::sync::Arc;
 
 use crate::{
     Guid,
-    common::{api_error::ApiError, traits::repositories_context::RepositoriesContext},
+    common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
     file_system::{file_system_service::FileSystemService, models::exported_item::ExportedItem},
 };
+use injector::injector::Injector;
 use tauri::State;
 use tokio::{
     fs::{self, File},
     io::AsyncReadExt,
-    sync::Mutex,
 };
 
 #[tauri::command]
 pub async fn export_folder(
-    file_system_service: State<'_, Arc<FileSystemService>>,
+    injector: State<'_, Arc<Injector>>,
     folder_id: Guid,
     export_path: String,
 ) -> Result<(), ApiError> {
-    let exported_item = file_system_service
+    let scope = injector.start_scope();
+    let exported_item = scope
+        .resolve::<FileSystemService>()
+        .await
         .convert_folder_to_exported_item(folder_id)
         .await?;
     save_exported_item(exported_item, export_path).await
@@ -26,11 +29,14 @@ pub async fn export_folder(
 
 #[tauri::command]
 pub async fn export_file(
-    file_system_service: State<'_, Arc<FileSystemService>>,
+    injector: State<'_, Arc<Injector>>,
     file_id: Guid,
     export_path: String,
 ) -> Result<(), ApiError> {
-    let exported_item = file_system_service
+    let scope = injector.start_scope();
+    let exported_item = scope
+        .resolve::<FileSystemService>()
+        .await
         .convert_file_to_exported_item(file_id)
         .await?;
     save_exported_item(exported_item, export_path).await
@@ -52,12 +58,11 @@ async fn save_exported_item(
 
 #[tauri::command]
 pub async fn import(
-    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
-    file_system_service: State<'_, Arc<FileSystemService>>,
+    injector: State<'_, Arc<Injector>>,
     import_item_path: String,
     import_into_folder_id: Guid,
 ) -> Result<(), ApiError> {
-    let context = context.lock().await;
+    let scope = injector.start_scope();
 
     let mut file = File::open(import_item_path).await?;
 
@@ -66,10 +71,12 @@ pub async fn import(
 
     let exported_item: ExportedItem = serde_json::from_str(&file_content)?;
 
-    file_system_service
+    scope
+        .resolve::<FileSystemService>()
+        .await
         .import_exported_item(import_into_folder_id, exported_item)
         .await?;
-    context.save_changes().await?;
+    scope.save_changes().await?;
 
     Ok(())
 }

@@ -2,26 +2,21 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
     sync::{
         entities::deleted_entity::DeletedEntity,
         repositories::traits::sync_repository::SyncRepository,
     },
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteSyncRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteSyncRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]

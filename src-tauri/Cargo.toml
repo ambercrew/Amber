@@ -51,6 +51,8 @@ thiserror = "2.0.18"
 tokio = { version = "1.49.0", features = ["full"] }
 tokio-stream = "0.1.18"
 uuid = { version = "1.21.0", features = [ "v4", "serde" ] }
+injector = { path = "./injector" }
+injector_derive = { path="./injector_derive" }
 
 [dev-dependencies]
 mockall = "0.14.0"
@@ -60,5 +62,8 @@ tauri-plugin-single-instance = "2.4.0"
 tauri-plugin-updater = "2.10.0"
 tauri-plugin-window-state = "2.4.1"
 
-[features]
-test-utils = []
+[workspace]
+members = [
+    "injector",
+    "injector_derive"
+]

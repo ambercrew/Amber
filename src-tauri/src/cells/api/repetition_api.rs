@@ -2,21 +2,23 @@ use std::sync::Arc;
 
 use crate::Guid;
 use crate::cells::models::file_repetitions_count::FileRepetitionCounts;
+use crate::cells::repositories::traits::cell_repository::CellRepository;
 use crate::common::api_error::ApiError;
-use crate::common::traits::repositories_context::RepositoriesContext;
+use crate::common::unit_of_work_ext::UnitOfWorkExt;
+use injector::injector::Injector;
 use tauri::State;
-use tokio::sync::Mutex;
 
 /// Returns the count of repetitions ready for study, i.e. their due is less
 /// than or equal to now.
 #[tauri::command]
 pub async fn get_study_repetition_counts(
-    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
+    injector: State<'_, Arc<Injector>>,
     file_id: Guid,
 ) -> Result<FileRepetitionCounts, ApiError> {
-    let context = context.lock().await;
-    let result = context
-        .cell_repository()
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn CellRepository>()
+        .await
         .get_study_repetitions(file_id)
         .await?;
     Ok(result)
@@ -24,13 +26,16 @@ pub async fn get_study_repetition_counts(
 
 #[tauri::command]
 pub async fn reset_repetitions_for_cell(
-    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
+    injector: State<'_, Arc<Injector>>,
     cell_id: Guid,
 ) -> Result<(), ApiError> {
-    let context = context.lock().await;
-    let mut cell = context.cell_repository().get_by_id(cell_id).await?;
+    let scope = injector.start_scope();
+    let cell_repository = scope.resolve::<dyn CellRepository>().await;
+
+    let mut cell = cell_repository.get_by_id(cell_id).await?;
     cell.reset_repetitions();
-    context.cell_repository().update(&cell).await?;
-    context.save_changes().await?;
+    cell_repository.update(&cell).await?;
+    scope.save_changes().await?;
+
     Ok(())
 }

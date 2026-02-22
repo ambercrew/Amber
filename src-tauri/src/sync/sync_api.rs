@@ -1,33 +1,27 @@
 use std::sync::Arc;
 
 use crate::{
-    common::{api_error::ApiError, traits::repositories_context::RepositoriesContext},
+    common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
     sync::sync_service::SyncService,
 };
+use injector::injector::Injector;
 use tauri::State;
-use tokio::sync::Mutex;
 
 #[tauri::command]
-pub async fn sync(
-    context: State<'_, Arc<Mutex<dyn RepositoriesContext>>>,
-    sync_service: State<'_, Arc<SyncService>>,
-) -> Result<(), ApiError> {
-    let context = context.lock().await;
-    context
+pub async fn sync(injector: State<'_, Arc<Injector>>) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+
+    scope
         .disable_foreign_key_constraint_for_current_transaction()
         .await?;
 
-    let result = sync_service.sync_with_backend().await;
-    if let Err(err) = result {
-        context.rollback().await?;
-        return Err(err.into());
-    }
+    scope
+        .resolve::<SyncService>()
+        .await
+        .sync_with_backend()
+        .await?;
 
-    let result = context.save_changes().await;
-    if let Err(err) = result {
-        context.rollback().await?;
-        return Err(err.into());
-    }
+    scope.save_changes().await?;
 
     Ok(())
 }

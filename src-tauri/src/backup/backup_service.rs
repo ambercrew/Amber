@@ -1,6 +1,7 @@
 use std::{path::PathBuf, sync::Arc};
 
 use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
+use injector_derive::ScopeInjectable;
 use thiserror::Error;
 use tokio::fs;
 
@@ -26,25 +27,16 @@ const LAST_BACKUP_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
 const MAX_NUMBER_OF_BACKUPS: usize = 8;
 const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 
+pub struct BackupDirectory(pub PathBuf);
+
+#[derive(ScopeInjectable)]
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
-    backup_directory: PathBuf,
+    backup_directory: Arc<BackupDirectory>,
 }
 
 impl BackupService {
-    pub fn new(
-        local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
-        backup_repository: Arc<dyn BackupRepository>,
-        directory: PathBuf,
-    ) -> Self {
-        Self {
-            local_configuration_repository,
-            backup_repository,
-            backup_directory: directory,
-        }
-    }
-
     /// This methods checks if the minimum time between backups have passed, and
     /// if so, it creates a new backup and saves it in the same directory as
     /// the settings. If the total number of backups exceeds [`MAX_NUMBER_OF_BACKUPS`]
@@ -85,7 +77,7 @@ impl BackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let backup_path = self.backup_directory.join(backup_name);
+        let backup_path = self.backup_directory.0.join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -110,7 +102,7 @@ impl BackupService {
     async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
         let mut current_backups = Vec::new();
 
-        let mut entries = match fs::read_dir(&self.backup_directory).await {
+        let mut entries = match fs::read_dir(&self.backup_directory.0).await {
             Ok(entries) => entries,
             Err(err) => {
                 return Err(BackupServiceError::CannotListEntriesInFolder(
@@ -159,65 +151,70 @@ impl BackupService {
 
 #[cfg(test)]
 pub mod tests {
+    use std::path::Path;
+
+    use injector::{injector::Injector, register_scope};
+
     use super::*;
     use crate::{
+        backup::sqlite_backup_repository::SqliteBackupRepository,
         common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+            unit_of_work_ext::UnitOfWorkExt,
+            utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
         },
+        local_configurations::repositories::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         test_utils::create_temp_directory,
     };
 
-    struct TestDependencies {
-        service: BackupService,
-        context: SqliteRepositoriesContext,
-        backup_directory: PathBuf,
+    async fn get_test_dependencies() -> Injector {
+        let path = create_temp_directory().await.join("brainy.db");
+        create_injector_for_sqlite_path(&path).await
     }
 
-    async fn create_test_dependencies() -> TestDependencies {
-        let path = create_temp_directory().await.join("brainy.db");
-        // Must use database that is saved on disk for backups to work.
-        let context = SqliteRepositoriesContext::new_with_migration(&format!(
-            "sqlite:///{}",
-            path.to_string_lossy()
-        ))
-        .await
-        .unwrap();
+    async fn create_injector_for_sqlite_path(path: &Path) -> Injector {
+        let mut injector = Injector::default();
 
         let backup_directory = create_temp_directory().await;
-        let service = BackupService::new(
-            context.local_configuration_repository(),
-            context.backup_repository(),
-            backup_directory.clone(),
-        );
+        injector.register_singleton(Arc::new(BackupDirectory(backup_directory)));
 
-        TestDependencies {
-            service,
-            context,
-            backup_directory,
-        }
+        // Must use database that is saved on disk for backups to work.
+        let pool = create_sqlite_pool(&format!("sqlite:///{}", path.to_string_lossy()))
+            .await
+            .unwrap();
+        injector.register_singleton(Arc::new(pool));
+        register_scoped_tx(&mut injector);
+
+        register_scope!(
+            injector,
+            dyn LocalConfigurationRepository,
+            SqliteLocalConfigurationRepository
+        );
+        register_scope!(injector, dyn BackupRepository, SqliteBackupRepository);
+        register_scope!(injector, BackupService);
+
+        injector
     }
 
     #[tokio::test]
     pub async fn ensure_backup_no_backups_created_backup() {
         // Arrange
 
-        let TestDependencies {
-            context,
-            backup_directory,
-            service,
-        } = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let local_configuration_repository =
+            scope.resolve::<dyn LocalConfigurationRepository>().await;
+        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let service = scope.resolve::<BackupService>().await;
 
         // Inserting a random row in the database to see if it exists in the new backup.
-        context
-            .local_configuration_repository()
+        local_configuration_repository
             .upsert(&LocalConfiguration {
                 name: "test_configuration".into(),
                 value: "value".into(),
             })
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
@@ -227,13 +224,13 @@ pub mod tests {
 
         let mut dir_entries = fs::read_dir(backup_directory).await.unwrap();
         let backup = dir_entries.next_entry().await.unwrap().unwrap();
-        let backup_context =
-            SqliteRepositoriesContext::new_with_migration(backup.path().to_str().unwrap())
-                .await
-                .unwrap();
+        let backup_injector = create_injector_for_sqlite_path(&backup.path()).await;
 
-        let configuration = backup_context
-            .local_configuration_repository()
+        let backup_injector_scope = backup_injector.start_scope();
+
+        let configuration = backup_injector_scope
+            .resolve::<dyn LocalConfigurationRepository>()
+            .await
             .get_by_name("test_configuration")
             .await
             .unwrap()
@@ -246,11 +243,12 @@ pub mod tests {
     pub async fn ensure_backup_two_calls_in_row_only_created_backup_once() {
         // Arrange
 
-        let TestDependencies {
-            backup_directory,
-            service,
-            context,
-        } = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let local_configuration_repository =
+            scope.resolve::<dyn LocalConfigurationRepository>().await;
+        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let service = scope.resolve::<BackupService>().await;
 
         // Act
 
@@ -263,8 +261,7 @@ pub mod tests {
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
         let last_backup_date = DateTime::parse_from_rfc3339(
-            &context
-                .local_configuration_repository()
+            &local_configuration_repository
                 .get_by_name(LAST_BACKUP_DATE_CONFIGURATION_NAME)
                 .await
                 .unwrap()
@@ -281,11 +278,11 @@ pub mod tests {
     pub async fn ensure_backup_multiple_files_deleted_oldest_file() {
         // Arrange
 
-        let TestDependencies {
-            context,
-            backup_directory,
-            service,
-        } = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let backup_repository = scope.resolve::<dyn BackupRepository>().await;
+        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
@@ -297,8 +294,7 @@ pub mod tests {
                     .format(DATETIME_FORMAT_IN_FILE_NAMES)
             ));
 
-            context
-                .backup_repository()
+            backup_repository
                 .create_backup(&path.to_string_lossy())
                 .await
                 .unwrap();
@@ -321,11 +317,11 @@ pub mod tests {
     pub async fn ensure_backup_other_files_than_backup_did_not_count_them_as_backups() {
         // Arrange
 
-        let TestDependencies {
-            context,
-            backup_directory,
-            service,
-        } = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let backup_repository = scope.resolve::<dyn BackupRepository>().await;
+        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
@@ -337,8 +333,7 @@ pub mod tests {
                     .format(DATETIME_FORMAT_IN_FILE_NAMES)
             ));
 
-            context
-                .backup_repository()
+            backup_repository
                 .create_backup(&path.to_string_lossy())
                 .await
                 .unwrap();

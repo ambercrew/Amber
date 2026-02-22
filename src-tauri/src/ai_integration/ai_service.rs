@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use injector_derive::ScopeInjectable;
 #[cfg(not(test))]
 use rig::client::{Nothing, ProviderClient};
 #[cfg(not(test))]
@@ -65,30 +66,16 @@ impl From<String> for AiServiceError {
     }
 }
 
+#[derive(ScopeInjectable)]
 pub struct AiService {
     settings: Arc<Mutex<Settings>>,
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
     #[cfg(test)]
-    mock_client: MockClient,
+    mock_client: Arc<MockClient>,
 }
 
 impl AiService {
-    pub fn new(
-        settings: Arc<Mutex<Settings>>,
-        state: Arc<AiState>,
-        ai_repository: Arc<dyn AiRepository>,
-        #[cfg(test)] mock_client: MockClient,
-    ) -> Self {
-        Self {
-            settings,
-            state,
-            ai_repository,
-            #[cfg(test)]
-            mock_client,
-        }
-    }
-
     pub async fn stream<F>(
         &self,
         prompt: String,
@@ -223,7 +210,7 @@ impl AiService {
         }
 
         #[cfg(test)]
-        return Ok(MultiCompletionClient::Mock(self.mock_client.clone()));
+        return Ok(MultiCompletionClient::Mock((*self.mock_client).clone()));
 
         #[cfg(not(test))]
         {
@@ -254,6 +241,7 @@ impl AiService {
 pub mod tests {
     use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
+    use injector::{injector::Injector, register_scope};
     use rig::{
         OneOrMany,
         completion::{CompletionError, CompletionResponse, Usage},
@@ -262,34 +250,31 @@ pub mod tests {
     };
 
     use crate::{
-        ai_integration::clients::multi_completion_client::multi_response::MultiResponse,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+        ai_integration::{
+            clients::multi_completion_client::multi_response::MultiResponse,
+            repositories::sqlite_ai_repository::SqliteAiRepository,
         },
+        test_utils::create_test_injector,
     };
 
     use super::*;
 
-    async fn get_test_dependencies(
-        mock_client: MockClient,
-        state: Arc<AiState>,
-    ) -> (SqliteRepositoriesContext, AiService) {
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+    async fn get_test_dependencies(mock_client: MockClient, state: Arc<AiState>) -> Injector {
+        let mut injector = create_test_injector().await;
 
         let settings = Settings {
             enable_ai: true,
             ..Default::default()
         };
 
-        let service = AiService::new(
-            Arc::new(Mutex::new(settings)),
-            state,
-            context.ai_repository(),
-            mock_client,
-        );
+        injector.register_singleton(Arc::new(Mutex::new(settings)));
+        injector.register_singleton(Arc::new(mock_client));
+        injector.register_singleton(state);
 
-        (context, service)
+        register_scope!(injector, dyn AiRepository, SqliteAiRepository);
+        register_scope!(injector, AiService);
+
+        injector
     }
 
     #[tokio::test]
@@ -337,8 +322,11 @@ pub mod tests {
             }))),
         };
 
-        let (context, service) =
-            get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<AiService>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
         let received_create_chat = Arc::new(AtomicBool::new(false));
         let received_in_progress = Arc::new(AtomicBool::new(false));
         let received_finished = Arc::new(AtomicBool::new(false));
@@ -374,16 +362,14 @@ pub mod tests {
         assert!(received_in_progress.load(Ordering::Relaxed));
         assert!(received_finished.load(Ordering::Relaxed));
 
-        let chats = context
-            .ai_repository()
+        let chats = repository
             .get_all_chats_sorted_by_date_desc()
             .await
             .unwrap();
         assert_eq!(1, chats.len());
         assert_eq!("Chat title", chats[0].title());
 
-        let messages = context
-            .ai_repository()
+        let messages = repository
             .get_chat_messages_ordered(chats[0].id())
             .await
             .unwrap();
@@ -446,7 +432,11 @@ pub mod tests {
             }))),
         };
 
-        let (context, service) = get_test_dependencies(mock_client, ai_state).await;
+        let injector = get_test_dependencies(mock_client, ai_state).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<AiService>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
         let received_finished = Arc::new(AtomicBool::new(false));
 
         // Act
@@ -465,13 +455,11 @@ pub mod tests {
 
         assert!(received_finished.load(Ordering::Relaxed));
 
-        let chats = context
-            .ai_repository()
+        let chats = repository
             .get_all_chats_sorted_by_date_desc()
             .await
             .unwrap();
-        let messages = context
-            .ai_repository()
+        let messages = repository
             .get_chat_messages_ordered(chats[0].id())
             .await
             .unwrap();
@@ -527,8 +515,11 @@ pub mod tests {
             }))),
         };
 
-        let (context, service) =
-            get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<AiService>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
         let received_error = Arc::new(AtomicBool::new(false));
         let received_finished = Arc::new(AtomicBool::new(false));
 
@@ -558,15 +549,13 @@ pub mod tests {
         assert!(received_finished.load(Ordering::Relaxed));
         assert!(received_error.load(Ordering::Relaxed));
 
-        let chats = context
-            .ai_repository()
+        let chats = repository
             .get_all_chats_sorted_by_date_desc()
             .await
             .unwrap();
         assert_eq!(1, chats.len());
 
-        let messages = context
-            .ai_repository()
+        let messages = repository
             .get_chat_messages_ordered(chats[0].id())
             .await
             .unwrap();

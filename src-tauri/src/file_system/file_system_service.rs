@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use injector_derive::ScopeInjectable;
 use lol_html::html_content::Element;
 use lol_html::{RewriteStrSettings, element, rewrite_str};
 use thiserror::Error;
@@ -36,6 +37,7 @@ pub enum FileServiceError {
     UnknownRepositoryError(#[from] RepositoryError),
 }
 
+#[derive(ScopeInjectable)]
 pub struct FileSystemService {
     cell_service: Arc<CellService>,
     folder_repository: Arc<dyn FolderRepository>,
@@ -44,20 +46,6 @@ pub struct FileSystemService {
 }
 
 impl FileSystemService {
-    pub fn new(
-        cell_service: Arc<CellService>,
-        folder_repository: Arc<dyn FolderRepository>,
-        file_repository: Arc<dyn FileRepository>,
-        cell_repository: Arc<dyn CellRepository>,
-    ) -> Self {
-        Self {
-            cell_service,
-            folder_repository,
-            file_repository,
-            cell_repository,
-        }
-    }
-
     pub async fn create_folder(
         &self,
         parent_id: Option<Guid>,
@@ -378,37 +366,49 @@ fn purify_html(html: &str) -> String {
 
 #[cfg(test)]
 pub mod tests {
+    use injector::{injector::Injector, register_scope};
+
     use super::*;
     use crate::{
         ROOT_FOLDER_ID,
-        cells::entities::cell::CellType,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+        cells::{
+            entities::cell::CellType,
+            repositories::{
+                sqlite_cell_repository::SqliteCellRepository,
+                sqlite_review_repository::SqliteReviewRepository,
+                traits::review_repository::ReviewRepository,
+            },
         },
+        common::unit_of_work_ext::UnitOfWorkExt,
+        file_system::repositories::{
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
+        },
+        test_utils::create_test_injector,
     };
 
-    async fn create_test_dependencies() -> (SqliteRepositoriesContext, FileSystemService) {
-        let context = SqliteRepositoriesContext::create_testing_context().await;
-        let cell_service = CellService::new(context.cell_repository(), context.review_repository());
-        let service = FileSystemService::new(
-            Arc::new(cell_service),
-            context.folder_repository(),
-            context.file_repository(),
-            context.cell_repository(),
-        );
-
-        (context, service)
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+        register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+        register_scope!(injector, CellService);
+        register_scope!(injector, FileSystemService);
+        injector
     }
 
     #[tokio::test]
     pub async fn create_folder_existing_folder_returned_error() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -417,14 +417,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .create_folder(Some(ROOT_FOLDER_ID), "folder".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -440,14 +440,16 @@ pub mod tests {
     pub async fn create_folder_valid_input_created_folder() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         // Act
 
         let actual = service
             .create_folder(Some(ROOT_FOLDER_ID), "folder".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -458,12 +460,15 @@ pub mod tests {
     pub async fn rename_folder_existing_folder_returned_error() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let folder_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -472,8 +477,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -482,14 +488,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_folder(folder_id, "folder 2".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -505,12 +511,15 @@ pub mod tests {
     pub async fn rename_folder_same_name_folder_not_changed() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let folder_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -519,20 +528,21 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_folder(folder_id, "folder".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let folder = context
-            .folder_repository()
+        let folder = scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .get_by_id(folder_id)
             .await
             .unwrap();
@@ -546,12 +556,15 @@ pub mod tests {
     pub async fn rename_folder_valid_input_renamed_folder() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let folder_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -560,20 +573,21 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_folder(folder_id, "folder 2".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let folder = context
-            .folder_repository()
+        let folder = scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .get_by_id(folder_id)
             .await
             .unwrap();
@@ -587,13 +601,16 @@ pub mod tests {
     pub async fn move_folder_to_nested_folder_error_returned() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -602,8 +619,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id),
                 Some(parent_folder_id),
@@ -612,14 +630,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_folder(parent_folder_id, Some(child_folder_id))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -633,14 +651,17 @@ pub mod tests {
     pub async fn move_folder_two_level_down_nested_folder_error_returned() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id1 = Guid::new_v4();
         let child_folder_id2 = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -649,8 +670,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id1),
                 Some(parent_folder_id),
@@ -659,8 +681,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id2),
                 Some(child_folder_id1),
@@ -669,14 +692,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_folder(parent_folder_id, Some(child_folder_id2))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -690,14 +713,17 @@ pub mod tests {
     pub async fn move_folder_existing_folder_error_returned() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_folder_id1 = Guid::new_v4();
         let child_folder_id2 = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -706,8 +732,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id1),
                 Some(parent_folder_id),
@@ -716,8 +743,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id2),
                 Some(ROOT_FOLDER_ID),
@@ -726,14 +754,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_folder(child_folder_id2, Some(parent_folder_id))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -749,14 +777,17 @@ pub mod tests {
     pub async fn move_folder_valid_input_moved_folder() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id1 = Guid::new_v4();
         let parent_folder_id2 = Guid::new_v4();
         let child_folder_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id1),
                 Some(ROOT_FOLDER_ID),
@@ -765,8 +796,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id2),
                 Some(ROOT_FOLDER_ID),
@@ -775,8 +807,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(child_folder_id),
                 Some(parent_folder_id1),
@@ -785,20 +818,21 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_folder(child_folder_id, Some(parent_folder_id2))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let folder = context
-            .folder_repository()
+        let folder = scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .get_by_id(child_folder_id)
             .await
             .unwrap();
@@ -809,10 +843,13 @@ pub mod tests {
     pub async fn create_file_existing_file_returned_error() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -821,14 +858,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .create_file(Some(ROOT_FOLDER_ID), "file".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -844,12 +881,15 @@ pub mod tests {
     pub async fn rename_file_existing_file_returned_error() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let file_id = Guid::new_v4();
 
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
@@ -858,8 +898,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -868,14 +909,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_file(file_id, "file 2".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -891,12 +932,15 @@ pub mod tests {
     pub async fn rename_file_same_name_file_not_changed() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let file_id = Guid::new_v4();
 
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
@@ -905,19 +949,24 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_file(file_id, "file".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let file = context.file_repository().get_by_id(file_id).await.unwrap();
+        let file = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_by_id(file_id)
+            .await
+            .unwrap();
         assert_eq!(
             FileSystemItemName::new_unchecked("file".to_string()),
             file.name()
@@ -928,12 +977,15 @@ pub mod tests {
     pub async fn rename_file_valid_input_renamed_file() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let file_id = Guid::new_v4();
 
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
@@ -942,19 +994,24 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .rename_file(file_id, "file 2".try_into().unwrap())
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let file = context.file_repository().get_by_id(file_id).await.unwrap();
+        let file = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_by_id(file_id)
+            .await
+            .unwrap();
         assert_eq!(
             FileSystemItemName::new_unchecked("file 2".to_string()),
             file.name()
@@ -965,14 +1022,17 @@ pub mod tests {
     pub async fn move_file_existing_file_error_returned() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let child_file_id1 = Guid::new_v4();
         let child_file_id2 = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -981,8 +1041,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(child_file_id1),
                 Some(parent_folder_id),
@@ -991,8 +1052,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(child_file_id2),
                 Some(ROOT_FOLDER_ID),
@@ -1001,14 +1063,14 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_file(child_file_id2, Some(parent_folder_id))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
@@ -1024,14 +1086,17 @@ pub mod tests {
     pub async fn move_file_valid_input_moved_file() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id1 = Guid::new_v4();
         let parent_folder_id2 = Guid::new_v4();
         let child_file_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id1),
                 Some(ROOT_FOLDER_ID),
@@ -1040,8 +1105,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id2),
                 Some(ROOT_FOLDER_ID),
@@ -1050,8 +1116,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(child_file_id),
                 Some(parent_folder_id1),
@@ -1060,20 +1127,21 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         let actual = service
             .move_file(child_file_id, Some(parent_folder_id2))
             .await;
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
         assert_eq!(Ok(()), actual);
-        let file = context
-            .file_repository()
+        let file = scope
+            .resolve::<dyn FileRepository>()
+            .await
             .get_by_id(child_file_id)
             .await
             .unwrap();
@@ -1084,14 +1152,17 @@ pub mod tests {
     pub async fn convert_folder_to_exported_item_valid_input_converted_folder_and_file() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let nested_folder_id = Guid::new_v4();
         let file_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -1100,8 +1171,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(nested_folder_id),
                 Some(parent_folder_id),
@@ -1110,8 +1182,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(file_id),
                 Some(nested_folder_id),
@@ -1132,7 +1205,7 @@ pub mod tests {
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
@@ -1182,14 +1255,17 @@ pub mod tests {
     pub async fn import_exported_item_valid_input_imported_folders_and_files() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<FileSystemService>().await;
 
         let parent_folder_id = Guid::new_v4();
         let nested_folder_id = Guid::new_v4();
         let file_id = Guid::new_v4();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(parent_folder_id),
                 Some(ROOT_FOLDER_ID),
@@ -1198,8 +1274,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .create(&Folder::new(
                 Some(nested_folder_id),
                 Some(parent_folder_id),
@@ -1208,8 +1285,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 Some(file_id),
                 Some(nested_folder_id),
@@ -1236,20 +1314,21 @@ pub mod tests {
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         let exported_item = service
             .convert_folder_to_exported_item(parent_folder_id)
             .await
             .unwrap();
 
-        context
-            .folder_repository()
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
             .delete_by_id(parent_folder_id)
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
@@ -1257,11 +1336,16 @@ pub mod tests {
             .import_exported_item(ROOT_FOLDER_ID, exported_item)
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let all_folders = context.folder_repository().get_all_folders().await.unwrap();
+        let all_folders = scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .get_all_folders()
+            .await
+            .unwrap();
         assert_eq!(3, all_folders.len());
         let actual_parent_folder = all_folders
             .iter()
@@ -1278,7 +1362,12 @@ pub mod tests {
             })
             .unwrap();
 
-        let all_files = context.file_repository().get_all_files().await.unwrap();
+        let all_files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
         assert_eq!(1, all_files.len());
         let actual_file = all_files
             .iter()
@@ -1288,8 +1377,9 @@ pub mod tests {
             })
             .unwrap();
 
-        let all_cells = context
-            .cell_repository()
+        let all_cells = scope
+            .resolve::<dyn CellRepository>()
+            .await
             .get_file_cells_ordered_by_index(actual_file.id())
             .await
             .unwrap();

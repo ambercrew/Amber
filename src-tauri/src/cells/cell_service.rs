@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use chrono::Utc;
+use injector_derive::ScopeInjectable;
 use thiserror::Error;
 
 use crate::{
@@ -26,22 +27,13 @@ pub enum CellServiceError {
     UnknownRepositoryError(#[from] RepositoryError),
 }
 
+#[derive(ScopeInjectable)]
 pub struct CellService {
     cell_repository: Arc<dyn CellRepository>,
     review_repository: Arc<dyn ReviewRepository>,
 }
 
 impl CellService {
-    pub fn new(
-        cell_repository: Arc<dyn CellRepository>,
-        review_repository: Arc<dyn ReviewRepository>,
-    ) -> Self {
-        Self {
-            cell_repository,
-            review_repository,
-        }
-    }
-
     pub async fn create_cell(
         &self,
         file_id: Guid,
@@ -163,31 +155,46 @@ impl CellService {
 
 #[cfg(test)]
 pub mod tests {
+    use injector::{injector::Injector, register_scope};
+
     use crate::{
         ROOT_FOLDER_ID,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+        cells::repositories::{
+            sqlite_cell_repository::SqliteCellRepository,
+            sqlite_review_repository::SqliteReviewRepository,
         },
+        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
+            entities::file::File,
+            repositories::{
+                sqlite_file_repository::SqliteFileRepository,
+                traits::file_repository::FileRepository,
+            },
+            value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        test_utils::create_test_injector,
     };
 
     use super::*;
 
-    async fn create_test_dependencies() -> (SqliteRepositoriesContext, CellService) {
-        let context = SqliteRepositoriesContext::create_testing_context().await;
-        let service = CellService::new(context.cell_repository(), context.review_repository());
-
-        (context, service)
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+        register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        register_scope!(injector, CellService);
+        injector
     }
 
     #[tokio::test]
     pub async fn create_cell_moved_all_cells_down_and_created_cell() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -197,7 +204,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
@@ -206,12 +213,12 @@ pub mod tests {
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 3),
         ];
 
-        context.cell_repository().create(&cells[0]).await.unwrap();
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[2]).await.unwrap();
-        context.cell_repository().create(&cells[3]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[2]).await.unwrap();
+        cell_repository.create(&cells[3]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
@@ -219,12 +226,11 @@ pub mod tests {
             .create_cell(file.id(), "".to_string(), CellType::Cloze, 2)
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_cells = context
-            .cell_repository()
+        let actual_cells = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -239,7 +245,11 @@ pub mod tests {
     pub async fn delete_by_id_moved_all_cells_up_and_deleted_cell() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -249,7 +259,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
@@ -258,22 +268,21 @@ pub mod tests {
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 3),
         ];
 
-        context.cell_repository().create(&cells[0]).await.unwrap();
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[2]).await.unwrap();
-        context.cell_repository().create(&cells[3]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[2]).await.unwrap();
+        cell_repository.create(&cells[3]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         service.delete_by_id(cells[1].id()).await.unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_cells = context
-            .cell_repository()
+        let actual_cells = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -292,7 +301,11 @@ pub mod tests {
     pub async fn move_cell_forward_moved_cell_correctly() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -302,7 +315,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
@@ -312,23 +325,22 @@ pub mod tests {
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 4),
         ];
 
-        context.cell_repository().create(&cells[0]).await.unwrap();
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[2]).await.unwrap();
-        context.cell_repository().create(&cells[3]).await.unwrap();
-        context.cell_repository().create(&cells[4]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[2]).await.unwrap();
+        cell_repository.create(&cells[3]).await.unwrap();
+        cell_repository.create(&cells[4]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         service.move_cell(cells[1].id(), 3).await.unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_cells = context
-            .cell_repository()
+        let actual_cells = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -353,7 +365,11 @@ pub mod tests {
     pub async fn move_cell_backward_moved_cell_correctly() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -363,7 +379,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
@@ -373,23 +389,22 @@ pub mod tests {
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 4),
         ];
 
-        context.cell_repository().create(&cells[0]).await.unwrap();
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[2]).await.unwrap();
-        context.cell_repository().create(&cells[3]).await.unwrap();
-        context.cell_repository().create(&cells[4]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[2]).await.unwrap();
+        cell_repository.create(&cells[3]).await.unwrap();
+        cell_repository.create(&cells[4]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
         service.move_cell(cells[3].id(), 1).await.unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_cells = context
-            .cell_repository()
+        let actual_cells = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -414,7 +429,11 @@ pub mod tests {
     pub async fn register_review_updated_repetition_and_created_review() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -424,7 +443,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let content = r#"
             <cloze index="1">Test</cloze>
@@ -432,8 +451,8 @@ pub mod tests {
         .to_string();
         let cell = Cell::new(None, file.id(), content, CellType::Cloze, 0);
 
-        context.cell_repository().create(&cell).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cell).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         let repetition_update = RepetitionUpdate {
             id: cell.repetitions()[0].id,
@@ -449,26 +468,18 @@ pub mod tests {
             .register_review(repetition_update.clone(), Rating::Hard, 10)
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual = context
-            .cell_repository()
-            .get_by_id(cell.id())
-            .await
-            .unwrap();
+        let actual = cell_repository.get_by_id(cell.id()).await.unwrap();
 
         assert_eq!(
             actual.repetitions()[0].stability,
             repetition_update.stability
         );
 
-        let home_statistics = context
-            .cell_repository()
-            .get_home_statistics()
-            .await
-            .unwrap();
+        let home_statistics = cell_repository.get_home_statistics().await.unwrap();
         assert_eq!(1, home_statistics.number_of_reviews);
     }
 
@@ -476,7 +487,11 @@ pub mod tests {
     pub async fn enforce_cell_invariants_on_cell_two_cells_with_same_index_updated_index() {
         // Arrange
 
-        let (context, service) = create_test_dependencies().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let service = scope.resolve::<CellService>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -486,16 +501,16 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 0),
         ];
 
-        context.cell_repository().create(&cells[0]).await.unwrap();
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
@@ -503,12 +518,11 @@ pub mod tests {
             .enforce_cell_invariants_on_cell(cells[0].id())
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual_cells = context
-            .cell_repository()
+        let actual_cells = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();

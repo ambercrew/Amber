@@ -11,28 +11,9 @@ mod sync;
 #[cfg(test)]
 mod test_utils;
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
+use std::time::Duration;
 
-#[cfg(test)]
-use crate::ai_integration::clients::mock_client::MockClient;
-use crate::{
-    ai_integration::{ai_service::AiService, ai_state::AiState},
-    backend::{
-        brainy_backend_http_client::BrainyBackendHttpClient,
-        traits::brainy_backend_client::BrainyBackendClient,
-    },
-    backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES},
-    cells::cell_service::CellService,
-    common::{
-        sqlite_repositories_context::SqliteRepositoriesContext,
-        traits::repositories_context::RepositoriesContext,
-    },
-    file_system::file_system_service::FileSystemService,
-    fsrs::fsrs_service::FsrsService,
-    settings::{Settings, get_settings_dir},
-    sync::sync_service::SyncService,
-};
-use reqwest::Url;
 use tauri::Manager;
 
 use ai_integration::ai_api::{
@@ -68,7 +49,9 @@ pub use sync::sync_api::sync;
 pub use file_system::api::export_import_api::{export_file, export_folder, import};
 
 use tauri_plugin_window_state::StateFlags;
-use tokio::sync::Mutex;
+
+use crate::backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
+use crate::common::utils::create_injector::create_injector;
 
 pub type Guid = uuid::Uuid;
 
@@ -83,27 +66,8 @@ pub mod generated_code {
 pub async fn run() -> Result<(), String> {
     simple_logger::init_with_level(log::Level::Info).unwrap();
 
-    let settings_directory = get_settings_dir()
-        .await
-        .expect("Cannot get settings directory!");
-    let settings = Settings::init_settings_and_get(settings_directory.clone())
-        .await
-        .unwrap();
-
-    let repositories_context = SqliteRepositoriesContext::new_with_migration(&format!(
-        "sqlite:///{}",
-        settings.database_location
-    ))
-    .await
-    .unwrap();
-
     let mut tauri_builder =
         tauri::Builder::default().plugin(tauri_plugin_clipboard_manager::init());
-
-    let backend_url = Url::parse("http://localhost:5078").unwrap();
-    let backend_client =
-        BrainyBackendHttpClient::new(backend_url).expect("Cannot create backend client");
-    let backend_client = Arc::new(backend_client) as Arc<dyn BrainyBackendClient>;
 
     #[cfg(desktop)]
     {
@@ -114,6 +78,8 @@ pub async fn run() -> Result<(), String> {
                 .set_focus();
         }));
     }
+
+    let injector = Arc::new(create_injector().await);
 
     tauri_builder
         .plugin(tauri_plugin_process::init())
@@ -126,64 +92,7 @@ pub async fn run() -> Result<(), String> {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .setup(move |app| {
-            let cell_service = Arc::new(CellService::new(
-                repositories_context.cell_repository(),
-                repositories_context.review_repository(),
-            ));
-            app.manage(cell_service.clone());
-
-            app.manage(Arc::new(FileSystemService::new(
-                cell_service.clone(),
-                repositories_context.folder_repository(),
-                repositories_context.file_repository(),
-                repositories_context.cell_repository(),
-            )));
-            app.manage(Arc::new(SyncService::new(
-                backend_client.clone(),
-                repositories_context.folder_repository(),
-                repositories_context.file_repository(),
-                repositories_context.cell_repository(),
-                repositories_context.review_repository(),
-                repositories_context.sync_repository(),
-                repositories_context.local_configuration_repository(),
-                repositories_context.fsrs_repository(),
-                cell_service.clone(),
-            )));
-
-            app.manage(Arc::new(FsrsService::new(
-                repositories_context.folder_repository(),
-                repositories_context.fsrs_repository(),
-            )));
-
-            let backup_service = BackupService::new(
-                repositories_context.local_configuration_repository(),
-                repositories_context.backup_repository(),
-                settings_directory,
-            );
-
-            app.manage(backend_client);
-
-            let settings = Arc::new(Mutex::new(settings));
-
-            app.manage(settings.clone());
-
-            let ai_state = Arc::new(AiState::default());
-            app.manage(Arc::new(AiService::new(
-                settings,
-                ai_state.clone(),
-                repositories_context.ai_repository(),
-                #[cfg(test)]
-                MockClient {
-                    model: None,
-                    stream_fn: Arc::new(None),
-                    completion_fn: Arc::new(None),
-                },
-            )));
-            app.manage(ai_state);
-
-            app.manage(
-                Arc::new(Mutex::new(repositories_context)) as Arc<Mutex<dyn RepositoriesContext>>
-            );
+            app.manage(injector.clone());
 
             #[cfg(dev)]
             {
@@ -200,12 +109,10 @@ pub async fn run() -> Result<(), String> {
 
                 loop {
                     interval.tick().await;
+                    let scope = injector.start_scope();
 
-                    if let Err(err) = backup_service.ensure_backup().await {
-                        log::error!(
-                            "An error happened when saving a backup of your files {:?}",
-                            err
-                        );
+                    if let Err(err) = scope.resolve::<BackupService>().await.ensure_backup().await {
+                        log::error!("An error happened when creating a backup {:?}", err);
                     }
                 }
             });

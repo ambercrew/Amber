@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
@@ -12,22 +12,17 @@ use crate::{
             message::{Message, MessageRole},
         },
         repositories::{
-            sqlite_ai_repository::file_row::{ASSISTANT_ROLE, ChatRow, HUMAN_ROLE, MessageRow},
+            sqlite_ai_repository::ai_row::{ASSISTANT_ROLE, ChatRow, HUMAN_ROLE, MessageRow},
             traits::ai_repository::AiRepository,
         },
     },
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteAiRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteAiRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
@@ -188,7 +183,7 @@ impl AiRepository for SqliteAiRepository {
     }
 }
 
-mod file_row {
+mod ai_row {
     use chrono::{DateTime, Utc};
 
     use crate::ai_integration::entities::message::MessageRole;
@@ -239,30 +234,36 @@ mod file_row {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::common::{
-        sqlite_repositories_context::SqliteRepositoriesContext,
-        traits::repositories_context::RepositoriesContext,
-    };
+    use injector::{injector::Injector, register_scope};
+
+    use crate::{common::unit_of_work_ext::UnitOfWorkExt, test_utils::create_test_injector};
 
     use super::*;
+
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, SqliteAiRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn get_all_chats_sorted_by_date_desc_multiple_chats_returned_all() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<SqliteAiRepository>().await;
 
         let chat1 = Chat::new(None, "First".to_string());
-        context.ai_repository().upsert_chat(&chat1).await.unwrap();
+        repository.upsert_chat(&chat1).await.unwrap();
         let chat2 = Chat::new(None, "Second".to_string());
-        context.ai_repository().upsert_chat(&chat2).await.unwrap();
+        repository.upsert_chat(&chat2).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .ai_repository()
+        let actual = repository
             .get_all_chats_sorted_by_date_desc()
             .await
             .unwrap();
@@ -278,13 +279,14 @@ pub mod tests {
     pub async fn get_chat_messages_ordered_multiple_messages_returned_all() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<SqliteAiRepository>().await;
 
         let chat = Chat::new(None, "Chat".to_string());
-        context.ai_repository().upsert_chat(&chat).await.unwrap();
+        repository.upsert_chat(&chat).await.unwrap();
 
-        context
-            .ai_repository()
+        repository
             .upsert_message(&Message::new(
                 None,
                 chat.id(),
@@ -293,8 +295,7 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .ai_repository()
+        repository
             .upsert_message(&Message::new(
                 None,
                 chat.id(),
@@ -304,12 +305,11 @@ pub mod tests {
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .ai_repository()
+        let actual = repository
             .get_chat_messages_ordered(chat.id())
             .await
             .unwrap();
@@ -328,27 +328,24 @@ pub mod tests {
     pub async fn delete_chat_valid_input_deleted_chat() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<SqliteAiRepository>().await;
 
         let chat1 = Chat::new(None, "First".to_string());
-        context.ai_repository().upsert_chat(&chat1).await.unwrap();
+        repository.upsert_chat(&chat1).await.unwrap();
         let chat2 = Chat::new(None, "Second".to_string());
-        context.ai_repository().upsert_chat(&chat2).await.unwrap();
+        repository.upsert_chat(&chat2).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        context
-            .ai_repository()
-            .delete_chat(chat1.id())
-            .await
-            .unwrap();
+        repository.delete_chat(chat1.id()).await.unwrap();
 
         // Assert
 
-        let actual = context
-            .ai_repository()
+        let actual = repository
             .get_all_chats_sorted_by_date_desc()
             .await
             .unwrap();

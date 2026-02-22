@@ -2,7 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Datelike, NaiveDate, NaiveTime, Utc};
-use sqlx::{QueryBuilder, Sqlite, SqliteConnection, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
+use sqlx::{QueryBuilder, SqliteConnection};
 use tokio::sync::Mutex;
 
 use crate::{
@@ -21,18 +22,13 @@ use crate::{
             traits::cell_repository::{CellRepository, MoveDirection},
         },
     },
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteCellRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteCellRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
@@ -846,26 +842,47 @@ impl SqliteCellRepository {
 #[cfg(test)]
 pub mod tests {
     use chrono::Duration;
+    use injector::{injector::Injector, register_scope};
 
     use crate::{
         ROOT_FOLDER_ID,
-        cells::entities::{cell::CellType, review::Review},
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
+        cells::{
+            entities::{cell::CellType, review::Review},
+            repositories::{
+                sqlite_review_repository::SqliteReviewRepository,
+                traits::review_repository::ReviewRepository,
+            },
         },
+        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
+            entities::file::File,
+            repositories::{
+                sqlite_file_repository::SqliteFileRepository,
+                traits::file_repository::FileRepository,
+            },
+            value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        test_utils::create_test_injector,
     };
 
     use super::*;
+
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+        register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn get_by_id_valid_input_returned_cell_correctly() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -875,7 +892,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cell = Cell::new(
             None,
@@ -888,16 +905,12 @@ pub mod tests {
             CellType::Cloze,
             0,
         );
-        context.cell_repository().create(&cell).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cell).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
-            .get_by_id(cell.id())
-            .await
-            .unwrap();
+        let actual = cell_repository.get_by_id(cell.id()).await.unwrap();
 
         // Assert
 
@@ -921,7 +934,10 @@ pub mod tests {
     pub async fn get_file_cells_ordered_by_index_valid_input_returned_files_ordered() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -931,7 +947,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(
@@ -944,15 +960,14 @@ pub mod tests {
             Cell::new(None, file.id(), "".to_string(), CellType::Note, 1),
         ];
 
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
+        let actual = cell_repository
             .get_file_cells_ordered_by_index(file.id())
             .await
             .unwrap();
@@ -968,7 +983,10 @@ pub mod tests {
     pub async fn update_deleted_old_repetitions_and_added_new_ones() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -978,7 +996,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let mut cell = Cell::new(
             None,
@@ -991,8 +1009,8 @@ pub mod tests {
             CellType::Cloze,
             0,
         );
-        context.cell_repository().create(&cell).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cell).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         let old_repetitions = cell.repetitions().clone();
         cell.set_content(
@@ -1005,16 +1023,12 @@ pub mod tests {
 
         // Act
 
-        context.cell_repository().update(&cell).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.update(&cell).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual = context
-            .cell_repository()
-            .get_by_id(cell.id())
-            .await
-            .unwrap();
+        let actual = cell_repository.get_by_id(cell.id()).await.unwrap();
 
         assert_eq!(2, cell.repetitions().len());
         assert!(
@@ -1048,7 +1062,10 @@ pub mod tests {
     pub async fn search_cells_valid_input_searched_cells_correctly() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1058,7 +1075,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cells = [
             Cell::new(None, file.id(), "Test 1".to_string(), CellType::Note, 0),
@@ -1072,18 +1089,14 @@ pub mod tests {
             ),
         ];
 
-        context.cell_repository().create(&cells[1]).await.unwrap();
-        context.cell_repository().create(&cells[0]).await.unwrap();
+        cell_repository.create(&cells[1]).await.unwrap();
+        cell_repository.create(&cells[0]).await.unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
-            .search_cells("test")
-            .await
-            .unwrap();
+        let actual = cell_repository.search_cells("test").await.unwrap();
 
         // Assert
 
@@ -1096,7 +1109,10 @@ pub mod tests {
     pub async fn get_study_repetitions_valid_input_returned_count_correctly() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1106,7 +1122,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
         let cell = Cell::new_unchecked(
@@ -1165,13 +1181,12 @@ pub mod tests {
                 },
             ],
         );
-        context.cell_repository().create(&cell).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cell).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
+        let actual = cell_repository
             .get_study_repetitions(file.id())
             .await
             .unwrap();
@@ -1188,7 +1203,10 @@ pub mod tests {
     pub async fn get_study_repetitions_for_all_files_valid_input_returned_count_correctly() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let file1 = File::new_unchecked(
             Guid::new_v4(),
@@ -1206,8 +1224,8 @@ pub mod tests {
             "test2".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file1).await.unwrap();
-        context.file_repository().create(&file2).await.unwrap();
+        file_repository.create(&file1).await.unwrap();
+        file_repository.create(&file2).await.unwrap();
 
         let cell1_id = Guid::new_v4();
         let cell1 = Cell::new_unchecked(
@@ -1280,14 +1298,13 @@ pub mod tests {
                 },
             ],
         );
-        context.cell_repository().create(&cell1).await.unwrap();
-        context.cell_repository().create(&cell2).await.unwrap();
-        context.save_changes().await.unwrap();
+        cell_repository.create(&cell1).await.unwrap();
+        cell_repository.create(&cell2).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
+        let actual = cell_repository
             .get_study_repetitions_for_all_files()
             .await
             .unwrap();
@@ -1307,7 +1324,11 @@ pub mod tests {
     async fn get_home_statistics_with_reviews_returned_correct_statistics() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let cell_repository = scope.resolve::<dyn CellRepository>().await;
+        let review_repository = scope.resolve::<dyn ReviewRepository>().await;
 
         let file = File::new_unchecked(
             Guid::new_v4(),
@@ -1317,7 +1338,7 @@ pub mod tests {
             "test".try_into().unwrap(),
             FsrsProfileChoice::Inherit,
         );
-        context.file_repository().create(&file).await.unwrap();
+        file_repository.create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
         let cell = Cell::new_unchecked(
@@ -1376,10 +1397,9 @@ pub mod tests {
                 },
             ],
         );
-        context.cell_repository().create(&cell).await.unwrap();
+        cell_repository.create(&cell).await.unwrap();
 
-        context
-            .review_repository()
+        review_repository
             .create(&Review {
                 date: Utc::now().to_utc(),
                 study_time: 10,
@@ -1387,8 +1407,7 @@ pub mod tests {
             })
             .await
             .unwrap();
-        context
-            .review_repository()
+        review_repository
             .create(&Review {
                 date: Utc::now().to_utc(),
                 study_time: 10,
@@ -1396,8 +1415,7 @@ pub mod tests {
             })
             .await
             .unwrap();
-        context
-            .review_repository()
+        review_repository
             .create(&Review {
                 date: Utc::now().to_utc() - Duration::days(1),
                 study_time: 5,
@@ -1406,15 +1424,11 @@ pub mod tests {
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context
-            .cell_repository()
-            .get_home_statistics()
-            .await
-            .unwrap();
+        let actual = cell_repository.get_home_statistics().await.unwrap();
 
         // Assert
 

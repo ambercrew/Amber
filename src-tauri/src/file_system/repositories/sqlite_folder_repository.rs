@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
     file_system::{
         entities::folder::Folder,
         repositories::{
@@ -18,15 +18,10 @@ use crate::{
     },
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteFolderRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteFolderRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
@@ -309,27 +304,40 @@ mod folder_row {
 
 #[cfg(test)]
 pub mod tests {
+    use injector::{injector::Injector, register_scope};
+
     use crate::{
         ROOT_FOLDER_ID,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
-        },
+        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
+            entities::file::File,
+            repositories::{
+                sqlite_file_repository::SqliteFileRepository,
+                traits::file_repository::FileRepository,
+            },
+            value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        test_utils::create_test_injector,
     };
 
     use super::*;
+
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn get_all_folders_valid_input_returned_all_files() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<dyn FolderRepository>().await;
 
-        context
-            .folder_repository()
+        repository
             .create(&Folder::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -338,11 +346,11 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context.folder_repository().get_all_folders().await.unwrap();
+        let actual = repository.get_all_folders().await.unwrap();
 
         // Assert
 
@@ -358,11 +366,12 @@ pub mod tests {
     pub async fn delete_by_id_valid_input_deleted_recursively() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<dyn FolderRepository>().await;
 
         let parent_id = Guid::new_v4();
-        context
-            .folder_repository()
+        repository
             .create(&Folder::new(
                 Some(parent_id),
                 Some(ROOT_FOLDER_ID),
@@ -371,8 +380,7 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .folder_repository()
+        repository
             .create(&Folder::new(
                 None,
                 Some(parent_id),
@@ -381,8 +389,9 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context
-            .file_repository()
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
             .create(&File::new(
                 None,
                 Some(parent_id),
@@ -392,20 +401,16 @@ pub mod tests {
             .await
             .unwrap();
 
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        context
-            .folder_repository()
-            .delete_by_id(parent_id)
-            .await
-            .unwrap();
-        context.save_changes().await.unwrap();
+        repository.delete_by_id(parent_id).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual = context.folder_repository().get_all_folders().await.unwrap();
+        let actual = repository.get_all_folders().await.unwrap();
         // Only root should exist!
         assert_eq!(1, actual.len());
     }

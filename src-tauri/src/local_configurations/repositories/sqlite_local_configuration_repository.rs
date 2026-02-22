@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
     local_configurations::{
         entities::LocalConfiguration,
         repositories::{
@@ -15,15 +15,10 @@ use crate::{
     },
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteLocalConfigurationRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteLocalConfigurationRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]

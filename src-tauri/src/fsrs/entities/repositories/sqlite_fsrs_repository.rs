@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
     fsrs::entities::{
         fsrs_profile::FsrsProfile,
         repositories::{
@@ -17,15 +17,10 @@ use crate::{
     },
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteFsrsRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteFsrsRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
@@ -304,22 +299,25 @@ mod fsrs_profile_row {
 #[cfg(test)]
 pub mod tests {
     use chrono::Utc;
+    use injector::{injector::Injector, register_scope};
 
-    use crate::{
-        DEFAULT_FSRS_PROFILE_ID,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
-        },
-    };
+    use crate::{DEFAULT_FSRS_PROFILE_ID, test_utils::create_test_injector};
 
     use super::*;
+
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn get_by_id_valid_input_returned_profile() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile = FsrsProfile::new_unchecked(
             Guid::new_v4(),
@@ -330,15 +328,11 @@ pub mod tests {
             1f64,
             vec![1f64],
         );
-        context.fsrs_repository().create(&profile).await.unwrap();
+        fsrs_repository.create(&profile).await.unwrap();
 
         // Act
 
-        let actual = context
-            .fsrs_repository()
-            .get_by_id(profile.id())
-            .await
-            .unwrap();
+        let actual = fsrs_repository.get_by_id(profile.id()).await.unwrap();
 
         // Assert
 
@@ -350,7 +344,9 @@ pub mod tests {
     pub async fn get_all_fsrs_profiles_valid_input_returned_all_profiles() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile1 = FsrsProfile::new_unchecked(
             Guid::new_v4(),
@@ -361,7 +357,7 @@ pub mod tests {
             1f64,
             vec![1f64],
         );
-        context.fsrs_repository().create(&profile1).await.unwrap();
+        fsrs_repository.create(&profile1).await.unwrap();
 
         let profile2 = FsrsProfile::new_unchecked(
             Guid::new_v4(),
@@ -372,15 +368,11 @@ pub mod tests {
             1f64,
             vec![1f64],
         );
-        context.fsrs_repository().create(&profile2).await.unwrap();
+        fsrs_repository.create(&profile2).await.unwrap();
 
         // Act
 
-        let actual = context
-            .fsrs_repository()
-            .get_all_fsrs_profiles()
-            .await
-            .unwrap();
+        let actual = fsrs_repository.get_all_fsrs_profiles().await.unwrap();
 
         // Assert
 
@@ -399,7 +391,9 @@ pub mod tests {
     pub async fn update_valid_input_updated_profile() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile = FsrsProfile::new_unchecked(
             Guid::new_v4(),
@@ -410,7 +404,7 @@ pub mod tests {
             1f64,
             vec![1f64],
         );
-        context.fsrs_repository().create(&profile).await.unwrap();
+        fsrs_repository.create(&profile).await.unwrap();
 
         let updated_profile = FsrsProfile::new_unchecked(
             profile.id(),
@@ -424,19 +418,11 @@ pub mod tests {
 
         // Act
 
-        context
-            .fsrs_repository()
-            .update(&updated_profile)
-            .await
-            .unwrap();
+        fsrs_repository.update(&updated_profile).await.unwrap();
 
         // Assert
 
-        let actual = context
-            .fsrs_repository()
-            .get_by_id(profile.id())
-            .await
-            .unwrap();
+        let actual = fsrs_repository.get_by_id(profile.id()).await.unwrap();
         assert_eq!("new name".to_string(), actual.name());
         assert_eq!(2f64, actual.request_retention());
     }

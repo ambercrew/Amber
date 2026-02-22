@@ -2,12 +2,12 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::{Sqlite, SqlitePool, Transaction};
+use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::repository_error::RepositoryError,
+    common::{DbPool, DbTransaction, repository_error::RepositoryError},
     file_system::{
         entities::file::File,
         repositories::{
@@ -17,15 +17,10 @@ use crate::{
     },
 };
 
+#[derive(ScopeInjectable)]
 pub struct SqliteFileRepository {
-    pool: Arc<SqlitePool>,
-    tx: Arc<Mutex<Transaction<'static, Sqlite>>>,
-}
-
-impl SqliteFileRepository {
-    pub fn new(pool: Arc<SqlitePool>, tx: Arc<Mutex<Transaction<'static, Sqlite>>>) -> Self {
-        Self { pool, tx }
-    }
+    pool: Arc<DbPool>,
+    tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
@@ -308,27 +303,34 @@ mod file_row {
 
 #[cfg(test)]
 pub mod tests {
+    use injector::{injector::Injector, register_scope};
+
     use crate::{
         ROOT_FOLDER_ID,
-        common::{
-            sqlite_repositories_context::SqliteRepositoriesContext,
-            traits::repositories_context::RepositoriesContext,
-        },
+        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
             entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        test_utils::create_test_injector,
     };
 
     use super::*;
+
+    async fn get_test_dependencies() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn get_all_files_valid_input_returned_all_files() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<dyn FileRepository>().await;
 
-        context
-            .file_repository()
+        repository
             .create(&File::new(
                 None,
                 Some(ROOT_FOLDER_ID),
@@ -337,11 +339,11 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        let actual = context.file_repository().get_all_files().await.unwrap();
+        let actual = repository.get_all_files().await.unwrap();
 
         // Assert
 
@@ -356,11 +358,12 @@ pub mod tests {
     pub async fn delete_by_id_valid_input_deleted_file() {
         // Arrange
 
-        let context = SqliteRepositoriesContext::create_testing_context().await;
+        let injector = get_test_dependencies().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<dyn FileRepository>().await;
 
         let file_id = Guid::new_v4();
-        context
-            .file_repository()
+        repository
             .create(&File::new(
                 Some(file_id),
                 Some(ROOT_FOLDER_ID),
@@ -369,20 +372,16 @@ pub mod tests {
             ))
             .await
             .unwrap();
-        context.save_changes().await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Act
 
-        context
-            .file_repository()
-            .delete_by_id(file_id)
-            .await
-            .unwrap();
-        context.save_changes().await.unwrap();
+        repository.delete_by_id(file_id).await.unwrap();
+        scope.save_changes().await.unwrap();
 
         // Assert
 
-        let actual = context.file_repository().get_all_files().await.unwrap();
+        let actual = repository.get_all_files().await.unwrap();
         assert_eq!(0, actual.len());
     }
 }
