@@ -1120,6 +1120,8 @@ mod tests {
         let file_id = Guid::new_v4();
         let cell_id = Guid::new_v4();
 
+        let synced_entities_modified_date = Utc::now() - Duration::seconds(1);
+
         let synced_entities: Vec<SyncedEntity> = vec![
             SyncedEntity {
                 user_id,
@@ -1128,7 +1130,7 @@ mod tests {
                 created_date: Utc::now(),
                 last_sync_date: Utc::now(),
                 data: generated_code::File {
-                    modified_date: Some(Utc::now().into_timestamp()),
+                    modified_date: Some(synced_entities_modified_date.into_timestamp()),
                     name: "new name".into(),
                     parent_id: Some(ROOT_FOLDER_ID.into()),
                     fsrs_profile_id: None,
@@ -1142,7 +1144,7 @@ mod tests {
                 created_date: Utc::now(),
                 last_sync_date: Utc::now(),
                 data: generated_code::Cell {
-                    modified_date: Some(Utc::now().into_timestamp()),
+                    modified_date: Some(synced_entities_modified_date.into_timestamp()),
                     content: "new content".to_string(),
                     cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
                     file_id: file_id.to_string(),
@@ -1220,10 +1222,9 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(1, files.len());
-        assert!(
-            files
-                .iter()
-                .any(|f| f.name() == FileSystemItemName::new_unchecked("new name".to_string()))
+        assert_eq!(
+            files[0].name(),
+            FileSystemItemName::new_unchecked("old name".to_string())
         );
 
         let cells = scope
@@ -1233,7 +1234,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(1, cells.len());
-        assert!(cells.iter().any(|c| c.content() == "new content"));
+        assert_eq!(cells[0].content(), "old content");
     }
 
     #[tokio::test]
