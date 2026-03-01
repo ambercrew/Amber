@@ -15,6 +15,7 @@ pub struct SqliteBackupRepository {
 
 #[async_trait]
 impl BackupRepository for SqliteBackupRepository {
+    // Cannot VACUUM within transaction, therefore pool is used here.
     async fn create_backup(&self, path: &str) -> Result<(), RepositoryError> {
         let result = sqlx::query!("VACUUM main INTO $1", path)
             .execute(&*self.pool)

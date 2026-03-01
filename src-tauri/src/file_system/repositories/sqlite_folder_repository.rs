@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
     file_system::{
         entities::folder::Folder,
         repositories::{
@@ -20,13 +20,15 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFolderRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl FolderRepository for SqliteFolderRepository {
     async fn get_by_id(&self, id: Guid) -> Result<Folder, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_as!(
             FolderRow,
             r#"SELECT
@@ -40,7 +42,7 @@ impl FolderRepository for SqliteFolderRepository {
             WHERE id = $1"#,
             id
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {
@@ -50,6 +52,9 @@ impl FolderRepository for SqliteFolderRepository {
     }
 
     async fn get_all_folders(&self) -> Result<Vec<Folder>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FolderRow,
             r#"SELECT
@@ -61,7 +66,7 @@ impl FolderRepository for SqliteFolderRepository {
                 name
             FROM folders"#,
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -71,6 +76,9 @@ impl FolderRepository for SqliteFolderRepository {
     }
 
     async fn get_subfolders(&self, parent_folder_id: Guid) -> Result<Vec<Folder>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FolderRow,
             r#"SELECT
@@ -84,7 +92,7 @@ impl FolderRepository for SqliteFolderRepository {
             WHERE parent_id = $1"#,
             parent_folder_id
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -97,6 +105,9 @@ impl FolderRepository for SqliteFolderRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<Folder>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FolderRow,
             r#"SELECT
@@ -110,7 +121,7 @@ impl FolderRepository for SqliteFolderRepository {
             WHERE modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -124,13 +135,16 @@ impl FolderRepository for SqliteFolderRepository {
         parent_id: Option<Guid>,
         name: &FileSystemItemName,
     ) -> Result<bool, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let name_string = name.to_string();
         let row = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM folders WHERE parent_id = $1 AND name = $2"#,
             parent_id,
             name_string
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {

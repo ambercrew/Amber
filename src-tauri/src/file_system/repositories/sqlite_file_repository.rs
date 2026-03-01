@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
     file_system::{
         entities::file::File,
         repositories::{
@@ -19,13 +19,15 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFileRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl FileRepository for SqliteFileRepository {
     async fn get_by_id(&self, id: Guid) -> Result<File, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_as!(
             FileRow,
             r#"SELECT
@@ -39,7 +41,7 @@ impl FileRepository for SqliteFileRepository {
             WHERE id = $1"#,
             id
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {
@@ -49,6 +51,9 @@ impl FileRepository for SqliteFileRepository {
     }
 
     async fn get_all_files(&self) -> Result<Vec<File>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FileRow,
             r#"SELECT
@@ -60,7 +65,7 @@ impl FileRepository for SqliteFileRepository {
                 name
             FROM files"#,
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -70,6 +75,9 @@ impl FileRepository for SqliteFileRepository {
     }
 
     async fn get_folder_files(&self, parent_folder_id: Guid) -> Result<Vec<File>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FileRow,
             r#"SELECT
@@ -83,7 +91,7 @@ impl FileRepository for SqliteFileRepository {
             WHERE parent_id = $1"#,
             parent_folder_id
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -96,6 +104,9 @@ impl FileRepository for SqliteFileRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<File>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FileRow,
             r#"SELECT
@@ -109,7 +120,7 @@ impl FileRepository for SqliteFileRepository {
             WHERE modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -123,13 +134,16 @@ impl FileRepository for SqliteFileRepository {
         parent_id: Option<Guid>,
         name: &FileSystemItemName,
     ) -> Result<bool, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let name_string = name.to_string();
         let row = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM files WHERE parent_id = $1 AND name = $2"#,
             parent_id,
             name_string
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {

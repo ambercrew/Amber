@@ -5,7 +5,7 @@ use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
     local_configurations::{
         entities::LocalConfiguration,
         repositories::{
@@ -17,19 +17,21 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteLocalConfigurationRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
     async fn get_by_name(&self, name: &str) -> Result<Option<LocalConfiguration>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_as!(
             LocalConfigurationRow,
             r#"SELECT * FROM local_configurations WHERE name = $1"#,
             name
         )
-        .fetch_optional(&*self.pool)
+        .fetch_optional(&mut *tx)
         .await;
 
         match row {

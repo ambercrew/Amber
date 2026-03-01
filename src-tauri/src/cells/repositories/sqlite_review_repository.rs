@@ -13,12 +13,11 @@ use crate::{
             traits::review_repository::ReviewRepository,
         },
     },
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteReviewRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
@@ -69,6 +68,9 @@ impl ReviewRepository for SqliteReviewRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<Review>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             ReviewRow,
             r#"SELECT
@@ -83,7 +85,7 @@ impl ReviewRepository for SqliteReviewRepository {
             WHERE modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {

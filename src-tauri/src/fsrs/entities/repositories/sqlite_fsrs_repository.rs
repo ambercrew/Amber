@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
     fsrs::entities::{
         fsrs_profile::FsrsProfile,
         repositories::{
@@ -19,13 +19,15 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFsrsRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl FsrsRepository for SqliteFsrsRepository {
     async fn get_by_id(&self, id: Guid) -> Result<FsrsProfile, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_as!(
             FsrsProfileRow,
             r#"SELECT
@@ -40,7 +42,7 @@ impl FsrsRepository for SqliteFsrsRepository {
             WHERE id = $1"#,
             id
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {
@@ -50,6 +52,9 @@ impl FsrsRepository for SqliteFsrsRepository {
     }
 
     async fn get_all_fsrs_profiles(&self) -> Result<Vec<FsrsProfile>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FsrsProfileRow,
             r#"SELECT
@@ -62,7 +67,7 @@ impl FsrsRepository for SqliteFsrsRepository {
                 weights
             FROM fsrs_profiles"#,
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -235,6 +240,9 @@ impl FsrsRepository for SqliteFsrsRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<FsrsProfile>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             FsrsProfileRow,
             r#"SELECT
@@ -249,7 +257,7 @@ impl FsrsRepository for SqliteFsrsRepository {
             WHERE modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {

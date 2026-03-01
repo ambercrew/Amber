@@ -19,18 +19,20 @@ use crate::{
             traits::ai_repository::AiRepository,
         },
     },
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteAiRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl AiRepository for SqliteAiRepository {
     async fn get_all_chats_sorted_by_date_desc(&self) -> Result<Vec<Chat>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let chat_rows = sqlx::query_as!(
             ChatRow,
             r#"SELECT
@@ -40,7 +42,7 @@ impl AiRepository for SqliteAiRepository {
             FROM ai_chats
             ORDER BY created_date DESC"#
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match chat_rows {
@@ -82,6 +84,9 @@ impl AiRepository for SqliteAiRepository {
     }
 
     async fn get_chat_by_id(&self, id: Guid) -> Result<Chat, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let chat_row = sqlx::query_as!(
             ChatRow,
             r#"SELECT
@@ -92,7 +97,7 @@ impl AiRepository for SqliteAiRepository {
             WHERE id = $1"#,
             id
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match chat_row {
@@ -158,6 +163,9 @@ impl AiRepository for SqliteAiRepository {
     }
 
     async fn get_chat_messages_ordered(&self, id: Guid) -> Result<Vec<Message>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let message_rows = sqlx::query_as!(
             MessageRow,
             r#"SELECT
@@ -171,7 +179,7 @@ impl AiRepository for SqliteAiRepository {
             ORDER BY created_date"#,
             id
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match message_rows {
@@ -198,6 +206,9 @@ impl AiRepository for SqliteAiRepository {
     }
 
     async fn get_message_by_id(&self, id: Guid) -> Result<Message, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let message_row = sqlx::query_as!(
             MessageRow,
             r#"SELECT
@@ -210,7 +221,7 @@ impl AiRepository for SqliteAiRepository {
             WHERE id = $1"#,
             id
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match message_row {

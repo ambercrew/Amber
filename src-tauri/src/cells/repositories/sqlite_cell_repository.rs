@@ -22,18 +22,20 @@ use crate::{
             traits::cell_repository::{CellRepository, MoveDirection},
         },
     },
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteCellRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
 #[async_trait]
 impl CellRepository for SqliteCellRepository {
     async fn get_by_id(&self, id: Guid) -> Result<Cell, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             CellRow,
             r#"SELECT
@@ -67,7 +69,7 @@ impl CellRepository for SqliteCellRepository {
             WHERE cell.id = $1"#,
             id
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -85,12 +87,15 @@ impl CellRepository for SqliteCellRepository {
         file_id: Guid,
         index: u32,
     ) -> Result<u32, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_scalar!(
             r#"SELECT COUNT(*) FROM cells WHERE file_id = $1 AND cell_index = $2"#,
             file_id,
             index
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         match row {
@@ -100,8 +105,11 @@ impl CellRepository for SqliteCellRepository {
     }
 
     async fn get_number_of_cells_in_file(&self, file_id: Guid) -> Result<u32, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM cells WHERE file_id = $1"#, file_id,)
-            .fetch_one(&*self.pool)
+            .fetch_one(&mut *tx)
             .await;
 
         match row {
@@ -114,6 +122,9 @@ impl CellRepository for SqliteCellRepository {
         &self,
         file_id: Guid,
     ) -> Result<Vec<Cell>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             CellRow,
             r#"SELECT
@@ -149,7 +160,7 @@ impl CellRepository for SqliteCellRepository {
             ORDER BY cell.cell_index"#,
             file_id
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -165,6 +176,9 @@ impl CellRepository for SqliteCellRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<Cell>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             CellRow,
             r#"SELECT
@@ -198,7 +212,7 @@ impl CellRepository for SqliteCellRepository {
             WHERE cell.modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -214,6 +228,9 @@ impl CellRepository for SqliteCellRepository {
         &self,
         modified_date: DateTime<Utc>,
     ) -> Result<Vec<Repetition>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             RepetitionRow,
             r#"SELECT
@@ -237,7 +254,7 @@ impl CellRepository for SqliteCellRepository {
             WHERE modified_date >= datetime($1)"#,
             modified_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -539,8 +556,10 @@ impl CellRepository for SqliteCellRepository {
     }
 
     async fn search_cells(&self, search_text: &str) -> Result<Vec<Cell>, RepositoryError> {
-        let search_match = format!("%{}%", search_text);
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
 
+        let search_match = format!("%{}%", search_text);
         let rows = sqlx::query_as!(
             CellRow,
             r#"SELECT
@@ -577,7 +596,7 @@ impl CellRepository for SqliteCellRepository {
             LIMIT 150"#,
             search_match
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -593,6 +612,9 @@ impl CellRepository for SqliteCellRepository {
         &self,
         file_id: Guid,
     ) -> Result<FileRepetitionCounts, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let now = Utc::now().to_utc();
         let rows = sqlx::query!(
             r#"
@@ -604,7 +626,7 @@ impl CellRepository for SqliteCellRepository {
             file_id,
             now
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -632,6 +654,9 @@ impl CellRepository for SqliteCellRepository {
     async fn get_study_repetitions_for_all_files(
         &self,
     ) -> Result<HashMap<Guid, FileRepetitionCounts>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let now = Utc::now().to_utc();
         let rows = sqlx::query!(
             r#"
@@ -642,7 +667,7 @@ impl CellRepository for SqliteCellRepository {
             "#,
             now
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
@@ -678,6 +703,9 @@ impl CellRepository for SqliteCellRepository {
             .with_time(NaiveTime::from_hms_opt(23, 59, 59).unwrap())
             .unwrap();
 
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let row = sqlx::query!(
             r#"
                 SELECT COUNT(*) AS "count: u64", SUM(study_time) AS "total_study_time: u64"
@@ -687,7 +715,7 @@ impl CellRepository for SqliteCellRepository {
             start_of_today,
             end_of_today
         )
-        .fetch_one(&*self.pool)
+        .fetch_one(&mut *tx)
         .await;
 
         let (number_of_reviews, total_study_time) = match row {
@@ -720,7 +748,7 @@ impl CellRepository for SqliteCellRepository {
             start_of_year,
             end_of_year
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         if let Err(err) = rows {
@@ -742,7 +770,7 @@ impl CellRepository for SqliteCellRepository {
             start_of_year,
             end_of_year
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         if let Err(err) = rows {

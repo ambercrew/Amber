@@ -6,7 +6,7 @@ use injector_derive::ScopeInjectable;
 use tokio::sync::Mutex;
 
 use crate::{
-    common::{DbPool, DbTransaction, repository_error::RepositoryError},
+    common::{DbTransaction, repository_error::RepositoryError},
     sync::{
         entities::deleted_entity::DeletedEntity,
         repositories::traits::sync_repository::SyncRepository,
@@ -15,7 +15,6 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteSyncRepository {
-    pool: Arc<DbPool>,
     tx: Arc<Mutex<DbTransaction>>,
 }
 
@@ -67,6 +66,9 @@ impl SyncRepository for SqliteSyncRepository {
         &self,
         deleted_date: DateTime<Utc>,
     ) -> Result<Vec<DeletedEntity>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
         let rows = sqlx::query_as!(
             DeletedEntity,
             r#"SELECT
@@ -78,7 +80,7 @@ impl SyncRepository for SqliteSyncRepository {
             WHERE deleted_date >= datetime($1)"#,
             deleted_date
         )
-        .fetch_all(&*self.pool)
+        .fetch_all(&mut *tx)
         .await;
 
         match rows {
