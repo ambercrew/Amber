@@ -22,12 +22,12 @@ tauri-build = { version = "2.5.5", features = [] }
 async-stream = "0.3.6"
 async-trait = "0.1.89"
 base64 = "0.22.1"
-chrono = { version = "0.4.43", features = ["serde"] }
+chrono = { version = "0.4.44", features = ["serde"] }
 cookie_store = "0.22.1"
 dirs = "6.0.0"
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 log = "0.4.29"
-lol_html = "2.7.1"
+lol_html = "2.7.2"
 prost = "0.14.3"
 prost-types = "0.14.3"
 regex = "1.12.3"
@@ -40,7 +40,7 @@ schemars = "1.2.1"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_repr = "0.1.20"
-simple_logger = "5.1.0"
+simple_logger = "5.2.0"
 sqlx = { version = "0.8.6", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite", "chrono", "uuid" ] }
 tauri = { version = "2.10.2", features = ["test"] }
 tauri-plugin-clipboard-manager = "2"
