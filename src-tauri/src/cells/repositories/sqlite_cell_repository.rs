@@ -306,7 +306,7 @@ impl CellRepository for SqliteCellRepository {
             return Err(RepositoryError::UnknownError(err.to_string()));
         }
 
-        self.upsert_repetitions(tx, cell.repetitions()).await
+        upsert_repetitions(tx, cell.repetitions()).await
     }
 
     async fn update(&self, cell: &Cell) -> Result<(), RepositoryError> {
@@ -365,7 +365,7 @@ impl CellRepository for SqliteCellRepository {
             return Err(RepositoryError::UnknownError(err.to_string()));
         }
 
-        self.upsert_repetitions(tx, cell.repetitions()).await
+        upsert_repetitions(tx, cell.repetitions()).await
     }
 
     async fn upsert_cell_without_repetition_and_with_modified_date_if_modified_before(
@@ -791,14 +791,31 @@ impl CellRepository for SqliteCellRepository {
     }
 }
 
-impl SqliteCellRepository {
-    async fn upsert_repetitions(
-        &self,
-        tx: &mut SqliteConnection,
-        repetitions: &Vec<Repetition>,
-    ) -> Result<(), RepositoryError> {
-        for repetition in repetitions {
-            let Repetition {
+async fn upsert_repetitions(
+    tx: &mut SqliteConnection,
+    repetitions: &Vec<Repetition>,
+) -> Result<(), RepositoryError> {
+    for repetition in repetitions {
+        let Repetition {
+            id,
+            created_date,
+            modified_date,
+            file_id,
+            cell_id,
+            due,
+            stability,
+            difficulty,
+            elapsed_days,
+            scheduled_days,
+            reps,
+            lapses,
+            state,
+            last_review,
+            additional_content,
+        } = repetition;
+
+        let result = sqlx::query!(
+            r#"INSERT INTO repetitions(
                 id,
                 created_date,
                 modified_date,
@@ -813,69 +830,49 @@ impl SqliteCellRepository {
                 lapses,
                 state,
                 last_review,
-                additional_content,
-            } = repetition;
+                additional_content)
+            VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ON CONFLICT(id) DO UPDATE SET
+                created_date = datetime($2),
+                modified_date = datetime($3),
+                file_id = $4,
+                cell_id = $5,
+                due = $6,
+                stability = $7,
+                difficulty = $8,
+                elapsed_days = $9,
+                scheduled_days = $10,
+                reps = $11,
+                lapses = $12,
+                state = $13,
+                last_review = $14,
+                additional_content = $15
+            "#,
+            id,
+            created_date,
+            modified_date,
+            file_id,
+            cell_id,
+            due,
+            stability,
+            difficulty,
+            elapsed_days,
+            scheduled_days,
+            reps,
+            lapses,
+            state,
+            last_review,
+            additional_content
+        )
+        .execute(&mut *tx)
+        .await;
 
-            let result = sqlx::query!(
-                r#"INSERT INTO repetitions(
-                    id,
-                    created_date,
-                    modified_date,
-                    file_id,
-                    cell_id,
-                    due,
-                    stability,
-                    difficulty,
-                    elapsed_days,
-                    scheduled_days,
-                    reps,
-                    lapses,
-                    state,
-                    last_review,
-                    additional_content)
-                VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-                ON CONFLICT(id) DO UPDATE SET
-                    created_date = datetime($2),
-                    modified_date = datetime($3),
-                    file_id = $4,
-                    cell_id = $5,
-                    due = $6,
-                    stability = $7,
-                    difficulty = $8,
-                    elapsed_days = $9,
-                    scheduled_days = $10,
-                    reps = $11,
-                    lapses = $12,
-                    state = $13,
-                    last_review = $14,
-                    additional_content = $15
-                "#,
-                id,
-                created_date,
-                modified_date,
-                file_id,
-                cell_id,
-                due,
-                stability,
-                difficulty,
-                elapsed_days,
-                scheduled_days,
-                reps,
-                lapses,
-                state,
-                last_review,
-                additional_content
-            )
-            .execute(&mut *tx)
-            .await;
-
-            if let Err(err) = result {
-                return Err(RepositoryError::UnknownError(err.to_string()));
-            }
+        if let Err(err) = result {
+            return Err(RepositoryError::UnknownError(err.to_string()));
         }
-
-        Ok(())
     }
+
+    Ok(())
 }
 
 #[cfg(test)]
