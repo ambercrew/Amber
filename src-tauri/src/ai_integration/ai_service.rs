@@ -198,7 +198,7 @@ impl AiService {
         let response = match self
             .get_multi_completion_client()
             .await?
-            .extractor::<GenerateTitle>(self.get_model_name().await)
+            .extractor::<GenerateTitle>(self.get_model_name().await?)
             .preamble(PREAMBLE_GENERATE_TITLE)
             .build()
             .extract(format!("User message: {}", prompt))
@@ -220,7 +220,7 @@ impl AiService {
         on_event: OnEventCallback,
     ) -> Result<Agent<MultiCompletionModel>, AiServiceError> {
         let client = self.get_multi_completion_client().await?;
-        let model_name = self.get_model_name().await;
+        let model_name = self.get_model_name().await?;
 
         let builder = client
             .agent(&model_name)
@@ -254,25 +254,37 @@ impl AiService {
 
         #[cfg(not(test))]
         {
-            if settings.ollama_model_name.is_none() {
-                return Err(AiServiceError::OllamaModelNameIsNotFilled);
-            }
-
             let client = MultiCompletionClient::Ollama(ollama::Client::from_val(Nothing));
             Ok(client)
         }
     }
 
-    async fn get_model_name(&self) -> String {
+    async fn get_model_name(&self) -> Result<String, AiServiceError> {
         #[cfg(test)]
-        return self.mock_client.model.clone().unwrap_or_default();
+        return Ok(self.mock_client.model.clone().unwrap_or_default());
 
         #[cfg(not(test))]
         {
             let settings = self.settings.lock().await;
-            let model_name = settings.ollama_model_name.as_ref().unwrap().clone();
+
+            if settings.ollama_model_name.is_none() {
+                return Err(AiServiceError::OllamaModelNameIsNotFilled);
+            }
+
+            let model_name = settings
+                .ollama_model_name
+                .as_ref()
+                .unwrap()
+                .clone()
+                .trim()
+                .to_string();
+
+            if model_name.is_empty() {
+                return Err(AiServiceError::OllamaModelNameIsNotFilled);
+            }
+
             log::info!("Using the model with name '{model_name}'.");
-            model_name
+            Ok(model_name)
         }
     }
 
