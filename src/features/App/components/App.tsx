@@ -1,6 +1,6 @@
 import Editor from "../../Editor/components/Editor";
 import styles from "./styles.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Alert from "../../../components/Alert/Alert";
 import Reviewer from "../../Reviewer/components/Reviewer";
 import Home from "../../Home/components/Home";
@@ -46,6 +46,7 @@ function App() {
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
 	const location = useLocation();
 	const [previousLocation, setPreviousLocation] = useState(location);
+	const loadedInitialState = useRef(false);
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const isSmallScreen = useIsSmallScreen();
 	const dispatch = useAppDispatch();
@@ -74,6 +75,9 @@ function App() {
 
 	useEffect(() => {
 		void (async () => {
+			if (loadedInitialState.current) return;
+			loadedInitialState.current = true;
+
 			let settings: SettingsType | null = null;
 			try {
 				// Settings must be loaded on start always before anything else!
