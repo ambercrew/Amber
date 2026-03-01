@@ -5,6 +5,7 @@ use chrono::{DateTime, TimeZone, Utc};
 use injector_derive::ScopeInjectable;
 use prost::Message;
 use thiserror::Error;
+use tokio::sync::Mutex;
 
 use crate::{
     Guid,
@@ -62,6 +63,8 @@ pub enum SyncError {
     CellServiceError(#[from] CellServiceError),
 }
 
+pub struct SyncLock(pub Mutex<()>);
+
 #[derive(ScopeInjectable)]
 pub struct SyncService {
     backend_client: Arc<dyn BrainyBackendClient>,
@@ -73,12 +76,16 @@ pub struct SyncService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     fsrs_repository: Arc<dyn FsrsRepository>,
     cell_service: Arc<CellService>,
+    sync_lock: Arc<SyncLock>,
 }
 
 impl SyncService {
     /// Gets the entities from the backend since last sync and upload all changed
     /// entities that are not overwritten from the sync.
     pub async fn sync_with_backend(&self) -> Result<(), SyncError> {
+        // Only allowing one sync at a time.
+        let _ = self.sync_lock.0.lock().await;
+
         let last_sync_date = self
             .local_configuration_repository
             .get_by_name(LAST_SYNC_DATE_CONFIGURATION_NAME)

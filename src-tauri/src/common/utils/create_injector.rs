@@ -53,7 +53,7 @@ use crate::{
         repositories::{
             sqlite_sync_repository::SqliteSyncRepository, traits::sync_repository::SyncRepository,
         },
-        sync_service::SyncService,
+        sync_service::{SyncLock, SyncService},
     },
 };
 
@@ -92,6 +92,7 @@ pub async fn create_injector() -> Injector {
     injector.register_singleton(Arc::new(Mutex::new(settings)));
     injector.register_singleton(Arc::new(AiState::default()));
     injector.register_singleton(Arc::new(BackupDirectory(settings_directory)));
+    injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
 
     register_scope!(injector, dyn AiRepository, SqliteAiRepository);
     register_scope!(injector, dyn BackupRepository, SqliteBackupRepository);
