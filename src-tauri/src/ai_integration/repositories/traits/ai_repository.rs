@@ -14,4 +14,5 @@ pub trait AiRepository: Send + Sync {
     async fn upsert_message(&self, message: &Message) -> Result<(), RepositoryError>;
     async fn get_chat_messages_ordered(&self, id: Guid) -> Result<Vec<Message>, RepositoryError>;
     async fn delete_chat(&self, id: Guid) -> Result<(), RepositoryError>;
+    async fn get_message_by_id(&self, id: Guid) -> Result<Message, RepositoryError>;
 }

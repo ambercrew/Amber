@@ -188,7 +188,7 @@ CREATE TABLE ai_messages(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
     ai_chat_id                  TEXT        NOT NULL,
-    role                        TEXT        NOT NULL,
+    content_type                TEXT        NOT NULL,
     content                     TEXT,
     FOREIGN KEY (ai_chat_id) REFERENCES ai_chats(id) ON DELETE CASCADE ON UPDATE CASCADE
 );

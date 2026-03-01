@@ -4,6 +4,8 @@ pub mod ai_state;
 pub mod clients;
 pub mod entities;
 pub mod json_schemas;
+pub mod prompts;
 pub mod repositories;
 pub mod state_cancellation_hook;
+pub mod stream_ai_request;
 pub mod tools;

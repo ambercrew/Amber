@@ -1,17 +1,16 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { StreamLlmResponseEvent } from "../types/backend/events/streamLlmResponseEvent";
 import Chat from "../types/backend/entity/chat";
-import Message from "../features/AiChatWidget/types/message";
+import Message from "../types/backend/entity/message";
+import StreamAiRequest from "../types/backend/model/stream_ai_request";
 
 export function streamAiResponse(
-	prompt: string,
-	chatId: string | null,
+	request: StreamAiRequest,
 	onEvent: Channel<StreamLlmResponseEvent>,
 ): Promise<void> {
 	return invoke("stream_ai_response", {
-		prompt,
+		request,
 		onEvent,
-		chatId,
 	});
 }
 
@@ -33,4 +32,12 @@ export function getChatMessagesOrdered(id: string): Promise<Message[]> {
 
 export function renameAiChat(id: string, newTitle: string): Promise<void> {
 	return invoke("rename_ai_chat", { id, newTitle });
+}
+
+export function rejectToolCall(messageId: string): Promise<void> {
+	return invoke("reject_tool_call", { messageId });
+}
+
+export function acceptToolCall(messageId: string): Promise<void> {
+	return invoke("accept_tool_call", { messageId });
 }

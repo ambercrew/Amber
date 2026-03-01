@@ -9,10 +9,13 @@ use crate::{
     ai_integration::{
         entities::{
             chat::Chat,
-            message::{Message, MessageRole},
+            message::{Message, MessageContent},
         },
         repositories::{
-            sqlite_ai_repository::ai_row::{ASSISTANT_ROLE, ChatRow, HUMAN_ROLE, MessageRow},
+            sqlite_ai_repository::ai_row::{
+                ASSISTANT_CONTENT_TYPE, ChatRow, HUMAN_CONTENT_TYPE, MessageRow,
+                TOOL_CALL_CONTENT_TYPE,
+            },
             traits::ai_repository::AiRepository,
         },
     },
@@ -105,32 +108,44 @@ impl AiRepository for SqliteAiRepository {
         let id = message.id();
         let created_date = message.created_date();
         let chat_id = message.chat_id();
-        let role = if message.role() == MessageRole::Human {
-            HUMAN_ROLE
-        } else {
-            ASSISTANT_ROLE
+
+        let content_type;
+        let content;
+
+        match message.content() {
+            MessageContent::Human(content_value) => {
+                content_type = HUMAN_CONTENT_TYPE.to_string();
+                content = content_value.clone();
+            }
+            MessageContent::Assistant(content_value) => {
+                content_type = ASSISTANT_CONTENT_TYPE.to_string();
+                content = content_value.clone();
+            }
+            MessageContent::ToolCall(tool_call) => {
+                content_type = TOOL_CALL_CONTENT_TYPE.to_string();
+                content = serde_json::to_string(tool_call).unwrap();
+            }
         };
-        let content = message.content();
 
         let result = sqlx::query!(
             r#"INSERT INTO ai_messages(
                 id,
                 created_date,
                 ai_chat_id,
-                role,
+                content_type,
                 content)
             VALUES ($1, datetime($2), $3, $4, $5)
             ON CONFLICT(id) DO UPDATE SET
                 id = $1,
                 created_date = datetime($2),
                 ai_chat_id = $3,
-                role = $4,
+                content_type = $4,
                 content = $5
             "#,
             id,
             created_date,
             chat_id,
-            role,
+            content_type,
             content
         )
         .execute(&mut *tx)
@@ -149,7 +164,7 @@ impl AiRepository for SqliteAiRepository {
                 id as "id: _",
                 created_date as "created_date: _",
                 ai_chat_id as "chat_id: _",
-                role,
+                content_type,
                 content
             FROM ai_messages
             WHERE ai_chat_id = $1
@@ -181,17 +196,38 @@ impl AiRepository for SqliteAiRepository {
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
         }
     }
+
+    async fn get_message_by_id(&self, id: Guid) -> Result<Message, RepositoryError> {
+        let message_row = sqlx::query_as!(
+            MessageRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                ai_chat_id as "chat_id: _",
+                content_type,
+                content
+            FROM ai_messages
+            WHERE id = $1"#,
+            id
+        )
+        .fetch_one(&*self.pool)
+        .await;
+
+        match message_row {
+            Ok(message_row) => Ok(message_row.into()),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+        }
+    }
 }
 
 mod ai_row {
     use chrono::{DateTime, Utc};
 
-    use crate::ai_integration::entities::message::MessageRole;
-
     use super::*;
 
-    pub(super) const HUMAN_ROLE: &str = "human";
-    pub(super) const ASSISTANT_ROLE: &str = "assistant";
+    pub(super) const HUMAN_CONTENT_TYPE: &str = "human";
+    pub(super) const ASSISTANT_CONTENT_TYPE: &str = "assistant";
+    pub(super) const TOOL_CALL_CONTENT_TYPE: &str = "tool_call";
 
     pub(super) struct ChatRow {
         pub id: Guid,
@@ -203,7 +239,7 @@ mod ai_row {
         pub id: Guid,
         pub created_date: DateTime<Utc>,
         pub chat_id: Guid,
-        pub role: String,
+        pub content_type: String,
         pub content: Option<String>,
     }
 
@@ -215,19 +251,15 @@ mod ai_row {
 
     impl From<MessageRow> for Message {
         fn from(value: MessageRow) -> Self {
-            let role = if value.role == HUMAN_ROLE {
-                MessageRole::Human
+            let message_content = if value.content_type == HUMAN_CONTENT_TYPE {
+                MessageContent::Human(value.content.unwrap())
+            } else if value.content_type == ASSISTANT_CONTENT_TYPE {
+                MessageContent::Assistant(value.content.unwrap())
             } else {
-                MessageRole::Assistant
+                MessageContent::ToolCall(serde_json::from_str(&value.content.unwrap()).unwrap())
             };
 
-            Message::new_unchecked(
-                value.id,
-                value.created_date,
-                value.chat_id,
-                role,
-                value.content,
-            )
+            Message::new_unchecked(value.id, value.created_date, value.chat_id, message_content)
         }
     }
 }
@@ -290,8 +322,7 @@ pub mod tests {
             .upsert_message(&Message::new(
                 None,
                 chat.id(),
-                MessageRole::Human,
-                Some("Human".to_string()),
+                MessageContent::Human("Human".to_string()),
             ))
             .await
             .unwrap();
@@ -299,8 +330,7 @@ pub mod tests {
             .upsert_message(&Message::new(
                 None,
                 chat.id(),
-                MessageRole::Assistant,
-                Some("Assistant".to_string()),
+                MessageContent::Assistant("Assistant".to_string()),
             ))
             .await
             .unwrap();
@@ -317,11 +347,14 @@ pub mod tests {
         // Assert
 
         assert_eq!(actual.len(), 2);
-        assert_eq!(actual[0].role(), MessageRole::Human);
-        assert_eq!(actual[0].content(), Some(&"Human".to_string()));
-
-        assert_eq!(actual[1].role(), MessageRole::Assistant);
-        assert_eq!(actual[1].content(), Some(&"Assistant".to_string()));
+        assert_eq!(
+            *actual[0].content(),
+            MessageContent::Human("Human".to_string())
+        );
+        assert_eq!(
+            *actual[1].content(),
+            MessageContent::Assistant("Assistant".to_string())
+        );
     }
 
     #[tokio::test]

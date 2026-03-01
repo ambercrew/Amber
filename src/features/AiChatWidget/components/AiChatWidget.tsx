@@ -1,15 +1,7 @@
 import Icon from "@mdi/react";
-import {
-	mdiAttachment,
-	mdiClose,
-	mdiDeleteOutline,
-	mdiPencilOutline,
-	mdiRobotOutline,
-	mdiSendVariantOutline,
-	mdiStopCircleOutline,
-} from "@mdi/js";
+import { mdiDeleteOutline, mdiRobotOutline } from "@mdi/js";
 import styles from "./styles.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Channel } from "@tauri-apps/api/core";
 import { StreamLlmResponseEvent } from "../../../types/backend/events/streamLlmResponseEvent";
 import {
@@ -17,38 +9,37 @@ import {
 	getAllAiChatsSortedByDateDesc,
 	getChatMessagesOrdered,
 	renameAiChat,
-	stopAiGeneration,
+	stopAiGeneration as stopAiGenerationApi,
 	streamAiResponse,
 } from "../../../api/aiApi";
-import Message from "../types/message";
-import Markdown from "react-markdown";
+import Message, {
+	MessageContentHumanAssistant,
+} from "../../../types/backend/entity/message";
 import errorToString from "../../../utils/errorToString";
-import Alert from "../../../components/Alert/Alert";
-import { AUTO_SCROLL_THRESHOLD } from "../config/constants";
-import Select from "../../../components/Select/Select";
+import {
+	NEW_SESSION_CHAT_ID,
+	TEMP_ASSISTANT_MESSAGE_ID,
+} from "../config/constants";
 import Chat from "../../../types/backend/entity/chat";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
-import Dialog from "../../../components/Dialog/Dialog";
-import Form, {
-	FormButtons,
-	FormHeader,
-	FormRows,
-} from "../../../components/Form/Form";
+import { useSearchParams } from "react-router";
+import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
+import Header from "./Header";
+import RenameDialog from "./RenameDialog";
+import Messages from "./Messages";
+import PromptForm from "./PromptForm";
 
 export default function AiChatWidget() {
 	const settings = useAppSelector(selectSettings);
 	return settings?.enableAi ? <AiChatWidgetInner /> : null;
 }
 
-const NEW_SESSION_VALUE = "new-session";
-
 function AiChatWidgetInner() {
 	const [isOpen, setIsOpen] = useState(false);
 	const [showDeleteChatDialog, setShowDeleteChatDialog] = useState(false);
-	const [newTitle, setNewTitle] = useState("");
 	const [showRenameDialog, setShowRenameDialog] = useState(false);
 	const [userPrompt, setUserPrompt] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
@@ -56,32 +47,44 @@ function AiChatWidgetInner() {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [chats, setChats] = useState<Chat[]>([]);
 	const [selectedChatId, setSelectedChatId] =
-		useState<string>(NEW_SESSION_VALUE);
-	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-	const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+		useState<string>(NEW_SESSION_CHAT_ID);
+	// Used to have reference to the same selected chat id, useful for streaming.
+	const selectedChatIdRef = useRef(selectedChatId);
+	const [searchParams] = useSearchParams();
+	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
+
+	useEffect(() => {
+		selectedChatIdRef.current = selectedChatId;
+	}, [selectedChatId]);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "j") {
+			e.preventDefault();
 			setIsOpen(isOpen => !isOpen);
 		}
-	});
+	}, "keydown");
+
+	const stopAiGeneration = useCallback(async () => {
+		await stopAiGenerationApi();
+		setIsStreamingResponse(false);
+	}, []);
 
 	const handleChangeSelectedChatId = async (newChatId: string) => {
 		if (newChatId !== selectedChatId) {
 			setErrorMessage("");
+			setSelectedChatId(newChatId);
 			await stopAiGeneration();
 		}
 
-		if (newChatId === NEW_SESSION_VALUE) {
+		if (newChatId === NEW_SESSION_CHAT_ID) {
 			setMessages([]);
 		} else {
 			setMessages(await getChatMessagesOrdered(newChatId));
 		}
-		setSelectedChatId(newChatId);
 	};
 
 	const sendMessage = async () => {
-		if (!userPrompt || isStreamingResponse) return;
+		if (!userPrompt.trim() || isStreamingResponse) return;
 
 		setErrorMessage("");
 		setIsStreamingResponse(true);
@@ -90,21 +93,23 @@ function AiChatWidgetInner() {
 			{
 				chatId: selectedChatId ?? "tmp",
 				id: "tmp",
-				role: "human",
-				content: userPrompt,
+				content: {
+					type: "human",
+					value: userPrompt,
+				},
 			},
 			{
 				chatId: selectedChatId ?? "tmp",
-				id: "tmp",
-				role: "assistant",
-				content: "",
+				id: TEMP_ASSISTANT_MESSAGE_ID,
+				contentType: "assistant",
+				content: {
+					type: "assistant",
+					value: "",
+				},
 			},
 		]);
 
 		const onEvent = new Channel<StreamLlmResponseEvent>();
-		// Using a custom variable since the variable can be updated under stream
-		// while the state is still queued for update.
-		let updatedChatId = selectedChatId;
 		onEvent.onmessage = event => {
 			if (event.event === "createdChat") {
 				setChats(chats => {
@@ -115,38 +120,71 @@ function AiChatWidgetInner() {
 					return newValue;
 				});
 				setSelectedChatId(event.data.id);
-				updatedChatId = event.data.id;
 			} else if (event.event === "inProgress") {
 				setMessages(messages => {
-					const lastMessage = messages[messages.length - 1];
+					const tempAssistantMessage = messages.find(
+						m => m.id === TEMP_ASSISTANT_MESSAGE_ID,
+					)!;
+
 					return [
-						...messages.slice(0, -1),
+						...messages.filter(
+							m => m.id !== TEMP_ASSISTANT_MESSAGE_ID,
+						),
 						{
-							...lastMessage,
-							content: lastMessage.content + event.data,
+							...tempAssistantMessage,
+							content: {
+								...tempAssistantMessage.content,
+								value:
+									(tempAssistantMessage.content
+										.value as string) + event.data,
+							} as MessageContentHumanAssistant,
 						},
 					];
 				});
-			} else if (event.event === "finished") {
-				setIsStreamingResponse(false);
 			} else if (event.event === "error") {
 				setErrorMessage(event.data);
+			} else if (event.event === "toolCalled") {
+				setMessages(messages => {
+					const tempAssistantMessage = messages.find(
+						m => m.id === TEMP_ASSISTANT_MESSAGE_ID,
+					)!;
+
+					return [
+						...messages.filter(
+							m => m.id !== TEMP_ASSISTANT_MESSAGE_ID,
+						),
+						event.data,
+						tempAssistantMessage,
+					];
+				});
 			}
 		};
 		setUserPrompt("");
 
 		try {
 			await streamAiResponse(
-				userPrompt,
-				selectedChatId === NEW_SESSION_VALUE ? null : selectedChatId,
+				{
+					prompt: userPrompt,
+					chatId:
+						selectedChatId === NEW_SESSION_CHAT_ID
+							? null
+							: selectedChatId,
+					fileId: selectedFileId,
+				},
 				onEvent,
 			);
 		} catch (e) {
 			setErrorMessage(errorToString(e));
-			setIsStreamingResponse(false);
 		} finally {
-			setMessages(await getChatMessagesOrdered(updatedChatId));
+			setMessages(
+				await getChatMessagesOrdered(selectedChatIdRef.current),
+			);
+			setIsStreamingResponse(false);
 		}
+	};
+
+	const handleToolCallUpdate = async () => {
+		setMessages(await getChatMessagesOrdered(selectedChatId));
 	};
 
 	const handleSubmit = (e: React.SubmitEvent) => {
@@ -166,25 +204,6 @@ function AiChatWidgetInner() {
 	};
 
 	useEffect(() => {
-		if (textAreaRef.current) {
-			textAreaRef.current.style.height = "auto";
-			textAreaRef.current.style.height =
-				textAreaRef.current.scrollHeight + "px";
-		}
-	}, [userPrompt]);
-
-	useEffect(() => {
-		if (!messagesContainerRef.current) return;
-
-		const container = messagesContainerRef.current;
-
-		const position = container.scrollTop + container.clientHeight;
-		if (container.scrollHeight - position < AUTO_SCROLL_THRESHOLD) {
-			container.scrollTop = container.scrollHeight;
-		}
-	}, [messages]);
-
-	useEffect(() => {
 		void (async () => {
 			setChats(await getAllAiChatsSortedByDateDesc());
 		})();
@@ -192,23 +211,20 @@ function AiChatWidgetInner() {
 		return () => {
 			void stopAiGeneration();
 		};
-	}, []);
-
-	useEffect(() => {
-		if (!messagesContainerRef.current) return;
-		messagesContainerRef.current.scrollTop =
-			messagesContainerRef.current.scrollHeight;
-	}, [selectedChatId]);
+	}, [stopAiGeneration]);
 
 	const handleDelete = async () => {
 		await deleteAiChat(selectedChatId);
-		await handleChangeSelectedChatId(NEW_SESSION_VALUE);
+		await handleChangeSelectedChatId(NEW_SESSION_CHAT_ID);
 		setErrorMessage("");
 		setShowDeleteChatDialog(false);
 		setChats(await getAllAiChatsSortedByDateDesc());
 	};
 
-	const handleRenameSubmit = async (e: React.SubmitEvent) => {
+	const handleRenameSubmit = async (
+		e: React.SubmitEvent,
+		newTitle: string,
+	) => {
 		e.stopPropagation();
 		e.preventDefault();
 		setShowRenameDialog(false);
@@ -219,12 +235,6 @@ function AiChatWidgetInner() {
 		} catch (e) {
 			setErrorMessage(errorToString(e));
 		}
-	};
-
-	const handleShowRenameDialog = () => {
-		setShowRenameDialog(true);
-		const chat = chats.find(c => c.id === selectedChatId)!;
-		setNewTitle(chat.title);
 	};
 
 	return (
@@ -240,156 +250,48 @@ function AiChatWidgetInner() {
 			)}
 
 			{showRenameDialog && (
-				<Dialog
-					focusTrap={true}
-					className={styles.renameDialog}
-					onHide={() => setShowRenameDialog(false)}>
-					<Form onSubmit={e => void handleRenameSubmit(e)}>
-						<FormHeader
-							icon={mdiPencilOutline}
-							title="Enter new name"
-						/>
-						<FormRows
-							rows={[
-								{
-									children: (
-										<input
-											type="text"
-											id="new-name"
-											value={newTitle}
-											onChange={e =>
-												setNewTitle(e.target.value)
-											}
-											required
-											autoFocus
-										/>
-									),
-									labelHtmlFor: "new-name",
-								},
-							]}
-						/>
-						<FormButtons
-							onClose={() => setShowRenameDialog(false)}
-							submitText="Rename"
-						/>
-					</Form>
-				</Dialog>
+				<RenameDialog
+					onHide={() => setShowRenameDialog(false)}
+					onSubmit={(e, newTitle) =>
+						void handleRenameSubmit(e, newTitle)
+					}
+					initialTitle={
+						chats.find(c => c.id === selectedChatId)?.title ?? ""
+					}
+				/>
 			)}
 
 			<div className={styles.container}>
 				{isOpen && (
 					<div className={styles.chatPanel}>
-						<div className={styles.header}>
-							<Select
-								onChangeValue={value =>
-									void handleChangeSelectedChatId(value)
-								}
-								currentValue={selectedChatId}
-								options={[
-									{
-										value: NEW_SESSION_VALUE,
-										label: "+ New chat",
-									},
-									...chats.map(chat => ({
-										value: chat.id,
-										label: chat.title,
-									})),
-								]}
-							/>
-							<div className="row">
-								<button
-									onClick={handleShowRenameDialog}
-									className="transparent"
-									title="Rename chat"
-									disabled={
-										selectedChatId === NEW_SESSION_VALUE
-									}>
-									<Icon path={mdiPencilOutline} size={1} />
-								</button>
-								<button
-									onClick={() =>
-										setShowDeleteChatDialog(true)
-									}
-									className="transparent"
-									title="Delete chat"
-									disabled={
-										selectedChatId === NEW_SESSION_VALUE
-									}>
-									<Icon path={mdiDeleteOutline} size={1} />
-								</button>
-								<button
-									onClick={() => setIsOpen(false)}
-									className="transparent"
-									title="Close chat (Ctrl + J)">
-									<Icon path={mdiClose} size={1} />
-								</button>
-							</div>
-						</div>
+						<Header
+							selectedChatId={selectedChatId}
+							chats={chats}
+							onChangeSelectedChatId={value =>
+								void handleChangeSelectedChatId(value)
+							}
+							onClose={() => setIsOpen(false)}
+							onRenameClick={() => setShowRenameDialog(true)}
+							onDeleteClick={() => setShowDeleteChatDialog(true)}
+						/>
 
-						<div
-							className={styles.messages}
-							ref={messagesContainerRef}
-							data-testid="messages-container">
-							{messages.map((message, i) => (
-								<div
-									key={i}
-									className={`${styles.message} ${styles[message.role]}`}>
-									<Markdown>{message.content}</Markdown>
-									{isStreamingResponse &&
-										i === messages.length - 1 && (
-											<div
-												className={
-													styles.spinner
-												}></div>
-										)}
-								</div>
-							))}
+						<Messages
+							messages={messages}
+							errorMessage={errorMessage}
+							isStreamingResponse={isStreamingResponse}
+							selectedChatId={selectedChatId}
+							onToolCallUpdate={handleToolCallUpdate}
+							onCloseError={() => setErrorMessage("")}
+						/>
 
-							{errorMessage && (
-								<Alert
-									type="error"
-									onClose={() => setErrorMessage("")}>
-									{errorMessage}
-								</Alert>
-							)}
-						</div>
-
-						<form onSubmit={handleSubmit}>
-							<textarea
-								ref={textAreaRef}
-								placeholder="Type here to speak with AI"
-								value={userPrompt}
-								onChange={e => setUserPrompt(e.target.value)}
-								onKeyDown={handleTextAreaKeyDown}
-								rows={1}
-								autoFocus
-							/>
-							<button
-								className="transparent"
-								title="Add attachment">
-								<Icon path={mdiAttachment} size={1} />
-							</button>
-							{!isStreamingResponse && (
-								<button className="transparent" title="Send">
-									<Icon
-										path={mdiSendVariantOutline}
-										size={1}
-									/>
-								</button>
-							)}
-
-							{isStreamingResponse && (
-								<button
-									className="transparent"
-									title="Stop"
-									onClick={() => void stopAiGeneration()}>
-									<Icon
-										path={mdiStopCircleOutline}
-										size={1}
-									/>
-								</button>
-							)}
-						</form>
+						<PromptForm
+							isStreamingResponse={isStreamingResponse}
+							onSubmit={handleSubmit}
+							userPrompt={userPrompt}
+							onUserPromptChange={setUserPrompt}
+							onStopGeneration={stopAiGeneration}
+							onTextAreaKeyDown={handleTextAreaKeyDown}
+						/>
 					</div>
 				)}
 

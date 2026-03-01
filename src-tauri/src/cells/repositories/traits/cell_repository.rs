@@ -30,6 +30,8 @@ pub trait CellRepository: Send + Sync {
         index: u32,
     ) -> Result<u32, RepositoryError>;
 
+    async fn get_number_of_cells_in_file(&self, file_id: Guid) -> Result<u32, RepositoryError>;
+
     async fn get_all_cells_modified_on_or_after(
         &self,
         modified_date: DateTime<Utc>,

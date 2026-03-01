@@ -65,13 +65,20 @@ function CellBlock(
 	const isSyncing = useAppSelector(selectIsSyncing);
 	const editorRef = useRef<LexicalEditor>(null);
 
-	useGlobalKey(e => {
-		if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
-			if (isSelected) setShowInsertNewCell(!showInsertNewCell);
-		} else if (e.ctrlKey && e.key === " ") {
-			if (isSelected) editorRef.current?.focus();
-		}
-	});
+	useGlobalKey(
+		e => {
+			if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
+				if (isSelected) {
+					e.stopPropagation();
+					setShowInsertNewCell(!showInsertNewCell);
+				}
+			} else if (e.ctrlKey && e.key === " ") {
+				if (isSelected) editorRef.current?.focus();
+			}
+		},
+		"keydown",
+		true,
+	);
 
 	if (previousIsSelected !== isSelected) {
 		setPreviousIsSelected(isSelected);

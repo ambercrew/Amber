@@ -99,6 +99,17 @@ impl CellRepository for SqliteCellRepository {
         }
     }
 
+    async fn get_number_of_cells_in_file(&self, file_id: Guid) -> Result<u32, RepositoryError> {
+        let row = sqlx::query_scalar!(r#"SELECT COUNT(*) FROM cells WHERE file_id = $1"#, file_id,)
+            .fetch_one(&*self.pool)
+            .await;
+
+        match row {
+            Ok(cnt) => Ok(cnt as u32),
+            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+        }
+    }
+
     async fn get_file_cells_ordered_by_index(
         &self,
         file_id: Guid,

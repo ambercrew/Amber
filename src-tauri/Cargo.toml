@@ -53,6 +53,7 @@ tokio-stream = "0.1.18"
 uuid = { version = "1.21.0", features = [ "v4", "serde" ] }
 injector = { path = "./injector" }
 injector_derive = { path="./injector_derive" }
+markdown = "1.0.0"
 
 [dev-dependencies]
 mockall = "0.14.0"

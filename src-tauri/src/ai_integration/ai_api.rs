@@ -5,8 +5,12 @@ use crate::{
     ai_integration::{
         ai_service::{AiService, StreamLlmResponseEvent},
         ai_state::AiState,
-        entities::{chat::Chat, message::Message},
+        entities::{
+            chat::Chat,
+            message::{Message, MessageContent, ToolCallStatus},
+        },
         repositories::traits::ai_repository::AiRepository,
+        stream_ai_request::StreamAiRequest,
     },
     common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
 };
@@ -17,18 +21,20 @@ use tauri::{State, ipc::Channel};
 pub async fn stream_ai_response(
     injector: State<'_, Arc<Injector>>,
     on_event: Channel<StreamLlmResponseEvent>,
-    prompt: String,
-    chat_id: Option<Guid>,
+    request: StreamAiRequest,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
 
     let result = scope
         .resolve::<AiService>()
         .await
-        .stream(prompt, chat_id, |event| match on_event.send(event) {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        })
+        .stream(
+            request,
+            Arc::new(move |event| match on_event.send(event) {
+                Ok(_) => Ok(()),
+                Err(err) => Err(err.to_string()),
+            }),
+        )
         .await;
 
     scope.save_changes().await?;
@@ -37,6 +43,38 @@ pub async fn stream_ai_response(
         Ok(()) => Ok(()),
         Err(err) => Err(ApiError::new(err.to_string())),
     }
+}
+
+#[tauri::command]
+pub async fn reject_tool_call(
+    injector: State<'_, Arc<Injector>>,
+    message_id: Guid,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let ai_repository = scope.resolve::<dyn AiRepository>().await;
+
+    let mut message = ai_repository.get_message_by_id(message_id).await?;
+
+    if let MessageContent::ToolCall(tool_call) = message.content_mut() {
+        log::info!("Reject message with id {message_id}");
+        tool_call.status = ToolCallStatus::Rejected;
+        ai_repository.upsert_message(&message).await?;
+        scope.save_changes().await?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn accept_tool_call(
+    injector: State<'_, Arc<Injector>>,
+    message_id: Guid,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let service = scope.resolve::<AiService>().await;
+    service.accept_tool_call(message_id).await?;
+    scope.save_changes().await?;
+    Ok(())
 }
 
 #[tauri::command]

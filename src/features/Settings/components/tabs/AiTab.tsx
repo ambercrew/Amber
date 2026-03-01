@@ -19,6 +19,21 @@ export default function AiTab({ state, setState }: TabProps) {
 			<FormRows
 				rows={[
 					{
+						label: "Enable AI",
+						labelHtmlFor: "enable-ai",
+						children: (
+							<CheckBox
+								id="enable-ai"
+								checked={state.localSettings.enableAi}
+								onChange={e =>
+									updateSettings({
+										enableAi: e.target.checked,
+									})
+								}
+							/>
+						),
+					},
+					{
 						label: "Ollama model name",
 						labelHtmlFor: "ollama-model-name",
 						children: (
@@ -35,21 +50,6 @@ export default function AiTab({ state, setState }: TabProps) {
 								}
 								style={{ width: "100%" }}
 								autoFocus
-							/>
-						),
-					},
-					{
-						label: "Enable AI",
-						labelHtmlFor: "enable-ai",
-						children: (
-							<CheckBox
-								id="enable-ai"
-								checked={state.localSettings.enableAi}
-								onChange={e =>
-									updateSettings({
-										enableAi: e.target.checked,
-									})
-								}
 							/>
 						),
 					},

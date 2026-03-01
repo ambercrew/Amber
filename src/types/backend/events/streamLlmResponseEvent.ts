@@ -1,12 +1,10 @@
 import Chat from "../entity/chat";
+import Message from "../entity/message";
 
 export type StreamLlmResponseEvent =
 	| {
 			event: "inProgress";
 			data: string;
-	  }
-	| {
-			event: "finished";
 	  }
 	| {
 			event: "error";
@@ -15,4 +13,8 @@ export type StreamLlmResponseEvent =
 	| {
 			event: "createdChat";
 			data: Chat;
+	  }
+	| {
+			event: "toolCalled";
+			data: Message;
 	  };

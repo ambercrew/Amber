@@ -5,6 +5,7 @@ use rig::{
     message::{AssistantContent, UserContent},
 };
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::Guid;
 
@@ -14,22 +15,15 @@ pub struct Message {
     id: Guid,
     created_date: DateTime<Utc>,
     chat_id: Guid,
-    role: MessageRole,
-    content: Option<String>,
+    content: MessageContent,
 }
 
 impl Message {
-    pub fn new(
-        id: Option<Guid>,
-        chat_id: Guid,
-        role: MessageRole,
-        content: Option<String>,
-    ) -> Self {
+    pub fn new(id: Option<Guid>, chat_id: Guid, content: MessageContent) -> Self {
         Self {
             id: id.unwrap_or(Guid::new_v4()),
             created_date: Utc::now(),
             chat_id,
-            role,
             content,
         }
     }
@@ -39,14 +33,12 @@ impl Message {
         id: Guid,
         created_date: DateTime<Utc>,
         chat_id: Guid,
-        role: MessageRole,
-        content: Option<String>,
+        content: MessageContent,
     ) -> Self {
         Self {
             id,
             chat_id,
             created_date,
-            role,
             content,
         }
     }
@@ -63,32 +55,67 @@ impl Message {
         self.chat_id
     }
 
-    pub fn role(&self) -> MessageRole {
-        self.role
+    pub fn content(&self) -> &MessageContent {
+        &self.content
     }
 
-    pub fn content(&self) -> Option<&String> {
-        self.content.as_ref()
+    pub fn content_mut(&mut self) -> &mut MessageContent {
+        &mut self.content
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "type", content = "value")]
+pub enum MessageContent {
+    Human(String),
+    Assistant(String),
+    ToolCall(ToolCall),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum MessageRole {
-    Human,
-    Assistant,
+pub struct ToolCall {
+    pub(in crate::ai_integration) id: String,
+    pub(in crate::ai_integration) name: String,
+    pub(in crate::ai_integration) display_name: String,
+    pub(in crate::ai_integration) display_description_markdown: String,
+    pub(in crate::ai_integration) arguments: Value,
+    pub(in crate::ai_integration) status: ToolCallStatus,
+    pub(in crate::ai_integration) file_id: Option<Guid>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ToolCallStatus {
+    Accepted,
+    Rejected,
+    Pending,
+    AutomaticallyAccepted,
 }
 
 impl From<Message> for rig::message::Message {
     fn from(value: Message) -> Self {
-        match value.role {
-            MessageRole::Human => rig::message::Message::User {
-                content: OneOrMany::one(UserContent::text(value.content.unwrap_or_default())),
+        match value.content {
+            MessageContent::Human(content) => rig::message::Message::User {
+                content: OneOrMany::one(UserContent::text(content)),
             },
-            MessageRole::Assistant => rig::message::Message::Assistant {
+            MessageContent::Assistant(content) => rig::message::Message::Assistant {
                 id: None,
-                content: OneOrMany::one(AssistantContent::Text(Text {
-                    text: value.content.unwrap_or_default(),
+                content: OneOrMany::one(AssistantContent::Text(Text { text: content })),
+            },
+            MessageContent::ToolCall(ToolCall {
+                id,
+                name,
+                arguments,
+                ..
+            }) => rig::message::Message::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::ToolCall(rig::message::ToolCall {
+                    id,
+                    call_id: None,
+                    function: rig::message::ToolFunction { name, arguments },
+                    signature: None,
+                    additional_params: None,
                 })),
             },
         }

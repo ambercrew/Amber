@@ -248,6 +248,7 @@ describe("Scrolling", () => {
 
 		renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "1",
 		});
 
 		// Act
@@ -368,7 +369,7 @@ describe("Scrolling", () => {
 		// Arrange
 
 		setBoundingClientRectByTestId({
-			"CellBlock-3": {
+			"CellBlock-4": {
 				bottom: 30,
 			},
 			EditableCells: {
@@ -376,16 +377,13 @@ describe("Scrolling", () => {
 			},
 		});
 
-		vi.mocked(createCell).mockReturnValue(Promise.resolve("3"));
+		vi.mocked(createCell).mockReturnValue(Promise.resolve("4"));
 
 		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
 		renderEditableCells({
 			cells,
-			onCellsUpdateSave: () => [
-				...cells,
-				createTestCell(3),
-				createTestCell(4),
-			],
+			onCellsUpdateSave: () => [...cells, createTestCell(4)],
+			initialSelectedCellId: "2",
 		});
 
 		// Act
@@ -395,8 +393,12 @@ describe("Scrolling", () => {
 
 		// Assert
 
-		expect(cellsScrolledIntoView).toContain("CellBlock-3");
-		expect(cellsScrolledIntoView).toHaveLength(1);
+		expect(elementsScrolledTo).toContainEqual({
+			testId: "EditableCells",
+			// It should equal client height, but hard to mock.
+			top: 0,
+		});
+		expect(elementsScrolledTo).toHaveLength(1);
 	});
 
 	it("Should scroll when deleting Cell", async () => {

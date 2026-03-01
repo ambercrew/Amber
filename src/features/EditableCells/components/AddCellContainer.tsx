@@ -17,13 +17,18 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 
-	useGlobalKey(e => {
-		if (e.key === "Escape") {
-			setShowAddNewCellPopup(false);
-		} else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
-			setShowAddNewCellPopup(true);
-		}
-	}, "keydown");
+	useGlobalKey(
+		e => {
+			if (e.key === "Escape") {
+				setShowAddNewCellPopup(false);
+			} else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
+				e.stopPropagation();
+				setShowAddNewCellPopup(true);
+			}
+		},
+		"keydown",
+		true,
+	);
 
 	const handleDragOver = (e: React.DragEvent) => {
 		if (!e.dataTransfer.types.some(t => t === CELL_ID_DRAG_FORMAT)) {
