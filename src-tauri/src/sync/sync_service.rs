@@ -572,6 +572,7 @@ mod tests {
     async fn get_test_dependencies(backend_client: MockBrainyBackendClient) -> Injector {
         let mut injector = create_test_injector().await;
         injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(backend_client));
+        injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
         register_scope!(injector, dyn CellRepository, SqliteCellRepository);
