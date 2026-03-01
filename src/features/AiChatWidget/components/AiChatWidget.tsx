@@ -176,9 +176,14 @@ function AiChatWidgetInner() {
 		} catch (e) {
 			setErrorMessage(errorToString(e));
 		} finally {
-			setMessages(
-				await getChatMessagesOrdered(selectedChatIdRef.current),
-			);
+			if (selectedChatIdRef.current === NEW_SESSION_CHAT_ID) {
+				setMessages([]);
+				setUserPrompt(userPrompt);
+			} else {
+				setMessages(
+					await getChatMessagesOrdered(selectedChatIdRef.current),
+				);
+			}
 			setIsStreamingResponse(false);
 		}
 	};
