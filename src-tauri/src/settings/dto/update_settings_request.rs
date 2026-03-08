@@ -11,4 +11,5 @@ pub struct UpdateSettingsRequest {
 
     pub enable_ai: Option<bool>,
     pub ollama_model_name: Option<Option<String>>,
+    pub ollama_embeddings_model_name: Option<Option<String>>,
 }

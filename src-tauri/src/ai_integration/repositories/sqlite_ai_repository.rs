@@ -13,8 +13,8 @@ use crate::{
         },
         repositories::{
             sqlite_ai_repository::ai_row::{
-                ASSISTANT_CONTENT_TYPE, ChatRow, HUMAN_CONTENT_TYPE, MessageRow,
-                TOOL_CALL_CONTENT_TYPE,
+                ASSISTANT_CONTENT_TYPE, ChatRow, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE,
+                MessageRow, TOOL_CALL_CONTENT_TYPE,
             },
             traits::ai_repository::AiRepository,
         },
@@ -130,6 +130,10 @@ impl AiRepository for SqliteAiRepository {
                 content_type = TOOL_CALL_CONTENT_TYPE.to_string();
                 content = serde_json::to_string(tool_call).unwrap();
             }
+            MessageContent::Document(document) => {
+                content_type = DOCUMENT_CONTENT_TYPE.to_string();
+                content = serde_json::to_string(document).unwrap();
+            }
         };
 
         let result = sqlx::query!(
@@ -239,6 +243,7 @@ mod ai_row {
     pub(super) const HUMAN_CONTENT_TYPE: &str = "human";
     pub(super) const ASSISTANT_CONTENT_TYPE: &str = "assistant";
     pub(super) const TOOL_CALL_CONTENT_TYPE: &str = "tool_call";
+    pub(super) const DOCUMENT_CONTENT_TYPE: &str = "document";
 
     pub(super) struct ChatRow {
         pub id: Guid,
@@ -266,8 +271,10 @@ mod ai_row {
                 MessageContent::Human(value.content.unwrap())
             } else if value.content_type == ASSISTANT_CONTENT_TYPE {
                 MessageContent::Assistant(value.content.unwrap())
-            } else {
+            } else if value.content_type == TOOL_CALL_CONTENT_TYPE {
                 MessageContent::ToolCall(serde_json::from_str(&value.content.unwrap()).unwrap())
+            } else {
+                MessageContent::Document(serde_json::from_str(&value.content.unwrap()).unwrap())
             };
 
             Message::new_unchecked(value.id, value.created_date, value.chat_id, message_content)

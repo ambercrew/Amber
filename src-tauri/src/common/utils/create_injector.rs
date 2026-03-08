@@ -142,11 +142,7 @@ mod tests {
         let mut injector = create_injector().await;
 
         // Needed for testing.
-        injector.register_singleton(Arc::new(MockClient {
-            model: None,
-            completion_fn: Arc::new(None),
-            stream_fn: Arc::new(None),
-        }));
+        injector.register_singleton(Arc::new(MockClient::default()));
 
         // Act & Assert
 

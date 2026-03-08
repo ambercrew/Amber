@@ -48,7 +48,27 @@ export default function AiTab({ state, setState }: TabProps) {
 										ollamaModelName: e.target.value,
 									})
 								}
-								style={{ width: "100%" }}
+								autoFocus
+							/>
+						),
+					},
+					{
+						label: "Ollama embeddings model name",
+						labelHtmlFor: "ollama-embeddings-model-name",
+						children: (
+							<input
+								id="ollama-embeddings-model-name"
+								type="text"
+								value={
+									state.localSettings
+										.ollamaEmbeddingsModelName ?? ""
+								}
+								onChange={e =>
+									updateSettings({
+										ollamaEmbeddingsModelName:
+											e.target.value,
+									})
+								}
 								autoFocus
 							/>
 						),

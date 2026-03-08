@@ -19,9 +19,8 @@ use tokio_stream::StreamExt;
 
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
-use crate::ai_integration::clients::multi_completion_client::{
-    MultiCompletionClient, multi_response::MultiResponse,
-    multi_streaming_response::MultiStreamingResponse,
+use crate::ai_integration::clients::multi_client::{
+    MultiClient, multi_response::MultiResponse, multi_streaming_response::MultiStreamingResponse,
 };
 
 #[derive(Clone)]
@@ -37,16 +36,16 @@ impl CompletionModel for MultiCompletionModel {
 
     type StreamingResponse = MultiStreamingResponse;
 
-    type Client = MultiCompletionClient;
+    type Client = MultiClient;
 
     fn make(client: &Self::Client, model: impl Into<String>) -> Self {
         match client {
             #[cfg(not(test))]
-            MultiCompletionClient::Ollama(client) => {
+            MultiClient::Ollama(client) => {
                 MultiCompletionModel::Ollama(ollama::CompletionModel::make(client, model))
             }
             #[cfg(test)]
-            MultiCompletionClient::Mock(client) => {
+            MultiClient::Mock(client) => {
                 MultiCompletionModel::Mock(MockClient::make(client, model))
             }
         }

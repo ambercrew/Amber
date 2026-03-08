@@ -19,17 +19,17 @@ import {
 } from "../../../types/events/toolCallAcceptedEvent";
 
 interface Props {
-	isStreamingResponse: boolean;
+	isSendingRequest: boolean;
 	message: Message;
 	onUpdate: () => Promise<void>;
 }
 
 export default function ToolCallDisplay({
-	isStreamingResponse,
+	isSendingRequest,
 	message,
 	onUpdate,
 }: Props) {
-	const [isSendingRequest, startRequest] = useTransition();
+	const [isSendingRequestToolCall, startRequest] = useTransition();
 	const rootFolder = useAppSelector(selectRootFolder);
 	const toolCall = message.content.value as ToolCall;
 	const [searchParams] = useSearchParams();
@@ -109,10 +109,12 @@ export default function ToolCallDisplay({
 							className={`transparent ${styles.reject}`}
 							type="button"
 							disabled={
-								isStreamingResponse || !file || isSendingRequest
+								isSendingRequest ||
+								!file ||
+								isSendingRequestToolCall
 							}
 							title={
-								isStreamingResponse
+								isSendingRequest
 									? "Please wait until generation is finished"
 									: "Reject"
 							}
@@ -124,10 +126,12 @@ export default function ToolCallDisplay({
 							className={`transparent ${styles.accept}`}
 							type="button"
 							disabled={
-								isStreamingResponse || !file || isSendingRequest
+								isSendingRequest ||
+								!file ||
+								isSendingRequestToolCall
 							}
 							title={
-								isStreamingResponse
+								isSendingRequest
 									? "Please wait until generation is finished"
 									: "Accept"
 							}

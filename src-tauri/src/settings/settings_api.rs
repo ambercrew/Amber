@@ -48,6 +48,9 @@ pub async fn update_settings(
     if let Some(ollama_model_name) = new_settings.ollama_model_name {
         settings.ollama_model_name = ollama_model_name;
     }
+    if let Some(ollama_embeddings_model_name) = new_settings.ollama_embeddings_model_name {
+        settings.ollama_embeddings_model_name = ollama_embeddings_model_name;
+    }
     settings.save_to_disk().await?;
 
     if restart {

@@ -26,6 +26,7 @@ function Alert({ className, type, children, onClose, ...props }: Props) {
 				<button
 					type="button"
 					onClick={onClose}
+					title="Close"
 					className={`
                     ${type === "error" && "red"}
                     ${type === "primary" && "primary"}

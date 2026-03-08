@@ -10,6 +10,7 @@ import {
 	renameAiChat,
 	stopAiGeneration,
 	streamAiResponse,
+	uploadDocument,
 } from "../../../../api/aiApi.ts";
 import userEvent from "@testing-library/user-event";
 import Message, {
@@ -23,6 +24,7 @@ import { FILE_ID_QUERY_PARAMETER } from "../../../../config/constants.ts";
 import { RootState } from "../../../../stores/store.ts";
 import { ReviewTreeFolder } from "../../../../types/backend/dto/reviewTreeFolder.ts";
 import { TOOL_CALL_ACCEPTED_EVENT } from "../../../../types/events/toolCallAcceptedEvent.ts";
+import { open } from "@tauri-apps/plugin-dialog";
 
 vi.mock(import("../../../../api/aiApi.ts"));
 
@@ -35,6 +37,8 @@ vi.mock("@tauri-apps/api/core", () => {
 		Channel: MockChannel,
 	};
 });
+
+vi.mock("@tauri-apps/plugin-dialog");
 
 function renderComponent({
 	enableAi = true,
@@ -760,5 +764,79 @@ describe("ToolCallDisplay", () => {
 		expect(await screen.findByTestId("location-display")).toHaveTextContent(
 			`/editor?${FILE_ID_QUERY_PARAMETER}=file-1`,
 		);
+	});
+
+	it("Should be able to upload a file", async () => {
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockReturnValue(
+			Promise.resolve([
+				{
+					id: "chat-1",
+					title: "chat 1",
+					createdDate: "date",
+				},
+			]),
+		);
+
+		vi.mocked(getChatMessagesOrdered)
+			.mockReturnValueOnce(Promise.resolve([]))
+			.mockReturnValueOnce(
+				Promise.resolve([
+					{
+						id: "message-1",
+						chatId: "chat-1",
+						content: {
+							type: "document",
+							value: {
+								fileName: "file 1 -- backend.pdf",
+							},
+						},
+					} as Message,
+				]),
+			);
+
+		vi.mocked(open).mockReturnValue(Promise.resolve("/home/file.pdf"));
+
+		vi.mocked(uploadDocument).mockImplementation(
+			async () => await new Promise(resolve => setTimeout(resolve, 50)),
+		);
+
+		renderComponent({
+			preloadedState: {
+				fileSystem: {
+					errorMessage: "",
+					successMessage: "",
+					rootFolder: {
+						files: [
+							{
+								id: "file-1",
+								name: "file 1",
+							},
+						],
+					} as unknown as ReviewTreeFolder,
+				},
+			},
+		});
+
+		// Act
+
+		await openChat();
+		await userEvent.click(await screen.findByText("+ New chat"));
+		await userEvent.click(await screen.findByText("chat 1"));
+		await userEvent.click(await screen.findByTitle("Upload document"));
+		// Showed temporary message to user.
+		await screen.findByText("file.pdf");
+
+		// Assert
+
+		expect(vi.mocked(open)).toHaveBeenCalledOnce();
+		expect(vi.mocked(uploadDocument)).toHaveBeenCalledWith(
+			"/home/file.pdf",
+			"chat-1",
+		);
+
+		// Waiting for upload to finish and verifying that retrieving the
+		// files been executed.
+		await new Promise(resolve => setTimeout(resolve, 50));
+		await screen.findByText("file 1 -- backend.pdf");
 	});
 });

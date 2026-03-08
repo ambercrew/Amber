@@ -11,14 +11,16 @@ import {
 	renameAiChat,
 	stopAiGeneration as stopAiGenerationApi,
 	streamAiResponse,
+	uploadDocument,
 } from "../../../api/aiApi";
 import Message, {
 	MessageContentHumanAssistant,
 } from "../../../types/backend/entity/message";
 import errorToString from "../../../utils/errorToString";
 import {
-	NEW_SESSION_CHAT_ID,
 	TEMP_ASSISTANT_MESSAGE_ID,
+	TEMP_CHAT_ID,
+	TEMP_HUMAN_MESSAGE_ID,
 } from "../config/constants";
 import Chat from "../../../types/backend/entity/chat";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
@@ -43,11 +45,10 @@ function AiChatWidgetInner() {
 	const [showRenameDialog, setShowRenameDialog] = useState(false);
 	const [userPrompt, setUserPrompt] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
-	const [isStreamingResponse, setIsStreamingResponse] = useState(false);
+	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [chats, setChats] = useState<Chat[]>([]);
-	const [selectedChatId, setSelectedChatId] =
-		useState<string>(NEW_SESSION_CHAT_ID);
+	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 	// Used to have reference to the same selected chat id, useful for streaming.
 	const selectedChatIdRef = useRef(selectedChatId);
 	const [searchParams] = useSearchParams();
@@ -66,17 +67,16 @@ function AiChatWidgetInner() {
 
 	const stopAiGeneration = useCallback(async () => {
 		await stopAiGenerationApi();
-		setIsStreamingResponse(false);
 	}, []);
 
-	const handleChangeSelectedChatId = async (newChatId: string) => {
+	const handleChangeSelectedChatId = async (newChatId: string | null) => {
 		if (newChatId !== selectedChatId) {
 			setErrorMessage("");
 			setSelectedChatId(newChatId);
 			await stopAiGeneration();
 		}
 
-		if (newChatId === NEW_SESSION_CHAT_ID) {
+		if (newChatId === null) {
 			setMessages([]);
 		} else {
 			setMessages(await getChatMessagesOrdered(newChatId));
@@ -84,22 +84,22 @@ function AiChatWidgetInner() {
 	};
 
 	const sendMessage = async () => {
-		if (!userPrompt.trim() || isStreamingResponse) return;
+		if (!userPrompt.trim() || isSendingRequest) return;
 
 		setErrorMessage("");
-		setIsStreamingResponse(true);
+		setIsSendingRequest(true);
 		setMessages(messages => [
 			...messages,
 			{
-				chatId: selectedChatId ?? "tmp",
-				id: "tmp",
+				chatId: selectedChatId ?? TEMP_CHAT_ID,
+				id: TEMP_HUMAN_MESSAGE_ID,
 				content: {
 					type: "human",
 					value: userPrompt,
 				},
 			},
 			{
-				chatId: selectedChatId ?? "tmp",
+				chatId: selectedChatId ?? TEMP_CHAT_ID,
 				id: TEMP_ASSISTANT_MESSAGE_ID,
 				contentType: "assistant",
 				content: {
@@ -165,10 +165,7 @@ function AiChatWidgetInner() {
 			await streamAiResponse(
 				{
 					prompt: userPrompt,
-					chatId:
-						selectedChatId === NEW_SESSION_CHAT_ID
-							? null
-							: selectedChatId,
+					chatId: selectedChatId,
 					fileId: selectedFileId,
 				},
 				onEvent,
@@ -176,7 +173,7 @@ function AiChatWidgetInner() {
 		} catch (e) {
 			setErrorMessage(errorToString(e));
 		} finally {
-			if (selectedChatIdRef.current === NEW_SESSION_CHAT_ID) {
+			if (selectedChatIdRef.current === null) {
 				setMessages([]);
 				setUserPrompt(userPrompt);
 			} else {
@@ -184,12 +181,14 @@ function AiChatWidgetInner() {
 					await getChatMessagesOrdered(selectedChatIdRef.current),
 				);
 			}
-			setIsStreamingResponse(false);
+			setIsSendingRequest(false);
 		}
 	};
 
 	const handleToolCallUpdate = async () => {
-		setMessages(await getChatMessagesOrdered(selectedChatId));
+		if (selectedChatId !== null) {
+			setMessages(await getChatMessagesOrdered(selectedChatId));
+		}
 	};
 
 	const handleSubmit = (e: React.SubmitEvent) => {
@@ -219,8 +218,10 @@ function AiChatWidgetInner() {
 	}, [stopAiGeneration]);
 
 	const handleDelete = async () => {
+		if (selectedChatId === null) return;
+
 		await deleteAiChat(selectedChatId);
-		await handleChangeSelectedChatId(NEW_SESSION_CHAT_ID);
+		await handleChangeSelectedChatId(null);
 		setErrorMessage("");
 		setShowDeleteChatDialog(false);
 		setChats(await getAllAiChatsSortedByDateDesc());
@@ -230,6 +231,8 @@ function AiChatWidgetInner() {
 		e: React.SubmitEvent,
 		newTitle: string,
 	) => {
+		if (selectedChatId === null) return;
+
 		e.stopPropagation();
 		e.preventDefault();
 		setShowRenameDialog(false);
@@ -239,6 +242,40 @@ function AiChatWidgetInner() {
 			setChats(await getAllAiChatsSortedByDateDesc());
 		} catch (e) {
 			setErrorMessage(errorToString(e));
+		}
+	};
+
+	const handleUploadDocument = async (path: string) => {
+		if (selectedChatId === null) return;
+
+		const fileName = path.replace(/^.*[/\\]/, "");
+
+		setMessages(messages => [
+			...messages,
+			{
+				id: TEMP_HUMAN_MESSAGE_ID,
+				chatId: selectedChatId,
+				content: {
+					type: "document",
+					value: {
+						fileName: fileName,
+					},
+				},
+			} as Message,
+		]);
+		setIsSendingRequest(true);
+
+		try {
+			await uploadDocument(path, selectedChatId);
+		} catch (e) {
+			setErrorMessage(errorToString(e));
+		} finally {
+			if (selectedChatIdRef.current !== null) {
+				setMessages(
+					await getChatMessagesOrdered(selectedChatIdRef.current),
+				);
+			}
+			setIsSendingRequest(false);
 		}
 	};
 
@@ -283,16 +320,18 @@ function AiChatWidgetInner() {
 						<Messages
 							messages={messages}
 							errorMessage={errorMessage}
-							isStreamingResponse={isStreamingResponse}
+							isSendingRequest={isSendingRequest}
 							selectedChatId={selectedChatId}
 							onToolCallUpdate={handleToolCallUpdate}
 							onCloseError={() => setErrorMessage("")}
 						/>
 
 						<PromptForm
-							isStreamingResponse={isStreamingResponse}
-							onSubmit={handleSubmit}
+							isSendingRequest={isSendingRequest}
 							userPrompt={userPrompt}
+							selectedChatId={selectedChatId}
+							onUploadDocument={handleUploadDocument}
+							onSubmit={handleSubmit}
 							onUserPromptChange={setUserPrompt}
 							onStopGeneration={stopAiGeneration}
 							onTextAreaKeyDown={handleTextAreaKeyDown}

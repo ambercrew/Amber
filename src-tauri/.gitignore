@@ -11,3 +11,5 @@ temp/*
 
 .env
 temp.db
+
+data/

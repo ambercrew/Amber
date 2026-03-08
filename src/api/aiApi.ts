@@ -41,3 +41,7 @@ export function rejectToolCall(messageId: string): Promise<void> {
 export function acceptToolCall(messageId: string): Promise<void> {
 	return invoke("accept_tool_call", { messageId });
 }
+
+export function uploadDocument(path: string, chatId: string): Promise<void> {
+	return invoke("upload_document", { path, chatId });
+}

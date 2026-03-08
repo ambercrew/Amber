@@ -3,16 +3,17 @@ import Icon from "@mdi/react";
 import { mdiPencilOutline, mdiDeleteOutline, mdiClose } from "@mdi/js";
 import styles from "./styles.module.css";
 import Chat from "../../../types/backend/entity/chat";
-import { NEW_SESSION_CHAT_ID } from "../config/constants";
 
 interface Props {
-	selectedChatId: string;
+	selectedChatId: string | null;
 	chats: Chat[];
-	onChangeSelectedChatId: (newId: string) => void;
+	onChangeSelectedChatId: (newId: string | null) => void;
 	onDeleteClick: () => void;
 	onRenameClick: () => void;
 	onClose: () => void;
 }
+
+const NEW_SESSION_CHAT_ID = "new-chat";
 
 export default function Header({
 	selectedChatId,
@@ -22,11 +23,19 @@ export default function Header({
 	onRenameClick,
 	onClose,
 }: Props) {
+	const handleSelectChangeValue = (newValue: string) => {
+		if (newValue === NEW_SESSION_CHAT_ID) {
+			onChangeSelectedChatId(null);
+		} else {
+			onChangeSelectedChatId(newValue);
+		}
+	};
+
 	return (
 		<div className={styles.header}>
 			<Select
-				onChangeValue={onChangeSelectedChatId}
-				currentValue={selectedChatId}
+				onChangeValue={handleSelectChangeValue}
+				currentValue={selectedChatId ?? NEW_SESSION_CHAT_ID}
 				options={[
 					{
 						value: NEW_SESSION_CHAT_ID,
@@ -43,14 +52,14 @@ export default function Header({
 					onClick={onRenameClick}
 					className="transparent"
 					title="Rename chat"
-					disabled={selectedChatId === NEW_SESSION_CHAT_ID}>
+					disabled={selectedChatId === null}>
 					<Icon path={mdiPencilOutline} size={1} />
 				</button>
 				<button
 					onClick={onDeleteClick}
 					className="transparent"
 					title="Delete chat"
-					disabled={selectedChatId === NEW_SESSION_CHAT_ID}>
+					disabled={selectedChatId === null}>
 					<Icon path={mdiDeleteOutline} size={1} />
 				</button>
 				<button

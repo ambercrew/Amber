@@ -21,6 +21,7 @@ pub struct Settings {
 
     pub enable_ai: bool,
     pub ollama_model_name: Option<String>,
+    pub ollama_embeddings_model_name: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -73,6 +74,7 @@ impl Settings {
                 auto_sync: true,
                 enable_ai: true,
                 ollama_model_name: None,
+                ollama_embeddings_model_name: None,
             };
             settings.save_to_disk().await?;
             Ok(settings)

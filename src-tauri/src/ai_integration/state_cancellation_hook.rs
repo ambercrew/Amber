@@ -3,8 +3,7 @@ use std::sync::Arc;
 use rig::agent::{HookAction, PromptHook, ToolCallHookAction};
 
 use crate::ai_integration::{
-    ai_state::AiState,
-    clients::multi_completion_client::multi_completion_model::MultiCompletionModel,
+    ai_state::AiState, clients::multi_client::multi_completion_model::MultiCompletionModel,
 };
 
 #[derive(Clone)]

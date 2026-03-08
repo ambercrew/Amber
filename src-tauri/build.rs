@@ -16,13 +16,14 @@ fn setup_sqlx() {
     let env_file = current_directory.join(".env");
     println!(".env file path is {}", env_file.display());
 
-    if !env_file.exists() {
-        let env_content = format!("DATABASE_URL=\"{0}\"", db_url);
-        fs::write(&env_file, env_content).expect("Cannot write .env variable.");
-        println!(".env file created");
-    } else {
-        println!(".env already exists");
+    if env_file.exists() {
+        println!(".env already exists, deleting it.");
+        fs::remove_file(&env_file).expect("Cannot remove old .env file");
     }
+
+    let env_content = format!("DATABASE_URL=\"{0}\"", db_url);
+    fs::write(&env_file, env_content).expect("Cannot write .env variable");
+    println!(".env file created");
 
     if db_path.exists() {
         fs::remove_file(&db_path).expect("Cannot remove database");

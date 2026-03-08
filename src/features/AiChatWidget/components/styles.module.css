@@ -68,6 +68,14 @@
 			color: var(--primary-color);
 		}
 
+		& .human .spinner::after {
+			color: #fff;
+		}
+
+		&.human .spinner {
+			text-align: right;
+		}
+
 		& ol,
 		& ul {
 			margin: 0 var(--spacing-8);
@@ -78,6 +86,23 @@
 			background-color: var(--primary-color);
 			color: #fff;
 			border-color: var(--primary-color);
+		}
+
+		& .document {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: var(--spacing-3);
+			padding: var(--spacing-1);
+
+			& .icon {
+				padding: var(--spacing-4);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background-color: var(--primary-color-shade-20);
+				border-radius: 50%;
+			}
 		}
 	}
 

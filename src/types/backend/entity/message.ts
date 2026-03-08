@@ -6,10 +6,18 @@ export default interface Message {
 
 export type MessageContent =
 	| MessageContentHumanAssistant
+	| MessageContentDocument
 	| {
 			type: "toolCall";
 			value: ToolCall;
 	  };
+
+export interface MessageContentDocument {
+	type: "document";
+	value: {
+		fileName: string;
+	};
+}
 
 export interface MessageContentHumanAssistant {
 	type: "human" | "assistant";

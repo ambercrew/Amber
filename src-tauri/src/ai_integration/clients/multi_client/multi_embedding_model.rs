@@ -1,0 +1,56 @@
+use rig::embeddings::EmbeddingModel;
+
+#[cfg(not(test))]
+use rig::providers::ollama;
+
+#[cfg(test)]
+use crate::ai_integration::clients::mock_client::MockClient;
+use crate::ai_integration::clients::multi_client::MultiClient;
+
+#[derive(Clone)]
+pub enum MultiEmbeddingModel {
+    #[cfg(not(test))]
+    Ollama(ollama::EmbeddingModel),
+    #[cfg(test)]
+    Mock(MockClient),
+}
+
+impl EmbeddingModel for MultiEmbeddingModel {
+    const MAX_DOCUMENTS: usize = 1024;
+
+    type Client = MultiClient;
+
+    fn make(client: &Self::Client, model: impl Into<String>, dims: Option<usize>) -> Self {
+        match client {
+            #[cfg(not(test))]
+            MultiClient::Ollama(client) => {
+                MultiEmbeddingModel::Ollama(ollama::EmbeddingModel::make(client, model, dims))
+            }
+            #[cfg(test)]
+            MultiClient::Mock(client) => {
+                MultiEmbeddingModel::Mock(<MockClient as EmbeddingModel>::make(client, model, dims))
+            }
+        }
+    }
+
+    fn ndims(&self) -> usize {
+        match self {
+            #[cfg(not(test))]
+            Self::Ollama(embedding_model) => embedding_model.ndims(),
+            #[cfg(test)]
+            MultiEmbeddingModel::Mock(embedding_model) => embedding_model.ndims(),
+        }
+    }
+
+    async fn embed_texts(
+        &self,
+        texts: impl IntoIterator<Item = String> + rig::wasm_compat::WasmCompatSend,
+    ) -> Result<Vec<rig::embeddings::Embedding>, rig::embeddings::EmbeddingError> {
+        match self {
+            #[cfg(not(test))]
+            Self::Ollama(embedding_model) => embedding_model.embed_texts(texts).await,
+            #[cfg(test)]
+            MultiEmbeddingModel::Mock(embedding_model) => embedding_model.embed_texts(texts).await,
+        }
+    }
+}

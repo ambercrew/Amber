@@ -1,3 +1,4 @@
+import { open } from "@tauri-apps/plugin-dialog";
 import {
 	mdiAttachment,
 	mdiSendVariantOutline,
@@ -7,21 +8,25 @@ import Icon from "@mdi/react";
 import { useEffect, useRef } from "react";
 
 interface Props {
-	isStreamingResponse: boolean;
+	isSendingRequest: boolean;
 	userPrompt: string;
+	selectedChatId: string | null;
 	onTextAreaKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 	onUserPromptChange: (value: string) => void;
 	onSubmit: (e: React.SubmitEvent) => void;
 	onStopGeneration: () => Promise<void>;
+	onUploadDocument: (path: string) => Promise<void>;
 }
 
 export default function PromptForm({
-	isStreamingResponse,
+	isSendingRequest,
 	userPrompt,
+	selectedChatId,
 	onUserPromptChange,
 	onSubmit,
 	onStopGeneration,
 	onTextAreaKeyDown,
+	onUploadDocument,
 }: Props) {
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -37,6 +42,15 @@ export default function PromptForm({
 		}
 	}, [userPrompt]);
 
+	const handleUploadDocument = async () => {
+		const path = await open({
+			directory: false,
+		});
+
+		if (!path) return;
+		await onUploadDocument(path);
+	};
+
 	return (
 		<form onSubmit={onSubmit}>
 			<textarea
@@ -48,16 +62,20 @@ export default function PromptForm({
 				rows={1}
 				autoFocus
 			/>
-			<button className="transparent" title="Add attachment">
+			<button
+				className="transparent"
+				title="Upload document"
+				onClick={() => void handleUploadDocument()}
+				disabled={isSendingRequest || selectedChatId === null}>
 				<Icon path={mdiAttachment} size={1} />
 			</button>
-			{!isStreamingResponse && (
+			{!isSendingRequest && (
 				<button className="transparent" title="Send">
 					<Icon path={mdiSendVariantOutline} size={1} />
 				</button>
 			)}
 
-			{isStreamingResponse && (
+			{isSendingRequest && (
 				<button
 					className="transparent"
 					title="Stop"

@@ -1,38 +1,49 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use injector_derive::ScopeInjectable;
+use rig::client::EmbeddingsClient;
 #[cfg(not(test))]
 use rig::client::{Nothing, ProviderClient};
+use rig::embeddings::{EmbedError, EmbeddingError, EmbeddingsBuilder};
+use rig::loaders::PdfFileLoader;
+use rig::loaders::file::FileLoaderError;
+use rig::loaders::pdf::PdfLoaderError;
 #[cfg(not(test))]
 use rig::providers::ollama;
-use rig::tool::Tool;
+use rig::tool::{Tool, ToolDyn};
+use rig::vector_store::VectorStoreError;
 use rig::{
     agent::{Agent, MultiTurnStreamItem, StreamingError, Text},
     client::CompletionClient,
     completion::PromptError,
     streaming::{StreamedAssistantContent, StreamingChat},
 };
+use rig_sqlite::SqliteVectorStore;
 use serde::Serialize;
 use thiserror::Error;
 use tokio::sync::Mutex;
+use tokio_rusqlite::Connection;
 use tokio_stream::StreamExt;
 
-use crate::Guid;
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
-use crate::ai_integration::entities::message::ToolCallStatus;
-use crate::ai_integration::prompts::{PREAMBLE_BASE, PREAMBLE_GENERATE_TITLE, PREAMBLE_NO_TOOLS};
+use crate::ai_integration::clients::multi_client::multi_embedding_model::MultiEmbeddingModel;
+use crate::ai_integration::document::Document;
+use crate::ai_integration::entities::message::{self, ToolCallStatus};
+use crate::ai_integration::prompts::{PREAMBLE_BASE, PREAMBLE_GENERATE_TITLE, PREAMBLE_NO_FILE};
 use crate::ai_integration::stream_ai_request::StreamAiRequest;
 use crate::ai_integration::tools::create_flash_card::AcceptCreateFlashCard;
+use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::traits::cell_repository::CellRepository;
+use crate::settings::SettingsError;
+use crate::{Guid, settings};
 use crate::{
     ai_integration::{
         ai_state::AiState,
-        clients::multi_completion_client::{
-            MultiCompletionClient, multi_completion_model::MultiCompletionModel,
-        },
+        clients::multi_client::{MultiClient, multi_completion_model::MultiCompletionModel},
         entities::{
             chat::Chat,
             message::{Message, MessageContent},
@@ -47,7 +58,8 @@ use crate::{
 };
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
-const DEFAULT_MAX_TURN: usize = 10;
+const DEFAULT_MAX_TURN: usize = 16;
+pub const EMBEDDINGS_DIMENSIONS: usize = 2560;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase", tag = "event", content = "data")]
@@ -64,9 +76,12 @@ pub enum AiServiceError {
     UnknownRepositoryError(#[from] RepositoryError),
     #[error("Ai is not enabled in settings!")]
     AiNotEnabled,
-    #[error("Ollama model name is not filled in settings!")]
     #[cfg(not(test))]
+    #[error("Ollama model name is not filled in settings!")]
     OllamaModelNameIsNotFilled,
+    #[cfg(not(test))]
+    #[error("Ollama embeddings model name is not filled in settings!")]
+    OllamaEmbeddingsModelNameIsNotFilled,
     #[error("Unknown tool name was given")]
     UnknownToolName,
     #[error("An unknown error has happened!")]
@@ -75,6 +90,20 @@ pub enum AiServiceError {
     CanOnlyAcceptToolCalls,
     #[error("{0}")]
     AcceptToolCallError(#[from] AcceptToolCallError),
+    #[error("Error loading file: {0}")]
+    FileLoaderError(#[from] FileLoaderError),
+    #[error("Error loading pdf file: {0}")]
+    PdfLoaderError(#[from] PdfLoaderError),
+    #[error("Embed error: {0}")]
+    EmbedError(#[from] EmbedError),
+    #[error("Embedding error: {0}")]
+    EmbeddingError(#[from] EmbeddingError),
+    #[error("{0}")]
+    SettingsError(#[from] SettingsError),
+    #[error("Error connecting to embeddings database")]
+    ConnectingToEmbeddingsDatabase(String),
+    #[error("{0}")]
+    VectorStoreError(#[from] VectorStoreError),
 }
 
 impl From<String> for AiServiceError {
@@ -153,9 +182,15 @@ impl AiService {
                     {
                         complete_ai_response = format!("{complete_ai_response}{text}");
                         on_event(StreamLlmResponseEvent::InProgress(text))?;
+                    } else if let MultiTurnStreamItem::StreamAssistantItem(
+                        StreamedAssistantContent::ToolCall { tool_call, .. },
+                    ) = content
+                    {
+                        log::info!("Tool call: {:#?}", tool_call);
                     }
                 }
                 Err(err) => {
+                    log::error!("Error happened while streaming {:?}", err);
                     let mut should_call_callback = true;
 
                     if let StreamingError::Prompt(ref prompt_error) = err
@@ -196,7 +231,7 @@ impl AiService {
 
     async fn create_chat(&self, prompt: &str) -> Result<Chat, AiServiceError> {
         let response = match self
-            .get_multi_completion_client()
+            .get_multi_client()
             .await?
             .extractor::<GenerateTitle>(self.get_model_name().await?)
             .preamble(PREAMBLE_GENERATE_TITLE)
@@ -219,42 +254,143 @@ impl AiService {
         messages_to_upsert: Arc<Mutex<Vec<Message>>>,
         on_event: OnEventCallback,
     ) -> Result<Agent<MultiCompletionModel>, AiServiceError> {
-        let client = self.get_multi_completion_client().await?;
+        let client = self.get_multi_client().await?;
         let model_name = self.get_model_name().await?;
+        let embeddings_model_name = self.get_embeddings_model_name().await?;
 
-        let builder = client
+        let embed_model = self
+            .get_multi_client()
+            .await?
+            .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
+        let vector_store = get_sqlite_vector_store(&embed_model).await?;
+        let index = Arc::new(vector_store.index(embed_model));
+
+        let mut tools: Vec<Box<dyn ToolDyn>> = vec![Box::new(SearchDocuments::new(index, chat_id))];
+
+        let mut builder = client
             .agent(&model_name)
             .temperature(DEFAULT_TEMPERATURE)
             .name("Brainy Tutor")
             .default_max_turns(DEFAULT_MAX_TURN);
 
         if let Some(file_id) = request.file_id {
-            Ok(builder
-                .preamble(PREAMBLE_BASE)
-                .tool(CreateFlashCard::new(
-                    file_id,
-                    chat_id,
-                    messages_to_upsert,
-                    Some(on_event),
-                ))
-                .build())
+            tools.push(Box::new(CreateFlashCard::new(
+                file_id,
+                chat_id,
+                messages_to_upsert,
+                Some(on_event),
+            )));
+            builder = builder.preamble(PREAMBLE_BASE);
         } else {
-            Ok(builder.preamble(PREAMBLE_NO_TOOLS).build())
+            builder = builder.preamble(PREAMBLE_NO_FILE);
         }
+
+        let builder = builder.tools(tools);
+
+        Ok(builder.build())
     }
 
-    async fn get_multi_completion_client(&self) -> Result<MultiCompletionClient, AiServiceError> {
+    pub async fn accept_tool_call(&self, message_id: Guid) -> Result<(), AiServiceError> {
+        let mut message = self.ai_repository.get_message_by_id(message_id).await?;
+        let tool_call = match message.content_mut() {
+            MessageContent::ToolCall(tool_call) => tool_call,
+            _ => return Err(AiServiceError::CanOnlyAcceptToolCalls),
+        };
+
+        #[allow(clippy::needless_late_init)]
+        let tool: Box<dyn AcceptToolCallFromJson>;
+
+        if tool_call.name == CreateFlashCard::NAME {
+            tool = Box::new(AcceptCreateFlashCard::new(
+                self.cell_repository.clone(),
+                self.cell_service.clone(),
+            ));
+        } else {
+            return Err(AiServiceError::UnknownToolName);
+        }
+
+        tool.accept_call(tool_call, tool_call.arguments.clone())
+            .await?;
+
+        tool_call.status = ToolCallStatus::Accepted;
+        self.ai_repository.upsert_message(&message).await?;
+
+        Ok(())
+    }
+
+    pub async fn upload_document(
+        &self,
+        path: impl Into<PathBuf>,
+        chat_id: Guid,
+    ) -> Result<(), AiServiceError> {
+        let path: PathBuf = path.into();
+        let embeddings_model_name = self.get_embeddings_model_name().await?;
+
+        let embed_model = self
+            .get_multi_client()
+            .await?
+            .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
+
+        let mut embeddings_builder = EmbeddingsBuilder::new(embed_model.clone());
+
+        if let Some(extension) = path.extension()
+            && extension == "pdf"
+        {
+            let loader = PdfFileLoader::with_glob(path.to_str().unwrap())?;
+
+            let pages = loader
+                .load_with_path()
+                .ignore_errors()
+                .by_page()
+                .into_iter()
+                .flat_map(|(_path, result)| result)
+                .map(|(_pageno, result)| result)
+                .filter_map(|v| v.ok())
+                .enumerate()
+                .map(|(i, page)| Document {
+                    id: format!("page_{}", i),
+                    content: page,
+                    chat_id,
+                })
+                .collect::<Vec<_>>();
+
+            embeddings_builder = embeddings_builder.documents(pages)?;
+        }
+
+        let embeddings = embeddings_builder.build().await?;
+
+        let vector_store = get_sqlite_vector_store(&embed_model).await?;
+        vector_store.add_rows(embeddings).await.unwrap();
+
+        self.ai_repository
+            .upsert_message(&Message::new(
+                None,
+                chat_id,
+                MessageContent::Document(message::Document {
+                    file_name: path
+                        .file_name()
+                        .and_then(|name| name.to_str())
+                        .unwrap_or("")
+                        .to_string(),
+                }),
+            ))
+            .await?;
+
+        Ok(())
+    }
+
+    async fn get_multi_client(&self) -> Result<MultiClient, AiServiceError> {
         let settings = self.settings.lock().await;
         if !settings.enable_ai {
             return Err(AiServiceError::AiNotEnabled);
         }
 
         #[cfg(test)]
-        return Ok(MultiCompletionClient::Mock((*self.mock_client).clone()));
+        return Ok(MultiClient::Mock((*self.mock_client).clone()));
 
         #[cfg(not(test))]
         {
-            let client = MultiCompletionClient::Ollama(ollama::Client::from_val(Nothing));
+            let client = MultiClient::Ollama(ollama::Client::from_val(Nothing));
             Ok(client)
         }
     }
@@ -288,43 +424,68 @@ impl AiService {
         }
     }
 
-    pub async fn accept_tool_call(&self, message_id: Guid) -> Result<(), AiServiceError> {
-        let mut message = self.ai_repository.get_message_by_id(message_id).await?;
-        let tool_call = match message.content_mut() {
-            MessageContent::ToolCall(tool_call) => tool_call,
-            _ => return Err(AiServiceError::CanOnlyAcceptToolCalls),
-        };
+    async fn get_embeddings_model_name(&self) -> Result<String, AiServiceError> {
+        #[cfg(test)]
+        return Ok(self
+            .mock_client
+            .embeddings_model
+            .clone()
+            .unwrap_or_default());
 
-        #[allow(clippy::needless_late_init)]
-        let tool: Box<dyn AcceptToolCallFromJson>;
+        #[cfg(not(test))]
+        {
+            let settings = self.settings.lock().await;
 
-        if tool_call.name == CreateFlashCard::NAME {
-            tool = Box::new(AcceptCreateFlashCard::new(
-                self.cell_repository.clone(),
-                self.cell_service.clone(),
-            ));
-        } else {
-            return Err(AiServiceError::UnknownToolName);
+            if settings.ollama_embeddings_model_name.is_none() {
+                return Err(AiServiceError::OllamaEmbeddingsModelNameIsNotFilled);
+            }
+
+            let model_name = settings
+                .ollama_embeddings_model_name
+                .as_ref()
+                .unwrap()
+                .clone()
+                .trim()
+                .to_string();
+
+            if model_name.is_empty() {
+                return Err(AiServiceError::OllamaModelNameIsNotFilled);
+            }
+
+            log::info!("Using the embeddings model with name '{model_name}'.");
+            Ok(model_name)
         }
-
-        tool.accept_call(tool_call, tool_call.arguments.clone())
-            .await?;
-
-        tool_call.status = ToolCallStatus::Accepted;
-        self.ai_repository.upsert_message(&message).await?;
-
-        Ok(())
     }
+}
+
+async fn get_sqlite_vector_store(
+    embed_model: &MultiEmbeddingModel,
+) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiServiceError> {
+    let settings_dir = settings::get_settings_dir().await?;
+    let path = settings_dir.join("vector_store.db");
+    let conn = match Connection::open(path.to_str().unwrap()).await {
+        Err(err) => {
+            return Err(AiServiceError::ConnectingToEmbeddingsDatabase(
+                err.to_string(),
+            ));
+        }
+        Ok(conn) => conn,
+    };
+    Ok(SqliteVectorStore::new(conn, embed_model).await?)
 }
 
 #[cfg(test)]
 pub mod tests {
-    use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+    use std::{
+        iter,
+        sync::atomic::{AtomicBool, AtomicU32, Ordering},
+    };
 
     use injector::{injector::Injector, register_scope};
     use rig::{
         OneOrMany,
         completion::{CompletionError, CompletionResponse, Usage},
+        embeddings::Embedding,
         message::{AssistantContent, Message as RigMessage, UserContent},
         streaming::RawStreamingChoice,
     };
@@ -332,9 +493,12 @@ pub mod tests {
     use crate::{
         ROOT_FOLDER_ID,
         ai_integration::{
-            clients::multi_completion_client::multi_response::MultiResponse,
-            entities::message::ToolCall, repositories::sqlite_ai_repository::SqliteAiRepository,
-            tools::create_flash_card::CreateFlashcardArgs,
+            clients::multi_client::multi_response::MultiResponse,
+            entities::message::ToolCall,
+            repositories::sqlite_ai_repository::SqliteAiRepository,
+            tools::{
+                create_flash_card::CreateFlashcardArgs, search_documents::SearchDocumentsArgs,
+            },
         },
         cells::repositories::{
             sqlite_cell_repository::SqliteCellRepository,
@@ -386,7 +550,6 @@ pub mod tests {
         let sent_stream_answer = AtomicBool::new(false);
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|request| {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
@@ -422,6 +585,7 @@ pub mod tests {
 
                 Ok(None)
             }))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
@@ -501,7 +665,6 @@ pub mod tests {
         let valid_request_clone = valid_request.clone();
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|_| {
                 let tool_call = AssistantContent::tool_call(
                     "id",
@@ -522,14 +685,16 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    && request.tools.len() == 1
-                    && request.tools.first().unwrap().name == CreateFlashCard::NAME
+                    // Two tools, one for searching documents and one for creating flash cards.
+                    && request.tools.len() == 2
+                    && request.tools.iter().any(|tool| tool.name == CreateFlashCard::NAME)
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
                 }
 
                 Ok(None)
             }))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
@@ -562,7 +727,6 @@ pub mod tests {
         let valid_request_clone = valid_request.clone();
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|_| {
                 let tool_call = AssistantContent::tool_call(
                     "id",
@@ -583,13 +747,15 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    && request.tools.is_empty()
+                    // Only one tool for searching documents.
+                    && request.tools.len() == 1
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
                 }
 
                 Ok(None)
             }))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
@@ -623,7 +789,6 @@ pub mod tests {
         let ai_state_clone = ai_state.clone();
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|request| {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
@@ -662,6 +827,7 @@ pub mod tests {
 
                 Ok(None)
             }))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, ai_state).await;
@@ -704,7 +870,6 @@ pub mod tests {
         let sent_stream_answer = AtomicBool::new(false);
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|request| {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
@@ -744,6 +909,7 @@ pub mod tests {
 
                 Ok(None)
             }))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
@@ -799,7 +965,6 @@ pub mod tests {
         // Arrange
 
         let mock_client = MockClient {
-            model: None,
             completion_fn: Arc::new(Some(Box::new(|_| {
                 let tool_call = AssistantContent::tool_call(
                     "id",
@@ -816,7 +981,7 @@ pub mod tests {
                     message_id: None,
                 }
             }))),
-            stream_fn: Arc::new(Some(Box::new(move |_| Ok(None)))),
+            ..Default::default()
         };
 
         let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
@@ -889,5 +1054,88 @@ pub mod tests {
         } else {
             panic!();
         }
+    }
+
+    #[tokio::test]
+    pub async fn upload_document_pdf_file_uploaded_file_and_added_message() {
+        // Arrange
+
+        let mock_client = MockClient {
+            embeddings_model_dims: Some(EMBEDDINGS_DIMENSIONS),
+            embed_texts_fn: Arc::new(Some(Box::new(move |request| {
+                if request.len() == 1 && request[0].trim() == "Page 1 content" {
+                    let embeddings = Embedding {
+                        document: String::new(),
+                        vec: iter::once(12f64)
+                            .chain(iter::repeat_n(0f64, EMBEDDINGS_DIMENSIONS - 1))
+                            .collect(),
+                    };
+
+                    return Ok(vec![embeddings]);
+                } else if request.len() == 1 && request[0] == "search query" {
+                    let embeddings = Embedding {
+                        document: String::new(),
+                        vec: iter::once(11.9f64)
+                            .chain(iter::repeat_n(0f64, EMBEDDINGS_DIMENSIONS - 1))
+                            .collect(),
+                    };
+
+                    return Ok(vec![embeddings]);
+                }
+                unreachable!()
+            }))),
+            ..Default::default()
+        };
+
+        let injector =
+            get_test_dependencies(mock_client.clone(), Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<AiService>().await;
+
+        let ai_repository = scope.resolve::<dyn AiRepository>().await;
+        let chat_id = Guid::new_v4();
+        ai_repository
+            .upsert_chat(&Chat::new(Some(chat_id), "test".to_string()))
+            .await
+            .unwrap();
+
+        let path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/example.pdf");
+
+        // Act
+
+        service.upload_document(path, chat_id).await.unwrap();
+
+        // Assert
+
+        let messages = ai_repository
+            .get_chat_messages_ordered(chat_id)
+            .await
+            .unwrap();
+        assert_eq!(1, messages.len());
+        if let MessageContent::Document(document) = messages[0].content() {
+            assert_eq!(document.file_name, "example.pdf");
+        } else {
+            panic!("Expected document");
+        }
+
+        let multi_embedding_model = MultiEmbeddingModel::Mock(mock_client);
+        let store = get_sqlite_vector_store(&multi_embedding_model)
+            .await
+            .unwrap();
+        let index = Arc::new(store.index(multi_embedding_model));
+        let search_tool = SearchDocuments::new(index, chat_id);
+        let search_result = Tool::call(
+            &search_tool,
+            SearchDocumentsArgs {
+                query: "search query".to_string(),
+                top_k: 1,
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(1, search_result.len());
+        assert_eq!("Page 1 content", search_result[0].content.trim());
     }
 }

@@ -8,4 +8,5 @@ export default interface Settings {
 
 	enableAi: boolean;
 	ollamaModelName: string | null;
+	ollamaEmbeddingsModelName: string | null;
 }

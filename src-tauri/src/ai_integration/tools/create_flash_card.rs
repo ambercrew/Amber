@@ -84,8 +84,6 @@ impl Tool for CreateFlashCard {
     }
 
     async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
-        log::info!("{} called with arguments {:?}", Self::NAME, args);
-
         let mut messages_to_upsert = self.messages_to_upsert.lock().await;
         let message = Message::new(
             None,

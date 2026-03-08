@@ -138,3 +138,16 @@ pub async fn rename_ai_chat(
     scope.save_changes().await?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn upload_document(
+    injector: State<'_, Arc<Injector>>,
+    path: String,
+    chat_id: Guid,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let service = scope.resolve::<AiService>().await;
+    service.upload_document(path, chat_id).await?;
+    scope.save_changes().await?;
+    Ok(())
+}
