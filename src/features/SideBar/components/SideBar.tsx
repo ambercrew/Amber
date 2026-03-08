@@ -78,15 +78,15 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 		else onExpand();
 	};
 
-	const openHelpWebsite = useCallback(() => {
-		void openUrl("https://ramialkawadri.github.io/Brainy-help/");
+	const openHelpWebsite = useCallback(async () => {
+		await openUrl("https://ramialkawadri.github.io/Brainy-help/");
 	}, []);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key === "\\") {
 			handleToggleExpand();
 		} else if (e.key === "F1") {
-			openHelpWebsite();
+			void openHelpWebsite();
 		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
 			void navigate("/search");
 		}
@@ -156,7 +156,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					<button
 						className={`transparent ${styles.row}`}
 						title="Help (F1)"
-						onClick={openHelpWebsite}>
+						onClick={() => void openHelpWebsite()}>
 						<Icon path={mdiHelpCircleOutline} size="1em" />
 						<p>Help</p>
 					</button>
