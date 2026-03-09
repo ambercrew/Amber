@@ -6,9 +6,9 @@ use rig::client::EmbeddingsClient;
 #[cfg(not(test))]
 use rig::client::{Nothing, ProviderClient};
 use rig::embeddings::{EmbedError, EmbeddingError, EmbeddingsBuilder};
-use rig::loaders::PdfFileLoader;
 use rig::loaders::file::FileLoaderError;
 use rig::loaders::pdf::PdfLoaderError;
+use rig::loaders::{FileLoader, PdfFileLoader};
 #[cfg(not(test))]
 use rig::providers::ollama;
 use rig::tool::{Tool, ToolDyn};
@@ -21,6 +21,7 @@ use rig::{
 };
 use rig_sqlite::SqliteVectorStore;
 use serde::Serialize;
+use text_splitter::{ChunkConfig, TextSplitter};
 use thiserror::Error;
 use tokio::sync::Mutex;
 use tokio_rusqlite::Connection;
@@ -332,6 +333,7 @@ impl AiService {
             .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
 
         let mut embeddings_builder = EmbeddingsBuilder::new(embed_model.clone());
+        let splitter = TextSplitter::new(ChunkConfig::new(512).with_trim(false));
 
         if let Some(extension) = path.extension()
             && extension == "pdf"
@@ -347,14 +349,42 @@ impl AiService {
                 .map(|(_pageno, result)| result)
                 .filter_map(|v| v.ok())
                 .enumerate()
-                .map(|(i, page)| Document {
-                    id: format!("page_{}", i),
-                    content: page,
-                    chat_id,
+                .flat_map(|(page_i, page)| {
+                    splitter
+                        .chunks(&page)
+                        .enumerate()
+                        .map(move |(chunk_i, chunk)| Document {
+                            id: format!("page_{page_i}_chunk_{chunk_i}"),
+                            content: chunk.to_string(),
+                            chat_id,
+                        })
+                        .collect::<Vec<_>>()
                 })
                 .collect::<Vec<_>>();
 
             embeddings_builder = embeddings_builder.documents(pages)?;
+        } else {
+            let loader = FileLoader::with_glob(path.to_str().unwrap())?;
+
+            let contents = loader
+                .read()
+                .ignore_errors()
+                .into_iter()
+                .enumerate()
+                .flat_map(|(file_i, content)| {
+                    splitter
+                        .chunks(&content)
+                        .enumerate()
+                        .map(move |(chunk_i, chunk)| Document {
+                            id: format!("content_{file_i}_chunk_{chunk_i}"),
+                            content: chunk.to_string(),
+                            chat_id,
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+
+            embeddings_builder = embeddings_builder.documents(contents)?;
         }
 
         let embeddings = embeddings_builder.build().await?;
