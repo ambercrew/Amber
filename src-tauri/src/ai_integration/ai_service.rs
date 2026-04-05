@@ -158,8 +158,6 @@ impl AiService {
             MessageContent::Human(request.prompt.clone()),
         )]));
 
-        let messages = messages.into_iter().map(|message| message.into()).collect();
-
         let agent = self
             .get_agent(
                 &request,
