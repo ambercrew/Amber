@@ -12,7 +12,7 @@ use crate::{
         entities::LocalConfiguration,
         repositories::traits::local_configuration_repository::LocalConfigurationRepository,
     },
-    settings::SettingsDirectory,
+    settings::value_objects::settings_directory::SettingsDirectory,
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]

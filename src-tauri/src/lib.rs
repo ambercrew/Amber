@@ -55,7 +55,7 @@ use tokio::runtime::Handle;
 
 use crate::backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
 use crate::common::utils::create_injector::create_injector;
-use crate::settings::SettingsDirectory;
+use crate::settings::value_objects::settings_directory::SettingsDirectory;
 
 pub type Guid = uuid::Uuid;
 

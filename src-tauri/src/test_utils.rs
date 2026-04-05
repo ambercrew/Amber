@@ -6,7 +6,7 @@ use tokio::fs;
 use crate::{
     Guid,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
-    settings::SettingsDirectory,
+    settings::value_objects::settings_directory::SettingsDirectory,
 };
 
 pub async fn create_temp_directory() -> PathBuf {

@@ -40,7 +40,10 @@ use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::traits::cell_repository::CellRepository;
-use crate::settings::{SettingsDirectory, SettingsError};
+use crate::settings::repositories::traits::settings_repository::{
+    SettingsRepository, SettingsRepositoryError,
+};
+use crate::settings::value_objects::settings_directory::SettingsDirectory;
 use crate::{
     ai_integration::{
         ai_state::AiState,
@@ -55,7 +58,6 @@ use crate::{
         tools::create_flash_card::CreateFlashCard,
     },
     common::repository_error::RepositoryError,
-    settings::Settings,
 };
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
@@ -100,7 +102,7 @@ pub enum AiServiceError {
     #[error("Embedding error: {0}")]
     EmbeddingError(#[from] EmbeddingError),
     #[error("{0}")]
-    SettingsError(#[from] SettingsError),
+    SettingsRepositoryError(#[from] SettingsRepositoryError),
     #[error("Error connecting to embeddings database")]
     ConnectingToEmbeddingsDatabase(String),
     #[error("{0}")]
@@ -115,7 +117,7 @@ impl From<String> for AiServiceError {
 
 #[derive(ScopeInjectable)]
 pub struct AiService {
-    settings: Arc<Mutex<Settings>>,
+    settings_repository: Arc<dyn SettingsRepository>,
     settings_directory: Arc<SettingsDirectory>,
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
@@ -409,7 +411,7 @@ impl AiService {
     }
 
     async fn get_multi_client(&self) -> Result<MultiClient, AiServiceError> {
-        let settings = self.settings.lock().await;
+        let settings = self.settings_repository.get_settings().await;
         if !settings.enable_ai {
             return Err(AiServiceError::AiNotEnabled);
         }
@@ -430,7 +432,7 @@ impl AiService {
 
         #[cfg(not(test))]
         {
-            let settings = self.settings.lock().await;
+            let settings = self.settings_repository.get_settings().await;
 
             if settings.ollama_model_name.is_none() {
                 return Err(AiServiceError::OllamaModelNameIsNotFilled);
@@ -463,7 +465,7 @@ impl AiService {
 
         #[cfg(not(test))]
         {
-            let settings = self.settings.lock().await;
+            let settings = self.settings_repository.get_settings().await;
 
             if settings.ollama_embeddings_model_name.is_none() {
                 return Err(AiServiceError::OllamaEmbeddingsModelNameIsNotFilled);
@@ -543,6 +545,10 @@ pub mod tests {
             },
             value_objects::file_system_item_name::FileSystemItemName,
         },
+        settings::{
+            entities::settings::Settings,
+            repositories::disk_settings_repository::DiskSettingsRepository,
+        },
         test_utils::create_test_injector,
     };
 
@@ -565,6 +571,7 @@ pub mod tests {
         register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, CellService);
         register_scope!(injector, FileSystemService);
         register_scope!(injector, AiService);

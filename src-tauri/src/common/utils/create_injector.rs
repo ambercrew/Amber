@@ -4,6 +4,9 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+#[cfg(test)]
+use crate::settings::entities::settings::Settings;
+use crate::settings::value_objects::settings_directory::SettingsDirectory;
 use crate::{
     ai_integration::{
         ai_service::AiService,
@@ -47,7 +50,13 @@ use crate::{
         sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         traits::local_configuration_repository::LocalConfigurationRepository,
     },
-    settings::{Settings, SettingsDirectory},
+    settings::{
+        repositories::{
+            disk_settings_repository::DiskSettingsRepository,
+            traits::settings_repository::SettingsRepository,
+        },
+        settings_service::SettingsService,
+    },
     sync::{
         repositories::{
             sqlite_sync_repository::SqliteSyncRepository, traits::sync_repository::SyncRepository,
@@ -62,7 +71,7 @@ pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector 
     injector.register_singleton(Arc::new(settings_directory.clone()));
 
     #[cfg(not(test))]
-    let settings = Settings::init_settings_and_get(settings_directory.clone())
+    let settings = DiskSettingsRepository::init_settings_and_get(&settings_directory)
         .await
         .unwrap();
 
@@ -98,6 +107,7 @@ pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector 
     register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
     register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
     register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
+    register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
     register_scope!(
         injector,
         dyn LocalConfigurationRepository,
@@ -110,6 +120,7 @@ pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector 
     register_scope!(injector, FileSystemService);
     register_scope!(injector, FsrsService);
     register_scope!(injector, SyncService);
+    register_scope!(injector, SettingsService);
     register_scoped_tx(&mut injector);
 
     injector
@@ -119,6 +130,7 @@ pub fn register_scoped_tx(injector: &mut Injector) {
     injector.register_scope_factory::<Mutex<DbTransaction>>(|scope| {
         Box::pin(async move {
             let pool = scope.resolve::<DbPool>().await;
+            let pool = pool.lock().await;
             let tx = pool.begin().await.expect("Cannot create a new transaction");
             Arc::new(Mutex::new(tx))
         })
