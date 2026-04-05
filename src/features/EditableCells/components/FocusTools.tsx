@@ -23,9 +23,8 @@ interface Props {
 	cell: Cell;
 	enableFileSpecificFunctionality: boolean;
 	fileMode: "single" | "global search";
+	setHandleDragRef: (element: Element | null) => void;
 	onInsertClick: (e: React.MouseEvent) => void;
-	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
-	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onShowRepetitionsInfo: () => void;
 	onResetRepetitions: () => void;
 	onError: (error: string) => void;
@@ -38,9 +37,8 @@ function FocusTools({
 	cell,
 	enableFileSpecificFunctionality,
 	fileMode,
+	setHandleDragRef,
 	onInsertClick,
-	onDragStart,
-	onDragEnd,
 	onShowRepetitionsInfo,
 	onResetRepetitions,
 	onCellDeleteConfirm,
@@ -190,9 +188,7 @@ function FocusTools({
 						tabIndex={-1}
 						className={styles.drag}
 						title="Drag cell"
-						draggable
-						onDragStart={onDragStart}
-						onDragEnd={onDragEnd}>
+						ref={setHandleDragRef}>
 						<Icon path={mdiDrag} size={1} />
 					</button>
 				)}

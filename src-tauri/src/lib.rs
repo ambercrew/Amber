@@ -49,10 +49,13 @@ pub use sync::sync_api::sync;
 
 pub use file_system::api::export_import_api::{export_file, export_folder, import};
 
+#[cfg(desktop)]
 use tauri_plugin_window_state::StateFlags;
+use tokio::runtime::Handle;
 
 use crate::backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
 use crate::common::utils::create_injector::create_injector;
+use crate::settings::SettingsDirectory;
 
 pub type Guid = uuid::Uuid;
 
@@ -80,22 +83,36 @@ pub async fn run() -> Result<(), String> {
         }));
     }
 
-    let injector = Arc::new(create_injector().await);
-
-    tauri_builder
+    tauri_builder = tauri_builder
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_os::init());
+
+    #[cfg(desktop)]
+    {
+        tauri_builder = tauri_builder.plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
                 .build(),
-        )
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
-        .setup(move |app| {
+        );
+    }
+
+    tauri_builder
+        .setup(|app| {
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
+                .expect("Cannot get settings directory");
+            let settings_directory = SettingsDirectory::new(app_data_dir);
+
+            let injector = Arc::new(tokio::task::block_in_place(|| {
+                Handle::current().block_on(create_injector(settings_directory))
+            }));
+
             app.manage(injector.clone());
 
-            #[cfg(dev)]
+            #[cfg(all(dev, desktop))]
             {
                 let _ = app
                     .get_webview_window("main")

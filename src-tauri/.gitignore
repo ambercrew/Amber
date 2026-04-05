@@ -13,3 +13,4 @@ temp/*
 temp.db
 
 data/
+jniLibs/

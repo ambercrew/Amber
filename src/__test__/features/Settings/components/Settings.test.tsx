@@ -16,11 +16,13 @@ import { SettingsState } from "../../../../stores/settings/settingsReducer.ts";
 import SettingsType from "../../../../types/backend/model/settings.ts";
 import { Window } from "@tauri-apps/api/window";
 import { Webview } from "@tauri-apps/api/webview";
+import { isMobile } from "../../../../utils/tauriUtils.ts";
 
 vi.mock(import("../../../../api/authApi.ts"));
 vi.mock(import("../../../../api/userApi.ts"));
 vi.mock(import("../../../../api/settingsApi.ts"));
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
+vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/api/webview"), () => ({
 	getCurrentWebview: () =>
 		({
@@ -296,5 +298,24 @@ describe("Appearance & Data tab", () => {
 			}),
 		).not.toBeNull();
 		expect(onCloseMock).not.toBeCalled();
+	});
+
+	it("Should be able to set zoom on mobile", () => {
+		// Arrange
+
+		vi.mocked(isMobile).mockReturnValue(true);
+		renderWithProviders(<Settings onClose={vi.fn()} />, {
+			preloadedState: {
+				settings: createInitialSettingsState(),
+			},
+		});
+
+		// Act
+
+		const element = screen.queryByText("Zoom", { exact: false });
+
+		// Assert
+
+		expect(element).toBeNull();
 	});
 });

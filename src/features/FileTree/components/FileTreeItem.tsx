@@ -19,8 +19,6 @@ import {
 	deleteFile,
 	deleteFolder,
 	getReviewTreeFolderForRoot,
-	moveFile,
-	moveFolder,
 } from "../../../stores/fileSystem/fileSystemActions.ts";
 import getFileName from "../utils/getFileName.ts";
 import {
@@ -36,11 +34,7 @@ import {
 	ROOT_FOLDER_ID,
 } from "../../../config/constants";
 import { useNavigate, useSearchParams } from "react-router";
-import {
-	dragFormatForFile,
-	dragFormatForFolder,
-	jsonFileFilter,
-} from "../config/constants.ts";
+import { JSON_FILE_FILTER } from "../config/constants.ts";
 import {
 	exportFile,
 	exportFolder,
@@ -50,11 +44,17 @@ import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog.tsx";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";
 import FsrsDialog from "./FsrsDialog.tsx";
+import { useDroppable } from "@dnd-kit/react";
+import FileItemDropContainerData, {
+	FILE_ITEM_DROP_CONTAINER_TYPE,
+} from "../types/fileItemDropContainerData.ts";
+import { pointerIntersection } from "@dnd-kit/collision";
 
 interface Props {
 	folder: UiFolder | null;
 	fullPath: string;
 	id: string;
+	depth: number;
 	ref?: React.Ref<FileTreeItemRef>;
 	onDelete?: () => void;
 }
@@ -67,7 +67,7 @@ export interface FileTreeItemRef {
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
  */
-function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
+function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 	const isRoot = id === ROOT_FOLDER_ID;
 	const [isDeleteDialogShown, setIsDeleteDialogShown] = useState(false);
 	const [isFsrsDialogShown, setIsFsrsDialogShown] = useState(false);
@@ -75,7 +75,6 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
-	const [dragCounter, setDragCounter] = useState(0);
 	const [isOpen, setIsOpen] = useLocalStorage(
 		`is-file-tree-item-open-${id}`,
 		false,
@@ -88,6 +87,15 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 	const isExpanded = isRoot || isOpen;
 	const actions: Action[] = [];
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
+
+	const { ref: setDroppableNodeRef, isDropTarget } = useDroppable({
+		id,
+		type: FILE_ITEM_DROP_CONTAINER_TYPE,
+		disabled: !folder,
+		collisionDetector: pointerIntersection,
+		collisionPriority: depth,
+		data: { folderId: id } as FileItemDropContainerData,
+	});
 
 	const showCreateNewFileInput = () => {
 		setCreatingNewFolder(false);
@@ -149,7 +157,7 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 			void (async () => {
 				setShowActions(false);
 				const savePath = await openSaveDialog({
-					filters: [jsonFileFilter],
+					filters: [JSON_FILE_FILTER],
 					defaultPath: getFileName(fullPath) + ".json",
 				});
 				if (!savePath) return;
@@ -175,7 +183,7 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 					try {
 						setShowActions(false);
 						const openPath = await openOpenDialog({
-							filters: [jsonFileFilter],
+							filters: [JSON_FILE_FILTER],
 						});
 						if (!openPath) return;
 						await importExportedItem(openPath, id);
@@ -246,54 +254,6 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 		setCreatingNewFile(false);
 	};
 
-	const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-		e.stopPropagation();
-		if (isRenaming) return;
-		setShowActions(false);
-		const format = folder ? dragFormatForFolder : dragFormatForFile;
-		e.dataTransfer.setData(format, id.toString());
-	};
-
-	const isAllowedDrag = (e: React.DragEvent<HTMLDivElement>) => {
-		return (
-			folder &&
-			(e.dataTransfer.types.includes(dragFormatForFile) ||
-				e.dataTransfer.types.includes(dragFormatForFolder))
-		);
-	};
-
-	const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-		if (!isAllowedDrag(e)) return;
-		e.preventDefault();
-		e.stopPropagation();
-		setDragCounter(val => val + 1);
-	};
-
-	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-		if (!isAllowedDrag(e)) return;
-		e.preventDefault();
-		e.stopPropagation();
-		setDragCounter(val => val - 1);
-	};
-
-	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-		if (isAllowedDrag(e)) e.preventDefault();
-	};
-
-	const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-		if (!folder) return;
-		e.stopPropagation();
-		setDragCounter(0);
-
-		const fileId = e.dataTransfer.getData(dragFormatForFile);
-		const folderId = e.dataTransfer.getData(dragFormatForFolder);
-		if (fileId) {
-			await dispatch(moveFile(fileId, id));
-		} else if (folderId) {
-			await dispatch(moveFolder(folderId, id));
-		}
-	};
-
 	const handleDelete = async () => {
 		if (folder) {
 			await dispatch(deleteFolder(id));
@@ -353,11 +313,8 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 
 			{(!folder || isRoot || folder.isVisible) && (
 				<div
-					className={`${styles.fileItemOuterContainer} ${dragCounter ? styles.dragOver : ""}`}
-					onDragEnter={handleDragEnter}
-					onDragOver={handleDragOver}
-					onDragLeave={handleDragLeave}
-					onDrop={e => void handleDrop(e)}
+					ref={setDroppableNodeRef}
+					className={`${styles.fileItemOuterContainer} ${isDropTarget ? styles.dragOver : ""}`}
 					onKeyDown={handleKeyDown}>
 					<FileTreeItemRow
 						ref={fileTreeItemRowRef}
@@ -368,7 +325,6 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 						showActions={showActions}
 						isExpanded={isExpanded}
 						actions={actions}
-						onDragStart={handleDragStart}
 						onRenameEnd={() => setIsRenaming(false)}
 						fullPath={fullPath}
 						onShowActions={() => setShowActions(true)}
@@ -385,6 +341,7 @@ function FileTreeItem({ folder, fullPath, id, ref, onDelete }: Props) {
 							isRoot={isRoot}
 							folder={folder}
 							fullPath={fullPath}
+							depth={depth + 1}
 							onCreateNewFileClick={() =>
 								setCreatingNewFile(true)
 							}

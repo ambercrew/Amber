@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 
 use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
 use injector_derive::ScopeInjectable;
@@ -12,6 +12,7 @@ use crate::{
         entities::LocalConfiguration,
         repositories::traits::local_configuration_repository::LocalConfigurationRepository,
     },
+    settings::SettingsDirectory,
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
@@ -27,13 +28,11 @@ const LAST_BACKUP_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
 const MAX_NUMBER_OF_BACKUPS: usize = 8;
 const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 
-pub struct BackupDirectory(pub PathBuf);
-
 #[derive(ScopeInjectable)]
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
-    backup_directory: Arc<BackupDirectory>,
+    settings_directory: Arc<SettingsDirectory>,
 }
 
 impl BackupService {
@@ -77,7 +76,7 @@ impl BackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let backup_path = self.backup_directory.0.join(backup_name);
+        let backup_path = self.settings_directory.get_path().join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -102,7 +101,7 @@ impl BackupService {
     async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
         let mut current_backups = Vec::new();
 
-        let mut entries = match fs::read_dir(&self.backup_directory.0).await {
+        let mut entries = match fs::read_dir(&self.settings_directory.get_path()).await {
             Ok(entries) => entries,
             Err(err) => {
                 return Err(BackupServiceError::CannotListEntriesInFolder(
@@ -174,8 +173,8 @@ pub mod tests {
     async fn create_injector_for_sqlite_path(path: &Path) -> Injector {
         let mut injector = Injector::default();
 
-        let backup_directory = create_temp_directory().await;
-        injector.register_singleton(Arc::new(BackupDirectory(backup_directory)));
+        let settings_directory = create_temp_directory().await;
+        injector.register_singleton(Arc::new(SettingsDirectory::new(settings_directory)));
 
         // Must use database that is saved on disk for backups to work.
         let pool = create_sqlite_pool(&format!("sqlite:///{}", path.to_string_lossy()))
@@ -203,7 +202,7 @@ pub mod tests {
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
-        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let settings_directory = scope.resolve::<SettingsDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         // Inserting a random row in the database to see if it exists in the new backup.
@@ -222,7 +221,7 @@ pub mod tests {
 
         // Assert
 
-        let mut dir_entries = fs::read_dir(backup_directory).await.unwrap();
+        let mut dir_entries = fs::read_dir(settings_directory.get_path()).await.unwrap();
         let backup = dir_entries.next_entry().await.unwrap().unwrap();
         let backup_injector = create_injector_for_sqlite_path(&backup.path()).await;
 
@@ -247,7 +246,7 @@ pub mod tests {
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
-        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let settings_directory = scope.resolve::<SettingsDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         // Act
@@ -256,7 +255,7 @@ pub mod tests {
 
         // Assert
 
-        let mut dir_entries = fs::read_dir(backup_directory).await.unwrap();
+        let mut dir_entries = fs::read_dir(settings_directory.get_path()).await.unwrap();
         dir_entries.next_entry().await.unwrap().unwrap();
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
@@ -281,13 +280,13 @@ pub mod tests {
         let injector = get_test_dependencies().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
-        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let settings_directory = scope.resolve::<SettingsDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS {
-            let path = backup_directory.join(format!(
+            let path = settings_directory.get_path().join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()
@@ -320,13 +319,13 @@ pub mod tests {
         let injector = get_test_dependencies().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
-        let backup_directory = scope.resolve::<BackupDirectory>().await.0.clone();
+        let settings_directory = scope.resolve::<SettingsDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS - 1 {
-            let path = backup_directory.join(format!(
+            let path = settings_directory.get_path().join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()
@@ -343,10 +342,10 @@ pub mod tests {
             }
         }
 
-        fs::write(backup_directory.join("settings.json"), "1234")
+        fs::write(settings_directory.get_path().join("settings.json"), "1234")
             .await
             .unwrap();
-        fs::write(backup_directory.join("test.backup"), "1234")
+        fs::write(settings_directory.get_path().join("test.backup"), "1234")
             .await
             .unwrap();
 

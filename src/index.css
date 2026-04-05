@@ -84,6 +84,15 @@ body {
 		0 0 4px 1px rgba(0, 0, 0, 0.2);
 
 	--placeholder-color: #adb5bd;
+
+	--dragged-opacity: 0.75;
+}
+
+@media (max-width: 480px) {
+	/* Scale down for mobile phones. */
+	html {
+		font-size: 10px;
+	}
 }
 
 /* On dark theme, the roles of shade and tint colors are reversed. */

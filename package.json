@@ -23,6 +23,8 @@
 		"*.rs": "cargo fmt --manifest-path ./src-tauri/Cargo.toml --"
 	},
 	"dependencies": {
+		"@dnd-kit/collision": "^0.3.2",
+		"@dnd-kit/react": "^0.3.2",
 		"@fontsource-variable/noto-sans": "^5.2.10",
 		"@lexical/html": "0.41.0",
 		"@lexical/list": "0.41.0",
@@ -35,6 +37,7 @@
 		"@tauri-apps/plugin-clipboard-manager": "^2.3.2",
 		"@tauri-apps/plugin-dialog": "2.6.0",
 		"@tauri-apps/plugin-opener": "2.5.3",
+		"@tauri-apps/plugin-os": "^2.3.2",
 		"@tauri-apps/plugin-process": "2.3.1",
 		"@tauri-apps/plugin-updater": "2.10.0",
 		"@tauri-apps/plugin-window-state": "2.4.1",

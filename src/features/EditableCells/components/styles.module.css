@@ -70,6 +70,7 @@
 	border: var(--default-border-width) solid transparent;
 	position: relative;
 	width: 100%;
+	background-color: var(--default-background-color);
 
 	&:hover {
 		border-color: var(--border-color);
@@ -115,7 +116,7 @@
 	}
 
 	&.dragging {
-		opacity: 0.7;
+		opacity: var(--dragged-opacity);
 	}
 
 	& .cell-title {

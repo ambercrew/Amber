@@ -10,10 +10,29 @@ use tokio::{
     io::AsyncReadExt,
 };
 
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SettingsDirectory(PathBuf);
+
+impl SettingsDirectory {
+    pub fn new(path_buf: PathBuf) -> Self {
+        Self(path_buf)
+    }
+
+    pub fn get_path(&self) -> &PathBuf {
+        &self.0
+    }
+}
+
+impl AsRef<PathBuf> for SettingsDirectory {
+    fn as_ref(&self) -> &PathBuf {
+        &self.0
+    }
+}
+
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
-    pub settings_dir: PathBuf,
+    pub directory: SettingsDirectory,
     pub database_location: String,
     pub theme: Theme,
     pub zoom_percentage: f64,
@@ -42,10 +61,6 @@ pub enum SettingsError {
     ParsingError(String),
     #[error("Error when saving the settings file!")]
     SavingError(String),
-    #[error("No config directory is found on your system!")]
-    NoConfigDirectory,
-    #[error("Brainy is not able to create settings directory on your system!")]
-    CannotCreateSettingsDirectory(String),
 }
 
 #[cfg(not(debug_assertions))]
@@ -58,17 +73,24 @@ const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 impl Settings {
     /// Initializes the settings if not found and then return it, the settings
     /// is automatically saved into a file if not found.
-    pub async fn init_settings_and_get(settings_dir: PathBuf) -> Result<Self, SettingsError> {
-        if settings_dir.join(SETTINGS_FILE_NAME).exists() {
-            Settings::read_settings_from_file(settings_dir).await
+    pub async fn init_settings_and_get(
+        settings_directory: SettingsDirectory,
+    ) -> Result<Self, SettingsError> {
+        if settings_directory
+            .get_path()
+            .join(SETTINGS_FILE_NAME)
+            .exists()
+        {
+            Settings::read_settings_from_file(&settings_directory).await
         } else {
             let settings = Settings {
-                settings_dir: settings_dir.clone(),
-                database_location: settings_dir
+                database_location: settings_directory
+                    .get_path()
                     .join(DEFAULT_DATABASE_FILE_NAME)
                     .to_str()
                     .unwrap()
                     .into(),
+                directory: settings_directory,
                 theme: Theme::FollowSystem,
                 zoom_percentage: 100f64,
                 auto_sync: true,
@@ -81,8 +103,10 @@ impl Settings {
         }
     }
 
-    async fn read_settings_from_file(settings_dir: PathBuf) -> Result<Self, SettingsError> {
-        let settings_path = settings_dir.join(SETTINGS_FILE_NAME);
+    async fn read_settings_from_file(
+        settings_directory: &SettingsDirectory,
+    ) -> Result<Self, SettingsError> {
+        let settings_path = settings_directory.get_path().join(SETTINGS_FILE_NAME);
         log::info!("Reading settings from '{SETTINGS_FILE_NAME}'.");
         let mut file = match File::open(settings_path).await {
             Err(err) => return Err(SettingsError::ErrorOpeningFile(err.to_string())),
@@ -99,25 +123,12 @@ impl Settings {
     }
 
     pub async fn save_to_disk(&self) -> Result<(), SettingsError> {
-        let path = self.settings_dir.join(SETTINGS_FILE_NAME);
+        let path = self.directory.get_path().join(SETTINGS_FILE_NAME);
         log::info!("Saving settings into '{}'.", path.to_str().unwrap());
         match fs::write(path, serde_json::to_string(self).unwrap()).await {
             Ok(_) => Ok(()),
             Err(err) => Err(SettingsError::SavingError(err.to_string())),
         }
-    }
-}
-
-pub async fn get_settings_dir() -> Result<PathBuf, SettingsError> {
-    let dir_path = match dirs::config_dir() {
-        Some(dir) => dir.join("Brainy"),
-        None => return Err(SettingsError::NoConfigDirectory),
-    };
-    match fs::create_dir_all(dir_path.clone()).await {
-        Ok(_) => Ok(dir_path),
-        Err(err) => Err(SettingsError::CannotCreateSettingsDirectory(
-            err.to_string(),
-        )),
     }
 }
 
@@ -131,7 +142,7 @@ pub mod tests {
     pub async fn init_settings_and_get_new_settings_created_and_saved_to_disk() {
         // Arrange
 
-        let directory = create_temp_directory().await;
+        let directory = SettingsDirectory::new(create_temp_directory().await);
 
         // Act
 
@@ -141,10 +152,10 @@ pub mod tests {
 
         // Assert
 
-        assert!(directory.join(SETTINGS_FILE_NAME).exists());
+        assert!(directory.get_path().join(SETTINGS_FILE_NAME).exists());
 
         let mut file_content = String::new();
-        File::open(directory.join(SETTINGS_FILE_NAME))
+        File::open(directory.get_path().join(SETTINGS_FILE_NAME))
             .await
             .unwrap()
             .read_to_string(&mut file_content)
@@ -152,10 +163,10 @@ pub mod tests {
             .unwrap();
 
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
-        assert_eq!(settings.settings_dir, directory);
+        assert_eq!(settings.directory, directory);
         assert_eq!(
             settings.database_location,
-            directory.join(DEFAULT_DATABASE_FILE_NAME)
+            directory.get_path().join(DEFAULT_DATABASE_FILE_NAME)
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
         assert_eq!(settings.zoom_percentage, 100f64);
@@ -166,7 +177,7 @@ pub mod tests {
     pub async fn init_settings_and_get_existing_setting_read_from_disk() {
         // Arrange
 
-        let directory = create_temp_directory().await;
+        let directory = SettingsDirectory::new(create_temp_directory().await);
         let mut settings = Settings::init_settings_and_get(directory.clone())
             .await
             .unwrap();

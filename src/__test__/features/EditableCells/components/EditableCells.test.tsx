@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
 import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
 import Cell from "../../../../types/backend/entity/cell";
@@ -13,10 +13,25 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../../stores/sync/managers/syncEventManager";
+import {
+	mockDndKit,
+	mockDragDropProvider,
+	mockUseDraggable,
+	mockUseDroppable,
+} from "../../../test-utils/dndMocks.tsx";
+import CellDropContainerData, {
+	CELL_DROP_CONTAINER_TYPE,
+} from "../../../../features/EditableCells/types/cellDropContainerData.ts";
+import DraggedCellData, {
+	DRAGGED_CELL_TYPE,
+} from "../../../../features/EditableCells/types/draggedCellData.ts";
+import { DragEndEvent } from "@dnd-kit/react";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
 vi.mock(import("../../../../features/EditableCells/hooks/useAutoSave"));
+vi.mock(import("../../../../utils/tauriUtils.ts"));
+vi.mock(import("@dnd-kit/react"));
 
 /** Creates a cell for testing where the id is equal to the index.
  */
@@ -76,6 +91,24 @@ function renderEditableCells({
 	return renderWithProviders(<Component />);
 }
 
+function createDragEndEventArg(
+	sourceData: DraggedCellData,
+	containerData: CellDropContainerData,
+) {
+	return {
+		operation: {
+			source: {
+				type: DRAGGED_CELL_TYPE,
+				data: sourceData,
+			},
+			target: {
+				type: CELL_DROP_CONTAINER_TYPE,
+				data: containerData,
+			},
+		},
+	};
+}
+
 describe("Scrolling", () => {
 	/** Cells which scrollIntoView was called on. */
 	let cellsScrolledIntoView: string[];
@@ -125,6 +158,8 @@ describe("Scrolling", () => {
 			onCellContentUpdate: vi.fn(),
 			saveChanges: vi.fn(),
 		});
+
+		mockDndKit();
 	});
 
 	it("Should scroll to initial selected cell", () => {
@@ -505,6 +540,17 @@ describe("Scrolling", () => {
 			},
 		});
 
+		const { getCapturedProviderProps } = mockDragDropProvider();
+		const dragEndEventArg = createDragEndEventArg(
+			{
+				cellId: "3",
+			},
+			{
+				type: "cell",
+				cellId: "2",
+			},
+		);
+
 		renderEditableCells({
 			cells: [
 				createTestCell(1),
@@ -523,15 +569,12 @@ describe("Scrolling", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.drop(screen.getByTestId("CellBlock-2"), {
-				dataTransfer: {
-					getData() {
-						return "3";
-					},
-				},
-			});
-		});
+		const capturedProps = getCapturedProviderProps();
+		expect(capturedProps).toHaveLength(1);
+		capturedProps[0].onDragEnd!(
+			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
+			null as unknown as Parameters<DragEndEvent>[1],
+		);
 
 		// Assert
 
@@ -569,6 +612,8 @@ describe("EditableCells logic", () => {
 			onCellContentUpdate: vi.fn(),
 			saveChanges: saveChangesMock,
 		});
+
+		mockDndKit();
 	});
 
 	it("Should always select a cell at the start", () => {
@@ -587,21 +632,29 @@ describe("EditableCells logic", () => {
 	it("Should call backend with correct arguments when dropping", async () => {
 		// Arrange
 
+		const { getCapturedProviderProps } = mockDragDropProvider();
+		const dragEndEventArg = createDragEndEventArg(
+			{
+				cellId: "3",
+			},
+			{
+				type: "cell",
+				cellId: "2",
+			},
+		);
+
 		renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 		});
 
 		// Act
 
-		act(() => {
-			fireEvent.drop(screen.getByTestId("CellBlock-2"), {
-				dataTransfer: {
-					getData() {
-						return "3";
-					},
-				},
-			});
-		});
+		const capturedProps = getCapturedProviderProps();
+		expect(capturedProps).toHaveLength(1);
+		capturedProps[0].onDragEnd!(
+			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
+			null as unknown as Parameters<DragEndEvent>[1],
+		);
 
 		// Assert
 
@@ -613,6 +666,17 @@ describe("EditableCells logic", () => {
 
 	it("Should call backend with correct arguments when dropping after forward", async () => {
 		// Arrange
+
+		const { getCapturedProviderProps } = mockDragDropProvider();
+		const dragEndEventArg = createDragEndEventArg(
+			{
+				cellId: "1",
+			},
+			{
+				type: "cell",
+				cellId: "3",
+			},
+		);
 
 		renderEditableCells({
 			cells: [
@@ -626,15 +690,12 @@ describe("EditableCells logic", () => {
 
 		// Act
 
-		act(() => {
-			fireEvent.drop(screen.getByTestId("CellBlock-3"), {
-				dataTransfer: {
-					getData() {
-						return "1";
-					},
-				},
-			});
-		});
+		const capturedProps = getCapturedProviderProps();
+		expect(capturedProps).toHaveLength(1);
+		capturedProps[0].onDragEnd!(
+			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
+			null as unknown as Parameters<DragEndEvent>[1],
+		);
 
 		// Assert
 
@@ -815,5 +876,49 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		expect(element).toBe(document.activeElement);
+	});
+
+	it("Should set drag and drop data correctly", () => {
+		// Arrange
+
+		const { getUseDraggableInputs } = mockUseDraggable();
+		const { getUseDroppableInputs } = mockUseDroppable();
+
+		// Act
+
+		renderEditableCells({
+			cells: [createTestCell(1)],
+			initialSelectedCellId: "1",
+		});
+
+		// Assert
+
+		const draggableInputs = getUseDraggableInputs();
+		expect(draggableInputs[0]).toMatchObject({
+			id: "draggable-1",
+			type: DRAGGED_CELL_TYPE,
+			data: {
+				cellId: "1",
+			} as DraggedCellData,
+			feedback: "clone",
+		});
+
+		const draggableOutputs = getUseDroppableInputs();
+		expect(draggableOutputs[0]).toStrictEqual({
+			id: "droppable-1",
+			type: CELL_DROP_CONTAINER_TYPE,
+			data: {
+				type: "cell",
+				cellId: "1",
+			} as CellDropContainerData,
+		});
+		// The droppable component re-renders twice.
+		expect(draggableOutputs[2]).toStrictEqual({
+			id: "add-cell-container",
+			type: CELL_DROP_CONTAINER_TYPE,
+			data: {
+				type: "add-cell-container",
+			} as CellDropContainerData,
+		});
 	});
 });

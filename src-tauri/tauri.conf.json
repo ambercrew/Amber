@@ -24,12 +24,6 @@
     }
   },
   "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFDMDNCMjYyQURFRDY0NEQKUldSTlpPMnRZcklESE5pTEdlL1NxSHVtcEkydUpnQXQ2Zjd3RVNURFNrNnRreHVaa1JJcnYxTmoK",
-      "endpoints": [
-        "https://github.com/ramialkawadri/Brainy/releases/download/latest/latest.json"
-      ]
-    }
   },
   "bundle": {
     "windows": {

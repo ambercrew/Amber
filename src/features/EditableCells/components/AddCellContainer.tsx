@@ -5,17 +5,24 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import { useState } from "react";
 import { CellType } from "../../../types/backend/entity/cell";
 import useGlobalKey from "../../../hooks/useGlobalKey";
-import { CELL_ID_DRAG_FORMAT } from "../config/constants";
 import Dialog from "../../../components/Dialog/Dialog";
+import { useDroppable } from "@dnd-kit/react";
+import CellDropContainerData, {
+	CELL_DROP_CONTAINER_TYPE,
+} from "../types/cellDropContainerData";
 
 interface Props {
-	onDrop: (e: React.DragEvent) => void;
 	onAddNewCell: (cellType: CellType) => void;
 }
 
-function AddCellContainer({ onDrop, onAddNewCell }: Props) {
+function AddCellContainer({ onAddNewCell }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
-	const [isDragOver, setIsDragOver] = useState(false);
+
+	const { ref: setDroppableNodeRef, isDropTarget } = useDroppable({
+		id: "add-cell-container",
+		type: CELL_DROP_CONTAINER_TYPE,
+		data: { type: "add-cell-container" } as CellDropContainerData,
+	});
 
 	useGlobalKey(
 		e => {
@@ -30,19 +37,6 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 		true,
 	);
 
-	const handleDragOver = (e: React.DragEvent) => {
-		if (!e.dataTransfer.types.some(t => t === CELL_ID_DRAG_FORMAT)) {
-			return;
-		}
-		e.preventDefault();
-		setIsDragOver(true);
-	};
-
-	const handleDrop = (e: React.DragEvent) => {
-		setIsDragOver(false);
-		onDrop(e);
-	};
-
 	const handleAddCellClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
 		setShowAddNewCellPopup(true);
@@ -52,10 +46,8 @@ function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 		<>
 			<div
 				className={`${styles.addButtonContainer}
-                    ${isDragOver ? styles.dragOver : ""}`}
-				onDragOver={handleDragOver}
-				onDrop={handleDrop}
-				onDragLeave={() => setIsDragOver(false)}>
+                    ${isDropTarget ? styles.dragOver : ""}`}
+				ref={setDroppableNodeRef}>
 				<button
 					className={`${styles.addButton} grey-button`}
 					onClick={handleAddCellClick}>

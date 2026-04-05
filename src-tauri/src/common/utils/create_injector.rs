@@ -17,8 +17,7 @@ use crate::{
         traits::brainy_backend_client::BrainyBackendClient,
     },
     backup::{
-        backup_service::{BackupDirectory, BackupService},
-        repositories::traits::backup_repository::BackupRepository,
+        backup_service::BackupService, repositories::traits::backup_repository::BackupRepository,
         sqlite_backup_repository::SqliteBackupRepository,
     },
     cells::{
@@ -48,7 +47,7 @@ use crate::{
         sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         traits::local_configuration_repository::LocalConfigurationRepository,
     },
-    settings::{Settings, get_settings_dir},
+    settings::{Settings, SettingsDirectory},
     sync::{
         repositories::{
             sqlite_sync_repository::SqliteSyncRepository, traits::sync_repository::SyncRepository,
@@ -57,12 +56,10 @@ use crate::{
     },
 };
 
-pub async fn create_injector() -> Injector {
+pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector {
     let mut injector = Injector::default();
 
-    let settings_directory = get_settings_dir()
-        .await
-        .expect("Cannot get settings directory!");
+    injector.register_singleton(Arc::new(settings_directory.clone()));
 
     #[cfg(not(test))]
     let settings = Settings::init_settings_and_get(settings_directory.clone())
@@ -91,7 +88,6 @@ pub async fn create_injector() -> Injector {
 
     injector.register_singleton(Arc::new(Mutex::new(settings)));
     injector.register_singleton(Arc::new(AiState::default()));
-    injector.register_singleton(Arc::new(BackupDirectory(settings_directory)));
     injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
 
     register_scope!(injector, dyn AiRepository, SqliteAiRepository);
@@ -131,7 +127,9 @@ pub fn register_scoped_tx(injector: &mut Injector) {
 
 #[cfg(test)]
 mod tests {
-    use crate::ai_integration::clients::mock_client::MockClient;
+    use crate::{
+        ai_integration::clients::mock_client::MockClient, test_utils::create_temp_directory,
+    };
 
     use super::*;
 
@@ -139,7 +137,8 @@ mod tests {
     pub async fn validate_created_injector() {
         // Arrange
 
-        let mut injector = create_injector().await;
+        let settings_directory = SettingsDirectory::new(create_temp_directory().await);
+        let mut injector = create_injector(settings_directory).await;
 
         // Needed for testing.
         injector.register_singleton(Arc::new(MockClient::default()));

@@ -8,6 +8,7 @@ import useAppDispatch from "../../../../hooks/useAppDispatch";
 import { setUserInformation } from "../../../../stores/user/userReducer";
 
 vi.mock(import("../../../../api/authApi.ts"));
+vi.mock(import("../../../../utils/tauriUtils.ts"));
 
 describe("SideBar", () => {
 	it("Should be able to verify email", async () => {

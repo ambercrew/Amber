@@ -17,6 +17,7 @@ interface Props {
 	folder: UiFolder;
 	fullPath: string;
 	isRoot: boolean;
+	depth: number;
 	onCreatingNewItemEnd: () => void;
 	onCreateNewFileClick: () => void;
 	onDelete: () => void;
@@ -28,6 +29,7 @@ function FileTreeItemChildren({
 	folder,
 	fullPath,
 	isRoot,
+	depth,
 	onCreatingNewItemEnd,
 	onCreateNewFileClick,
 	onDelete,
@@ -106,6 +108,7 @@ function FileTreeItemChildren({
 				<FileTreeItem
 					key={subFolder.id}
 					folder={subFolder}
+					depth={depth}
 					fullPath={
 						fullPath
 							? fullPath + "/" + subFolder.name
@@ -123,6 +126,7 @@ function FileTreeItemChildren({
 						<FileTreeItem
 							key={file.id}
 							folder={null}
+							depth={depth}
 							fullPath={
 								fullPath
 									? fullPath + "/" + file.name

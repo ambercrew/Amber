@@ -11,11 +11,13 @@ import { setSettings } from "../../../../stores/settings/settingsReducer.ts";
 import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager.ts";
 import * as syncActions from "../../../../stores/sync/syncActions.ts";
 import { Window } from "@tauri-apps/api/window";
+import { type } from "@tauri-apps/plugin-os";
 
 vi.mock(import("@tauri-apps/api/webview"));
 vi.mock(import("../../../../api/settingsApi.ts"));
 vi.mock(import("../../../../stores/sync/syncActions.ts"));
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
+vi.mock(import("@tauri-apps/plugin-os"));
 
 const getAndSetDefaultSettings = () => {
 	const settings: Settings = {
@@ -25,6 +27,7 @@ const getAndSetDefaultSettings = () => {
 		zoomPercentage: 150,
 		enableAi: true,
 		ollamaModelName: "",
+		ollamaEmbeddingsModelName: "",
 	};
 	const getSettingsMock = vi.mocked(getSettings);
 	getSettingsMock.mockReturnValue(Promise.resolve(settings));
@@ -36,6 +39,8 @@ describe("initialLoadAndApplySettings", () => {
 	let setThemeMock: ReturnType<typeof vi.fn>;
 
 	beforeEach(() => {
+		vi.mocked(type).mockReturnValue("windows");
+
 		setZoomMock = vi.fn();
 		setThemeMock = vi.fn();
 
@@ -177,6 +182,10 @@ describe("initialLoadAndApplySettings", () => {
 });
 
 describe("updateAndApplySettings", () => {
+	beforeEach(() => {
+		vi.mocked(type).mockReturnValue("windows");
+	});
+
 	it("Should update settings, apply them and then set the global state", async () => {
 		// Arrange
 
@@ -227,5 +236,41 @@ describe("updateAndApplySettings", () => {
 
 		expect(dispatch).toBeCalledWith(setSettings(settings));
 		expect(document.body.classList.contains("no-transition")).toBe(false);
+	});
+
+	it("Should add mobile class when on mobile", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+		vi.mocked(type).mockReturnValue("android");
+
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = updateAndApplySettings(settings);
+		await cb(dispatch);
+
+		// Assert
+
+		expect(document.body.classList.contains("mobile")).toBe(true);
+	});
+
+	it("Should not add mobile class when on mobile", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+		vi.mocked(type).mockReturnValue("linux");
+
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = updateAndApplySettings(settings);
+		await cb(dispatch);
+
+		// Assert
+
+		expect(document.body.classList.contains("mobile")).toBe(false);
 	});
 });

@@ -14,16 +14,23 @@
 
 .file-tree-row-container {
 	width: 100%;
-	transition: all var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
 	margin-bottom: var(--spacing-1);
+
+	&.dragging {
+		opacity: var(--dragged-opacity);
+	}
 
 	&:hover > .file-tree-dots,
 	&:focus > .file-tree-dots,
 	&:focus-within > .file-tree-dots {
 		opacity: 1;
 	}
+}
+
+:global(body.mobile) .file-tree-dots {
+	opacity: 1;
 }
 
 .file-tree-row {

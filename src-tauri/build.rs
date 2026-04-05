@@ -25,6 +25,13 @@ fn setup_sqlx() {
     fs::write(&env_file, env_content).expect("Cannot write .env variable");
     println!(".env file created");
 
+    // Sometimes .env file is not used in Windows.
+    println!("cargo:rustc-env=DATABASE_URL={db_url}");
+    unsafe {
+        std::env::set_var("DATABASE_URL", &db_url);
+    }
+    println!("Environment variable set");
+
     if db_path.exists() {
         fs::remove_file(&db_path).expect("Cannot remove database");
         println!("removed previous temp.db file");

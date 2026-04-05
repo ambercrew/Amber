@@ -22,6 +22,11 @@ import CancellableInput from "../../../components/CancellableInput/CancellableIn
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import useOutsideContextMenu from "../../../hooks/useOutsideContextMenu";
 import { FileTreeItemRef } from "./FileTreeItem";
+import { useDraggable } from "@dnd-kit/react";
+import DraggedFileItemData, {
+	DRAGGED_FILE_ITEM_TYPE,
+} from "../types/draggedFileItemData";
+import mergeRefs from "../../../utils/mergeRefs";
 
 interface Props {
 	isRoot: boolean;
@@ -33,7 +38,6 @@ interface Props {
 	actions: Action[];
 	fullPath: string;
 	ref?: React.Ref<FileTreeItemRef>;
-	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
 	onShowActions: () => void;
 	onHideActions: () => void;
@@ -51,7 +55,6 @@ export default function FileTreeItemRow({
 	actions,
 	fullPath,
 	ref,
-	onDragStart,
 	onRenameEnd,
 	onShowActions,
 	onClick,
@@ -65,6 +68,18 @@ export default function FileTreeItemRow({
 	const isSelected = selectedFileId === id && !isRoot;
 	const containerRef = useRef<HTMLDivElement>(null);
 	const buttonRef = useRef<HTMLButtonElement>(null);
+
+	const {
+		ref: setDragRef,
+		handleRef: setHandleDragRef,
+		isDragging,
+	} = useDraggable({
+		id,
+		type: DRAGGED_FILE_ITEM_TYPE,
+		disabled: isRoot || isRenaming,
+		data: { id, isFolder } as DraggedFileItemData,
+		feedback: "clone",
+	});
 
 	useOutsideClick(
 		containerRef as React.RefObject<HTMLElement>,
@@ -130,18 +145,16 @@ export default function FileTreeItemRow({
 	return (
 		<>
 			<div
-				className={`${styles.fileTreeRowContainer}`}
-				draggable={!isRoot && !isRenaming}
-				onDragStart={onDragStart}
-				onContextMenu={handleContextMenu}
-				ref={containerRef}>
+				ref={mergeRefs(containerRef, setDragRef)}
+				className={`${styles.fileTreeRowContainer} ${isDragging && styles.dragging}`}
+				onContextMenu={handleContextMenu}>
 				{!isRenaming && (
 					<>
 						<button
 							className={`${styles.fileTreeRow}
                             ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
 							onClick={onClick}
-							ref={buttonRef}>
+							ref={mergeRefs(buttonRef, setHandleDragRef)}>
 							<Icon path={iconPath} size={1} />
 							<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
 						</button>

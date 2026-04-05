@@ -27,6 +27,7 @@ use tokio::sync::Mutex;
 use tokio_rusqlite::Connection;
 use tokio_stream::StreamExt;
 
+use crate::Guid;
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
 use crate::ai_integration::clients::multi_client::multi_embedding_model::MultiEmbeddingModel;
@@ -39,8 +40,7 @@ use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::traits::cell_repository::CellRepository;
-use crate::settings::SettingsError;
-use crate::{Guid, settings};
+use crate::settings::{SettingsDirectory, SettingsError};
 use crate::{
     ai_integration::{
         ai_state::AiState,
@@ -116,6 +116,7 @@ impl From<String> for AiServiceError {
 #[derive(ScopeInjectable)]
 pub struct AiService {
     settings: Arc<Mutex<Settings>>,
+    settings_directory: Arc<SettingsDirectory>,
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
     cell_repository: Arc<dyn CellRepository>,
@@ -263,7 +264,7 @@ impl AiService {
             .get_multi_client()
             .await?
             .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
-        let vector_store = get_sqlite_vector_store(&embed_model).await?;
+        let vector_store = self.get_sqlite_vector_store(&embed_model).await?;
         let index = Arc::new(vector_store.index(embed_model));
 
         let mut tools: Vec<Box<dyn ToolDyn>> = vec![Box::new(SearchDocuments::new(index, chat_id))];
@@ -389,7 +390,7 @@ impl AiService {
 
         let embeddings = embeddings_builder.build().await?;
 
-        let vector_store = get_sqlite_vector_store(&embed_model).await?;
+        let vector_store = self.get_sqlite_vector_store(&embed_model).await?;
         vector_store.add_rows(embeddings).await.unwrap();
 
         self.ai_repository
@@ -486,22 +487,22 @@ impl AiService {
             Ok(model_name)
         }
     }
-}
 
-async fn get_sqlite_vector_store(
-    embed_model: &MultiEmbeddingModel,
-) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiServiceError> {
-    let settings_dir = settings::get_settings_dir().await?;
-    let path = settings_dir.join("vector_store.db");
-    let conn = match Connection::open(path.to_str().unwrap()).await {
-        Err(err) => {
-            return Err(AiServiceError::ConnectingToEmbeddingsDatabase(
-                err.to_string(),
-            ));
-        }
-        Ok(conn) => conn,
-    };
-    Ok(SqliteVectorStore::new(conn, embed_model).await?)
+    async fn get_sqlite_vector_store(
+        &self,
+        embed_model: &MultiEmbeddingModel,
+    ) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiServiceError> {
+        let path = self.settings_directory.get_path().join("vector_store.db");
+        let conn = match Connection::open(path.to_str().unwrap()).await {
+            Err(err) => {
+                return Err(AiServiceError::ConnectingToEmbeddingsDatabase(
+                    err.to_string(),
+                ));
+            }
+            Ok(conn) => conn,
+        };
+        Ok(SqliteVectorStore::new(conn, embed_model).await?)
+    }
 }
 
 #[cfg(test)]
@@ -1150,7 +1151,8 @@ pub mod tests {
         }
 
         let multi_embedding_model = MultiEmbeddingModel::Mock(mock_client);
-        let store = get_sqlite_vector_store(&multi_embedding_model)
+        let store = service
+            .get_sqlite_vector_store(&multi_embedding_model)
             .await
             .unwrap();
         let index = Arc::new(store.index(multi_embedding_model));

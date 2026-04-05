@@ -1,10 +1,10 @@
 import { getSettings, updateSettings } from "../../api/settingsApi";
 import { AppDispatch } from "../store";
 import { setSettings } from "./settingsReducer";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
 import Settings from "../../types/backend/model/settings";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
+import { tryGetCurrentWebView, isMobile } from "../../utils/tauriUtils";
 
 export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
@@ -36,7 +36,7 @@ async function applySettings(settings: Settings, dispatch: AppDispatch) {
 
 		if (settings.theme === "FollowSystem") {
 			// Making the window follow the operating system so that the next check is correct.
-			await getCurrentWebview().window.setTheme(null);
+			await tryGetCurrentWebView()?.window.setTheme(null);
 		}
 
 		if (
@@ -45,14 +45,20 @@ async function applySettings(settings: Settings, dispatch: AppDispatch) {
 				window.matchMedia &&
 				window.matchMedia("(prefers-color-scheme: dark)").matches)
 		) {
-			await getCurrentWebview().window.setTheme("dark");
+			await tryGetCurrentWebView()?.window.setTheme("dark");
 			document.body.classList.add("dark");
 		} else {
-			await getCurrentWebview().window.setTheme("light");
+			await tryGetCurrentWebView()?.window.setTheme("light");
 			document.body.classList.remove("dark");
 		}
 
-		await getCurrentWebview().setZoom(settings.zoomPercentage / 100);
+		if (isMobile()) {
+			document.body.classList.add("mobile");
+		} else {
+			document.body.classList.remove("mobile");
+		}
+
+		await tryGetCurrentWebView()?.setZoom(settings.zoomPercentage / 100);
 
 		// Adding the event to the close manager is done here,
 		// however sync on start is done on app start.
