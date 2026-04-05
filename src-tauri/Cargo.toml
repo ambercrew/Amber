@@ -16,7 +16,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 prost-build = "0.14.3"
-tauri-build = { version = "2.5.5", features = [] }
+tauri-build = { version = "2.5.6", features = [] }
 
 [dependencies]
 async-stream = "0.3.6"
@@ -45,27 +45,27 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 serde_repr = "0.1.20"
 simple_logger = "5.2.0"
-sqlite-vec = "0.1.6"
+sqlite-vec = "0.1.9"
 sqlx = { version = "0.8.6", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite", "chrono", "uuid" ] }
 tauri = { version = "2.10.2", features = ["test"] }
 tauri-plugin-clipboard-manager = "2"
-tauri-plugin-dialog = "2.6.0"
+tauri-plugin-dialog = "2.7.0"
 tauri-plugin-opener = "2.5.3"
 tauri-plugin-os = "2"
 tauri-plugin-process = "2.3.1"
 text-splitter = "0.29.3"
 thiserror = "2.0.18"
-tokio = { version = "1.49.0", features = ["full"] }
+tokio = { version = "1.51.0", features = ["full"] }
 tokio-rusqlite = "0.6.0"
 tokio-stream = "0.1.18"
-uuid = { version = "1.21.0", features = [ "v4", "serde" ] }
+uuid = { version = "1.23.0", features = [ "v4", "serde" ] }
 
 [dev-dependencies]
 mockall = "0.14.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-single-instance = "2.4.0"
-tauri-plugin-updater = "2.10.0"
+tauri-plugin-single-instance = "2.4.1"
+tauri-plugin-updater = "2.10.1"
 tauri-plugin-window-state = "2.4.1"
 
 [target.'cfg(target_os = "android")'.dependencies]
