@@ -978,8 +978,7 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn sync_with_backend_existing_entity_with_older_modified_date_locally_entity_updated()
-    {
+    pub async fn sync_with_backend_existing_entity_with_older_modified_date_local_entity_updated() {
         // Arrange
 
         let user_id = Guid::new_v4();
@@ -1070,7 +1069,7 @@ mod tests {
             .create(&Cell::new_unchecked(
                 cell_id,
                 Utc::now(),
-                Utc::now() - Duration::minutes(1),
+                Utc::now() - Duration::minutes(2),
                 file_id,
                 "old content".to_string(),
                 CellType::FlashCard,
@@ -1101,10 +1100,9 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(1, files.len());
-        assert!(
-            files
-                .iter()
-                .any(|f| f.name() == FileSystemItemName::new_unchecked("new name".to_string()))
+        assert_eq!(
+            files[0].name(),
+            FileSystemItemName::new_unchecked("new name".to_string())
         );
 
         let cells = scope
