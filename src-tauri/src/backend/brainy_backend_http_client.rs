@@ -77,7 +77,7 @@ impl BrainyBackendHttpClient {
 
 #[async_trait]
 impl BrainyBackendClient for BrainyBackendHttpClient {
-    async fn log_in(
+    async fn sign_in(
         &self,
         username: String,
         password: String,

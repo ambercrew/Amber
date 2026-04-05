@@ -17,7 +17,7 @@ pub async fn sign_in(
     scope
         .resolve::<dyn BrainyBackendClient>()
         .await
-        .log_in(username, password)
+        .sign_in(username, password)
         .await?;
     Ok(())
 }

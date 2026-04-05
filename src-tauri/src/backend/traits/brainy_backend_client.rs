@@ -30,7 +30,7 @@ pub enum BrainyBackendClientError {
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait BrainyBackendClient: Send + Sync {
-    async fn log_in(
+    async fn sign_in(
         &self,
         username: String,
         password: String,
