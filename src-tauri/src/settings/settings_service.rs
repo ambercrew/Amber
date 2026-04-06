@@ -3,20 +3,28 @@ use std::sync::Arc;
 use injector_derive::ScopeInjectable;
 use thiserror::Error;
 
-use crate::settings::{
-    dto::update_settings_request::UpdateSettingsRequest,
-    repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
+use crate::{
+    infrastructure::traits::database_connection_manager::{
+        DatabaseConnectionManager, DatabaseConnectionManagerError,
+    },
+    settings::{
+        dto::update_settings_request::UpdateSettingsRequest,
+        repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
+    },
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum SettingsServiceError {
     #[error("{0}")]
     SettingsRepositoryError(#[from] SettingsRepositoryError),
+    #[error("{0}")]
+    DatabaseConnectionManagerError(#[from] DatabaseConnectionManagerError),
 }
 
 #[derive(ScopeInjectable)]
 pub struct SettingsService {
     settings_repository: Arc<dyn SettingsRepository>,
+    database_connection_manager: Arc<dyn DatabaseConnectionManager>,
 }
 
 impl SettingsService {
@@ -30,16 +38,10 @@ impl SettingsService {
             && settings.database_location != database_location
         {
             settings.database_location = database_location;
-            // TODO: update frontend to refresh
-            // TODO: should be something else, not coupled to sqlite database
-            // TODO:
-            // let new_pool =
-            //     create_sqlite_pool(&format!("sqlite:///{}", settings.database_location)).await?;
-            //
-            // let pool = scope.resolve::<DbPool>().await;
-            // let mut pool = pool.lock().await;
-            //
-            // *pool = new_pool.into_inner();
+            // TODO: unit test
+            self.database_connection_manager
+                .change_database_location(&settings.database_location)
+                .await?;
         }
         if let Some(theme) = new_settings.theme {
             settings.theme = theme;

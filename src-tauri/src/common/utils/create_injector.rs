@@ -4,9 +4,13 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+use crate::infrastructure::traits::database_connection_manager::DatabaseConnectionManager;
+use crate::infrastructure::{
+    models::app_data_directory::AppDataDirectory,
+    sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
+};
 #[cfg(test)]
 use crate::settings::entities::settings::Settings;
-use crate::settings::value_objects::settings_directory::SettingsDirectory;
 use crate::{
     ai_integration::{
         ai_service::AiService,
@@ -65,13 +69,13 @@ use crate::{
     },
 };
 
-pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector {
+pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     let mut injector = Injector::default();
 
-    injector.register_singleton(Arc::new(settings_directory.clone()));
+    injector.register_singleton(Arc::new(app_data_directory.clone()));
 
     #[cfg(not(test))]
-    let settings = DiskSettingsRepository::init_settings_and_get(&settings_directory)
+    let settings = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
         .await
         .unwrap();
 
@@ -121,6 +125,13 @@ pub async fn create_injector(settings_directory: SettingsDirectory) -> Injector 
     register_scope!(injector, FsrsService);
     register_scope!(injector, SyncService);
     register_scope!(injector, SettingsService);
+
+    register_scope!(
+        injector,
+        dyn DatabaseConnectionManager,
+        SqliteDatabaseConnectionManager
+    );
+
     register_scoped_tx(&mut injector);
 
     injector
@@ -149,8 +160,8 @@ mod tests {
     pub async fn validate_created_injector() {
         // Arrange
 
-        let settings_directory = SettingsDirectory::new(create_temp_directory().await);
-        let mut injector = create_injector(settings_directory).await;
+        let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
+        let mut injector = create_injector(app_data_directory).await;
 
         // Needed for testing.
         injector.register_singleton(Arc::new(MockClient::default()));

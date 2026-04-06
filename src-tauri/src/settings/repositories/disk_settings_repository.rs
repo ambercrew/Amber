@@ -8,10 +8,12 @@ use tokio::{
     sync::Mutex,
 };
 
-use crate::settings::{
-    entities::settings::Settings,
-    repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
-    value_objects::settings_directory::SettingsDirectory,
+use crate::{
+    infrastructure::models::app_data_directory::AppDataDirectory,
+    settings::{
+        entities::settings::Settings,
+        repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
+    },
 };
 
 #[cfg(not(debug_assertions))]
@@ -24,24 +26,24 @@ const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 #[derive(ScopeInjectable)]
 pub struct DiskSettingsRepository {
     settings: Arc<Mutex<Settings>>,
-    settings_directory: Arc<SettingsDirectory>,
+    app_data_directory: Arc<AppDataDirectory>,
 }
 
 impl DiskSettingsRepository {
     pub async fn init_settings_and_get(
-        settings_directory: &SettingsDirectory,
+        app_data_directory: &AppDataDirectory,
     ) -> Result<Settings, SettingsRepositoryError> {
-        if settings_directory
+        if app_data_directory
             .get_path()
             .join(SETTINGS_FILE_NAME)
             .exists()
         {
-            read_settings_from_file(settings_directory).await
+            read_settings_from_file(app_data_directory).await
         } else {
             use crate::settings::value_objects::theme::Theme;
 
             let settings = Settings {
-                database_location: settings_directory
+                database_location: app_data_directory
                     .get_path()
                     .join(DEFAULT_DATABASE_FILE_NAME)
                     .to_str()
@@ -54,18 +56,18 @@ impl DiskSettingsRepository {
                 ollama_model_name: None,
                 ollama_embeddings_model_name: None,
             };
-            save_to_disk_inner(&settings, settings_directory).await?;
+            save_to_disk_inner(&settings, app_data_directory).await?;
             Ok(settings)
         }
     }
 }
 
 async fn read_settings_from_file(
-    settings_directory: &SettingsDirectory,
+    app_data_directory: &AppDataDirectory,
 ) -> Result<Settings, SettingsRepositoryError> {
     use tokio::fs::File;
 
-    let settings_path = settings_directory.get_path().join(SETTINGS_FILE_NAME);
+    let settings_path = app_data_directory.get_path().join(SETTINGS_FILE_NAME);
     log::info!("Reading settings from '{SETTINGS_FILE_NAME}'.");
     let mut file = match File::open(settings_path).await {
         Err(err) => return Err(SettingsRepositoryError::ErrorOpeningFile(err.to_string())),
@@ -89,7 +91,7 @@ impl SettingsRepository for DiskSettingsRepository {
 
     async fn save_settings(&self, settings: Settings) -> Result<(), SettingsRepositoryError> {
         let mut current_settings = self.settings.lock().await;
-        save_to_disk_inner(&settings, &self.settings_directory).await?;
+        save_to_disk_inner(&settings, &self.app_data_directory).await?;
         *current_settings = settings;
         Ok(())
     }
@@ -97,9 +99,9 @@ impl SettingsRepository for DiskSettingsRepository {
 
 async fn save_to_disk_inner(
     settings: &Settings,
-    directory: &SettingsDirectory,
+    app_data_directory: &AppDataDirectory,
 ) -> Result<(), SettingsRepositoryError> {
-    let path = directory.get_path().join(SETTINGS_FILE_NAME);
+    let path = app_data_directory.get_path().join(SETTINGS_FILE_NAME);
     log::info!("Saving settings into '{}'.", path.to_str().unwrap());
     match fs::write(path, serde_json::to_string(settings).unwrap()).await {
         Ok(_) => Ok(()),
@@ -119,7 +121,7 @@ pub mod tests {
     pub async fn init_settings_and_get_new_settings_created_and_saved_to_disk() {
         // Arrange
 
-        let directory = SettingsDirectory::new(create_temp_directory().await);
+        let directory = AppDataDirectory::new(create_temp_directory().await);
 
         // Act
 
@@ -153,14 +155,14 @@ pub mod tests {
     pub async fn init_settings_and_get_existing_setting_read_from_disk() {
         // Arrange
 
-        let directory = SettingsDirectory::new(create_temp_directory().await);
+        let directory = AppDataDirectory::new(create_temp_directory().await);
         let mut settings = DiskSettingsRepository::init_settings_and_get(&directory)
             .await
             .unwrap();
         settings.zoom_percentage = 1f64;
 
         let settings_repository = DiskSettingsRepository {
-            settings_directory: Arc::new(directory.clone()),
+            app_data_directory: Arc::new(directory.clone()),
             settings: Arc::new(Mutex::new(settings.clone())),
         };
         settings_repository.save_settings(settings).await.unwrap();

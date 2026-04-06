@@ -138,6 +138,14 @@ export default function Settings({ onClose }: Props) {
 				await dispatch(updateAndApplySettings(state.localSettings));
 			}
 
+			if (
+				state.localSettings?.databaseLocation !==
+				globalSettings?.databaseLocation
+			) {
+				// TODO: unit test
+				location.href = "/";
+			}
+
 			onClose();
 		});
 	};

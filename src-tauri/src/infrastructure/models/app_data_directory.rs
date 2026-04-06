@@ -3,10 +3,9 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct SettingsDirectory(PathBuf);
+pub struct AppDataDirectory(PathBuf);
 
-// TODO: rename to app data directory
-impl SettingsDirectory {
+impl AppDataDirectory {
     pub fn new(path_buf: PathBuf) -> Self {
         Self(path_buf)
     }
@@ -16,7 +15,7 @@ impl SettingsDirectory {
     }
 }
 
-impl AsRef<PathBuf> for SettingsDirectory {
+impl AsRef<PathBuf> for AppDataDirectory {
     fn as_ref(&self) -> &PathBuf {
         &self.0
     }

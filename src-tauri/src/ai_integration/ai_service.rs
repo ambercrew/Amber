@@ -40,10 +40,10 @@ use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::traits::cell_repository::CellRepository;
+use crate::infrastructure::models::app_data_directory::AppDataDirectory;
 use crate::settings::repositories::traits::settings_repository::{
     SettingsRepository, SettingsRepositoryError,
 };
-use crate::settings::value_objects::settings_directory::SettingsDirectory;
 use crate::{
     ai_integration::{
         ai_state::AiState,
@@ -118,7 +118,7 @@ impl From<String> for AiServiceError {
 #[derive(ScopeInjectable)]
 pub struct AiService {
     settings_repository: Arc<dyn SettingsRepository>,
-    settings_directory: Arc<SettingsDirectory>,
+    app_data_directory: Arc<AppDataDirectory>,
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
     cell_repository: Arc<dyn CellRepository>,
@@ -492,7 +492,7 @@ impl AiService {
         &self,
         embed_model: &MultiEmbeddingModel,
     ) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiServiceError> {
-        let path = self.settings_directory.get_path().join("vector_store.db");
+        let path = self.app_data_directory.get_path().join("vector_store.db");
         let conn = match Connection::open(path.to_str().unwrap()).await {
             Err(err) => {
                 return Err(AiServiceError::ConnectingToEmbeddingsDatabase(
