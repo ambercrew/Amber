@@ -34,7 +34,6 @@ impl File {
         }
     }
 
-    /// Used for unit testing, or repositories when reconstructing a file.
     pub fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,

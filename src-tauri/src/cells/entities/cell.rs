@@ -69,7 +69,6 @@ impl Cell {
         output
     }
 
-    /// Used for unit testing, or repositories when reconstructing a cell.
     #[allow(clippy::too_many_arguments)]
     pub fn new_unchecked(
         id: Guid,

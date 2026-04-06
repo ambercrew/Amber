@@ -34,7 +34,6 @@ impl Folder {
         }
     }
 
-    /// Used for unit testing, or repositories when reconstructing a folder.
     pub fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,

@@ -28,7 +28,6 @@ impl Message {
         }
     }
 
-    /// Used for unit testing, or repositories when reconstructing a message.
     pub(in crate::ai_integration) fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,

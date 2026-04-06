@@ -19,7 +19,6 @@ impl Chat {
         }
     }
 
-    /// Used for unit testing, or repositories when reconstructing a chat.
     pub fn new_unchecked(id: Guid, created_date: DateTime<Utc>, title: String) -> Self {
         Self {
             id,
