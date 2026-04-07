@@ -10,15 +10,18 @@ use crate::{
     settings::{
         dto::update_settings_request::UpdateSettingsRequest,
         repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
+        value_objects::database_location::{DatabaseLocation, DatabaseLocationError},
     },
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum SettingsServiceError {
     #[error("{0}")]
-    SettingsRepositoryError(#[from] SettingsRepositoryError),
+    SettingsRepository(#[from] SettingsRepositoryError),
     #[error("{0}")]
-    DatabaseConnectionManagerError(#[from] DatabaseConnectionManagerError),
+    DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
+    #[error("{0}")]
+    DatabaseLocation(#[from] DatabaseLocationError),
 }
 
 #[derive(ScopeInjectable)]
@@ -34,13 +37,14 @@ impl SettingsService {
     ) -> Result<(), SettingsServiceError> {
         let mut settings = self.settings_repository.get_settings().await;
 
-        if let Some(database_location) = new_settings.database_location
-            && settings.database_location != database_location
-        {
-            settings.database_location = database_location;
-            self.database_connection_manager
-                .change_database_location(&settings.database_location)
-                .await?;
+        if let Some(new_database_location) = new_settings.database_location {
+            let new_database_location = DatabaseLocation::try_from(&new_database_location)?;
+            if new_database_location != settings.database_location {
+                settings.database_location = new_database_location;
+                self.database_connection_manager
+                    .change_database_location(&settings.database_location)
+                    .await?;
+            }
         }
         if let Some(theme) = new_settings.theme {
             settings.theme = theme;
@@ -105,21 +109,43 @@ mod tests {
         // Arrange
 
         let request = UpdateSettingsRequest {
-            database_location: Some("new path".into()),
+            database_location: Some("/new path".into()),
             ..Default::default()
         };
 
         let mut database_connection_manager = MockDatabaseConnectionManager::new();
         database_connection_manager
             .expect_change_database_location()
-            .withf(|val| val == "new path")
+            .withf(|val| val.to_string() == "/new path")
             .returning(|_| Box::pin(async { Ok(()) }));
 
         let injector = initialize_test_injector(database_connection_manager).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<SettingsService>().await;
 
-        // Act
+        // Act & Assert
+
+        service.update_settings(request).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn update_settings_did_not_update_database_location_did_not_call_manager() {
+        // Arrange
+
+        let request = UpdateSettingsRequest {
+            ..Default::default()
+        };
+
+        let mut database_connection_manager = MockDatabaseConnectionManager::new();
+        database_connection_manager
+            .expect_change_database_location()
+            .never();
+
+        let injector = initialize_test_injector(database_connection_manager).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<SettingsService>().await;
+
+        // Act & Assert
 
         service.update_settings(request).await.unwrap();
     }

@@ -4,6 +4,8 @@ use thiserror::Error;
 #[cfg(test)]
 use mockall::automock;
 
+use crate::settings::value_objects::database_location::DatabaseLocation;
+
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum DatabaseConnectionManagerError {
     #[error("Error changing the database: {0}")]
@@ -15,6 +17,6 @@ pub enum DatabaseConnectionManagerError {
 pub trait DatabaseConnectionManager: Send + Sync {
     async fn change_database_location(
         &self,
-        path: &str,
+        database_location: &DatabaseLocation,
     ) -> Result<(), DatabaseConnectionManagerError>;
 }

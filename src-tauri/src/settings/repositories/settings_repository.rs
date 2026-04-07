@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use thiserror::Error;
 
-use crate::settings::entities::settings::Settings;
+use crate::settings::{
+    entities::settings::Settings, value_objects::database_location::DatabaseLocationError,
+};
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum SettingsRepositoryError {
@@ -13,6 +15,8 @@ pub enum SettingsRepositoryError {
     ParsingError(String),
     #[error("Error when saving the settings file!")]
     SavingError(String),
+    #[error("{0}")]
+    DatabaseLocationError(#[from] DatabaseLocationError),
 }
 
 #[async_trait]

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use crate::settings::value_objects::{database_location::DatabaseLocation, theme::Theme};
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 use tokio::{
@@ -40,15 +41,14 @@ impl DiskSettingsRepository {
         {
             read_settings_from_file(app_data_directory).await
         } else {
-            use crate::settings::value_objects::theme::Theme;
+            let database_location = DatabaseLocation::new(
+                app_data_directory
+                    .get_path()
+                    .join(DEFAULT_DATABASE_FILE_NAME),
+            )?;
 
             let settings = Settings {
-                database_location: app_data_directory
-                    .get_path()
-                    .join(DEFAULT_DATABASE_FILE_NAME)
-                    .to_str()
-                    .unwrap()
-                    .into(),
+                database_location,
                 theme: Theme::FollowSystem,
                 zoom_percentage: 100f64,
                 auto_sync: true,
@@ -121,20 +121,25 @@ pub mod tests {
     pub async fn init_settings_and_get_new_settings_created_and_saved_to_disk() {
         // Arrange
 
-        let directory = AppDataDirectory::new(create_temp_directory().await);
+        let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
 
         // Act
 
-        DiskSettingsRepository::init_settings_and_get(&directory)
+        DiskSettingsRepository::init_settings_and_get(&app_data_directory)
             .await
             .unwrap();
 
         // Assert
 
-        assert!(directory.get_path().join(SETTINGS_FILE_NAME).exists());
+        assert!(
+            app_data_directory
+                .get_path()
+                .join(SETTINGS_FILE_NAME)
+                .exists()
+        );
 
         let mut file_content = String::new();
-        File::open(directory.get_path().join(SETTINGS_FILE_NAME))
+        File::open(app_data_directory.get_path().join(SETTINGS_FILE_NAME))
             .await
             .unwrap()
             .read_to_string(&mut file_content)
@@ -143,8 +148,10 @@ pub mod tests {
 
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
         assert_eq!(
-            settings.database_location,
-            directory.get_path().join(DEFAULT_DATABASE_FILE_NAME)
+            settings.database_location.get_path().clone(),
+            app_data_directory
+                .get_path()
+                .join(DEFAULT_DATABASE_FILE_NAME)
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
         assert_eq!(settings.zoom_percentage, 100f64);
@@ -155,21 +162,21 @@ pub mod tests {
     pub async fn init_settings_and_get_existing_setting_read_from_disk() {
         // Arrange
 
-        let directory = AppDataDirectory::new(create_temp_directory().await);
-        let mut settings = DiskSettingsRepository::init_settings_and_get(&directory)
+        let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
+        let mut settings = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
             .await
             .unwrap();
         settings.zoom_percentage = 1f64;
 
         let settings_repository = DiskSettingsRepository {
-            app_data_directory: Arc::new(directory.clone()),
+            app_data_directory: Arc::new(app_data_directory.clone()),
             settings: Arc::new(Mutex::new(settings.clone())),
         };
         settings_repository.save_settings(settings).await.unwrap();
 
         // Act
 
-        let actual = DiskSettingsRepository::init_settings_and_get(&directory)
+        let actual = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
             .await
             .unwrap();
 

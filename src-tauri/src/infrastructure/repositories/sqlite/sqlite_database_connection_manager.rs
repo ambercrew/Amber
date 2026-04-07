@@ -9,6 +9,7 @@ use crate::{
         DatabaseConnectionManager, DatabaseConnectionManagerError,
     },
     infrastructure::value_objects::db_pool::DbPool,
+    settings::value_objects::database_location::DatabaseLocation,
 };
 
 #[derive(ScopeInjectable)]
@@ -20,9 +21,9 @@ pub struct SqliteDatabaseConnectionManager {
 impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
     async fn change_database_location(
         &self,
-        path: &str,
+        database_location: &DatabaseLocation,
     ) -> Result<(), DatabaseConnectionManagerError> {
-        let new_pool = match create_sqlite_pool(&format!("sqlite:///{}", path)).await {
+        let new_pool = match create_sqlite_pool(&format!("sqlite:///{}", database_location)).await {
             Err(err) => {
                 return Err(DatabaseConnectionManagerError::ErrorChangingDatabase(
                     err.to_string(),
