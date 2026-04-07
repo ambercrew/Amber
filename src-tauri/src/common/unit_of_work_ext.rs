@@ -1,8 +1,10 @@
 use async_trait::async_trait;
 use injector::injector_scope::InjectorScope;
-use tokio::sync::Mutex;
 
-use crate::common::{DbPool, DbTransaction};
+use crate::infrastructure::primitives::{
+    db_pool::DbPool,
+    db_transaction::{DbTransaction, SqliteTransaction},
+};
 
 #[async_trait]
 pub trait UnitOfWorkExt {
@@ -12,6 +14,7 @@ pub trait UnitOfWorkExt {
     ) -> Result<(), sqlx::Error>;
 }
 
+// TODO: should be in infra
 #[async_trait]
 impl<'a> UnitOfWorkExt for InjectorScope<'a> {
     async fn save_changes(&self) -> Result<(), sqlx::Error> {
@@ -27,7 +30,7 @@ impl<'a> UnitOfWorkExt for InjectorScope<'a> {
     ) -> Result<(), sqlx::Error> {
         log::info!("Disabling foreign key constraint");
 
-        let tx = self.resolve::<Mutex<DbTransaction>>().await;
+        let tx = self.resolve::<DbTransaction>().await;
         let mut tx = tx.lock().await;
         let tx = tx.as_mut();
 
@@ -42,8 +45,8 @@ impl<'a> UnitOfWorkExt for InjectorScope<'a> {
 }
 
 /// Returns the old transaction.
-async fn replace_current_transaction_with_new_one(scope: &InjectorScope<'_>) -> DbTransaction {
-    let tx = scope.resolve::<Mutex<DbTransaction>>().await;
+async fn replace_current_transaction_with_new_one(scope: &InjectorScope<'_>) -> SqliteTransaction {
+    let tx = scope.resolve::<DbTransaction>().await;
     let pool = scope.resolve::<DbPool>().await;
     let pool = pool.lock().await;
 

@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use chrono::{DateTime, Datelike, NaiveDate, NaiveTime, Utc};
 use injector_derive::ScopeInjectable;
 use sqlx::{QueryBuilder, SqliteConnection};
-use tokio::sync::Mutex;
 
 use crate::{
     Guid,
@@ -22,12 +21,13 @@ use crate::{
             traits::cell_repository::{CellRepository, MoveDirection},
         },
     },
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
+    infrastructure::primitives::db_transaction::DbTransaction,
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteCellRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]

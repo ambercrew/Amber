@@ -40,7 +40,7 @@ use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::traits::cell_repository::CellRepository;
-use crate::infrastructure::models::app_data_directory::AppDataDirectory;
+use crate::infrastructure::primitives::app_data_directory::AppDataDirectory;
 use crate::settings::repositories::traits::settings_repository::{
     SettingsRepository, SettingsRepositoryError,
 };

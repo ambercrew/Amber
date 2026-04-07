@@ -3,11 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
-use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
     fsrs::entities::{
         fsrs_profile::FsrsProfile,
         repositories::{
@@ -15,11 +14,12 @@ use crate::{
             traits::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
         },
     },
+    infrastructure::primitives::db_transaction::DbTransaction,
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFsrsRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]

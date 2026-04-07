@@ -3,7 +3,6 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
-use tokio::sync::Mutex;
 
 use crate::{
     cells::{
@@ -13,12 +12,13 @@ use crate::{
             traits::review_repository::ReviewRepository,
         },
     },
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
+    infrastructure::primitives::db_transaction::DbTransaction,
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteReviewRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]

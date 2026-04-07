@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
 use sqlite_vec::sqlite3_vec_init;
-use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous};
-use tokio::sync::Mutex;
+use sqlx::{
+    SqlitePool,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
+};
 use tokio_rusqlite::ffi::sqlite3_auto_extension;
 
-use crate::common::DbPool;
-
-pub async fn create_sqlite_pool(path: &str) -> Result<DbPool, sqlx::Error> {
+pub async fn create_sqlite_pool(path: &str) -> Result<SqlitePool, sqlx::Error> {
     unsafe {
         #[allow(clippy::missing_transmute_annotations)]
         sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
@@ -24,5 +24,5 @@ pub async fn create_sqlite_pool(path: &str) -> Result<DbPool, sqlx::Error> {
     let pool = SqlitePoolOptions::new().connect_with(options).await?;
     sqlx::migrate!("./migrations/").run(&pool).await?;
 
-    Ok(Mutex::new(pool))
+    Ok(pool)
 }

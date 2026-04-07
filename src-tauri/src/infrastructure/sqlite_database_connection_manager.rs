@@ -4,9 +4,12 @@ use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
 use crate::{
-    common::{DbPool, utils::create_sqlite_pool::create_sqlite_pool},
-    infrastructure::traits::database_connection_manager::{
-        DatabaseConnectionManager, DatabaseConnectionManagerError,
+    common::utils::create_sqlite_pool::create_sqlite_pool,
+    infrastructure::{
+        primitives::db_pool::DbPool,
+        traits::database_connection_manager::{
+            DatabaseConnectionManager, DatabaseConnectionManagerError,
+        },
     },
 };
 
@@ -31,7 +34,7 @@ impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
         };
 
         let mut pool = self.pool.lock().await;
-        *pool = new_pool.into_inner();
+        *pool = new_pool;
 
         Ok(())
     }

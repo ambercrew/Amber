@@ -4,9 +4,11 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+use crate::infrastructure::primitives::db_pool::DbPool;
+use crate::infrastructure::primitives::db_transaction::DbTransaction;
 use crate::infrastructure::traits::database_connection_manager::DatabaseConnectionManager;
 use crate::infrastructure::{
-    models::app_data_directory::AppDataDirectory,
+    primitives::app_data_directory::AppDataDirectory,
     sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
 };
 #[cfg(test)]
@@ -35,7 +37,7 @@ use crate::{
             traits::{cell_repository::CellRepository, review_repository::ReviewRepository},
         },
     },
-    common::{DbPool, DbTransaction, utils::create_sqlite_pool::create_sqlite_pool},
+    common::utils::create_sqlite_pool::create_sqlite_pool,
     file_system::{
         file_system_service::FileSystemService,
         repositories::{
@@ -83,16 +85,18 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     let settings = Settings::default();
 
     #[cfg(not(test))]
-    let pool = create_sqlite_pool(&format!("sqlite:///{}", settings.database_location))
+    let sqlite_pool = create_sqlite_pool(&format!("sqlite:///{}", settings.database_location))
         .await
         .expect("Error connecting to Sqlite database");
 
     #[cfg(test)]
-    let pool = create_sqlite_pool("sqlite::memory:")
+    let sqlite_pool = create_sqlite_pool("sqlite::memory:")
         .await
         .expect("Error connecting to Sqlite database");
 
-    injector.register_singleton(Arc::new(pool));
+    let db_pool = DbPool::new(Mutex::new(sqlite_pool));
+
+    injector.register_singleton(Arc::new(db_pool));
 
     let backend_url = Url::parse("http://localhost:5078").unwrap();
     injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
@@ -138,12 +142,13 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 }
 
 pub fn register_scoped_tx(injector: &mut Injector) {
-    injector.register_scope_factory::<Mutex<DbTransaction>>(|scope| {
+    injector.register_scope_factory::<DbTransaction>(|scope| {
         Box::pin(async move {
             let pool = scope.resolve::<DbPool>().await;
             let pool = pool.lock().await;
             let tx = pool.begin().await.expect("Cannot create a new transaction");
-            Arc::new(Mutex::new(tx))
+            let db_transaction = DbTransaction::new(Mutex::new(tx));
+            Arc::new(db_transaction)
         })
     });
 }

@@ -8,7 +8,7 @@ use tokio::fs;
 use crate::{
     backup::repositories::traits::backup_repository::BackupRepository,
     common::repository_error::RepositoryError,
-    infrastructure::models::app_data_directory::AppDataDirectory,
+    infrastructure::primitives::app_data_directory::AppDataDirectory,
     local_configurations::{
         entities::LocalConfiguration,
         repositories::traits::local_configuration_repository::LocalConfigurationRepository,
@@ -32,6 +32,7 @@ const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
+    // TODO: should be retrieved using connection manager
     app_data_directory: Arc<AppDataDirectory>,
 }
 
@@ -153,6 +154,7 @@ pub mod tests {
     use std::path::Path;
 
     use injector::{injector::Injector, register_scope};
+    use tokio::sync::Mutex;
 
     use super::*;
     use crate::{
@@ -161,6 +163,7 @@ pub mod tests {
             unit_of_work_ext::UnitOfWorkExt,
             utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
         },
+        infrastructure::primitives::db_pool::DbPool,
         local_configurations::repositories::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
         test_utils::create_temp_directory,
     };
@@ -177,10 +180,11 @@ pub mod tests {
         injector.register_singleton(Arc::new(AppDataDirectory::new(app_data_directory)));
 
         // Must use database that is saved on disk for backups to work.
-        let pool = create_sqlite_pool(&format!("sqlite:///{}", path.to_string_lossy()))
+        let sqlite_pool = create_sqlite_pool(&format!("sqlite:///{}", path.to_string_lossy()))
             .await
             .unwrap();
-        injector.register_singleton(Arc::new(pool));
+        let db_pool = DbPool::new(Mutex::new(sqlite_pool));
+        injector.register_singleton(Arc::new(db_pool));
         register_scoped_tx(&mut injector);
 
         register_scope!(

@@ -3,10 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
-use tokio::sync::Mutex;
 
 use crate::{
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
+    infrastructure::primitives::db_transaction::DbTransaction,
     sync::{
         entities::deleted_entity::DeletedEntity,
         repositories::traits::sync_repository::SyncRepository,
@@ -15,7 +15,7 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct SqliteSyncRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]

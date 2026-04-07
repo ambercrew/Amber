@@ -1,12 +1,12 @@
 use std::{env, path::PathBuf, sync::Arc};
 
 use injector::injector::Injector;
-use tokio::fs;
+use tokio::{fs, sync::Mutex};
 
 use crate::{
     Guid,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
-    infrastructure::models::app_data_directory::AppDataDirectory,
+    infrastructure::primitives::{app_data_directory::AppDataDirectory, db_pool::DbPool},
 };
 
 pub async fn create_temp_directory() -> PathBuf {
@@ -21,8 +21,9 @@ pub async fn create_test_injector() -> Injector {
     let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
     injector.register_singleton(Arc::new(app_data_directory));
 
-    let pool = create_sqlite_pool("sqlite::memory:").await.unwrap();
-    injector.register_singleton(Arc::new(pool));
+    let sqlite_pool = create_sqlite_pool("sqlite::memory:").await.unwrap();
+    let db_pool = DbPool::new(Mutex::new(sqlite_pool));
+    injector.register_singleton(Arc::new(db_pool));
     register_scoped_tx(&mut injector);
 
     injector

@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
-use tokio::sync::Mutex;
 
 use crate::{
     Guid,
@@ -19,12 +18,13 @@ use crate::{
             traits::ai_repository::AiRepository,
         },
     },
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
+    infrastructure::primitives::db_transaction::DbTransaction,
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteAiRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]

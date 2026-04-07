@@ -3,11 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
-use tokio::sync::Mutex;
 
 use crate::{
     Guid,
-    common::{DbTransaction, repository_error::RepositoryError},
+    common::repository_error::RepositoryError,
     file_system::{
         entities::folder::Folder,
         repositories::{
@@ -16,11 +15,12 @@ use crate::{
         },
         value_objects::file_system_item_name::FileSystemItemName,
     },
+    infrastructure::primitives::db_transaction::DbTransaction,
 };
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFolderRepository {
-    tx: Arc<Mutex<DbTransaction>>,
+    tx: Arc<DbTransaction>,
 }
 
 #[async_trait]
