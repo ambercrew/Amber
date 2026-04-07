@@ -3,6 +3,7 @@ mod backend;
 mod backup;
 mod cells;
 mod common;
+mod database;
 mod file_system;
 mod fsrs;
 mod infrastructure;

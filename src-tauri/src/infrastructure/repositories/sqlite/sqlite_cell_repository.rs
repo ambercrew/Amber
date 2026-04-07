@@ -21,8 +21,9 @@ use crate::{
     common::repository_error::RepositoryError,
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_rows::cell_row::{
-            CellRow, RepetitionRow, convert_rows_to_cells,
+        repositories::sqlite::sqlite_rows::{
+            cell_row::{CellRow, convert_rows_to_cells},
+            repetition_row::RepetitionRow,
         },
     },
 };

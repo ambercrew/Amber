@@ -7,7 +7,7 @@ use crate::{
     common::repository_error::RepositoryError,
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_local_configuration_repository::local_configuration_row::LocalConfigurationRow,
+        repositories::sqlite::sqlite_rows::local_configuration_row::LocalConfigurationRow,
     },
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
@@ -60,23 +60,5 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         }
 
         Ok(())
-    }
-}
-
-mod local_configuration_row {
-    use crate::local_configurations::entities::local_configuration::LocalConfiguration;
-
-    pub(super) struct LocalConfigurationRow {
-        pub name: String,
-        pub value: String,
-    }
-
-    impl From<LocalConfigurationRow> for LocalConfiguration {
-        fn from(value: LocalConfigurationRow) -> Self {
-            LocalConfiguration {
-                name: value.name,
-                value: value.value,
-            }
-        }
     }
 }

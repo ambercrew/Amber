@@ -4,7 +4,7 @@ use injector_derive::ScopeInjectable;
 use thiserror::Error;
 
 use crate::{
-    infrastructure::traits::database_connection_manager::{
+    database::database_connection_manager::{
         DatabaseConnectionManager, DatabaseConnectionManagerError,
     },
     settings::{

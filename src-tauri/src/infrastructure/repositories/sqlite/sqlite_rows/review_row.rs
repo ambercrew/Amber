@@ -1,3 +1,34 @@
+use chrono::{DateTime, Utc};
+
+use crate::{
+    Guid,
+    cells::entities::review::{Rating, Review},
+};
+
+pub struct ReviewRow {
+    pub id: Guid,
+    pub created_date: DateTime<Utc>,
+    pub modified_date: DateTime<Utc>,
+    pub cell_id: Option<Guid>,
+    pub study_time: u32,
+    pub date: DateTime<Utc>,
+    pub rating: Rating,
+}
+
+impl From<ReviewRow> for Review {
+    fn from(value: ReviewRow) -> Self {
+        Review::new_unchecked(
+            value.id,
+            value.created_date,
+            value.modified_date,
+            value.cell_id,
+            value.study_time,
+            value.date,
+            value.rating,
+        )
+    }
+}
+
 pub mod rating_sqlite_impls {
     use sqlx::Sqlite;
 

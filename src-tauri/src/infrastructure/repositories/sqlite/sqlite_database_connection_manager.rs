@@ -5,12 +5,10 @@ use injector_derive::ScopeInjectable;
 
 use crate::{
     common::utils::create_sqlite_pool::create_sqlite_pool,
-    infrastructure::{
-        primitives::db_pool::DbPool,
-        traits::database_connection_manager::{
-            DatabaseConnectionManager, DatabaseConnectionManagerError,
-        },
+    database::database_connection_manager::{
+        DatabaseConnectionManager, DatabaseConnectionManagerError,
     },
+    infrastructure::primitives::db_pool::DbPool,
 };
 
 #[derive(ScopeInjectable)]

@@ -13,7 +13,7 @@ use crate::{
     },
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_file_repository::file_row::FileRow,
+        repositories::sqlite::sqlite_rows::file_row::FileRow,
     },
 };
 
@@ -283,34 +283,6 @@ impl FileRepository for SqliteFileRepository {
         match result {
             Ok(_) => Ok(()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
-        }
-    }
-}
-
-mod file_row {
-    use chrono::{DateTime, Utc};
-
-    use super::*;
-
-    pub(super) struct FileRow {
-        pub id: Guid,
-        pub created_date: DateTime<Utc>,
-        pub modified_date: DateTime<Utc>,
-        pub parent_id: Option<Guid>,
-        pub name: String,
-        pub fsrs_profile_id: Option<Guid>,
-    }
-
-    impl From<FileRow> for File {
-        fn from(value: FileRow) -> Self {
-            File::new_unchecked(
-                value.id,
-                value.created_date,
-                value.modified_date,
-                value.parent_id,
-                FileSystemItemName::new_unchecked(value.name.clone()),
-                value.fsrs_profile_id.into(),
-            )
         }
     }
 }

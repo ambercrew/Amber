@@ -13,7 +13,7 @@ use crate::{
     },
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_folder_repository::folder_row::FolderRow,
+        repositories::sqlite::sqlite_rows::folder_row::FolderRow,
     },
 };
 
@@ -283,34 +283,6 @@ impl FolderRepository for SqliteFolderRepository {
         match result {
             Ok(_) => Ok(()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
-        }
-    }
-}
-
-mod folder_row {
-    use chrono::{DateTime, Utc};
-
-    use super::*;
-
-    pub(super) struct FolderRow {
-        pub id: Guid,
-        pub created_date: DateTime<Utc>,
-        pub modified_date: DateTime<Utc>,
-        pub parent_id: Option<Guid>,
-        pub name: String,
-        pub fsrs_profile_id: Option<Guid>,
-    }
-
-    impl From<FolderRow> for Folder {
-        fn from(value: FolderRow) -> Self {
-            Folder::new_unchecked(
-                value.id,
-                value.created_date,
-                value.modified_date,
-                value.parent_id,
-                FileSystemItemName::new_unchecked(value.name),
-                value.fsrs_profile_id.into(),
-            )
         }
     }
 }

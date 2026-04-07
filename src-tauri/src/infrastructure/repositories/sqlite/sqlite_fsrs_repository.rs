@@ -13,7 +13,7 @@ use crate::{
     },
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_fsrs_repository::fsrs_profile_row::FsrsProfileRow,
+        repositories::sqlite::sqlite_rows::fsrs_profile_row::FsrsProfileRow,
     },
 };
 
@@ -263,43 +263,6 @@ impl FsrsRepository for SqliteFsrsRepository {
         match rows {
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
-    }
-}
-
-mod fsrs_profile_row {
-    use chrono::{DateTime, Utc};
-
-    use crate::Guid;
-
-    use super::*;
-
-    pub(super) struct FsrsProfileRow {
-        pub id: Guid,
-        pub created_date: DateTime<Utc>,
-        pub modified_date: DateTime<Utc>,
-        pub name: String,
-        pub request_retention: f64,
-        pub maximum_interval: f64,
-        pub weights: String,
-    }
-
-    impl From<FsrsProfileRow> for FsrsProfile {
-        fn from(value: FsrsProfileRow) -> Self {
-            let weights = value
-                .weights
-                .split(' ')
-                .map(|v| v.parse().unwrap())
-                .collect();
-            FsrsProfile::new_unchecked(
-                value.id,
-                value.created_date,
-                value.modified_date,
-                value.name,
-                value.request_retention,
-                value.maximum_interval,
-                weights,
-            )
         }
     }
 }

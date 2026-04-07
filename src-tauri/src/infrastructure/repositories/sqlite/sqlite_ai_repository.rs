@@ -15,9 +15,12 @@ use crate::{
     common::repository_error::RepositoryError,
     infrastructure::{
         primitives::db_transaction::DbTransaction,
-        repositories::sqlite::sqlite_ai_repository::ai_row::{
-            ASSISTANT_CONTENT_TYPE, ChatRow, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE, MessageRow,
-            TOOL_CALL_CONTENT_TYPE,
+        repositories::sqlite::sqlite_rows::{
+            chat_row::ChatRow,
+            message_row::{
+                ASSISTANT_CONTENT_TYPE, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE, MessageRow,
+                TOOL_CALL_CONTENT_TYPE,
+            },
         },
     },
 };
@@ -231,53 +234,6 @@ impl AiRepository for SqliteAiRepository {
         match message_row {
             Ok(message_row) => Ok(message_row.into()),
             Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
-        }
-    }
-}
-
-mod ai_row {
-    use chrono::{DateTime, Utc};
-
-    use super::*;
-
-    pub(super) const HUMAN_CONTENT_TYPE: &str = "human";
-    pub(super) const ASSISTANT_CONTENT_TYPE: &str = "assistant";
-    pub(super) const TOOL_CALL_CONTENT_TYPE: &str = "tool_call";
-    pub(super) const DOCUMENT_CONTENT_TYPE: &str = "document";
-
-    pub(super) struct ChatRow {
-        pub id: Guid,
-        pub title: String,
-        pub created_date: DateTime<Utc>,
-    }
-
-    pub(super) struct MessageRow {
-        pub id: Guid,
-        pub created_date: DateTime<Utc>,
-        pub chat_id: Guid,
-        pub content_type: String,
-        pub content: Option<String>,
-    }
-
-    impl From<ChatRow> for Chat {
-        fn from(value: ChatRow) -> Self {
-            Chat::new_unchecked(value.id, value.created_date, value.title)
-        }
-    }
-
-    impl From<MessageRow> for Message {
-        fn from(value: MessageRow) -> Self {
-            let message_content = if value.content_type == HUMAN_CONTENT_TYPE {
-                MessageContent::Human(value.content.unwrap())
-            } else if value.content_type == ASSISTANT_CONTENT_TYPE {
-                MessageContent::Assistant(value.content.unwrap())
-            } else if value.content_type == TOOL_CALL_CONTENT_TYPE {
-                MessageContent::ToolCall(serde_json::from_str(&value.content.unwrap()).unwrap())
-            } else {
-                MessageContent::Document(serde_json::from_str(&value.content.unwrap()).unwrap())
-            };
-
-            Message::new_unchecked(value.id, value.created_date, value.chat_id, message_content)
         }
     }
 }
