@@ -17,7 +17,7 @@ let
     ];
   };
 
-  buildToolsVersionsAndroid = "35.0.0" ;
+  buildToolsVersionsAndroid = "35.0.0";
 
   androidComposition = pkgs.androidenv.composeAndroidPackages {
     includeNDK = true;
@@ -31,33 +31,30 @@ let
 in
 pkgs.mkShell rec {
   nativeBuildInputs = with pkgs; [
-    rustToolChain
+    android-studio
     cargo-expand
     cargo-tauri
     electron
-    gobject-introspection
     gradle
+    jdk17
     nodejs
     pkg-config
+    rustToolChain
     sqlx-cli
     vscode-extensions.vadimcn.vscode-lldb
-    android-studio
-    jdk17
   ];
+
   buildInputs = with pkgs; [
-    at-spi2-atk
+    androidSdk
     atkmm
     cairo
     gdk-pixbuf
     glib
     gtk3
-    harfbuzz
     librsvg
     libsoup_3
-    pango
-    webkitgtk_4_1
     openssl
-    androidSdk
+    webkitgtk_4_1
   ];
 
   # Android environment variables.
@@ -72,5 +69,7 @@ pkgs.mkShell rec {
   GIO_MODULE_DIR = "${pkgs.glib-networking}/lib/gio/modules/";
   WEBKIT_DISABLE_DMABUF_RENDERER = 1;
   XDG_DATA_DIRS = "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS";
+
+  # Used for React-dev-tools.
   ELECTRON_OVERRIDE_DIST_PATH = "${pkgs.electron}/bin/";
 }
