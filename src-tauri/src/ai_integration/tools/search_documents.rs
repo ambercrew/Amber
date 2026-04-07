@@ -16,7 +16,7 @@ use crate::{
     Guid,
     ai_integration::{
         clients::multi_client::multi_embedding_model::MultiEmbeddingModel,
-        document::{CHAT_ID_COLUMN_NAME, Document},
+        entities::document::{CHAT_ID_COLUMN_NAME, Document},
     },
 };
 

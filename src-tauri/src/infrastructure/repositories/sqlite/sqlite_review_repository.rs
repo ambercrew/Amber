@@ -8,8 +8,8 @@ use crate::{
     cells::{entities::review::Review, repositories::review_repository::ReviewRepository},
     common::repository_error::RepositoryError,
     infrastructure::{
-        primitives::db_transaction::DbTransaction,
         repositories::sqlite::sqlite_rows::review_row::ReviewRow,
+        value_objects::db_transaction::DbTransaction,
     },
 };
 

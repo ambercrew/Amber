@@ -13,9 +13,6 @@ use crate::file_system::repositories::file_repository::FileRepository;
 use crate::file_system::repositories::folder_repository::FolderRepository;
 use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
-use crate::infrastructure::primitives::app_data_directory::AppDataDirectory;
-use crate::infrastructure::primitives::db_pool::DbPool;
-use crate::infrastructure::primitives::db_transaction::DbTransaction;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_backup_repository::SqliteBackupRepository;
@@ -27,6 +24,9 @@ use crate::infrastructure::repositories::sqlite::sqlite_fsrs_repository::SqliteF
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_review_repository::SqliteReviewRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
+use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
+use crate::infrastructure::value_objects::db_pool::DbPool;
+use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::local_configurations::repositories::local_configuration_repository::LocalConfigurationRepository;
 #[cfg(test)]
 use crate::settings::entities::settings::Settings;

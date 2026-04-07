@@ -8,7 +8,7 @@ use tokio::fs;
 use crate::{
     backup::repositories::backup_repository::BackupRepository,
     common::repository_error::RepositoryError,
-    infrastructure::primitives::app_data_directory::AppDataDirectory,
+    infrastructure::value_objects::app_data_directory::AppDataDirectory,
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
         repositories::local_configuration_repository::LocalConfigurationRepository,
@@ -163,11 +163,11 @@ pub mod tests {
         },
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
-            primitives::db_pool::DbPool,
             repositories::sqlite::{
                 sqlite_backup_repository::SqliteBackupRepository,
                 sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
             },
+            value_objects::db_pool::DbPool,
         },
         test_utils::create_temp_directory,
     };

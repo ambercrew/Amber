@@ -4,7 +4,7 @@ use serde_json::Value;
 use thiserror::Error;
 
 use crate::{
-    ai_integration::entities::message::ToolCall, cells::cell_service::CellServiceError,
+    ai_integration::entities::message::ToolCallContent, cells::cell_service::CellServiceError,
     common::repository_error::RepositoryError,
 };
 
@@ -29,7 +29,7 @@ pub trait AcceptToolCall: Send + Sync {
 
     async fn accept_call(
         &self,
-        tool_call: &ToolCall,
+        tool_call: &ToolCallContent,
         args: Self::Args,
     ) -> Result<(), AcceptToolCallError>;
 }
@@ -38,7 +38,7 @@ pub trait AcceptToolCall: Send + Sync {
 pub trait AcceptToolCallFromJson: Send + Sync {
     async fn accept_call(
         &self,
-        tool_call: &ToolCall,
+        tool_call: &ToolCallContent,
         value: Value,
     ) -> Result<(), AcceptToolCallError>;
 }
@@ -47,7 +47,7 @@ pub trait AcceptToolCallFromJson: Send + Sync {
 impl<T: AcceptToolCall + Send + Sync> AcceptToolCallFromJson for T {
     async fn accept_call(
         &self,
-        tool_call: &ToolCall,
+        tool_call: &ToolCallContent,
         value: Value,
     ) -> Result<(), AcceptToolCallError> {
         let args = serde_json::from_value(value)?;

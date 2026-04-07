@@ -8,7 +8,7 @@ use crate::{
     database::database_connection_manager::{
         DatabaseConnectionManager, DatabaseConnectionManagerError,
     },
-    infrastructure::primitives::db_pool::DbPool,
+    infrastructure::value_objects::db_pool::DbPool,
 };
 
 #[derive(ScopeInjectable)]

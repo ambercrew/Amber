@@ -6,7 +6,7 @@ use tokio::{fs, sync::Mutex};
 use crate::{
     Guid,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
-    infrastructure::primitives::{app_data_directory::AppDataDirectory, db_pool::DbPool},
+    infrastructure::value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
 };
 
 pub async fn create_temp_directory() -> PathBuf {

@@ -5,7 +5,7 @@ use injector_derive::ScopeInjectable;
 
 use crate::{
     backup::repositories::backup_repository::BackupRepository,
-    common::repository_error::RepositoryError, infrastructure::primitives::db_pool::DbPool,
+    common::repository_error::RepositoryError, infrastructure::value_objects::db_pool::DbPool,
 };
 
 #[derive(ScopeInjectable)]

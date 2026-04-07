@@ -67,20 +67,20 @@ impl Message {
 #[serde(rename_all = "camelCase", tag = "type", content = "value")]
 pub enum MessageContent {
     Human(String),
-    Document(Document),
+    Document(DocumentContent),
     Assistant(String),
-    ToolCall(ToolCall),
+    ToolCall(ToolCallContent),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Document {
+pub struct DocumentContent {
     pub file_name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ToolCall {
+pub struct ToolCallContent {
     pub(in crate::ai_integration) id: String,
     pub(in crate::ai_integration) name: String,
     pub(in crate::ai_integration) display_name: String,
@@ -105,16 +105,18 @@ impl From<Message> for rig::message::Message {
             MessageContent::Human(content) => rig::message::Message::User {
                 content: OneOrMany::one(UserContent::text(content)),
             },
-            MessageContent::Document(Document { file_name }) => rig::message::Message::User {
-                content: OneOrMany::one(UserContent::text(format!(
-                    "I have uploaded the following file: {file_name}"
-                ))),
-            },
+            MessageContent::Document(DocumentContent { file_name }) => {
+                rig::message::Message::User {
+                    content: OneOrMany::one(UserContent::text(format!(
+                        "I have uploaded the following file: {file_name}"
+                    ))),
+                }
+            }
             MessageContent::Assistant(content) => rig::message::Message::Assistant {
                 id: None,
                 content: OneOrMany::one(AssistantContent::Text(Text { text: content })),
             },
-            MessageContent::ToolCall(ToolCall {
+            MessageContent::ToolCall(ToolCallContent {
                 id,
                 name,
                 arguments,

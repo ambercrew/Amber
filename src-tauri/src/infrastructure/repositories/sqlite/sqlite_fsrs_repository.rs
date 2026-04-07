@@ -12,8 +12,8 @@ use crate::{
         repositories::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
     },
     infrastructure::{
-        primitives::db_transaction::DbTransaction,
         repositories::sqlite::sqlite_rows::fsrs_profile_row::FsrsProfileRow,
+        value_objects::db_transaction::DbTransaction,
     },
 };
 

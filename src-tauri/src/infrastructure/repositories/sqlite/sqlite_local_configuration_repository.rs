@@ -6,8 +6,8 @@ use injector_derive::ScopeInjectable;
 use crate::{
     common::repository_error::RepositoryError,
     infrastructure::{
-        primitives::db_transaction::DbTransaction,
         repositories::sqlite::sqlite_rows::local_configuration_row::LocalConfigurationRow,
+        value_objects::db_transaction::DbTransaction,
     },
     local_configurations::{
         entities::local_configuration::LocalConfiguration,

@@ -31,7 +31,7 @@ use crate::Guid;
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
 use crate::ai_integration::clients::multi_client::multi_embedding_model::MultiEmbeddingModel;
-use crate::ai_integration::document::Document;
+use crate::ai_integration::entities::document::Document;
 use crate::ai_integration::entities::message::{self, ToolCallStatus};
 use crate::ai_integration::prompts::{PREAMBLE_BASE, PREAMBLE_GENERATE_TITLE, PREAMBLE_NO_FILE};
 use crate::ai_integration::stream_ai_request::StreamAiRequest;
@@ -40,7 +40,7 @@ use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
 use crate::cells::repositories::cell_repository::CellRepository;
-use crate::infrastructure::primitives::app_data_directory::AppDataDirectory;
+use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::settings::repositories::settings_repository::{
     SettingsRepository, SettingsRepositoryError,
 };
@@ -397,7 +397,7 @@ impl AiService {
             .upsert_message(&Message::new(
                 None,
                 chat_id,
-                MessageContent::Document(message::Document {
+                MessageContent::Document(message::DocumentContent {
                     file_name: path
                         .file_name()
                         .and_then(|name| name.to_str())
@@ -525,7 +525,7 @@ pub mod tests {
         ROOT_FOLDER_ID,
         ai_integration::{
             clients::multi_client::multi_response::MultiResponse,
-            entities::message::ToolCall,
+            entities::message::ToolCallContent,
             tools::{
                 create_flash_card::CreateFlashcardArgs, search_documents::SearchDocumentsArgs,
             },
@@ -1053,7 +1053,7 @@ pub mod tests {
             .upsert_message(&Message::new(
                 Some(message_id),
                 chat_id,
-                MessageContent::ToolCall(ToolCall {
+                MessageContent::ToolCall(ToolCallContent {
                     id: "".to_string(),
                     name: CreateFlashCard::NAME.to_string(),
                     display_name: "".to_string(),

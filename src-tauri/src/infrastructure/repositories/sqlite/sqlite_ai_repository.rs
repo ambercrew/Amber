@@ -14,7 +14,6 @@ use crate::{
     },
     common::repository_error::RepositoryError,
     infrastructure::{
-        primitives::db_transaction::DbTransaction,
         repositories::sqlite::sqlite_rows::{
             chat_row::ChatRow,
             message_row::{
@@ -22,6 +21,7 @@ use crate::{
                 TOOL_CALL_CONTENT_TYPE,
             },
         },
+        value_objects::db_transaction::DbTransaction,
     },
 };
 

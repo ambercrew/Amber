@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use injector::injector_scope::InjectorScope;
 
-use crate::infrastructure::primitives::{
+use crate::infrastructure::value_objects::{
     db_pool::DbPool,
     db_transaction::{DbTransaction, SqliteTransaction},
 };

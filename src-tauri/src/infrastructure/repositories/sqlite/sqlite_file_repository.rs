@@ -12,8 +12,8 @@ use crate::{
         value_objects::file_system_item_name::FileSystemItemName,
     },
     infrastructure::{
-        primitives::db_transaction::DbTransaction,
         repositories::sqlite::sqlite_rows::file_row::FileRow,
+        value_objects::db_transaction::DbTransaction,
     },
 };
 

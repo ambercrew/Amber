@@ -11,7 +11,7 @@ use crate::{
     Guid,
     ai_integration::{
         ai_service::{OnEventCallback, StreamLlmResponseEvent},
-        entities::message::{Message, MessageContent, ToolCall, ToolCallStatus},
+        entities::message::{Message, MessageContent, ToolCallContent, ToolCallStatus},
         tools::{AcceptToolCall, AcceptToolCallError},
     },
     cells::{
@@ -88,7 +88,7 @@ impl Tool for CreateFlashCard {
         let message = Message::new(
             None,
             self.chat_id,
-            MessageContent::ToolCall(ToolCall {
+            MessageContent::ToolCall(ToolCallContent {
                 id: Guid::new_v4().to_string(),
                 name: Self::NAME.to_string(),
                 display_name: "📝 Create flashcard".to_string(),
@@ -138,7 +138,7 @@ impl AcceptToolCall for AcceptCreateFlashCard {
 
     async fn accept_call(
         &self,
-        tool_call: &ToolCall,
+        tool_call: &ToolCallContent,
         args: Self::Args,
     ) -> Result<(), AcceptToolCallError> {
         let file_id = match tool_call.file_id {
@@ -315,7 +315,7 @@ pub mod accept_create_flash_card_test {
 
         accept_create_flash_card
             .accept_call(
-                &ToolCall {
+                &ToolCallContent {
                     id: "".to_string(),
                     name: "".to_string(),
                     display_name: "".to_string(),

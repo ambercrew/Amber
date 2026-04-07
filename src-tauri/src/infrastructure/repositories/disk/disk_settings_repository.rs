@@ -9,7 +9,7 @@ use tokio::{
 };
 
 use crate::{
-    infrastructure::primitives::app_data_directory::AppDataDirectory,
+    infrastructure::value_objects::app_data_directory::AppDataDirectory,
     settings::{
         entities::settings::Settings,
         repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
