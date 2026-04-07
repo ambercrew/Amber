@@ -571,7 +571,7 @@ mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies(backend_client: MockBrainyBackendClient) -> Injector {
+    async fn initialize_test_injector(backend_client: MockBrainyBackendClient) -> Injector {
         let mut injector = create_test_injector().await;
         injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(backend_client));
         injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
@@ -708,7 +708,7 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         // Act
@@ -834,7 +834,7 @@ mod tests {
             .withf(move |value| value.iter().any(|s| s.entity_id == cell_in_database_id))
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -925,7 +925,7 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1033,7 +1033,7 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1168,7 +1168,7 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1255,7 +1255,7 @@ mod tests {
             .expect_send_synced_entities()
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         // Act
@@ -1313,7 +1313,7 @@ mod tests {
             .withf(move |value| value.len() == 3)
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1363,7 +1363,7 @@ mod tests {
             .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1431,7 +1431,7 @@ mod tests {
             .withf(move |value| value.len() == 2)
             .returning(move |_| Ok(()));
 
-        let injector = get_test_dependencies(backend_client).await;
+        let injector = initialize_test_injector(backend_client).await;
         let scope = injector.start_scope();
 
         scope
@@ -1439,8 +1439,8 @@ mod tests {
             .await
             .create(&Folder::new_unchecked(
                 folder_id,
-                Utc::now(),
-                Utc::now(),
+                Utc::now() - Duration::minutes(1),
+                Utc::now() - Duration::minutes(1),
                 None,
                 FileSystemItemName::new_unchecked("test".to_string()),
                 FsrsProfileChoice::Inherit,

@@ -905,7 +905,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn CellRepository, SqliteCellRepository);
         register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
@@ -917,7 +917,7 @@ pub mod tests {
     pub async fn get_by_id_valid_input_returned_cell_correctly() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -972,7 +972,7 @@ pub mod tests {
     pub async fn get_file_cells_ordered_by_index_valid_input_returned_files_ordered() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -1021,7 +1021,7 @@ pub mod tests {
     pub async fn update_deleted_old_repetitions_and_added_new_ones() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -1100,7 +1100,7 @@ pub mod tests {
     pub async fn search_cells_valid_input_searched_cells_correctly() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -1147,7 +1147,7 @@ pub mod tests {
     pub async fn get_study_repetitions_valid_input_returned_count_correctly() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -1241,7 +1241,7 @@ pub mod tests {
     pub async fn get_study_repetitions_for_all_files_valid_input_returned_count_correctly() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
@@ -1362,7 +1362,7 @@ pub mod tests {
     async fn get_home_statistics_with_reviews_returned_correct_statistics() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let cell_repository = scope.resolve::<dyn CellRepository>().await;

@@ -276,7 +276,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
         injector
@@ -286,7 +286,7 @@ pub mod tests {
     pub async fn get_by_id_valid_input_returned_profile() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
@@ -315,7 +315,7 @@ pub mod tests {
     pub async fn get_all_fsrs_profiles_valid_input_returned_all_profiles() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
@@ -362,7 +362,7 @@ pub mod tests {
     pub async fn update_valid_input_updated_profile() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 

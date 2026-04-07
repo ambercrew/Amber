@@ -248,7 +248,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, SqliteAiRepository);
         injector
@@ -258,7 +258,7 @@ pub mod tests {
     pub async fn get_all_chats_sorted_by_date_desc_multiple_chats_returned_all() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let repository = scope.resolve::<SqliteAiRepository>().await;
 
@@ -287,7 +287,7 @@ pub mod tests {
     pub async fn get_chat_messages_ordered_multiple_messages_returned_all() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let repository = scope.resolve::<SqliteAiRepository>().await;
 
@@ -337,7 +337,7 @@ pub mod tests {
     pub async fn delete_chat_valid_input_deleted_chat() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let repository = scope.resolve::<SqliteAiRepository>().await;
 

@@ -306,7 +306,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
@@ -317,7 +317,7 @@ pub mod tests {
     pub async fn get_all_folders_valid_input_returned_all_files() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let repository = scope.resolve::<dyn FolderRepository>().await;
 
@@ -352,7 +352,7 @@ pub mod tests {
     pub async fn delete_by_id_valid_input_deleted_recursively() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let repository = scope.resolve::<dyn FolderRepository>().await;
 

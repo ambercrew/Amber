@@ -73,7 +73,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
@@ -85,7 +85,7 @@ pub mod tests {
     pub async fn delete_by_id_only_one_profile_returned_error() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FsrsService>().await;
 
@@ -102,7 +102,7 @@ pub mod tests {
     pub async fn delete_by_id_delete_root_profile_updated_root_profile_and_delete_profile() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;

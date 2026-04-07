@@ -269,7 +269,7 @@ mod tests {
     use chrono::Utc;
     use injector::register_scope;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
@@ -281,7 +281,7 @@ mod tests {
     pub async fn get_fsrs_profile_recursively_for_item_nested_file_returns_profile_correctly() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;
@@ -325,7 +325,7 @@ mod tests {
     pub async fn get_fsrs_profile_recursively_for_item_file_with_custom_profile_returned_profile() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let file_repository = scope.resolve::<dyn FileRepository>().await;
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;

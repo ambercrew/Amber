@@ -556,7 +556,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn get_test_dependencies(mock_client: MockClient, state: Arc<AiState>) -> Injector {
+    async fn initialize_test_injector(mock_client: MockClient, state: Arc<AiState>) -> Injector {
         let mut injector = create_test_injector().await;
 
         let settings = Settings {
@@ -626,7 +626,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
         let repository = scope.resolve::<dyn AiRepository>().await;
@@ -735,7 +735,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
 
@@ -796,7 +796,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
 
@@ -868,7 +868,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, ai_state).await;
+        let injector = initialize_test_injector(mock_client, ai_state).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
         let repository = scope.resolve::<dyn AiRepository>().await;
@@ -950,7 +950,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
         let repository = scope.resolve::<dyn AiRepository>().await;
@@ -1022,7 +1022,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = get_test_dependencies(mock_client, Arc::new(AiState::default())).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
 
@@ -1126,7 +1126,7 @@ pub mod tests {
         };
 
         let injector =
-            get_test_dependencies(mock_client.clone(), Arc::new(AiState::default())).await;
+            initialize_test_injector(mock_client.clone(), Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<AiService>().await;
 

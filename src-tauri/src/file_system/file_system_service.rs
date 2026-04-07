@@ -381,7 +381,7 @@ pub mod tests {
         test_utils::create_test_injector,
     };
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
@@ -396,7 +396,7 @@ pub mod tests {
     pub async fn create_folder_existing_folder_returned_error() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -434,7 +434,7 @@ pub mod tests {
     pub async fn create_folder_valid_input_created_folder() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -454,7 +454,7 @@ pub mod tests {
     pub async fn rename_folder_existing_folder_returned_error() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -505,7 +505,7 @@ pub mod tests {
     pub async fn rename_folder_same_name_folder_not_changed() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -550,7 +550,7 @@ pub mod tests {
     pub async fn rename_folder_valid_input_renamed_folder() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -595,7 +595,7 @@ pub mod tests {
     pub async fn move_folder_to_nested_folder_error_returned() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -645,7 +645,7 @@ pub mod tests {
     pub async fn move_folder_two_level_down_nested_folder_error_returned() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -707,7 +707,7 @@ pub mod tests {
     pub async fn move_folder_existing_folder_error_returned() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -771,7 +771,7 @@ pub mod tests {
     pub async fn move_folder_valid_input_moved_folder() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -837,7 +837,7 @@ pub mod tests {
     pub async fn create_file_existing_file_returned_error() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -875,7 +875,7 @@ pub mod tests {
     pub async fn rename_file_existing_file_returned_error() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -926,7 +926,7 @@ pub mod tests {
     pub async fn rename_file_same_name_file_not_changed() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -971,7 +971,7 @@ pub mod tests {
     pub async fn rename_file_valid_input_renamed_file() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -1016,7 +1016,7 @@ pub mod tests {
     pub async fn move_file_existing_file_error_returned() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -1080,7 +1080,7 @@ pub mod tests {
     pub async fn move_file_valid_input_moved_file() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -1146,7 +1146,7 @@ pub mod tests {
     pub async fn convert_folder_to_exported_item_valid_input_converted_folder_and_file() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 
@@ -1249,7 +1249,7 @@ pub mod tests {
     pub async fn import_exported_item_valid_input_imported_folders_and_files() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<FileSystemService>().await;
 

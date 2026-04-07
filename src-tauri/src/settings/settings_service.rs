@@ -38,7 +38,6 @@ impl SettingsService {
             && settings.database_location != database_location
         {
             settings.database_location = database_location;
-            // TODO: unit test
             self.database_connection_manager
                 .change_database_location(&settings.database_location)
                 .await?;
@@ -65,5 +64,63 @@ impl SettingsService {
         self.settings_repository.save_settings(settings).await?;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use injector::{injector::Injector, register_scope};
+    use tokio::sync::Mutex;
+
+    use crate::{
+        database::database_connection_manager::MockDatabaseConnectionManager,
+        infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
+        settings::entities::settings::Settings, test_utils::create_test_injector,
+    };
+
+    use super::*;
+
+    async fn initialize_test_injector(
+        database_connection_manager: MockDatabaseConnectionManager,
+    ) -> Injector {
+        let mut injector = create_test_injector().await;
+
+        let settings = Settings {
+            ..Default::default()
+        };
+
+        injector.register_singleton(Arc::new(Mutex::new(settings)));
+        injector.register_singleton::<dyn DatabaseConnectionManager>(Arc::new(
+            database_connection_manager,
+        ));
+
+        register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
+        register_scope!(injector, SettingsService);
+
+        injector
+    }
+
+    #[tokio::test]
+    pub async fn update_settings_updated_database_location_called_manager() {
+        // Arrange
+
+        let request = UpdateSettingsRequest {
+            database_location: Some("new path".into()),
+            ..Default::default()
+        };
+
+        let mut database_connection_manager = MockDatabaseConnectionManager::new();
+        database_connection_manager
+            .expect_change_database_location()
+            .withf(|val| val == "new path")
+            .returning(|_| Box::pin(async { Ok(()) }));
+
+        let injector = initialize_test_injector(database_connection_manager).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<SettingsService>().await;
+
+        // Act
+
+        service.update_settings(request).await.unwrap();
     }
 }

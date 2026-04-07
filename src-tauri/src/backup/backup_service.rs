@@ -172,7 +172,7 @@ pub mod tests {
         test_utils::create_temp_directory,
     };
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let path = create_temp_directory().await.join("brainy.db");
         create_injector_for_sqlite_path(&path).await
     }
@@ -206,7 +206,7 @@ pub mod tests {
     pub async fn ensure_backup_no_backups_created_backup() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
@@ -250,7 +250,7 @@ pub mod tests {
     pub async fn ensure_backup_two_calls_in_row_only_created_backup_once() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
@@ -285,7 +285,7 @@ pub mod tests {
     pub async fn ensure_backup_multiple_files_deleted_oldest_file() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
         let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();
@@ -324,7 +324,7 @@ pub mod tests {
     pub async fn ensure_backup_other_files_than_backup_did_not_count_them_as_backups() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
         let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();

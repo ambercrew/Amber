@@ -260,7 +260,7 @@ pub mod accept_create_flash_card_test {
 
     use super::*;
 
-    async fn get_test_dependencies() -> Injector {
+    async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
 
         register_scope!(injector, dyn CellRepository, SqliteCellRepository);
@@ -277,7 +277,7 @@ pub mod accept_create_flash_card_test {
     pub async fn accept_call_valid_input_added_flash_cards() {
         // Arrange
 
-        let injector = get_test_dependencies().await;
+        let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
 
         let file_id = scope

@@ -28,7 +28,6 @@ impl Message {
         }
     }
 
-    // TODO: these must be marked unsafe
     pub fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,
