@@ -42,8 +42,7 @@ async function applySettings(settings: Settings, dispatch: AppDispatch) {
 		if (
 			settings.theme === "Dark" ||
 			(settings.theme === "FollowSystem" &&
-				window.matchMedia &&
-				window.matchMedia("(prefers-color-scheme: dark)").matches)
+				window.matchMedia?.("(prefers-color-scheme: dark)").matches)
 		) {
 			await tryGetCurrentWebView()?.window.setTheme("dark");
 			document.body.classList.add("dark");

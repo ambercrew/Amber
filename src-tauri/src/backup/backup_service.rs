@@ -8,11 +8,11 @@ use tokio::fs;
 use crate::{
     backup::repositories::backup_repository::BackupRepository,
     common::repository_error::RepositoryError,
-    infrastructure::value_objects::app_data_directory::AppDataDirectory,
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
         repositories::local_configuration_repository::LocalConfigurationRepository,
     },
+    settings::repositories::settings_repository::SettingsRepository,
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
@@ -32,8 +32,7 @@ const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     backup_repository: Arc<dyn BackupRepository>,
-    // TODO: should be retrieved using connection manager
-    app_data_directory: Arc<AppDataDirectory>,
+    settings_repository: Arc<dyn SettingsRepository>,
 }
 
 impl BackupService {
@@ -77,7 +76,8 @@ impl BackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let backup_path = self.app_data_directory.get_path().join(backup_name);
+        let settings = self.settings_repository.get_settings().await;
+        let backup_path = settings.database_location.directory().join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -101,8 +101,9 @@ impl BackupService {
 
     async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
         let mut current_backups = Vec::new();
+        let settings = self.settings_repository.get_settings().await;
 
-        let mut entries = match fs::read_dir(&self.app_data_directory.get_path()).await {
+        let mut entries = match fs::read_dir(&settings.database_location.directory()).await {
             Ok(entries) => entries,
             Err(err) => {
                 return Err(BackupServiceError::CannotListEntriesInFolder(
@@ -163,11 +164,17 @@ pub mod tests {
         },
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
-            repositories::sqlite::{
-                sqlite_backup_repository::SqliteBackupRepository,
-                sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+            repositories::{
+                disk::disk_settings_repository::DiskSettingsRepository,
+                sqlite::{
+                    sqlite_backup_repository::SqliteBackupRepository,
+                    sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+                },
             },
-            value_objects::db_pool::DbPool,
+            value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
+        },
+        settings::{
+            entities::settings::Settings, value_objects::database_location::DatabaseLocation,
         },
         test_utils::create_temp_directory,
     };
@@ -179,6 +186,13 @@ pub mod tests {
 
     async fn create_injector_for_sqlite_path(path: &Path) -> Injector {
         let mut injector = Injector::default();
+
+        let settings = Settings {
+            database_location: DatabaseLocation::new(create_temp_directory().await.join("temp.db"))
+                .unwrap(),
+            ..Default::default()
+        };
+        injector.register_singleton(Arc::new(Mutex::new(settings)));
 
         let app_data_directory = create_temp_directory().await;
         injector.register_singleton(Arc::new(AppDataDirectory::new(app_data_directory)));
@@ -197,6 +211,7 @@ pub mod tests {
             SqliteLocalConfigurationRepository
         );
         register_scope!(injector, dyn BackupRepository, SqliteBackupRepository);
+        register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, BackupService);
 
         injector
@@ -210,7 +225,6 @@ pub mod tests {
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
-        let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         // Inserting a random row in the database to see if it exists in the new backup.
@@ -229,7 +243,11 @@ pub mod tests {
 
         // Assert
 
-        let mut dir_entries = fs::read_dir(app_data_directory.get_path()).await.unwrap();
+        let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
+        let settings = settings_repository.get_settings().await;
+        let mut dir_entries = fs::read_dir(settings.database_location.directory())
+            .await
+            .unwrap();
         let backup = dir_entries.next_entry().await.unwrap().unwrap();
         let backup_injector = create_injector_for_sqlite_path(&backup.path()).await;
 
@@ -254,7 +272,6 @@ pub mod tests {
         let scope = injector.start_scope();
         let local_configuration_repository =
             scope.resolve::<dyn LocalConfigurationRepository>().await;
-        let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();
         let service = scope.resolve::<BackupService>().await;
 
         // Act
@@ -263,7 +280,11 @@ pub mod tests {
 
         // Assert
 
-        let mut dir_entries = fs::read_dir(app_data_directory.get_path()).await.unwrap();
+        let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
+        let settings = settings_repository.get_settings().await;
+        let mut dir_entries = fs::read_dir(settings.database_location.directory())
+            .await
+            .unwrap();
         dir_entries.next_entry().await.unwrap().unwrap();
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
@@ -288,13 +309,14 @@ pub mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
-        let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();
+        let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
+        let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS {
-            let path = app_data_directory.get_path().join(format!(
+            let path = settings.database_location.directory().join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()
@@ -327,13 +349,14 @@ pub mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let backup_repository = scope.resolve::<dyn BackupRepository>().await;
-        let app_data_directory = scope.resolve::<AppDataDirectory>().await.clone();
+        let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
+        let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<BackupService>().await;
 
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS - 1 {
-            let path = app_data_directory.get_path().join(format!(
+            let path = settings.database_location.directory().join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()
@@ -350,12 +373,18 @@ pub mod tests {
             }
         }
 
-        fs::write(app_data_directory.get_path().join("settings.json"), "1234")
-            .await
-            .unwrap();
-        fs::write(app_data_directory.get_path().join("test.backup"), "1234")
-            .await
-            .unwrap();
+        fs::write(
+            settings.database_location.directory().join("settings.json"),
+            "1234",
+        )
+        .await
+        .unwrap();
+        fs::write(
+            settings.database_location.directory().join("test.backup"),
+            "1234",
+        )
+        .await
+        .unwrap();
 
         // Act
 

@@ -5,7 +5,6 @@ use crate::settings::value_objects::{database_location::DatabaseLocation, theme:
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
-    // TODO: update front-end types
     pub database_location: DatabaseLocation,
     pub theme: Theme,
     pub zoom_percentage: f64,
