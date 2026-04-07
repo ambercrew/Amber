@@ -1,15 +1,14 @@
-// TODO: should be moved to infrastructure
 use std::{
     io::{BufReader, Cursor},
     sync::Arc,
 };
 
 use crate::backend::{
+    clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
     models::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
         UpdatePasswordDto, UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
     },
-    traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};

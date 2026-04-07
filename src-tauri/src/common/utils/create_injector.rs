@@ -11,6 +11,7 @@ use crate::cells::repositories::review_repository::ReviewRepository;
 use crate::file_system::repositories::file_repository::FileRepository;
 use crate::file_system::repositories::folder_repository::FolderRepository;
 use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
+use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::primitives::db_pool::DbPool;
 use crate::infrastructure::primitives::db_transaction::DbTransaction;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
@@ -35,10 +36,7 @@ use crate::settings::repositories::settings_repository::SettingsRepository;
 use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
     ai_integration::{ai_service::AiService, ai_state::AiState},
-    backend::{
-        brainy_backend_http_client::BrainyBackendHttpClient,
-        traits::brainy_backend_client::BrainyBackendClient,
-    },
+    backend::clients::brainy_backend_client::BrainyBackendClient,
     backup::backup_service::BackupService,
     cells::cell_service::CellService,
     common::utils::create_sqlite_pool::create_sqlite_pool,

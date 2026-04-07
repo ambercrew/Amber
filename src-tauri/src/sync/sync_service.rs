@@ -10,8 +10,8 @@ use tokio::sync::Mutex;
 use crate::{
     Guid,
     backend::{
+        clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
         models::SyncEntityDto,
-        traits::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
     },
     cells::{
         cell_service::{CellService, CellServiceError},
@@ -548,7 +548,7 @@ mod tests {
     use crate::{
         DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID,
         backend::{
-            models::SyncedEntitiesPageDto, traits::brainy_backend_client::MockBrainyBackendClient,
+            clients::brainy_backend_client::MockBrainyBackendClient, models::SyncedEntitiesPageDto,
         },
         cells::entities::{cell::CellType, repetition::State, review::Rating},
         common::{

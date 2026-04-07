@@ -1,4 +1,3 @@
 pub mod api;
-pub mod brainy_backend_http_client;
+pub mod clients;
 pub mod models;
-pub mod traits;
