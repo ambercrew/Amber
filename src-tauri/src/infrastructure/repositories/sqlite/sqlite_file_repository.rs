@@ -293,10 +293,10 @@ pub mod tests {
 
     use crate::{
         ROOT_FOLDER_ID,
-        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
             entities::file::File, value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        infrastructure::extensions::unit_of_work::UnitOfWorkExt,
         test_utils::create_test_injector,
     };
 

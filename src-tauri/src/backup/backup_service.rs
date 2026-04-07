@@ -158,11 +158,11 @@ pub mod tests {
 
     use super::*;
     use crate::{
-        common::{
-            unit_of_work_ext::UnitOfWorkExt,
-            utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
+        common::utils::{
+            create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool,
         },
         infrastructure::{
+            extensions::unit_of_work::UnitOfWorkExt,
             primitives::db_pool::DbPool,
             repositories::sqlite::{
                 sqlite_backup_repository::SqliteBackupRepository,

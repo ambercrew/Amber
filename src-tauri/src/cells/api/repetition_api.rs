@@ -4,7 +4,7 @@ use crate::Guid;
 use crate::cells::models::file_repetitions_count::FileRepetitionCounts;
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::common::api_error::ApiError;
-use crate::common::unit_of_work_ext::UnitOfWorkExt;
+use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;
 use tauri::State;
 

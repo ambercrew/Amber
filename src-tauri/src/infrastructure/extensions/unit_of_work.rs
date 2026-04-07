@@ -14,7 +14,6 @@ pub trait UnitOfWorkExt {
     ) -> Result<(), sqlx::Error>;
 }
 
-// TODO: should be in infra
 #[async_trait]
 impl<'a> UnitOfWorkExt for InjectorScope<'a> {
     async fn save_changes(&self) -> Result<(), sqlx::Error> {

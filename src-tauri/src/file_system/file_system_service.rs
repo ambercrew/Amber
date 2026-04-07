@@ -369,12 +369,14 @@ pub mod tests {
     use crate::{
         ROOT_FOLDER_ID,
         cells::{entities::cell::CellType, repositories::review_repository::ReviewRepository},
-        common::unit_of_work_ext::UnitOfWorkExt,
-        infrastructure::repositories::sqlite::{
-            sqlite_cell_repository::SqliteCellRepository,
-            sqlite_file_repository::SqliteFileRepository,
-            sqlite_folder_repository::SqliteFolderRepository,
-            sqlite_review_repository::SqliteReviewRepository,
+        infrastructure::{
+            extensions::unit_of_work::UnitOfWorkExt,
+            repositories::sqlite::{
+                sqlite_cell_repository::SqliteCellRepository,
+                sqlite_file_repository::SqliteFileRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_review_repository::SqliteReviewRepository,
+            },
         },
         test_utils::create_test_injector,
     };

@@ -12,7 +12,8 @@ use crate::{
         repositories::ai_repository::AiRepository,
         stream_ai_request::StreamAiRequest,
     },
-    common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
+    common::api_error::ApiError,
+    infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use injector::injector::Injector;
 use tauri::{State, ipc::Channel};

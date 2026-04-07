@@ -889,14 +889,16 @@ pub mod tests {
             entities::{cell::CellType, review::Review},
             repositories::review_repository::ReviewRepository,
         },
-        common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
             entities::file::File, repositories::file_repository::FileRepository,
             value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
-        infrastructure::repositories::sqlite::{
-            sqlite_file_repository::SqliteFileRepository,
-            sqlite_review_repository::SqliteReviewRepository,
+        infrastructure::{
+            extensions::unit_of_work::UnitOfWorkExt,
+            repositories::sqlite::{
+                sqlite_file_repository::SqliteFileRepository,
+                sqlite_review_repository::SqliteReviewRepository,
+            },
         },
         test_utils::create_test_injector,
     };

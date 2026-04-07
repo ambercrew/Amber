@@ -71,7 +71,6 @@ pub trait CellRepository: Send + Sync {
 
     async fn search_cells(&self, search_text: &str) -> Result<Vec<Cell>, RepositoryError>;
 
-    // TODO: these can be splitted into own repository
     /// Returns the count of repetitions ready for study, i.e. their due is less
     /// than or equal to now.
     async fn get_study_repetitions(

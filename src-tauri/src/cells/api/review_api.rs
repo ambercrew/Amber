@@ -6,7 +6,8 @@ use crate::{
         models::home_statistics::HomeStatistics, repositories::cell_repository::CellRepository,
         value_objects::repetition_update::RepetitionUpdate,
     },
-    common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
+    common::api_error::ApiError,
+    infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use injector::injector::Injector;
 use tauri::State;

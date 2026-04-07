@@ -7,11 +7,12 @@ use crate::{
         entities::cell::{Cell, CellType},
         repositories::cell_repository::CellRepository,
     },
-    common::{repository_error::RepositoryError, unit_of_work_ext::UnitOfWorkExt},
+    common::repository_error::RepositoryError,
     file_system::{
         repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
     },
+    infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use crate::{
     cells::dto::{

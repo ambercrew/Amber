@@ -3,11 +3,12 @@ use std::sync::Arc;
 use crate::{
     Guid,
     cells::repositories::cell_repository::CellRepository,
-    common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
+    common::api_error::ApiError,
     file_system::{
         file_system_service::FileSystemService,
         repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
     },
+    infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use injector::injector::Injector;
 use tauri::State;

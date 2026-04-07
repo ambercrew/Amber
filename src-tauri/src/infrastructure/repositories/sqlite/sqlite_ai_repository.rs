@@ -242,7 +242,9 @@ impl AiRepository for SqliteAiRepository {
 pub mod tests {
     use injector::{injector::Injector, register_scope};
 
-    use crate::{common::unit_of_work_ext::UnitOfWorkExt, test_utils::create_test_injector};
+    use crate::{
+        infrastructure::extensions::unit_of_work::UnitOfWorkExt, test_utils::create_test_injector,
+    };
 
     use super::*;
 
