@@ -4,71 +4,48 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+use crate::ai_integration::repositories::ai_repository::AiRepository;
+use crate::backup::repositories::backup_repository::BackupRepository;
+use crate::cells::repositories::cell_repository::CellRepository;
+use crate::cells::repositories::review_repository::ReviewRepository;
+use crate::file_system::repositories::file_repository::FileRepository;
+use crate::file_system::repositories::folder_repository::FolderRepository;
+use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::infrastructure::primitives::db_pool::DbPool;
 use crate::infrastructure::primitives::db_transaction::DbTransaction;
+use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_backup_repository::SqliteBackupRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_cell_repository::SqliteCellRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_file_repository::SqliteFileRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_fsrs_repository::SqliteFsrsRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_review_repository::SqliteReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
 use crate::infrastructure::traits::database_connection_manager::DatabaseConnectionManager;
 use crate::infrastructure::{
     primitives::app_data_directory::AppDataDirectory,
     sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
 };
+use crate::local_configurations::repositories::local_configuration_repository::LocalConfigurationRepository;
 #[cfg(test)]
 use crate::settings::entities::settings::Settings;
+use crate::settings::repositories::settings_repository::SettingsRepository;
+use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
-    ai_integration::{
-        ai_service::AiService,
-        ai_state::AiState,
-        repositories::{
-            sqlite_ai_repository::SqliteAiRepository, traits::ai_repository::AiRepository,
-        },
-    },
+    ai_integration::{ai_service::AiService, ai_state::AiState},
     backend::{
         brainy_backend_http_client::BrainyBackendHttpClient,
         traits::brainy_backend_client::BrainyBackendClient,
     },
-    backup::{
-        backup_service::BackupService, repositories::traits::backup_repository::BackupRepository,
-        sqlite_backup_repository::SqliteBackupRepository,
-    },
-    cells::{
-        cell_service::CellService,
-        repositories::{
-            sqlite_cell_repository::SqliteCellRepository,
-            sqlite_review_repository::SqliteReviewRepository,
-            traits::{cell_repository::CellRepository, review_repository::ReviewRepository},
-        },
-    },
+    backup::backup_service::BackupService,
+    cells::cell_service::CellService,
     common::utils::create_sqlite_pool::create_sqlite_pool,
-    file_system::{
-        file_system_service::FileSystemService,
-        repositories::{
-            sqlite_file_repository::SqliteFileRepository,
-            sqlite_folder_repository::SqliteFolderRepository,
-            traits::{file_repository::FileRepository, folder_repository::FolderRepository},
-        },
-    },
-    fsrs::{
-        entities::repositories::{
-            sqlite_fsrs_repository::SqliteFsrsRepository, traits::fsrs_repository::FsrsRepository,
-        },
-        fsrs_service::FsrsService,
-    },
-    local_configurations::repositories::{
-        sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
-        traits::local_configuration_repository::LocalConfigurationRepository,
-    },
-    settings::{
-        repositories::{
-            disk_settings_repository::DiskSettingsRepository,
-            traits::settings_repository::SettingsRepository,
-        },
-        settings_service::SettingsService,
-    },
-    sync::{
-        repositories::{
-            sqlite_sync_repository::SqliteSyncRepository, traits::sync_repository::SyncRepository,
-        },
-        sync_service::{SyncLock, SyncService},
-    },
+    file_system::file_system_service::FileSystemService,
+    fsrs::fsrs_service::FsrsService,
+    settings::settings_service::SettingsService,
+    sync::sync_service::{SyncLock, SyncService},
 };
 
 pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {

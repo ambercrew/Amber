@@ -6,16 +6,12 @@ use crate::{
         api_error::ApiError, repository_error::RepositoryError, unit_of_work_ext::UnitOfWorkExt,
     },
     file_system::{
-        repositories::traits::{
-            file_repository::FileRepository, folder_repository::FolderRepository,
-        },
+        repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
     },
     fsrs::{
-        entities::{
-            fsrs_profile::FsrsProfile, repositories::traits::fsrs_repository::FsrsRepository,
-        },
-        fsrs_service::FsrsService,
+        entities::fsrs_profile::FsrsProfile, fsrs_service::FsrsService,
+        repositories::fsrs_repository::FsrsRepository,
     },
 };
 use injector::{injector::Injector, injector_scope::InjectorScope};
@@ -263,14 +259,12 @@ mod tests {
     use super::*;
     use crate::{
         DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID,
-        file_system::{
-            entities::{file::File, folder::Folder},
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                sqlite_folder_repository::SqliteFolderRepository,
-            },
+        file_system::entities::{file::File, folder::Folder},
+        infrastructure::repositories::sqlite::{
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_fsrs_repository::SqliteFsrsRepository,
         },
-        fsrs::entities::repositories::sqlite_fsrs_repository::SqliteFsrsRepository,
         test_utils::create_test_injector,
     };
     use chrono::Utc;

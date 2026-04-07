@@ -1,2 +1,1 @@
-pub mod sqlite_sync_repository;
-pub mod traits;
+pub mod sync_repository;

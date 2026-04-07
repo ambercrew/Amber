@@ -6,12 +6,12 @@ use thiserror::Error;
 use tokio::fs;
 
 use crate::{
-    backup::repositories::traits::backup_repository::BackupRepository,
+    backup::repositories::backup_repository::BackupRepository,
     common::repository_error::RepositoryError,
     infrastructure::primitives::app_data_directory::AppDataDirectory,
     local_configurations::{
-        entities::LocalConfiguration,
-        repositories::traits::local_configuration_repository::LocalConfigurationRepository,
+        entities::local_configuration::LocalConfiguration,
+        repositories::local_configuration_repository::LocalConfigurationRepository,
     },
 };
 
@@ -158,13 +158,17 @@ pub mod tests {
 
     use super::*;
     use crate::{
-        backup::sqlite_backup_repository::SqliteBackupRepository,
         common::{
             unit_of_work_ext::UnitOfWorkExt,
             utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
         },
-        infrastructure::primitives::db_pool::DbPool,
-        local_configurations::repositories::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+        infrastructure::{
+            primitives::db_pool::DbPool,
+            repositories::sqlite::{
+                sqlite_backup_repository::SqliteBackupRepository,
+                sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+            },
+        },
         test_utils::create_temp_directory,
     };
 

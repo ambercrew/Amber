@@ -39,9 +39,9 @@ use crate::ai_integration::tools::create_flash_card::AcceptCreateFlashCard;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::{AcceptToolCallError, AcceptToolCallFromJson};
 use crate::cells::cell_service::CellService;
-use crate::cells::repositories::traits::cell_repository::CellRepository;
+use crate::cells::repositories::cell_repository::CellRepository;
 use crate::infrastructure::primitives::app_data_directory::AppDataDirectory;
-use crate::settings::repositories::traits::settings_repository::{
+use crate::settings::repositories::settings_repository::{
     SettingsRepository, SettingsRepositoryError,
 };
 use crate::{
@@ -53,7 +53,7 @@ use crate::{
             message::{Message, MessageContent},
         },
         json_schemas::generate_title::GenerateTitle,
-        repositories::traits::ai_repository::AiRepository,
+        repositories::ai_repository::AiRepository,
         state_cancellation_hook::StateCancellationHook,
         tools::create_flash_card::CreateFlashCard,
     },
@@ -526,28 +526,30 @@ pub mod tests {
         ai_integration::{
             clients::multi_client::multi_response::MultiResponse,
             entities::message::ToolCall,
-            repositories::sqlite_ai_repository::SqliteAiRepository,
             tools::{
                 create_flash_card::CreateFlashcardArgs, search_documents::SearchDocumentsArgs,
             },
         },
         cells::repositories::{
-            sqlite_cell_repository::SqliteCellRepository,
-            sqlite_review_repository::SqliteReviewRepository,
-            traits::review_repository::ReviewRepository,
+            cell_repository::CellRepository, review_repository::ReviewRepository,
         },
         file_system::{
             file_system_service::FileSystemService,
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                sqlite_folder_repository::SqliteFolderRepository,
-                traits::{file_repository::FileRepository, folder_repository::FolderRepository},
-            },
+            repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
             value_objects::file_system_item_name::FileSystemItemName,
         },
+        infrastructure::repositories::{
+            disk::disk_settings_repository::DiskSettingsRepository,
+            sqlite::{
+                sqlite_ai_repository::SqliteAiRepository,
+                sqlite_cell_repository::SqliteCellRepository,
+                sqlite_file_repository::SqliteFileRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_review_repository::SqliteReviewRepository,
+            },
+        },
         settings::{
-            entities::settings::Settings,
-            repositories::disk_settings_repository::DiskSettingsRepository,
+            entities::settings::Settings, repositories::settings_repository::SettingsRepository,
         },
         test_utils::create_test_injector,
     };

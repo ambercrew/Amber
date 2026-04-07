@@ -12,7 +12,7 @@ use crate::{
     infrastructure::primitives::app_data_directory::AppDataDirectory,
     settings::{
         entities::settings::Settings,
-        repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
+        repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
     },
 };
 

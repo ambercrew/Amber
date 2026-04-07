@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
 use crate::{
-    backup::repositories::traits::backup_repository::BackupRepository,
+    backup::repositories::backup_repository::BackupRepository,
     common::repository_error::RepositoryError, infrastructure::primitives::db_pool::DbPool,
 };
 

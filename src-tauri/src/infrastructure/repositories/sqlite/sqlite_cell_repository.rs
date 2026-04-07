@@ -16,13 +16,15 @@ use crate::{
             cell_deletion_request::CellDeletionRequest,
             file_repetitions_count::FileRepetitionCounts, home_statistics::HomeStatistics,
         },
-        repositories::{
-            sqlite_rows::cell_row::{CellRow, RepetitionRow, convert_rows_to_cells},
-            traits::cell_repository::{CellRepository, MoveDirection},
-        },
+        repositories::cell_repository::{CellRepository, MoveDirection},
     },
     common::repository_error::RepositoryError,
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_rows::cell_row::{
+            CellRow, RepetitionRow, convert_rows_to_cells,
+        },
+    },
 };
 
 #[derive(ScopeInjectable)]
@@ -430,20 +432,20 @@ impl CellRepository for SqliteCellRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let id = repetition.id();
-        let file_id = repetition.file_id();
-        let cell_id = repetition.cell_id();
-        let due = repetition.due();
-        let stability = repetition.stability();
-        let difficulty = repetition.difficulty();
-        let elapsed_days = repetition.elapsed_days();
-        let scheduled_days = repetition.scheduled_days();
-        let reps = repetition.reps();
-        let lapses = repetition.lapses();
-        let state = repetition.state();
-        let last_review = repetition.last_review();
-        let additional_content = repetition.additional_content();
-        let created_date = repetition.created_date();
+        let id = repetition.id;
+        let file_id = repetition.file_id;
+        let cell_id = repetition.cell_id;
+        let due = repetition.due;
+        let stability = repetition.stability;
+        let difficulty = repetition.difficulty;
+        let elapsed_days = repetition.elapsed_days;
+        let scheduled_days = repetition.scheduled_days;
+        let reps = repetition.reps;
+        let lapses = repetition.lapses;
+        let state = &repetition.state;
+        let last_review = repetition.last_review;
+        let additional_content = &repetition.additional_content;
+        let created_date = repetition.created_date;
 
         let result = sqlx::query!(
             r#"INSERT INTO repetitions(
@@ -884,19 +886,16 @@ pub mod tests {
         ROOT_FOLDER_ID,
         cells::{
             entities::{cell::CellType, review::Review},
-            repositories::{
-                sqlite_review_repository::SqliteReviewRepository,
-                traits::review_repository::ReviewRepository,
-            },
+            repositories::review_repository::ReviewRepository,
         },
         common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File,
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                traits::file_repository::FileRepository,
-            },
+            entities::file::File, repositories::file_repository::FileRepository,
             value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        },
+        infrastructure::repositories::sqlite::{
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_review_repository::SqliteReviewRepository,
         },
         test_utils::create_test_injector,
     };

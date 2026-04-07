@@ -5,20 +5,17 @@ use lol_html::html_content::Element;
 use lol_html::{RewriteStrSettings, element, rewrite_str};
 use thiserror::Error;
 
+use crate::cells::repositories::cell_repository::CellRepository;
+use crate::file_system::repositories::file_repository::FileRepository;
+use crate::file_system::repositories::folder_repository::FolderRepository;
 use crate::file_system::value_objects::fsrs_profile_choice::FsrsProfileChoice;
 use crate::{
     Guid,
-    cells::{
-        cell_service::{CellService, CellServiceError},
-        repositories::traits::cell_repository::CellRepository,
-    },
+    cells::cell_service::{CellService, CellServiceError},
     common::repository_error::RepositoryError,
     file_system::{
         entities::{file::File, folder::Folder},
         models::exported_item::{ExportedItem, ExportedItemType},
-        repositories::traits::{
-            file_repository::FileRepository, folder_repository::FolderRepository,
-        },
         value_objects::file_system_item_name::FileSystemItemName,
     },
 };
@@ -371,18 +368,13 @@ pub mod tests {
     use super::*;
     use crate::{
         ROOT_FOLDER_ID,
-        cells::{
-            entities::cell::CellType,
-            repositories::{
-                sqlite_cell_repository::SqliteCellRepository,
-                sqlite_review_repository::SqliteReviewRepository,
-                traits::review_repository::ReviewRepository,
-            },
-        },
+        cells::{entities::cell::CellType, repositories::review_repository::ReviewRepository},
         common::unit_of_work_ext::UnitOfWorkExt,
-        file_system::repositories::{
+        infrastructure::repositories::sqlite::{
+            sqlite_cell_repository::SqliteCellRepository,
             sqlite_file_repository::SqliteFileRepository,
             sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_review_repository::SqliteReviewRepository,
         },
         test_utils::create_test_injector,
     };

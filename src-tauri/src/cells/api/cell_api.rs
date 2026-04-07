@@ -5,13 +5,11 @@ use crate::{
     cells::{
         cell_service::CellService,
         entities::cell::{Cell, CellType},
-        repositories::traits::cell_repository::CellRepository,
+        repositories::cell_repository::CellRepository,
     },
     common::{repository_error::RepositoryError, unit_of_work_ext::UnitOfWorkExt},
     file_system::{
-        repositories::traits::{
-            file_repository::FileRepository, folder_repository::FolderRepository,
-        },
+        repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
     },
 };

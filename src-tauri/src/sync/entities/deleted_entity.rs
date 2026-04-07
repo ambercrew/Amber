@@ -5,12 +5,12 @@ use crate::Guid;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-/// Used to represent an entity that has been deleted, usefull for sync.
+/// Used to represent an entity that has been deleted, useful for sync.
 pub struct DeletedEntity {
-    pub(in crate::sync) entity_id: Guid,
-    pub(in crate::sync) entity_name: String,
-    pub(in crate::sync) entity_created_date: DateTime<Utc>,
-    pub(in crate::sync) deleted_date: DateTime<Utc>,
+    pub entity_id: Guid,
+    pub entity_name: String,
+    pub entity_created_date: DateTime<Utc>,
+    pub deleted_date: DateTime<Utc>,
 }
 
 impl DeletedEntity {

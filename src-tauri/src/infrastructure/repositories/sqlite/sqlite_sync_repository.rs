@@ -8,8 +8,7 @@ use crate::{
     common::repository_error::RepositoryError,
     infrastructure::primitives::db_transaction::DbTransaction,
     sync::{
-        entities::deleted_entity::DeletedEntity,
-        repositories::traits::sync_repository::SyncRepository,
+        entities::deleted_entity::DeletedEntity, repositories::sync_repository::SyncRepository,
     },
 };
 

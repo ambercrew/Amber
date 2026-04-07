@@ -45,7 +45,8 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub(in crate::cells) fn new(
+    // TODO: the create/update in repository should be only be callable from the service
+    pub fn new(
         id: Option<Guid>,
         file_id: Guid,
         content: String,
@@ -185,7 +186,9 @@ impl Cell {
 
     fn update_repetitions(&mut self) {
         match self.cell_type {
-            CellType::Note => (),
+            CellType::Note => {
+                self.repetitions = Vec::new();
+            }
             CellType::FlashCard | CellType::TrueFalse => {
                 if self.repetitions.is_empty() {
                     self.create_repetition_with_content(None);
@@ -380,7 +383,7 @@ mod tests {
     }
 
     #[test]
-    pub fn reset_repetitions_valid_input_reseted_repetitions() {
+    pub fn reset_repetitions_valid_input_rested_repetitions() {
         // Arrange
 
         let content = serde_json::to_string(&FlashCard {
@@ -389,7 +392,7 @@ mod tests {
         })
         .unwrap();
         let mut cell = Cell::new(None, Guid::new_v4(), content, CellType::FlashCard, 0);
-        // Doing random modificaiton on the cell.
+        // Doing random modification on the cell.
         cell.repetitions[0].difficulty = 99f64;
 
         // Act

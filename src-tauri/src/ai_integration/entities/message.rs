@@ -28,7 +28,8 @@ impl Message {
         }
     }
 
-    pub(in crate::ai_integration) fn new_unchecked(
+    // TODO: these must be marked unsafe
+    pub fn new_unchecked(
         id: Guid,
         created_date: DateTime<Utc>,
         chat_id: Guid,

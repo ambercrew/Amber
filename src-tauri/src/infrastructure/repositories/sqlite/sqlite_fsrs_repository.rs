@@ -7,14 +7,14 @@ use injector_derive::ScopeInjectable;
 use crate::{
     Guid,
     common::repository_error::RepositoryError,
-    fsrs::entities::{
-        fsrs_profile::FsrsProfile,
-        repositories::{
-            sqlite_fsrs_repository::fsrs_profile_row::FsrsProfileRow,
-            traits::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
-        },
+    fsrs::{
+        entities::fsrs_profile::FsrsProfile,
+        repositories::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
     },
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_fsrs_repository::fsrs_profile_row::FsrsProfileRow,
+    },
 };
 
 #[derive(ScopeInjectable)]

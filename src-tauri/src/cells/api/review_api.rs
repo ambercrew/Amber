@@ -3,8 +3,7 @@ use std::sync::Arc;
 use crate::{
     cells::{
         cell_service::CellService, entities::review::Rating,
-        models::home_statistics::HomeStatistics,
-        repositories::traits::cell_repository::CellRepository,
+        models::home_statistics::HomeStatistics, repositories::cell_repository::CellRepository,
         value_objects::repetition_update::RepetitionUpdate,
     },
     common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},

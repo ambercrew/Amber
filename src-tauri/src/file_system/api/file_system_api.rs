@@ -2,13 +2,11 @@ use std::sync::Arc;
 
 use crate::{
     Guid,
-    cells::repositories::traits::cell_repository::CellRepository,
+    cells::repositories::cell_repository::CellRepository,
     common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},
     file_system::{
         file_system_service::FileSystemService,
-        repositories::traits::{
-            file_repository::FileRepository, folder_repository::FolderRepository,
-        },
+        repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
     },
 };
 use injector::injector::Injector;

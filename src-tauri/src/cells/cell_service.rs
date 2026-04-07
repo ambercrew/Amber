@@ -12,7 +12,7 @@ use crate::{
             review::{Rating, Review},
         },
         models::cell_deletion_request::CellDeletionRequest,
-        repositories::traits::{
+        repositories::{
             cell_repository::{CellRepository, MoveDirection},
             review_repository::ReviewRepository,
         },
@@ -159,18 +159,15 @@ pub mod tests {
 
     use crate::{
         ROOT_FOLDER_ID,
-        cells::repositories::{
-            sqlite_cell_repository::SqliteCellRepository,
-            sqlite_review_repository::SqliteReviewRepository,
-        },
         common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File,
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                traits::file_repository::FileRepository,
-            },
+            entities::file::File, repositories::file_repository::FileRepository,
             value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        },
+        infrastructure::repositories::sqlite::{
+            sqlite_cell_repository::SqliteCellRepository,
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_review_repository::SqliteReviewRepository,
         },
         test_utils::create_test_injector,
     };

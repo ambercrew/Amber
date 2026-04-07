@@ -8,13 +8,13 @@ use crate::{
     Guid,
     common::repository_error::RepositoryError,
     file_system::{
-        entities::file::File,
-        repositories::{
-            sqlite_file_repository::file_row::FileRow, traits::file_repository::FileRepository,
-        },
+        entities::file::File, repositories::file_repository::FileRepository,
         value_objects::file_system_item_name::FileSystemItemName,
     },
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_file_repository::file_row::FileRow,
+    },
 };
 
 #[derive(ScopeInjectable)]
@@ -345,8 +345,10 @@ pub mod tests {
         let repository = scope.resolve::<dyn FileRepository>().await;
 
         repository
-            .create(&File::new(
-                None,
+            .create(&File::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,
@@ -378,8 +380,10 @@ pub mod tests {
 
         let file_id = Guid::new_v4();
         repository
-            .create(&File::new(
-                Some(file_id),
+            .create(&File::new_unchecked(
+                file_id,
+                Utc::now(),
+                Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 "file".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,

@@ -5,13 +5,13 @@ use injector_derive::ScopeInjectable;
 
 use crate::{
     common::repository_error::RepositoryError,
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_local_configuration_repository::local_configuration_row::LocalConfigurationRow,
+    },
     local_configurations::{
-        entities::LocalConfiguration,
-        repositories::{
-            sqlite_local_configuration_repository::local_configuration_row::LocalConfigurationRow,
-            traits::local_configuration_repository::LocalConfigurationRepository,
-        },
+        entities::local_configuration::LocalConfiguration,
+        repositories::local_configuration_repository::LocalConfigurationRepository,
     },
 };
 
@@ -64,7 +64,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
 }
 
 mod local_configuration_row {
-    use crate::local_configurations::entities::LocalConfiguration;
+    use crate::local_configurations::entities::local_configuration::LocalConfiguration;
 
     pub(super) struct LocalConfigurationRow {
         pub name: String,

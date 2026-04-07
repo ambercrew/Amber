@@ -5,15 +5,12 @@ use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
 
 use crate::{
-    cells::{
-        entities::review::Review,
-        repositories::{
-            sqlite_review_repository::review_row::ReviewRow,
-            traits::review_repository::ReviewRepository,
-        },
-    },
+    cells::{entities::review::Review, repositories::review_repository::ReviewRepository},
     common::repository_error::RepositoryError,
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_review_repository::review_row::ReviewRow,
+    },
 };
 
 #[derive(ScopeInjectable)]
@@ -102,12 +99,15 @@ impl ReviewRepository for SqliteReviewRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let id = review.id();
-        let cell_id = review.cell_id();
-        let study_time = review.study_time();
-        let date = review.date();
-        let rating = review.rating();
-        let created_date = review.created_date();
+        let Review {
+            id,
+            created_date,
+            cell_id,
+            study_time,
+            date,
+            rating,
+            ..
+        } = review;
 
         let result = sqlx::query!(
             r#"INSERT INTO reviews(

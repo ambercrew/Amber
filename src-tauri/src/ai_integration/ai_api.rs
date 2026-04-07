@@ -9,7 +9,7 @@ use crate::{
             chat::Chat,
             message::{Message, MessageContent, ToolCallStatus},
         },
-        repositories::traits::ai_repository::AiRepository,
+        repositories::ai_repository::AiRepository,
         stream_ai_request::StreamAiRequest,
     },
     common::{api_error::ApiError, unit_of_work_ext::UnitOfWorkExt},

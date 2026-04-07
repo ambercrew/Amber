@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    cells::{entities::cell::Cell, repositories::traits::cell_repository::CellRepository},
+    cells::{entities::cell::Cell, repositories::cell_repository::CellRepository},
     common::api_error::ApiError,
 };
 use injector::injector::Injector;

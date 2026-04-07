@@ -16,7 +16,7 @@ use crate::{
     },
     cells::{
         cell_service::CellService, entities::cell::CellType, models::flash_card::FlashCard,
-        repositories::traits::cell_repository::CellRepository,
+        repositories::cell_repository::CellRepository,
     },
     common::repository_error::RepositoryError,
 };
@@ -243,19 +243,17 @@ pub mod accept_create_flash_card_test {
 
     use crate::{
         ROOT_FOLDER_ID,
-        cells::repositories::{
-            sqlite_cell_repository::SqliteCellRepository,
-            sqlite_review_repository::SqliteReviewRepository,
-            traits::review_repository::ReviewRepository,
-        },
+        cells::repositories::review_repository::ReviewRepository,
         file_system::{
             file_system_service::FileSystemService,
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                sqlite_folder_repository::SqliteFolderRepository,
-                traits::{file_repository::FileRepository, folder_repository::FolderRepository},
-            },
+            repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
             value_objects::file_system_item_name::FileSystemItemName,
+        },
+        infrastructure::repositories::sqlite::{
+            sqlite_cell_repository::SqliteCellRepository,
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_review_repository::SqliteReviewRepository,
         },
         test_utils::create_test_injector,
     };

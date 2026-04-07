@@ -10,16 +10,16 @@ use crate::{
             chat::Chat,
             message::{Message, MessageContent},
         },
-        repositories::{
-            sqlite_ai_repository::ai_row::{
-                ASSISTANT_CONTENT_TYPE, ChatRow, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE,
-                MessageRow, TOOL_CALL_CONTENT_TYPE,
-            },
-            traits::ai_repository::AiRepository,
-        },
+        repositories::ai_repository::AiRepository,
     },
     common::repository_error::RepositoryError,
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_ai_repository::ai_row::{
+            ASSISTANT_CONTENT_TYPE, ChatRow, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE, MessageRow,
+            TOOL_CALL_CONTENT_TYPE,
+        },
+    },
 };
 
 #[derive(ScopeInjectable)]

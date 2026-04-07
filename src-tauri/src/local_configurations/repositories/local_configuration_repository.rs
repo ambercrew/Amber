@@ -1,7 +1,8 @@
 use async_trait::async_trait;
 
 use crate::{
-    common::repository_error::RepositoryError, local_configurations::entities::LocalConfiguration,
+    common::repository_error::RepositoryError,
+    local_configurations::entities::local_configuration::LocalConfiguration,
 };
 
 #[async_trait]

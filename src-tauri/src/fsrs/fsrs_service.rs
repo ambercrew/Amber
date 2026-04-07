@@ -7,10 +7,10 @@ use crate::{
     Guid, ROOT_FOLDER_ID,
     common::repository_error::RepositoryError,
     file_system::{
-        repositories::traits::folder_repository::FolderRepository,
+        repositories::folder_repository::FolderRepository,
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
     },
-    fsrs::entities::repositories::traits::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
+    fsrs::repositories::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
 };
 
 #[derive(Error, Debug, PartialEq, Eq)]
@@ -63,9 +63,10 @@ pub mod tests {
 
     use crate::{
         DEFAULT_FSRS_PROFILE_ID,
-        file_system::repositories::sqlite_folder_repository::SqliteFolderRepository,
-        fsrs::entities::{
-            fsrs_profile::FsrsProfile, repositories::sqlite_fsrs_repository::SqliteFsrsRepository,
+        fsrs::entities::fsrs_profile::FsrsProfile,
+        infrastructure::repositories::sqlite::{
+            sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_fsrs_repository::SqliteFsrsRepository,
         },
         test_utils::create_test_injector,
     };

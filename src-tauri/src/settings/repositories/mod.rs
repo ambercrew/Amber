@@ -1,2 +1,1 @@
-pub mod disk_settings_repository;
-pub mod traits;
+pub mod settings_repository;

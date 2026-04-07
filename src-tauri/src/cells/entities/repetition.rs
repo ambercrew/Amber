@@ -16,21 +16,21 @@ pub enum State {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Repetition {
-    pub(in crate::cells) id: Guid,
-    pub(in crate::cells) created_date: DateTime<Utc>,
-    pub(in crate::cells) modified_date: DateTime<Utc>,
-    pub(in crate::cells) file_id: Guid,
-    pub(in crate::cells) cell_id: Guid,
-    pub(in crate::cells) due: DateTime<Utc>,
-    pub(in crate::cells) stability: f64,
-    pub(in crate::cells) difficulty: f64,
-    pub(in crate::cells) elapsed_days: i64,
-    pub(in crate::cells) scheduled_days: i64,
-    pub(in crate::cells) reps: i64,
-    pub(in crate::cells) lapses: i64,
-    pub(in crate::cells) state: State,
-    pub(in crate::cells) last_review: Option<DateTime<Utc>>,
-    pub(in crate::cells) additional_content: Option<String>,
+    pub id: Guid,
+    pub created_date: DateTime<Utc>,
+    pub modified_date: DateTime<Utc>,
+    pub file_id: Guid,
+    pub cell_id: Guid,
+    pub due: DateTime<Utc>,
+    pub stability: f64,
+    pub difficulty: f64,
+    pub elapsed_days: i64,
+    pub scheduled_days: i64,
+    pub reps: i64,
+    pub lapses: i64,
+    pub state: State,
+    pub last_review: Option<DateTime<Utc>>,
+    pub additional_content: Option<String>,
 }
 
 impl Repetition {
@@ -69,66 +69,6 @@ impl Repetition {
             last_review,
             additional_content,
         }
-    }
-
-    pub fn id(&self) -> Guid {
-        self.id
-    }
-
-    pub fn created_date(&self) -> DateTime<Utc> {
-        self.created_date
-    }
-
-    pub fn modified_date(&self) -> DateTime<Utc> {
-        self.modified_date
-    }
-
-    pub fn file_id(&self) -> Guid {
-        self.file_id
-    }
-
-    pub fn cell_id(&self) -> Guid {
-        self.cell_id
-    }
-
-    pub fn due(&self) -> DateTime<Utc> {
-        self.due
-    }
-
-    pub fn stability(&self) -> f64 {
-        self.stability
-    }
-
-    pub fn difficulty(&self) -> f64 {
-        self.difficulty
-    }
-
-    pub fn elapsed_days(&self) -> i64 {
-        self.elapsed_days
-    }
-
-    pub fn scheduled_days(&self) -> i64 {
-        self.scheduled_days
-    }
-
-    pub fn reps(&self) -> i64 {
-        self.reps
-    }
-
-    pub fn lapses(&self) -> i64 {
-        self.lapses
-    }
-
-    pub fn state(&self) -> &State {
-        &self.state
-    }
-
-    pub fn last_review(&self) -> Option<DateTime<Utc>> {
-        self.last_review
-    }
-
-    pub fn additional_content(&self) -> Option<&String> {
-        self.additional_content.as_ref()
     }
 }
 

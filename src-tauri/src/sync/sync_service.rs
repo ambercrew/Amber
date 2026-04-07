@@ -16,9 +16,7 @@ use crate::{
     cells::{
         cell_service::{CellService, CellServiceError},
         entities::{cell::Cell, repetition::Repetition, review::Review},
-        repositories::traits::{
-            cell_repository::CellRepository, review_repository::ReviewRepository,
-        },
+        repositories::{cell_repository::CellRepository, review_repository::ReviewRepository},
     },
     common::{
         extensions::{
@@ -28,25 +26,21 @@ use crate::{
     },
     file_system::{
         entities::{file::File, folder::Folder},
-        repositories::traits::{
-            file_repository::FileRepository, folder_repository::FolderRepository,
-        },
+        repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
         value_objects::file_system_item_name::FileSystemItemName,
     },
-    fsrs::entities::{
-        fsrs_profile::FsrsProfile, repositories::traits::fsrs_repository::FsrsRepository,
-    },
+    fsrs::{entities::fsrs_profile::FsrsProfile, repositories::fsrs_repository::FsrsRepository},
     generated_code::{self},
     local_configurations::{
-        entities::LocalConfiguration,
-        repositories::traits::local_configuration_repository::LocalConfigurationRepository,
+        entities::local_configuration::LocalConfiguration,
+        repositories::local_configuration_repository::LocalConfigurationRepository,
     },
     sync::{
         entities::{
             deleted_entity::DeletedEntity,
             synced_entity::{EntityType, SyncedEntity},
         },
-        repositories::traits::sync_repository::SyncRepository,
+        repositories::sync_repository::SyncRepository,
     },
 };
 
@@ -461,27 +455,25 @@ impl SyncService {
             .await?
         {
             let data = generated_code::Repetition {
-                modified_date: Some(repetition.modified_date().into_timestamp()),
-                file_id: repetition.file_id().to_string(),
-                cell_id: repetition.cell_id().to_string(),
-                due: Some(repetition.due().into_timestamp()),
-                reps: repetition.reps(),
-                stability: repetition.stability(),
-                difficulty: repetition.difficulty(),
-                elapsed_days: repetition.elapsed_days(),
-                scheduled_days: repetition.scheduled_days(),
-                lapses: repetition.lapses(),
-                state: serde_json::to_string(&repetition.state()).unwrap(),
-                last_review: repetition.last_review().map(|value| value.into_timestamp()),
-                additional_content: repetition
-                    .additional_content()
-                    .map(|value| value.to_string()),
+                modified_date: Some(repetition.modified_date.into_timestamp()),
+                file_id: repetition.file_id.to_string(),
+                cell_id: repetition.cell_id.to_string(),
+                due: Some(repetition.due.into_timestamp()),
+                reps: repetition.reps,
+                stability: repetition.stability,
+                difficulty: repetition.difficulty,
+                elapsed_days: repetition.elapsed_days,
+                scheduled_days: repetition.scheduled_days,
+                lapses: repetition.lapses,
+                state: serde_json::to_string(&repetition.state).unwrap(),
+                last_review: repetition.last_review.map(|value| value.into_timestamp()),
+                additional_content: repetition.additional_content.map(|value| value.to_string()),
             }
             .into_base64();
 
             let dto = SyncEntityDto {
-                entity_id: repetition.id(),
-                created_date: repetition.created_date(),
+                entity_id: repetition.id,
+                created_date: repetition.created_date,
                 entity_type: EntityType::Repetition,
                 data,
             };
@@ -495,17 +487,17 @@ impl SyncService {
             .await?
         {
             let data = generated_code::Review {
-                modified_date: Some(review.modified_date().into_timestamp()),
-                cell_id: review.cell_id().map(|value| value.to_string()),
-                date: Some(review.date().into_timestamp()),
-                rating: serde_json::to_string(&review.rating()).unwrap(),
-                study_time: review.study_time(),
+                modified_date: Some(review.modified_date.into_timestamp()),
+                cell_id: review.cell_id.map(|value| value.to_string()),
+                date: Some(review.date.into_timestamp()),
+                rating: serde_json::to_string(&review.rating).unwrap(),
+                study_time: review.study_time,
             }
             .into_base64();
 
             let dto = SyncEntityDto {
-                entity_id: review.id(),
-                created_date: review.created_date(),
+                entity_id: review.id,
+                created_date: review.created_date,
                 entity_type: EntityType::Review,
                 data,
             };
@@ -558,27 +550,22 @@ mod tests {
         backend::{
             models::SyncedEntitiesPageDto, traits::brainy_backend_client::MockBrainyBackendClient,
         },
-        cells::{
-            entities::{cell::CellType, repetition::State, review::Rating},
-            repositories::{
-                sqlite_cell_repository::SqliteCellRepository,
-                sqlite_review_repository::SqliteReviewRepository,
-            },
-        },
+        cells::entities::{cell::CellType, repetition::State, review::Rating},
         common::{
             extensions::{into_base64::IntoBase64, into_timestamp::IntoTimestamp},
             unit_of_work_ext::UnitOfWorkExt,
         },
-        file_system::{
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                sqlite_folder_repository::SqliteFolderRepository,
-            },
-            value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        file_system::value_objects::fsrs_profile_choice::FsrsProfileChoice,
+        infrastructure::repositories::sqlite::{
+            sqlite_cell_repository::SqliteCellRepository,
+            sqlite_file_repository::SqliteFileRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_fsrs_repository::SqliteFsrsRepository,
+            sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
+            sqlite_review_repository::SqliteReviewRepository,
+            sqlite_sync_repository::SqliteSyncRepository,
         },
-        fsrs::entities::repositories::sqlite_fsrs_repository::SqliteFsrsRepository,
-        local_configurations::repositories::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
-        sync::repositories::sqlite_sync_repository::SqliteSyncRepository,
+        sync::repositories::sync_repository::SyncRepository,
         test_utils::create_test_injector,
     };
 

@@ -9,7 +9,7 @@ use crate::{
     },
     settings::{
         dto::update_settings_request::UpdateSettingsRequest,
-        repositories::traits::settings_repository::{SettingsRepository, SettingsRepositoryError},
+        repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
     },
 };
 

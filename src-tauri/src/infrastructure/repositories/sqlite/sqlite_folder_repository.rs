@@ -8,14 +8,13 @@ use crate::{
     Guid,
     common::repository_error::RepositoryError,
     file_system::{
-        entities::folder::Folder,
-        repositories::{
-            sqlite_folder_repository::folder_row::FolderRow,
-            traits::folder_repository::FolderRepository,
-        },
+        entities::folder::Folder, repositories::folder_repository::FolderRepository,
         value_objects::file_system_item_name::FileSystemItemName,
     },
-    infrastructure::primitives::db_transaction::DbTransaction,
+    infrastructure::{
+        primitives::db_transaction::DbTransaction,
+        repositories::sqlite::sqlite_folder_repository::folder_row::FolderRow,
+    },
 };
 
 #[derive(ScopeInjectable)]
@@ -324,13 +323,10 @@ pub mod tests {
         ROOT_FOLDER_ID,
         common::unit_of_work_ext::UnitOfWorkExt,
         file_system::{
-            entities::file::File,
-            repositories::{
-                sqlite_file_repository::SqliteFileRepository,
-                traits::file_repository::FileRepository,
-            },
+            entities::file::File, repositories::file_repository::FileRepository,
             value_objects::fsrs_profile_choice::FsrsProfileChoice,
         },
+        infrastructure::repositories::sqlite::sqlite_file_repository::SqliteFileRepository,
         test_utils::create_test_injector,
     };
 
@@ -352,8 +348,10 @@ pub mod tests {
         let repository = scope.resolve::<dyn FolderRepository>().await;
 
         repository
-            .create(&Folder::new(
-                None,
+            .create(&Folder::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,
@@ -386,8 +384,10 @@ pub mod tests {
 
         let parent_id = Guid::new_v4();
         repository
-            .create(&Folder::new(
-                Some(parent_id),
+            .create(&Folder::new_unchecked(
+                parent_id,
+                Utc::now(),
+                Utc::now(),
                 Some(ROOT_FOLDER_ID),
                 "folder".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,
@@ -395,8 +395,10 @@ pub mod tests {
             .await
             .unwrap();
         repository
-            .create(&Folder::new(
-                None,
+            .create(&Folder::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
                 Some(parent_id),
                 "sub folder".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,
@@ -406,8 +408,10 @@ pub mod tests {
         scope
             .resolve::<dyn FileRepository>()
             .await
-            .create(&File::new(
-                None,
+            .create(&File::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
                 Some(parent_id),
                 "file".try_into().unwrap(),
                 FsrsProfileChoice::Inherit,

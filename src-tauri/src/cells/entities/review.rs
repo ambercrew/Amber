@@ -15,14 +15,14 @@ pub enum Rating {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Review {
-    pub(in crate::cells) id: Guid,
-    pub(in crate::cells) created_date: DateTime<Utc>,
-    pub(in crate::cells) modified_date: DateTime<Utc>,
+    pub id: Guid,
+    pub created_date: DateTime<Utc>,
+    pub modified_date: DateTime<Utc>,
     /// Review can should exist even when the cell is deleted.
-    pub(in crate::cells) cell_id: Option<Guid>,
-    pub(in crate::cells) study_time: u32,
-    pub(in crate::cells) date: DateTime<Utc>,
-    pub(in crate::cells) rating: Rating,
+    pub cell_id: Option<Guid>,
+    pub study_time: u32,
+    pub date: DateTime<Utc>,
+    pub rating: Rating,
 }
 
 impl Review {
@@ -62,34 +62,6 @@ impl Review {
             date,
             rating,
         }
-    }
-
-    pub fn id(&self) -> Guid {
-        self.id
-    }
-
-    pub fn created_date(&self) -> DateTime<Utc> {
-        self.created_date
-    }
-
-    pub fn modified_date(&self) -> DateTime<Utc> {
-        self.modified_date
-    }
-
-    pub fn cell_id(&self) -> Option<Guid> {
-        self.cell_id
-    }
-
-    pub fn study_time(&self) -> u32 {
-        self.study_time
-    }
-
-    pub fn date(&self) -> DateTime<Utc> {
-        self.date
-    }
-
-    pub fn rating(&self) -> &Rating {
-        &self.rating
     }
 }
 

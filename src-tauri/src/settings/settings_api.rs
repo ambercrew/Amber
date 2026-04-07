@@ -4,8 +4,7 @@ use crate::{
     common::api_error::ApiError,
     settings::{
         dto::update_settings_request::UpdateSettingsRequest, entities::settings::Settings,
-        repositories::traits::settings_repository::SettingsRepository,
-        settings_service::SettingsService,
+        repositories::settings_repository::SettingsRepository, settings_service::SettingsService,
     },
 };
 use injector::injector::Injector;
