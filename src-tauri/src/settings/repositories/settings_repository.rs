@@ -15,6 +15,7 @@ pub enum SettingsRepositoryError {
     ParsingError(String),
     #[error("Error when saving the settings file!")]
     SavingError(String),
+    // TODO: delete when no longer needed
     #[error("{0}")]
     DatabaseLocationError(#[from] DatabaseLocationError),
 }

@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use crate::settings::value_objects::{database_location::DatabaseLocation, theme::Theme};
+use crate::settings::value_objects::database_location::{
+    DatabaseLocation, DatabaseLocationProfile,
+};
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 use tokio::{
@@ -22,8 +24,6 @@ const SETTINGS_FILE_NAME: &str = "settings.json";
 #[cfg(debug_assertions)]
 const SETTINGS_FILE_NAME: &str = "settings.dev.json";
 
-const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
-
 #[derive(ScopeInjectable)]
 pub struct DiskSettingsRepository {
     settings: Arc<Mutex<Settings>>,
@@ -41,21 +41,13 @@ impl DiskSettingsRepository {
         {
             read_settings_from_file(app_data_directory).await
         } else {
+            // TODO: contains domain logic, should not be here!
             let database_location = DatabaseLocation::new(
-                app_data_directory
-                    .get_path()
-                    .join(DEFAULT_DATABASE_FILE_NAME),
+                app_data_directory.get_path().clone(),
+                DatabaseLocationProfile::Default,
             )?;
 
-            let settings = Settings {
-                database_location,
-                theme: Theme::FollowSystem,
-                zoom_percentage: 100f64,
-                auto_sync: true,
-                enable_ai: true,
-                ollama_model_name: None,
-                ollama_embeddings_model_name: None,
-            };
+            let settings = Settings::new(database_location);
             save_to_disk_inner(&settings, app_data_directory).await?;
             Ok(settings)
         }
@@ -148,10 +140,8 @@ pub mod tests {
 
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
         assert_eq!(
-            settings.database_location.get_path().clone(),
-            app_data_directory
-                .get_path()
-                .join(DEFAULT_DATABASE_FILE_NAME)
+            settings.database_location().get_path().clone(),
+            app_data_directory.get_path().join("brainy.db")
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
         assert_eq!(settings.zoom_percentage, 100f64);
