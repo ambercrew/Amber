@@ -888,6 +888,7 @@ pub mod tests {
         cells::{
             entities::{cell::CellType, review::Review},
             repositories::review_repository::ReviewRepository,
+            test_utils::create_cell,
         },
         file_system::{
             entities::file::File, repositories::file_repository::FileRepository,
@@ -932,7 +933,7 @@ pub mod tests {
         );
         file_repository.create(&file).await.unwrap();
 
-        let cell = Cell::new(
+        let cell = create_cell(
             None,
             file.id(),
             r#"
@@ -988,14 +989,14 @@ pub mod tests {
         file_repository.create(&file).await.unwrap();
 
         let cells = [
-            Cell::new(
+            create_cell(
                 None,
                 file.id(),
                 r#"<cloze index="1"></cloze>"#.to_string(),
                 CellType::Cloze,
                 0,
             ),
-            Cell::new(None, file.id(), "".to_string(), CellType::Note, 1),
+            create_cell(None, file.id(), "".to_string(), CellType::Note, 1),
         ];
 
         cell_repository.create(&cells[1]).await.unwrap();
@@ -1036,7 +1037,7 @@ pub mod tests {
         );
         file_repository.create(&file).await.unwrap();
 
-        let mut cell = Cell::new(
+        let mut cell = create_cell(
             None,
             file.id(),
             r#"
@@ -1116,9 +1117,9 @@ pub mod tests {
         file_repository.create(&file).await.unwrap();
 
         let cells = [
-            Cell::new(None, file.id(), "Test 1".to_string(), CellType::Note, 0),
-            Cell::new(None, file.id(), "Test 2".to_string(), CellType::Note, 1),
-            Cell::new(
+            create_cell(None, file.id(), "Test 1".to_string(), CellType::Note, 0),
+            create_cell(None, file.id(), "Test 2".to_string(), CellType::Note, 1),
+            create_cell(
                 None,
                 file.id(),
                 "Not include".to_string(),

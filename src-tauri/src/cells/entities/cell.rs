@@ -45,8 +45,7 @@ pub struct Cell {
 }
 
 impl Cell {
-    // TODO: the create/update in repository should be only be callable from the service
-    pub fn new(
+    pub(in crate::cells) fn new(
         id: Option<Guid>,
         file_id: Guid,
         content: String,
