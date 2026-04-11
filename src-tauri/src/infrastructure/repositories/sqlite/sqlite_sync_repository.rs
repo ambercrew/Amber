@@ -39,7 +39,7 @@ impl SyncRepository for SqliteSyncRepository {
             .await;
 
         if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         let result = sqlx::query!(
@@ -57,7 +57,7 @@ impl SyncRepository for SqliteSyncRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -83,7 +83,7 @@ impl SyncRepository for SqliteSyncRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().collect()),
         }
     }

@@ -76,7 +76,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 // Should be a single cell in list.
                 let cell = convert_rows_to_cells(rows).remove(0);
@@ -103,7 +103,7 @@ impl CellRepository for SqliteCellRepository {
 
         match row {
             Ok(cnt) => Ok(cnt as u32),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -117,7 +117,7 @@ impl CellRepository for SqliteCellRepository {
 
         match row {
             Ok(cnt) => Ok(cnt as u32),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -167,7 +167,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let cells = convert_rows_to_cells(rows);
                 Ok(cells)
@@ -219,7 +219,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let cells = convert_rows_to_cells(rows);
                 Ok(cells)
@@ -261,7 +261,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let result = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
                 Ok(result)
@@ -306,7 +306,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         upsert_repetitions(tx, cell.repetitions()).await
@@ -349,7 +349,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         // Deleting removed repetitions.
@@ -365,7 +365,7 @@ impl CellRepository for SqliteCellRepository {
         separated.push_unseparated(")");
 
         if let Err(err) = query_builder.build().execute(&mut *tx).await {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         upsert_repetitions(tx, cell.repetitions()).await
@@ -421,7 +421,7 @@ impl CellRepository for SqliteCellRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -504,7 +504,7 @@ impl CellRepository for SqliteCellRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -536,7 +536,7 @@ impl CellRepository for SqliteCellRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -554,7 +554,7 @@ impl CellRepository for SqliteCellRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -603,7 +603,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let cells = convert_rows_to_cells(rows);
                 Ok(cells)
@@ -633,7 +633,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let mut counts: FileRepetitionCounts = Default::default();
 
@@ -674,7 +674,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => {
                 let mut output = HashMap::new();
 
@@ -723,7 +723,7 @@ impl CellRepository for SqliteCellRepository {
 
         let (number_of_reviews, total_study_time) = match row {
             Ok(result) => (result.count, result.total_study_time.unwrap_or(0)),
-            Err(err) => return Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => return Err(RepositoryError::Unknown(err.to_string())),
         };
 
         let start_of_year = Utc::now()
@@ -755,7 +755,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         if let Err(err) = rows {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         let mut review_counts: HashMap<NaiveDate, u64> = HashMap::new();
@@ -777,7 +777,7 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         if let Err(err) = rows {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         let mut due_counts: HashMap<NaiveDate, u64> = HashMap::new();
@@ -869,7 +869,7 @@ async fn upsert_repetitions(
         .await;
 
         if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
     }
 

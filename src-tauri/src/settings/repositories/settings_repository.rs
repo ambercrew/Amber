@@ -12,11 +12,11 @@ pub enum SettingsRepositoryError {
     #[error("Error when trying to read the settings file!")]
     ErrorReadingFile(String),
     #[error("Error when parsing the settings file!")]
-    ParsingError(String),
+    Parsing(String),
     #[error("Error when saving the settings file!")]
-    SavingError(String),
+    Saving(String),
     #[error(transparent)]
-    DatabaseLocationError(#[from] DatabaseLocationError),
+    DatabaseLocation(#[from] DatabaseLocationError),
 }
 
 #[async_trait]

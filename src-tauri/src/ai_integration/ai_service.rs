@@ -76,7 +76,7 @@ pub enum StreamLlmResponseEvent {
 #[derive(Error, Debug)]
 pub enum AiServiceError {
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
     #[error("Ai is not enabled in settings!")]
     AiNotEnabled,
     #[cfg(not(test))]
@@ -88,30 +88,30 @@ pub enum AiServiceError {
     #[error("Unknown tool name was given")]
     UnknownToolName,
     #[error("An unknown error has happened!")]
-    UnknownError(String),
+    Unknown(String),
     #[error("Can only accept tool calls")]
     CanOnlyAcceptToolCalls,
     #[error(transparent)]
-    AcceptToolCallError(#[from] AcceptToolCallError),
+    AcceptToolCall(#[from] AcceptToolCallError),
     #[error("Error loading file: {0}")]
-    FileLoaderError(#[from] FileLoaderError),
+    FileLoader(#[from] FileLoaderError),
     #[error("Error loading pdf file: {0}")]
-    PdfLoaderError(#[from] PdfLoaderError),
+    PdfLoader(#[from] PdfLoaderError),
     #[error("Embed error: {0}")]
-    EmbedError(#[from] EmbedError),
+    Embed(#[from] EmbedError),
     #[error("Embedding error: {0}")]
-    EmbeddingError(#[from] EmbeddingError),
+    Embedding(#[from] EmbeddingError),
     #[error(transparent)]
-    SettingsRepositoryError(#[from] SettingsRepositoryError),
+    SettingsRepository(#[from] SettingsRepositoryError),
     #[error("Error connecting to embeddings database")]
     ConnectingToEmbeddingsDatabase(String),
     #[error(transparent)]
-    VectorStoreError(#[from] VectorStoreError),
+    VectorStore(#[from] VectorStoreError),
 }
 
 impl From<String> for AiServiceError {
     fn from(value: String) -> Self {
-        AiServiceError::UnknownError(value)
+        AiServiceError::Unknown(value)
     }
 }
 
@@ -242,7 +242,7 @@ impl AiService {
             .await
         {
             Ok(response) => response,
-            Err(err) => return Err(AiServiceError::UnknownError(err.to_string())),
+            Err(err) => return Err(AiServiceError::Unknown(err.to_string())),
         };
 
         log::info!("Generated title for chat is '{}'.", response.title);

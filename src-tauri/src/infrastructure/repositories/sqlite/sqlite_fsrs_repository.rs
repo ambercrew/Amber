@@ -46,7 +46,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .await;
 
         match row {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(row) => Ok(row.into()),
         }
     }
@@ -71,7 +71,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }
@@ -116,7 +116,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -160,7 +160,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -175,7 +175,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -232,7 +232,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -261,7 +261,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }

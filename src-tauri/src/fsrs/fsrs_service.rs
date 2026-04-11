@@ -16,7 +16,7 @@ use crate::{
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum FsrsServiceError {
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
 
     #[error(
         "You cannot delete the last profile, please create another one before deleting the current one"

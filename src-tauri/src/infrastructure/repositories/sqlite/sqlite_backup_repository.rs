@@ -25,7 +25,7 @@ impl BackupRepository for SqliteBackupRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 }

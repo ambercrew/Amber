@@ -35,7 +35,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         .await;
 
         match row {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(row) => Ok(row.map(|value| value.into())),
         }
     }
@@ -56,7 +56,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         .await;
 
         if let Err(err) = result {
-            return Err(RepositoryError::UnknownError(err.to_string()));
+            return Err(RepositoryError::Unknown(err.to_string()));
         }
 
         Ok(())

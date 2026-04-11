@@ -45,7 +45,7 @@ impl FolderRepository for SqliteFolderRepository {
         .await;
 
         match row {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(row) => Ok(row.into()),
         }
     }
@@ -69,7 +69,7 @@ impl FolderRepository for SqliteFolderRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }
@@ -95,7 +95,7 @@ impl FolderRepository for SqliteFolderRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }
@@ -124,7 +124,7 @@ impl FolderRepository for SqliteFolderRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }
@@ -148,7 +148,7 @@ impl FolderRepository for SqliteFolderRepository {
 
         match row {
             Ok(cnt) => Ok(cnt > 0),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -184,7 +184,7 @@ impl FolderRepository for SqliteFolderRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -220,7 +220,7 @@ impl FolderRepository for SqliteFolderRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -268,7 +268,7 @@ impl FolderRepository for SqliteFolderRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -282,7 +282,7 @@ impl FolderRepository for SqliteFolderRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 }

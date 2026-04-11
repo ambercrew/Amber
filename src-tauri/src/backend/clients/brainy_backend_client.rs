@@ -16,15 +16,15 @@ pub enum BrainyBackendClientError {
     #[error("The application received an unexpected respone!")]
     UnexpectedResponse,
     #[error("An unknown error happend while sending the request!")]
-    UnknownError(String),
+    Unknown(String),
     #[error("Error deserializing the response received.")]
-    DeserializationError(String),
+    Deserialization(String),
     #[error("{0}")]
     BadRequest(String),
     #[error("Error connecting to the server, please try again!")]
-    ConnectError,
+    Connect,
     #[error("The request has timed out, please try again!")]
-    TimeoutError,
+    Timeout,
 }
 
 #[cfg_attr(test, automock)]

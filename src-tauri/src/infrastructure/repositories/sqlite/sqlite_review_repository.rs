@@ -56,7 +56,7 @@ impl ReviewRepository for SqliteReviewRepository {
         .await;
 
         match result {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(_) => Ok(()),
         }
     }
@@ -86,7 +86,7 @@ impl ReviewRepository for SqliteReviewRepository {
         .await;
 
         match rows {
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
             Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
         }
     }
@@ -142,7 +142,7 @@ impl ReviewRepository for SqliteReviewRepository {
 
         match result {
             Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 }

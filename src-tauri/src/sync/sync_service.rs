@@ -50,11 +50,11 @@ const LAST_SYNC_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
 #[allow(clippy::enum_variant_names)]
 pub enum SyncError {
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
     #[error(transparent)]
-    ClientError(#[from] BrainyBackendClientError),
+    Client(#[from] BrainyBackendClientError),
     #[error(transparent)]
-    CellServiceError(#[from] CellServiceError),
+    CellService(#[from] CellServiceError),
 }
 
 pub struct SyncLock(pub Mutex<()>);

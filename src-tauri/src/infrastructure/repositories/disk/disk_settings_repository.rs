@@ -71,7 +71,7 @@ async fn read_settings_from_file(
     }
     match serde_json::from_str(&file_content) {
         Ok(settings) => Ok(settings),
-        Err(err) => Err(SettingsRepositoryError::ParsingError(err.to_string())),
+        Err(err) => Err(SettingsRepositoryError::Parsing(err.to_string())),
     }
 }
 
@@ -97,7 +97,7 @@ async fn save_to_disk_inner(
     log::info!("Saving settings into '{}'.", path.to_str().unwrap());
     match fs::write(path, serde_json::to_string(settings).unwrap()).await {
         Ok(_) => Ok(()),
-        Err(err) => Err(SettingsRepositoryError::SavingError(err.to_string())),
+        Err(err) => Err(SettingsRepositoryError::Saving(err.to_string())),
     }
 }
 

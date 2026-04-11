@@ -34,9 +34,9 @@ pub struct CreateFlashcardArgs {
 #[derive(Error, Debug)]
 pub enum CreateFlashCardError {
     #[error(transparent)]
-    SerdeError(#[from] serde_json::Error),
+    Serde(#[from] serde_json::Error),
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
     #[error("{0}")]
     OnEvent(String),
 }

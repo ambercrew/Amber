@@ -24,7 +24,7 @@ use crate::{
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum CellServiceError {
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
 }
 
 #[derive(ScopeInjectable)]

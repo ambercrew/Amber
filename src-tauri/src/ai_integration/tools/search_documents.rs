@@ -33,9 +33,9 @@ pub struct SearchDocumentsArgs {
 #[derive(Error, Debug)]
 pub enum SearchDocumentsError {
     #[error("Error fetching documents from vector store")]
-    FetchingError(#[from] VectorStoreError),
+    Fetching(#[from] VectorStoreError),
     #[error("Error building search query")]
-    SearchQueryError(VectorStoreError),
+    SearchQuery(VectorStoreError),
 }
 
 pub struct SearchDocuments {
@@ -85,7 +85,7 @@ impl Tool for SearchDocuments {
             .build()
         {
             Ok(req) => req,
-            Err(err) => return Err(SearchDocumentsError::SearchQueryError(err)),
+            Err(err) => return Err(SearchDocumentsError::SearchQuery(err)),
         };
 
         let results = self

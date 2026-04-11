@@ -195,9 +195,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::DeserializationError(
-                err.to_string(),
-            )),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
         }
     }
 
@@ -253,9 +251,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<SyncedEntitiesPageDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::DeserializationError(
-                err.to_string(),
-            )),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
         }
     }
 
@@ -344,11 +340,11 @@ async fn ensure_success_response(
 ) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
         if err.is_connect() {
-            return Err(BrainyBackendClientError::ConnectError);
+            return Err(BrainyBackendClientError::Connect);
         } else if err.is_timeout() {
-            return Err(BrainyBackendClientError::TimeoutError);
+            return Err(BrainyBackendClientError::Timeout);
         } else {
-            return Err(BrainyBackendClientError::UnknownError(err.to_string()));
+            return Err(BrainyBackendClientError::Unknown(err.to_string()));
         }
     }
 
@@ -367,9 +363,7 @@ async fn ensure_success_response(
             Ok(problem_details) => {
                 Err(BrainyBackendClientError::BadRequest(problem_details.detail))
             }
-            Err(err) => Err(BrainyBackendClientError::DeserializationError(
-                err.to_string(),
-            )),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
         },
         _ => Err(BrainyBackendClientError::UnexpectedResponse),
     }

@@ -50,7 +50,7 @@ impl AiRepository for SqliteAiRepository {
 
         match chat_rows {
             Ok(chat_rows) => Ok(chat_rows.into_iter().map(|chat| chat.into()).collect()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -82,7 +82,7 @@ impl AiRepository for SqliteAiRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -105,7 +105,7 @@ impl AiRepository for SqliteAiRepository {
 
         match chat_row {
             Ok(chat_row) => Ok(chat_row.into()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -165,7 +165,7 @@ impl AiRepository for SqliteAiRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -194,7 +194,7 @@ impl AiRepository for SqliteAiRepository {
                 .into_iter()
                 .map(|message| message.into())
                 .collect()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -208,7 +208,7 @@ impl AiRepository for SqliteAiRepository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 
@@ -233,7 +233,7 @@ impl AiRepository for SqliteAiRepository {
 
         match message_row {
             Ok(message_row) => Ok(message_row.into()),
-            Err(err) => Err(RepositoryError::UnknownError(err.to_string())),
+            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
         }
     }
 }

@@ -29,9 +29,9 @@ pub enum FileServiceError {
     #[error("Cannot move folder to a nested folder within the current folder")]
     CannotMoveChildIntoInnerFolder,
     #[error(transparent)]
-    CellServiceError(#[from] CellServiceError),
+    CellService(#[from] CellServiceError),
     #[error(transparent)]
-    UnknownRepositoryError(#[from] RepositoryError),
+    Repository(#[from] RepositoryError),
 }
 
 #[derive(ScopeInjectable)]
