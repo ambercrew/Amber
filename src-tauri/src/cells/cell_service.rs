@@ -23,7 +23,7 @@ use crate::{
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum CellServiceError {
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
 }
 

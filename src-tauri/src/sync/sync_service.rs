@@ -49,11 +49,11 @@ const LAST_SYNC_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
 #[derive(Error, Debug, PartialEq, Eq)]
 #[allow(clippy::enum_variant_names)]
 pub enum SyncError {
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
-    #[error("{0}")]
+    #[error(transparent)]
     ClientError(#[from] BrainyBackendClientError),
-    #[error("{0}")]
+    #[error(transparent)]
     CellServiceError(#[from] CellServiceError),
 }
 

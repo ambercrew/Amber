@@ -28,9 +28,9 @@ pub enum FileServiceError {
     FolderExists { name: String },
     #[error("Cannot move folder to a nested folder within the current folder")]
     CannotMoveChildIntoInnerFolder,
-    #[error("{0}")]
+    #[error(transparent)]
     CellServiceError(#[from] CellServiceError),
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
 }
 

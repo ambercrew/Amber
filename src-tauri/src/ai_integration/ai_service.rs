@@ -75,7 +75,7 @@ pub enum StreamLlmResponseEvent {
 
 #[derive(Error, Debug)]
 pub enum AiServiceError {
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
     #[error("Ai is not enabled in settings!")]
     AiNotEnabled,
@@ -91,7 +91,7 @@ pub enum AiServiceError {
     UnknownError(String),
     #[error("Can only accept tool calls")]
     CanOnlyAcceptToolCalls,
-    #[error("{0}")]
+    #[error(transparent)]
     AcceptToolCallError(#[from] AcceptToolCallError),
     #[error("Error loading file: {0}")]
     FileLoaderError(#[from] FileLoaderError),
@@ -101,11 +101,11 @@ pub enum AiServiceError {
     EmbedError(#[from] EmbedError),
     #[error("Embedding error: {0}")]
     EmbeddingError(#[from] EmbeddingError),
-    #[error("{0}")]
+    #[error(transparent)]
     SettingsRepositoryError(#[from] SettingsRepositoryError),
     #[error("Error connecting to embeddings database")]
     ConnectingToEmbeddingsDatabase(String),
-    #[error("{0}")]
+    #[error(transparent)]
     VectorStoreError(#[from] VectorStoreError),
 }
 

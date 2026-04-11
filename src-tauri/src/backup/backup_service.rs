@@ -17,7 +17,7 @@ use crate::{
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum BackupServiceError {
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
     #[error("The application is not able to list the entries in the settings folder!")]
     CannotListEntriesInFolder(String),

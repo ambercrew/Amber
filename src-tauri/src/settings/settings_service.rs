@@ -19,11 +19,11 @@ use crate::{
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum SettingsServiceError {
-    #[error("{0}")]
+    #[error(transparent)]
     SettingsRepository(#[from] SettingsRepositoryError),
-    #[error("{0}")]
+    #[error(transparent)]
     DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
-    #[error("{0}")]
+    #[error(transparent)]
     DatabaseLocation(#[from] DatabaseLocationError),
 }
 

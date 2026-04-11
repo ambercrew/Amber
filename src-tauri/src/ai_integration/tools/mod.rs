@@ -13,11 +13,11 @@ pub mod search_documents;
 
 #[derive(Error, Debug)]
 pub enum AcceptToolCallError {
-    #[error("{0}")]
+    #[error(transparent)]
     UnknownRepositoryError(#[from] RepositoryError),
-    #[error("{0}")]
+    #[error(transparent)]
     CellServiceError(#[from] CellServiceError),
-    #[error("{0}")]
+    #[error(transparent)]
     ParsingError(#[from] serde_json::Error),
     #[error("{0}")]
     MissingArguments(String),
