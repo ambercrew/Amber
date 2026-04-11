@@ -549,9 +549,8 @@ pub mod tests {
             },
         },
         settings::{
-            entities::settings::Settings,
+            entities::settings::{Settings, SettingsProfile},
             repositories::settings_repository::SettingsRepository,
-            value_objects::database_location::{DatabaseLocation, DatabaseLocationProfile},
         },
         test_utils::{create_temp_directory, create_test_injector},
     };
@@ -561,13 +560,7 @@ pub mod tests {
     async fn initialize_test_injector(mock_client: MockClient, state: Arc<AiState>) -> Injector {
         let mut injector = create_test_injector().await;
 
-        let mut settings = Settings::new(
-            DatabaseLocation::new(
-                create_temp_directory().await.join("temp.db"),
-                DatabaseLocationProfile::Default,
-            )
-            .unwrap(),
-        );
+        let mut settings = Settings::new(create_temp_directory().await, SettingsProfile::Default);
         settings.enable_ai = true;
 
         injector.register_singleton(Arc::new(Mutex::new(settings)));

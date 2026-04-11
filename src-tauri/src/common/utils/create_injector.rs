@@ -30,6 +30,8 @@ use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::local_configurations::repositories::local_configuration_repository::LocalConfigurationRepository;
 #[cfg(test)]
 use crate::settings::entities::settings::Settings;
+#[cfg(not(test))]
+use crate::settings::entities::settings::{Settings, SettingsProfile};
 use crate::settings::repositories::settings_repository::SettingsRepository;
 use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
@@ -50,17 +52,24 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     injector.register_singleton(Arc::new(app_data_directory.clone()));
 
     #[cfg(not(test))]
-    let settings = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
-        .await
-        .unwrap();
+    let settings = DiskSettingsRepository::init_settings_and_get(
+        &app_data_directory,
+        Settings::new(
+            app_data_directory.get_path().clone(),
+            SettingsProfile::Default,
+        ),
+    )
+    .await
+    .unwrap();
 
     #[cfg(test)]
     let settings = Settings::default();
 
     #[cfg(not(test))]
-    let sqlite_pool = create_sqlite_pool(&format!("sqlite:///{}", settings.database_location()))
-        .await
-        .expect("Error connecting to Sqlite database");
+    let sqlite_pool =
+        create_sqlite_pool(&format!("sqlite:///{}", settings.get_database_location()))
+            .await
+            .expect("Error connecting to Sqlite database");
 
     #[cfg(test)]
     let sqlite_pool = create_sqlite_pool("sqlite::memory:")

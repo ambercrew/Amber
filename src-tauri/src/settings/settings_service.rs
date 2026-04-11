@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 
 use injector_derive::ScopeInjectable;
 use thiserror::Error;
@@ -9,11 +9,8 @@ use crate::{
     },
     settings::{
         dto::update_settings_request::UpdateSettingsRequest,
-        entities::settings::Settings,
+        entities::settings::SettingsProfile,
         repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
-        value_objects::database_location::{
-            DatabaseLocation, DatabaseLocationError, DatabaseLocationProfile,
-        },
     },
 };
 
@@ -23,8 +20,6 @@ pub enum SettingsServiceError {
     SettingsRepository(#[from] SettingsRepositoryError),
     #[error(transparent)]
     DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
-    #[error(transparent)]
-    DatabaseLocation(#[from] DatabaseLocationError),
 }
 
 #[derive(ScopeInjectable)]
@@ -41,9 +36,11 @@ impl SettingsService {
         let mut settings = self.settings_repository.get_settings().await;
 
         if let Some(new_base_dir) = new_settings.database_location_base_dir
-            && new_base_dir != *settings.database_location.base_dir()
+            && new_base_dir != settings.base_database_location
         {
-            self.update_database_location(&mut settings, Some(new_base_dir), None)
+            settings.base_database_location = new_base_dir;
+            self.database_connection_manager
+                .change_database_location(&settings.get_database_location())
                 .await?;
         }
         if let Some(theme) = new_settings.theme {
@@ -70,43 +67,21 @@ impl SettingsService {
         Ok(())
     }
 
-    pub async fn set_database_location_profile(
-        &self,
-        profile: DatabaseLocationProfile,
-    ) -> Result<(), SettingsServiceError> {
+    // TODO: unit testing
+    pub async fn set_profile(&self, profile: SettingsProfile) -> Result<(), SettingsServiceError> {
         let mut settings = self.settings_repository.get_settings().await;
-        self.update_database_location(&mut settings, None, Some(profile))
+        settings.profile = profile;
+        self.database_connection_manager
+            .change_database_location(&settings.get_database_location())
             .await?;
         self.settings_repository.save_settings(settings).await?;
-        Ok(())
-    }
-
-    async fn update_database_location(
-        &self,
-        settings: &mut Settings,
-        new_base_dir: Option<PathBuf>,
-        new_profile: Option<DatabaseLocationProfile>,
-    ) -> Result<(), SettingsServiceError> {
-        if new_base_dir.is_none() & new_profile.is_none() {
-            return Ok(());
-        }
-
-        settings.database_location = DatabaseLocation::new(
-            new_base_dir.unwrap_or(settings.database_location.base_dir().clone()),
-            new_profile.unwrap_or(settings.database_location.profile().clone()),
-        )?;
-
-        self.database_connection_manager
-            .change_database_location(&settings.database_location)
-            .await?;
-
         Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
+    use std::{path::PathBuf, str::FromStr};
 
     use injector::{injector::Injector, register_scope};
     use mockall::predicate::eq;
@@ -148,18 +123,16 @@ mod tests {
         // Arrange
 
         let request = UpdateSettingsRequest {
-            database_location_base_dir: Some("/new path".into()),
+            database_location_base_dir: Some("new path".into()),
             ..Default::default()
         };
 
         let mut database_connection_manager = MockDatabaseConnectionManager::new();
         database_connection_manager
             .expect_change_database_location()
-            .with(eq(DatabaseLocation::new(
-                PathBuf::from_str("/new path").unwrap(),
-                DatabaseLocationProfile::Default,
-            )
-            .unwrap()))
+            .with(eq(DatabaseLocation::new_unchecked(
+                PathBuf::from_str("new path").unwrap().join("brainy.db"),
+            )))
             .returning(|_| Box::pin(async { Ok(()) }));
 
         let injector = initialize_test_injector(database_connection_manager).await;

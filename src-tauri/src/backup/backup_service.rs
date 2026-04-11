@@ -77,10 +77,7 @@ impl BackupService {
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
         let settings = self.settings_repository.get_settings().await;
-        let backup_path = settings
-            .database_location()
-            .database_directory()
-            .join(backup_name);
+        let backup_path = settings.database_directory().join(backup_name);
         let backup_path_str = backup_path.to_string_lossy();
 
         log::info!("Creating a new backup at path {}", backup_path_str);
@@ -106,15 +103,14 @@ impl BackupService {
         let mut current_backups = Vec::new();
         let settings = self.settings_repository.get_settings().await;
 
-        let mut entries =
-            match fs::read_dir(&settings.database_location().database_directory()).await {
-                Ok(entries) => entries,
-                Err(err) => {
-                    return Err(BackupServiceError::CannotListEntriesInFolder(
-                        err.to_string(),
-                    ));
-                }
-            };
+        let mut entries = match fs::read_dir(&settings.database_directory()).await {
+            Ok(entries) => entries,
+            Err(err) => {
+                return Err(BackupServiceError::CannotListEntriesInFolder(
+                    err.to_string(),
+                ));
+            }
+        };
 
         while let Some(entry) = entries.next_entry().await.unwrap() {
             let path = entry.path();
@@ -177,10 +173,7 @@ pub mod tests {
             },
             value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
         },
-        settings::{
-            entities::settings::Settings,
-            value_objects::database_location::{DatabaseLocation, DatabaseLocationProfile},
-        },
+        settings::entities::settings::{Settings, SettingsProfile},
         test_utils::create_temp_directory,
     };
 
@@ -192,13 +185,7 @@ pub mod tests {
     async fn create_injector_for_sqlite_path(path: &Path) -> Injector {
         let mut injector = Injector::default();
 
-        let settings = Settings::new(
-            DatabaseLocation::new(
-                create_temp_directory().await,
-                DatabaseLocationProfile::Default,
-            )
-            .unwrap(),
-        );
+        let settings = Settings::new(create_temp_directory().await, SettingsProfile::Default);
         injector.register_singleton(Arc::new(Mutex::new(settings)));
 
         let app_data_directory = create_temp_directory().await;
@@ -252,9 +239,7 @@ pub mod tests {
 
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
-        let mut dir_entries = fs::read_dir(settings.database_location().database_directory())
-            .await
-            .unwrap();
+        let mut dir_entries = fs::read_dir(settings.database_directory()).await.unwrap();
         let backup = dir_entries.next_entry().await.unwrap().unwrap();
         let backup_injector = create_injector_for_sqlite_path(&backup.path()).await;
 
@@ -289,9 +274,7 @@ pub mod tests {
 
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
-        let mut dir_entries = fs::read_dir(settings.database_location().database_directory())
-            .await
-            .unwrap();
+        let mut dir_entries = fs::read_dir(settings.database_directory()).await.unwrap();
         dir_entries.next_entry().await.unwrap().unwrap();
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
@@ -323,15 +306,12 @@ pub mod tests {
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS {
-            let path = settings
-                .database_location()
-                .database_directory()
-                .join(format!(
-                    "{}.backup",
-                    Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
-                        .unwrap()
-                        .format(DATETIME_FORMAT_IN_FILE_NAMES)
-                ));
+            let path = settings.database_directory().join(format!(
+                "{}.backup",
+                Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
+                    .unwrap()
+                    .format(DATETIME_FORMAT_IN_FILE_NAMES)
+            ));
 
             backup_repository
                 .create_backup(&path.to_string_lossy())
@@ -366,15 +346,12 @@ pub mod tests {
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS - 1 {
-            let path = settings
-                .database_location()
-                .database_directory()
-                .join(format!(
-                    "{}.backup",
-                    Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
-                        .unwrap()
-                        .format(DATETIME_FORMAT_IN_FILE_NAMES)
-                ));
+            let path = settings.database_directory().join(format!(
+                "{}.backup",
+                Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
+                    .unwrap()
+                    .format(DATETIME_FORMAT_IN_FILE_NAMES)
+            ));
 
             backup_repository
                 .create_backup(&path.to_string_lossy())
@@ -386,24 +363,12 @@ pub mod tests {
             }
         }
 
-        fs::write(
-            settings
-                .database_location()
-                .database_directory()
-                .join("settings.json"),
-            "1234",
-        )
-        .await
-        .unwrap();
-        fs::write(
-            settings
-                .database_location()
-                .database_directory()
-                .join("test.backup"),
-            "1234",
-        )
-        .await
-        .unwrap();
+        fs::write(settings.database_directory().join("settings.json"), "1234")
+            .await
+            .unwrap();
+        fs::write(settings.database_directory().join("test.backup"), "1234")
+            .await
+            .unwrap();
 
         // Act
 

@@ -1,8 +1,5 @@
 use std::sync::Arc;
 
-use crate::settings::value_objects::database_location::{
-    DatabaseLocation, DatabaseLocationProfile,
-};
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 use tokio::{
@@ -33,6 +30,7 @@ pub struct DiskSettingsRepository {
 impl DiskSettingsRepository {
     pub async fn init_settings_and_get(
         app_data_directory: &AppDataDirectory,
+        settings_if_non_existing: Settings,
     ) -> Result<Settings, SettingsRepositoryError> {
         if app_data_directory
             .get_path()
@@ -41,15 +39,8 @@ impl DiskSettingsRepository {
         {
             read_settings_from_file(app_data_directory).await
         } else {
-            // TODO: contains domain logic, should not be here!
-            let database_location = DatabaseLocation::new(
-                app_data_directory.get_path().clone(),
-                DatabaseLocationProfile::Default,
-            )?;
-
-            let settings = Settings::new(database_location);
-            save_to_disk_inner(&settings, app_data_directory).await?;
-            Ok(settings)
+            save_to_disk_inner(&settings_if_non_existing, app_data_directory).await?;
+            Ok(settings_if_non_existing)
         }
     }
 }
@@ -109,7 +100,10 @@ async fn save_to_disk_inner(
 pub mod tests {
     use tokio::fs::File;
 
-    use crate::{settings::value_objects::theme::Theme, test_utils::create_temp_directory};
+    use crate::{
+        settings::{entities::settings::SettingsProfile, value_objects::theme::Theme},
+        test_utils::create_temp_directory,
+    };
 
     use super::*;
 
@@ -118,10 +112,14 @@ pub mod tests {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
+        let default_settings = Settings::new(
+            app_data_directory.get_path().clone(),
+            SettingsProfile::Default,
+        );
 
         // Act
 
-        DiskSettingsRepository::init_settings_and_get(&app_data_directory)
+        DiskSettingsRepository::init_settings_and_get(&app_data_directory, default_settings)
             .await
             .unwrap();
 
@@ -144,7 +142,7 @@ pub mod tests {
 
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
         assert_eq!(
-            settings.database_location().get_path().clone(),
+            *settings.get_database_location().get_path(),
             app_data_directory.get_path().join("brainy.db")
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
@@ -157,9 +155,16 @@ pub mod tests {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
-        let mut settings = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
-            .await
-            .unwrap();
+        let default_settings = Settings::new(
+            app_data_directory.get_path().clone(),
+            SettingsProfile::Default,
+        );
+        let mut settings = DiskSettingsRepository::init_settings_and_get(
+            &app_data_directory,
+            default_settings.clone(),
+        )
+        .await
+        .unwrap();
         settings.zoom_percentage = 1f64;
 
         let settings_repository = DiskSettingsRepository {
@@ -170,9 +175,10 @@ pub mod tests {
 
         // Act
 
-        let actual = DiskSettingsRepository::init_settings_and_get(&app_data_directory)
-            .await
-            .unwrap();
+        let actual =
+            DiskSettingsRepository::init_settings_and_get(&app_data_directory, default_settings)
+                .await
+                .unwrap();
 
         // Assert
 
