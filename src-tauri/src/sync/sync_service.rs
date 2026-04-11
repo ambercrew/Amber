@@ -455,25 +455,27 @@ impl SyncService {
             .await?
         {
             let data = generated_code::Repetition {
-                modified_date: Some(repetition.modified_date.into_timestamp()),
-                file_id: repetition.file_id.to_string(),
-                cell_id: repetition.cell_id.to_string(),
-                due: Some(repetition.due.into_timestamp()),
-                reps: repetition.reps,
-                stability: repetition.stability,
-                difficulty: repetition.difficulty,
-                elapsed_days: repetition.elapsed_days,
-                scheduled_days: repetition.scheduled_days,
-                lapses: repetition.lapses,
-                state: serde_json::to_string(&repetition.state).unwrap(),
-                last_review: repetition.last_review.map(|value| value.into_timestamp()),
-                additional_content: repetition.additional_content.map(|value| value.to_string()),
+                modified_date: Some(repetition.modified_date().into_timestamp()),
+                file_id: repetition.file_id().to_string(),
+                cell_id: repetition.cell_id().to_string(),
+                due: Some(repetition.due().into_timestamp()),
+                reps: repetition.reps(),
+                stability: repetition.stability(),
+                difficulty: repetition.difficulty(),
+                elapsed_days: repetition.elapsed_days(),
+                scheduled_days: repetition.scheduled_days(),
+                lapses: repetition.lapses(),
+                state: serde_json::to_string(&repetition.state()).unwrap(),
+                last_review: repetition.last_review().map(|value| value.into_timestamp()),
+                additional_content: repetition
+                    .additional_content()
+                    .map(|value| value.to_string()),
             }
             .into_base64();
 
             let dto = SyncEntityDto {
-                entity_id: repetition.id,
-                created_date: repetition.created_date,
+                entity_id: repetition.id(),
+                created_date: repetition.created_date(),
                 entity_type: EntityType::Repetition,
                 data,
             };

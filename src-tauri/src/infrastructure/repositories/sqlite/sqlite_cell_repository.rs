@@ -360,7 +360,7 @@ impl CellRepository for SqliteCellRepository {
         query_builder.push(" AND id NOT IN (");
         let mut separated = query_builder.separated(",");
         for repetition in cell.repetitions() {
-            separated.push_bind(repetition.id);
+            separated.push_bind(repetition.id());
         }
         separated.push_unseparated(")");
 
@@ -433,20 +433,20 @@ impl CellRepository for SqliteCellRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let id = repetition.id;
-        let file_id = repetition.file_id;
-        let cell_id = repetition.cell_id;
-        let due = repetition.due;
-        let stability = repetition.stability;
-        let difficulty = repetition.difficulty;
-        let elapsed_days = repetition.elapsed_days;
-        let scheduled_days = repetition.scheduled_days;
-        let reps = repetition.reps;
-        let lapses = repetition.lapses;
-        let state = &repetition.state;
-        let last_review = repetition.last_review;
-        let additional_content = &repetition.additional_content;
-        let created_date = repetition.created_date;
+        let id = repetition.id();
+        let file_id = repetition.file_id();
+        let cell_id = repetition.cell_id();
+        let due = repetition.due();
+        let stability = repetition.stability();
+        let difficulty = repetition.difficulty();
+        let elapsed_days = repetition.elapsed_days();
+        let scheduled_days = repetition.scheduled_days();
+        let reps = repetition.reps();
+        let lapses = repetition.lapses();
+        let state = &repetition.state();
+        let last_review = repetition.last_review();
+        let additional_content = &repetition.additional_content();
+        let created_date = repetition.created_date();
 
         let result = sqlx::query!(
             r#"INSERT INTO repetitions(
@@ -799,23 +799,21 @@ async fn upsert_repetitions(
     repetitions: &Vec<Repetition>,
 ) -> Result<(), RepositoryError> {
     for repetition in repetitions {
-        let Repetition {
-            id,
-            created_date,
-            modified_date,
-            file_id,
-            cell_id,
-            due,
-            stability,
-            difficulty,
-            elapsed_days,
-            scheduled_days,
-            reps,
-            lapses,
-            state,
-            last_review,
-            additional_content,
-        } = repetition;
+        let id = repetition.id();
+        let modified_date = repetition.modified_date();
+        let file_id = repetition.file_id();
+        let cell_id = repetition.cell_id();
+        let due = repetition.due();
+        let stability = repetition.stability();
+        let difficulty = repetition.difficulty();
+        let elapsed_days = repetition.elapsed_days();
+        let scheduled_days = repetition.scheduled_days();
+        let reps = repetition.reps();
+        let lapses = repetition.lapses();
+        let state = &repetition.state();
+        let last_review = repetition.last_review();
+        let additional_content = &repetition.additional_content();
+        let created_date = repetition.created_date();
 
         let result = sqlx::query!(
             r#"INSERT INTO repetitions(
@@ -959,13 +957,13 @@ pub mod tests {
             actual
                 .repetitions()
                 .iter()
-                .any(|r| r.additional_content.as_ref().unwrap() == "1")
+                .any(|r| r.additional_content().unwrap() == "1")
         );
         assert!(
             actual
                 .repetitions()
                 .iter()
-                .any(|r| r.additional_content.as_ref().unwrap() == "2")
+                .any(|r| r.additional_content().unwrap() == "2")
         );
     }
 
@@ -1074,26 +1072,26 @@ pub mod tests {
             actual
                 .repetitions()
                 .iter()
-                .any(|r| r.additional_content.as_ref().unwrap() == "1"
-                    && old_repetitions.iter().any(|r2| r2.id == r.id))
+                .any(|r| r.additional_content().unwrap() == "1"
+                    && old_repetitions.iter().any(|r2| r2.id() == r.id()))
         );
         assert!(
             actual
                 .repetitions()
                 .iter()
-                .any(|r| r.additional_content.as_ref().unwrap() == "3")
+                .any(|r| r.additional_content().unwrap() == "3")
         );
 
         let deleted_repetition_id = old_repetitions
             .iter()
-            .find(|r| r.additional_content.as_ref().unwrap() == "2")
+            .find(|r| r.additional_content().unwrap() == "2")
             .unwrap()
-            .id;
+            .id();
         assert!(
             !cell
                 .repetitions()
                 .iter()
-                .any(|r| r.id == deleted_repetition_id)
+                .any(|r| r.id() == deleted_repetition_id)
         );
     }
 
@@ -1164,6 +1162,27 @@ pub mod tests {
         file_repository.create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
+        let create_repetition =
+            |due: DateTime<Utc>, state: State, additional_content: Option<String>| {
+                Repetition::new_unchecked(
+                    Guid::new_v4(),
+                    Utc::now(),
+                    Utc::now(),
+                    file.id(),
+                    cell_id,
+                    due,
+                    0.0,
+                    0.0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    state,
+                    None,
+                    additional_content,
+                )
+            };
+
         let cell = Cell::new_unchecked(
             cell_id,
             Utc::now(),
@@ -1174,50 +1193,17 @@ pub mod tests {
             0,
             "".to_string(),
             vec![
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Learning,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Relearning,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Review,
-                    ..Default::default()
-                },
+                create_repetition(Utc::now().to_utc(), State::New, None),
+                create_repetition(Utc::now().to_utc(), State::New, None),
+                create_repetition(Utc::now().to_utc(), State::Learning, None),
+                create_repetition(Utc::now().to_utc(), State::Relearning, None),
+                create_repetition(Utc::now().to_utc(), State::Review, None),
                 // Due later.
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc() + Duration::days(1),
-                    state: State::New,
-                    additional_content: Some("6".to_string()),
-                    ..Default::default()
-                },
+                create_repetition(
+                    Utc::now().to_utc() + Duration::days(1),
+                    State::New,
+                    Some("6".to_string()),
+                ),
             ],
         );
         cell_repository.create(&cell).await.unwrap();
@@ -1266,6 +1252,26 @@ pub mod tests {
         file_repository.create(&file1).await.unwrap();
         file_repository.create(&file2).await.unwrap();
 
+        let create_repetition = |cell_id: Guid, file_id: Guid, due: DateTime<Utc>, state: State| {
+            Repetition::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
+                file_id,
+                cell_id,
+                due,
+                0.0,
+                0.0,
+                0,
+                0,
+                0,
+                0,
+                state,
+                None,
+                None,
+            )
+        };
+
         let cell1_id = Guid::new_v4();
         let cell1 = Cell::new_unchecked(
             cell1_id,
@@ -1277,27 +1283,9 @@ pub mod tests {
             0,
             "".to_string(),
             vec![
-                Repetition {
-                    cell_id: cell1_id,
-                    file_id: file1.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id: cell1_id,
-                    file_id: file1.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id: cell1_id,
-                    file_id: file1.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Learning,
-                    ..Default::default()
-                },
+                create_repetition(cell1_id, file1.id(), Utc::now().to_utc(), State::New),
+                create_repetition(cell1_id, file1.id(), Utc::now().to_utc(), State::New),
+                create_repetition(cell1_id, file1.id(), Utc::now().to_utc(), State::Learning),
             ],
         );
 
@@ -1312,29 +1300,15 @@ pub mod tests {
             0,
             "".to_string(),
             vec![
-                Repetition {
-                    cell_id: cell2_id,
-                    file_id: file2.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Relearning,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id: cell2_id,
-                    file_id: file2.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Review,
-                    ..Default::default()
-                },
+                create_repetition(cell2_id, file2.id(), Utc::now().to_utc(), State::Relearning),
+                create_repetition(cell2_id, file2.id(), Utc::now().to_utc(), State::Review),
                 // Due later.
-                Repetition {
-                    cell_id: cell2_id,
-                    file_id: file2.id(),
-                    due: Utc::now().to_utc() + Duration::days(1),
-                    state: State::New,
-                    additional_content: Some("6".to_string()),
-                    ..Default::default()
-                },
+                create_repetition(
+                    cell2_id,
+                    file2.id(),
+                    Utc::now().to_utc() + Duration::days(1),
+                    State::New,
+                ),
             ],
         );
         cell_repository.create(&cell1).await.unwrap();
@@ -1380,6 +1354,27 @@ pub mod tests {
         file_repository.create(&file).await.unwrap();
 
         let cell_id = Guid::new_v4();
+
+        let create_repetition = |state: State| {
+            Repetition::new_unchecked(
+                Guid::new_v4(),
+                Utc::now(),
+                Utc::now(),
+                file.id(),
+                cell_id,
+                Utc::now(),
+                0.0,
+                0.0,
+                0,
+                0,
+                0,
+                0,
+                state,
+                None,
+                None,
+            )
+        };
+
         let cell = Cell::new_unchecked(
             cell_id,
             Utc::now(),
@@ -1390,50 +1385,13 @@ pub mod tests {
             0,
             "".to_string(),
             vec![
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::New,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Learning,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Relearning,
-                    ..Default::default()
-                },
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now().to_utc(),
-                    state: State::Review,
-                    ..Default::default()
-                },
+                create_repetition(State::New),
+                create_repetition(State::New),
+                create_repetition(State::Learning),
+                create_repetition(State::Relearning),
+                create_repetition(State::Review),
                 // Due later.
-                Repetition {
-                    cell_id,
-                    file_id: file.id(),
-                    due: Utc::now(),
-                    state: State::New,
-                    additional_content: Some("6".to_string()),
-                    ..Default::default()
-                },
+                create_repetition(State::New),
             ],
         );
         cell_repository.create(&cell).await.unwrap();

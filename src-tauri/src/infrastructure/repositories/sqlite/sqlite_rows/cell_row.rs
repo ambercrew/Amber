@@ -49,23 +49,23 @@ pub fn convert_rows_to_cells(rows: Vec<CellRow>) -> Vec<Cell> {
             continue;
         }
 
-        let repetition = Repetition {
-            id: row.repetition_id.unwrap(),
-            created_date: row.repetition_created_date.unwrap(),
-            modified_date: row.repetition_modified_date.unwrap(),
-            file_id: row.repetition_file_id.unwrap(),
-            cell_id: row.repetition_cell_id.unwrap(),
-            due: row.repetition_due.unwrap(),
-            stability: row.repetition_stability.unwrap(),
-            difficulty: row.repetition_difficulty.unwrap(),
-            elapsed_days: row.repetition_elapsed_days.unwrap(),
-            scheduled_days: row.repetition_scheduled_days.unwrap(),
-            reps: row.repetition_reps.unwrap(),
-            lapses: row.repetition_lapses.unwrap(),
-            state: row.repetition_state.clone().unwrap(),
-            last_review: row.repetition_last_review,
-            additional_content: row.repetition_additional_content.clone(),
-        };
+        let repetition = Repetition::new_unchecked(
+            row.repetition_id.unwrap(),
+            row.repetition_created_date.unwrap(),
+            row.repetition_modified_date.unwrap(),
+            row.repetition_file_id.unwrap(),
+            row.repetition_cell_id.unwrap(),
+            row.repetition_due.unwrap(),
+            row.repetition_stability.unwrap(),
+            row.repetition_difficulty.unwrap(),
+            row.repetition_elapsed_days.unwrap(),
+            row.repetition_scheduled_days.unwrap(),
+            row.repetition_reps.unwrap(),
+            row.repetition_lapses.unwrap(),
+            row.repetition_state.clone().unwrap(),
+            row.repetition_last_review,
+            row.repetition_additional_content.clone(),
+        );
 
         cells_repetitions
             .entry(row.cell_id)

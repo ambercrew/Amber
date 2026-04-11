@@ -25,22 +25,22 @@ pub struct RepetitionRow {
 
 impl From<RepetitionRow> for Repetition {
     fn from(value: RepetitionRow) -> Self {
-        Repetition {
-            id: value.id,
-            created_date: value.created_date,
-            modified_date: value.modified_date,
-            file_id: value.file_id,
-            cell_id: value.cell_id,
-            due: value.due,
-            stability: value.stability,
-            difficulty: value.difficulty,
-            elapsed_days: value.elapsed_days,
-            scheduled_days: value.scheduled_days,
-            reps: value.reps,
-            lapses: value.lapses,
-            state: value.state,
-            last_review: value.last_review,
-            additional_content: value.additional_content,
-        }
+        Repetition::new_unchecked(
+            value.id,
+            value.created_date,
+            value.modified_date,
+            value.file_id,
+            value.cell_id,
+            value.due,
+            value.stability,
+            value.difficulty,
+            value.elapsed_days,
+            value.scheduled_days,
+            value.reps,
+            value.lapses,
+            value.state,
+            value.last_review,
+            value.additional_content,
+        )
     }
 }
