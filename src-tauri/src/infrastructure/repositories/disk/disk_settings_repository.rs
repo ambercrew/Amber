@@ -93,6 +93,10 @@ async fn save_to_disk_inner(
     settings: &Settings,
     app_data_directory: &AppDataDirectory,
 ) -> Result<(), SettingsRepositoryError> {
+    if let Err(err) = fs::create_dir_all(app_data_directory.get_path()).await {
+        return Err(SettingsRepositoryError::Saving(err.to_string()));
+    }
+
     let path = app_data_directory.get_path().join(SETTINGS_FILE_NAME);
     log::info!("Saving settings into '{}'.", path.to_str().unwrap());
     match fs::write(path, serde_json::to_string(settings).unwrap()).await {
