@@ -19,6 +19,6 @@ describe("CancellableInput", () => {
 
 		// Assert
 
-		expect(fn).toBeCalled();
+		expect(fn).toHaveBeenCalled();
 	});
 });

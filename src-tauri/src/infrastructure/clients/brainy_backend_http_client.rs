@@ -5,6 +5,7 @@ use std::{
 
 use crate::backend::{
     clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
+    dto::sign_up_request::SignUpRequest,
     models::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
         UpdatePasswordDto, UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
@@ -81,7 +82,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         &self,
         username: String,
         password: String,
-    ) -> Result<(), BrainyBackendClientError> {
+    ) -> Result<UserInformationDto, BrainyBackendClientError> {
         let dto = SignInDto { username, password };
 
         log::info!("Signing-in...");
@@ -99,26 +100,26 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         {
             return Err(BrainyBackendClientError::InvalidCredentials);
         }
-        status?;
+        let response = status?;
 
         self.persist_cookies();
-        Ok(())
+
+        match response.json::<UserInformationDto>().await {
+            Ok(result) => Ok(result),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+        }
     }
 
     async fn sign_up(
         &self,
-        username: String,
-        password: String,
-        email: String,
-        first_name: String,
-        last_name: String,
-    ) -> Result<(), BrainyBackendClientError> {
+        request: SignUpRequest,
+    ) -> Result<UserInformationDto, BrainyBackendClientError> {
         let dto = SignUpDto {
-            first_name,
-            last_name,
-            email,
-            password,
-            username,
+            first_name: request.first_name,
+            last_name: request.last_name,
+            email: request.email,
+            password: request.password,
+            username: request.username,
         };
 
         log::info!("Signing-up...");
@@ -129,10 +130,13 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
 
-        ensure_success_response(response).await?;
+        let response = ensure_success_response(response).await?;
         self.persist_cookies();
 
-        Ok(())
+        match response.json::<UserInformationDto>().await {
+            Ok(result) => Ok(result),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+        }
     }
 
     async fn sign_out(&self) -> Result<(), BrainyBackendClientError> {

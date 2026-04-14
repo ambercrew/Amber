@@ -11,18 +11,31 @@ import { UserState } from "../../../../stores/user/userReducer.ts";
 import useAppSelector from "../../../../hooks/useAppSelector.ts";
 import { selectIsSignedIn } from "../../../../stores/user/userSelectors.ts";
 import Settings from "../../../../features/Settings/components/Settings.tsx";
-import { updateSettings } from "../../../../api/settingsApi.ts";
+import { getSettings, updateSettings } from "../../../../api/settingsApi.ts";
 import { SettingsState } from "../../../../stores/settings/settingsReducer.ts";
-import SettingsType from "../../../../types/backend/model/settings.ts";
 import { Window } from "@tauri-apps/api/window";
 import { Webview } from "@tauri-apps/api/webview";
 import { isMobile } from "../../../../utils/tauriUtils.ts";
+import SettingsDto from "../../../../types/backend/dto/settingsDto.ts";
+import { open } from "@tauri-apps/plugin-dialog";
+import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
 vi.mock(import("../../../../api/authApi.ts"));
+vi.mock(import("../../../../api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/userApi.ts"));
-vi.mock(import("../../../../api/settingsApi.ts"));
+vi.mock(import("../../../../api/settingsApi.ts"), async importOriginal => {
+	const getSettings = vi.fn();
+	getSettings.mockResolvedValue({} as SettingsDto);
+
+	return {
+		...(await importOriginal()),
+		getSettings,
+		updateSettings: vi.fn(),
+	};
+});
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
+vi.mock(import("@tauri-apps/plugin-dialog"));
 vi.mock(import("@tauri-apps/api/webview"), () => ({
 	getCurrentWebview: () =>
 		({
@@ -51,7 +64,7 @@ const createInitialUserState = ({
 
 const createInitialSettingsState = () => {
 	return {
-		settings: {} as SettingsType,
+		settings: {} as SettingsDto,
 	} as SettingsState;
 };
 
@@ -59,12 +72,10 @@ describe("Profile & Security tab", () => {
 	it("Should update user information when submitting", async () => {
 		// Arrange
 
-		vi.mocked(getUserInformation).mockReturnValue(
-			Promise.resolve({
-				firstName: "New first name",
-				lastName: "New last name",
-			} as Partial<UserInformationDto> as UserInformationDto),
-		);
+		vi.mocked(getUserInformation).mockResolvedValue({
+			firstName: "New first name",
+			lastName: "New last name",
+		} as Partial<UserInformationDto> as UserInformationDto);
 
 		const onCloseMock = vi.fn();
 
@@ -87,13 +98,13 @@ describe("Profile & Security tab", () => {
 
 		// Assert
 
-		expect(vi.mocked(updateUserInformation)).toBeCalledWith(
+		expect(vi.mocked(updateUserInformation)).toHaveBeenCalledWith(
 			"New first name",
 			"New last name",
 		);
-		expect(vi.mocked(updatePassword)).not.toBeCalled();
+		expect(vi.mocked(updatePassword)).not.toHaveBeenCalled();
 
-		expect(onCloseMock).toBeCalled();
+		expect(onCloseMock).toHaveBeenCalled();
 
 		expect(store.getState().user.userInformation?.firstName).toBe(
 			"New first name",
@@ -120,8 +131,8 @@ describe("Profile & Security tab", () => {
 
 		// Assert
 
-		expect(vi.mocked(updateUserInformation)).not.toBeCalled();
-		expect(vi.mocked(updatePassword)).not.toBeCalled();
+		expect(vi.mocked(updateUserInformation)).not.toHaveBeenCalled();
+		expect(vi.mocked(updatePassword)).not.toHaveBeenCalled();
 	});
 
 	it("Should sign-out when pressing the button", async () => {
@@ -146,7 +157,7 @@ describe("Profile & Security tab", () => {
 
 		// Assert
 
-		expect(vi.mocked(signOut)).toBeCalled();
+		expect(vi.mocked(signOut)).toHaveBeenCalled();
 		expect(store.getState().user.isSignedIn).toBe(false);
 	});
 
@@ -196,7 +207,7 @@ describe("Profile & Security tab", () => {
 		// Assert
 
 		expect(screen.queryByText("Passwords do not match!")).not.toBeNull();
-		expect(vi.mocked(updatePassword)).not.toBeCalled();
+		expect(vi.mocked(updatePassword)).not.toHaveBeenCalled();
 	});
 
 	it("Should update user passwords when input is given correctly", async () => {
@@ -225,11 +236,11 @@ describe("Profile & Security tab", () => {
 
 		// Assert
 
-		expect(vi.mocked(updatePassword)).toBeCalledWith(
+		expect(vi.mocked(updatePassword)).toHaveBeenCalledWith(
 			"testPassword123",
 			"newPassword123",
 		);
-		expect(vi.mocked(updateUserInformation)).not.toBeCalled();
+		expect(vi.mocked(updateUserInformation)).not.toHaveBeenCalled();
 	});
 });
 
@@ -250,6 +261,10 @@ describe("Appearance & Data tab", () => {
 			},
 		);
 
+		vi.mocked(getSettings).mockResolvedValue({
+			zoomPercentage: 120,
+		} as SettingsDto);
+
 		// Act
 
 		await userEvent.click(screen.getByText("Zoom", { exact: false }));
@@ -264,14 +279,43 @@ describe("Appearance & Data tab", () => {
 		// Assert
 
 		expect(store.getState().settings.settings?.zoomPercentage).toBe(120);
-		expect(vi.mocked(updateSettings)).toBeCalledWith(
+		expect(vi.mocked(updateSettings)).toHaveBeenCalledWith(
 			expect.objectContaining({
 				zoomPercentage: 120,
 				autoSync: true,
-			} as SettingsType),
+			} as SettingsDto),
 		);
 
-		expect(onCloseMock).toBeCalled();
+		expect(onCloseMock).toHaveBeenCalled();
+	});
+
+	it("Should refresh when updating database location", async () => {
+		// Arrange
+
+		const onCloseMock = vi.fn();
+		renderWithProviders(<Settings onClose={onCloseMock} />, {
+			memoryRouterProps: {
+				initialEntries: ["/reviewer"],
+			},
+			preloadedState: {
+				settings: createInitialSettingsState(),
+				user: createInitialUserState({
+					isSignedIn: false,
+				}),
+			},
+		});
+
+		vi.mocked(open).mockResolvedValue("new location");
+
+		// Act
+
+		await userEvent.click(screen.getByText("Data"));
+		await userEvent.click(screen.getByTitle("Change database directory"));
+		await userEvent.click(screen.getByText("Apply"));
+
+		// Assert
+
+		expect(await getCurrentLocation()).toBe("/");
 	});
 
 	it("Should not allow too small zoom", async () => {
@@ -297,7 +341,7 @@ describe("Appearance & Data tab", () => {
 				exact: false,
 			}),
 		).not.toBeNull();
-		expect(onCloseMock).not.toBeCalled();
+		expect(onCloseMock).not.toHaveBeenCalled();
 	});
 
 	it("Should be able to set zoom on mobile", () => {

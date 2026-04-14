@@ -3,12 +3,12 @@ import { FormRows, FormRowsProps } from "../../../../components/Form/Form";
 import CheckBox from "../../../../components/Checkbox/Checkbox";
 import Icon from "@mdi/react";
 import { mdiFolderOpenOutline } from "@mdi/js";
-import Settings from "../../../../types/backend/model/settings";
+import SettingsDto from "../../../../types/backend/dto/settingsDto";
 import { TabProps } from "../../types/tabProps";
 import { isMobile } from "../../../../utils/tauriUtils";
 
 export default function DataTab({ state, setState }: TabProps) {
-	const updateSettings = (newSettings: Partial<Settings>) => {
+	const updateSettings = (newSettings: Partial<SettingsDto>) => {
 		setState({
 			...state,
 			localSettings: {
@@ -20,17 +20,16 @@ export default function DataTab({ state, setState }: TabProps) {
 
 	const handleChangeDatabaseLocationClick = async () => {
 		let location = await open({
-			defaultPath: state.localSettings?.databaseLocation,
+			defaultPath: state.localSettings?.baseDatabaseDirectory,
 			directory: true,
 		});
 		if (!location) return;
 
 		const pathCharacter = location.includes("/") ? "/" : "\\";
 		if (!location.endsWith(pathCharacter)) location += pathCharacter;
-		location += "brainy.db";
 
 		updateSettings({
-			databaseLocation: location,
+			baseDatabaseDirectory: location,
 		});
 	};
 
@@ -42,12 +41,13 @@ export default function DataTab({ state, setState }: TabProps) {
 				children: (
 					<CheckBox
 						id="auto-sync"
-						checked={state.localSettings?.autoSync}
+						checked={state.localSettings?.autoSync ?? false}
 						onChange={e =>
 							updateSettings({
 								autoSync: e.target.checked,
 							})
 						}
+						autoFocus
 					/>
 				),
 			},
@@ -56,24 +56,22 @@ export default function DataTab({ state, setState }: TabProps) {
 
 	if (!isMobile()) {
 		formRowsProps.rows.push({
-			label: "Database Location",
-			labelHtmlFor: "database-location",
+			label: "Database Directory",
+			labelHtmlFor: "database-directory",
 			children: (
 				<div className="row">
 					<input
-						id="database-location"
+						id="database-directory"
 						type="text"
-						value={state.localSettings?.databaseLocation}
+						value={state.localSettings?.baseDatabaseDirectory ?? ""}
 						style={{ width: "100%" }}
 						readOnly
-						autoFocus
 					/>
 					<button
 						className="transparent"
 						type="button"
-						onClick={() =>
-							void handleChangeDatabaseLocationClick()
-						}>
+						onClick={() => void handleChangeDatabaseLocationClick()}
+						title="Change database directory">
 						<Icon path={mdiFolderOpenOutline} size={1} />
 					</button>
 				</div>

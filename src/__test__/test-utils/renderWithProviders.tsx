@@ -11,6 +11,8 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 	memoryRouterProps?: MemoryRouterProps;
 }
 
+export const LOCATION_DISPLAY_TEST_ID = "location-display";
+
 /** A helper function for rendering that sets the default store used in the app,
  * additionally it adds a React Router.
  */
@@ -26,7 +28,7 @@ export function renderWithProviders(
 	function LocationDisplay() {
 		const location = useLocation();
 		return (
-			<div data-testid="location-display">
+			<div data-testid={LOCATION_DISPLAY_TEST_ID}>
 				{location.pathname}
 				{location.search}
 			</div>

@@ -2,9 +2,7 @@ import App from "../../../../features/App/components/App.tsx";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import useAppDispatch from "../../../../hooks/useAppDispatch.ts";
 import { getReviewTreeFolderForRoot } from "../../../../stores/fileSystem/fileSystemActions.ts";
-import { screen, waitFor } from "@testing-library/react";
-import { loadInitialUserState } from "../../../../stores/user/userActions.ts";
-import { initialLoadAndApplySettings } from "../../../../stores/settings/settingsActions.ts";
+import { act, screen, waitFor } from "@testing-library/react";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
 import {
@@ -21,8 +19,10 @@ import editorStyles from "../../../../features/Editor/components/styles.module.c
 import reviewerStyles from "../../../../features/Reviewer/components/styles.module.css";
 import searcherStyles from "../../../../features/Searcher/components/styles.module.css";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../../config/constants.ts";
-import { sync } from "../../../../stores/sync/syncActions.ts";
-import Settings from "../../../../types/backend/model/settings.ts";
+import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
+import { MemoryRouterProps } from "react-router";
+import { RootState } from "../../../../stores/store.ts";
+import { SettingsState } from "../../../../stores/settings/settingsReducer.ts";
 
 vi.mock(import("../../../../hooks/useAppDispatch.ts"), () => ({
 	default: vi.fn(),
@@ -32,8 +32,10 @@ vi.mock(import("../../../../stores/user/userActions.ts"));
 vi.mock(import("../../../../stores/settings/settingsActions.ts"));
 vi.mock(import("../../../../stores/sync/syncActions.ts"));
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
+vi.mock(import("../../../../features/Editor/components/TitleBar.tsx"));
 vi.mock(import("../../../../api/cellApi.ts"), () => ({
 	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
+	getFileCellsOrderedByIndex: () => Promise.resolve([]),
 }));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/api/core"));
@@ -41,139 +43,89 @@ vi.mock(import("@tauri-apps/plugin-updater"));
 vi.mock(import("@tauri-apps/plugin-dialog"));
 vi.mock(import("@tauri-apps/plugin-process"));
 
+function renderApp({
+	memoryRouterProps = {} as MemoryRouterProps,
+	preloadedState = {} as Partial<RootState>,
+} = {}) {
+	return renderWithProviders(<App />, {
+		memoryRouterProps,
+		preloadedState: {
+			settings: {} as SettingsState,
+			...preloadedState,
+		},
+	});
+}
+
 describe("App", () => {
 	let dispatchMock: Mock<Procedure>;
 
 	beforeEach(() => {
 		dispatchMock = vi.fn();
-		const useAppDispatchMock = vi.mocked(useAppDispatch);
-		vi.mocked(useAppDispatchMock).mockReturnValue(dispatchMock);
+		vi.mocked(useAppDispatch).mockReturnValue(dispatchMock);
 	});
 
-	it("Should load initial state", async () => {
-		// Arrange
-
-		const expectedReviewTreeCb = vi.fn();
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			expectedReviewTreeCb,
-		);
-
-		const expectedLoadSettingsCb = vi.fn();
-		vi.mocked(loadInitialUserState).mockReturnValue(expectedLoadSettingsCb);
-
-		const expectedInitiateSettings = vi.fn();
-		vi.mocked(initialLoadAndApplySettings).mockReturnValue(
-			expectedInitiateSettings,
-		);
-		dispatchMock.mockImplementation(cb => {
-			if (cb === expectedInitiateSettings) {
-				return Promise.resolve({
-					autoSync: true,
-				} as Partial<Settings>);
-			}
-		});
-
-		const expectedSync = vi.fn();
-		vi.mocked(sync).mockReturnValue(expectedSync);
-
-		// Act
-
-		renderWithProviders(<App />);
-
-		// Assert
-
-		await waitFor(() => {
-			expect(dispatchMock).toBeCalledWith(expectedReviewTreeCb);
-			expect(dispatchMock).toBeCalledWith(expectedLoadSettingsCb);
-			expect(dispatchMock).toBeCalledWith(expectedInitiateSettings);
-			expect(dispatchMock).toBeCalledWith(expectedSync);
-		});
-	});
-
-	it("Should not auto-sync on start if it is not enabled", async () => {
-		// Arrange
-
-		const expectedInitiateSettings = vi.fn();
-		vi.mocked(initialLoadAndApplySettings).mockReturnValue(
-			expectedInitiateSettings,
-		);
-		dispatchMock.mockImplementation(cb => {
-			if (cb === expectedInitiateSettings) {
-				return Promise.resolve({
-					autoSync: false,
-				} as Partial<Settings>);
-			}
-		});
-
-		const expectedSync = vi.fn();
-		vi.mocked(sync).mockReturnValue(expectedSync);
-
-		// Act
-
-		renderWithProviders(<App />);
-		await Promise.resolve();
-
-		// Assert
-
-		await waitFor(() => {
-			expect(dispatchMock).toBeCalledWith(expectedInitiateSettings);
-			expect(dispatchMock).not.toBeCalledWith(expectedSync);
-		});
-	});
-
-	it("Should prevent default when opening context menu on production", () => {
+	it("Should prevent default when opening context menu on production", async () => {
 		// Arrange
 
 		vi.stubEnv("DEV", false);
 		const event = new MouseEvent("contextmenu");
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
-		window.dispatchEvent(event);
+		await act(() => {
+			window.dispatchEvent(event);
+			return Promise.resolve();
+		});
 
 		// Assert
 
 		expect(preventDefaultSpy).toHaveBeenCalled();
 	});
 
-	it("Should not prevent default when opening context menu on development", () => {
+	it("Should not prevent default when opening context menu on development", async () => {
 		// Arrange
 
 		vi.stubEnv("DEV", true);
 		const event = new MouseEvent("contextmenu");
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
-		window.dispatchEvent(event);
+		await act(() => {
+			window.dispatchEvent(event);
+			return Promise.resolve();
+		});
 
 		// Assert
 
 		expect(preventDefaultSpy).not.toHaveBeenCalled();
 	});
 
-	it("Should prevent default when pressing F5", () => {
+	it("Should prevent default when pressing F5", async () => {
 		// Arrange
 
 		const event = new KeyboardEvent("keydown", {
 			key: "F5",
 		});
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
-		window.dispatchEvent(event);
+		await act(() => {
+			window.dispatchEvent(event);
+			return Promise.resolve();
+		});
 
 		// Assert
 
 		expect(preventDefaultSpy).toHaveBeenCalled();
 	});
 
-	it("Should prevent default when pressing Ctrl + F", () => {
+	it("Should prevent default when pressing Ctrl + F", async () => {
 		// Arrange
 
 		const event = new KeyboardEvent("keydown", {
@@ -181,18 +133,21 @@ describe("App", () => {
 			key: "F",
 		});
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
-		window.dispatchEvent(event);
+		await act(() => {
+			window.dispatchEvent(event);
+			return Promise.resolve();
+		});
 
 		// Assert
 
 		expect(preventDefaultSpy).toHaveBeenCalled();
 	});
 
-	it("Should prevent default when pressing Ctrl + R", () => {
+	it("Should prevent default when pressing Ctrl + R", async () => {
 		// Arrange
 
 		const event = new KeyboardEvent("keydown", {
@@ -200,11 +155,14 @@ describe("App", () => {
 			key: "R",
 		});
 		const preventDefaultSpy = vi.spyOn(event, "preventDefault");
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
-		window.dispatchEvent(event);
+		await act(() => {
+			window.dispatchEvent(event);
+			return Promise.resolve();
+		});
 
 		// Assert
 
@@ -218,18 +176,22 @@ describe("App", () => {
 		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
 			expectedReviewTreeCb,
 		);
-		renderWithProviders(<App />);
+		renderApp();
 		// Waiting for async callback to finish.
-		await Promise.resolve();
+		await act(async () => {
+			/* Nothing */
+		});
 		const beforeTimes = dispatchMock.mock.calls.filter(
 			c => c[0] === expectedReviewTreeCb,
 		).length;
 
 		// Act
 
-		await defaultGlobalSyncEventManager.notifyListeners(
-			ListenerType.PostSyncComplete,
-		);
+		await act(async () => {
+			await defaultGlobalSyncEventManager.notifyListeners(
+				ListenerType.PostSyncComplete,
+			);
+		});
 
 		// Assert
 
@@ -245,7 +207,7 @@ describe("App", () => {
 	it("Should navigate to home on shortcut", async () => {
 		// Arrange
 
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
@@ -253,29 +215,25 @@ describe("App", () => {
 
 		// Assert
 
-		expect(screen.getByTestId("location-display")).toHaveTextContent(
-			"/home",
-		);
+		expect(await getCurrentLocation()).toBe("/home");
 	});
 
 	it("Should render updater", async () => {
 		// Arrange
 
-		vi.mocked(check).mockReturnValue(
-			Promise.resolve(
-				new Update({
-					version: "",
-					currentVersion: "",
-					rawJson: {},
-					rid: 1,
-				}),
-			),
+		vi.mocked(check).mockResolvedValue(
+			new Update({
+				version: "",
+				currentVersion: "",
+				rawJson: {},
+				rid: 1,
+			}),
 		);
-		vi.mocked(ask).mockReturnValue(Promise.resolve(true));
+		vi.mocked(ask).mockResolvedValue(true);
 
 		// Act
 
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Assert
 
@@ -291,7 +249,7 @@ describe("App", () => {
 	it("Should not render sidebar when it is collapsed", async () => {
 		// Arrange
 
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 
@@ -306,7 +264,7 @@ describe("App", () => {
 	it("Should render home when on /home", async () => {
 		// Act
 
-		const { container } = renderWithProviders(<App />, {
+		const { container } = renderApp({
 			memoryRouterProps: {
 				initialEntries: ["/home"],
 			},
@@ -324,7 +282,7 @@ describe("App", () => {
 	it("Should render editor when on /editor", async () => {
 		// Act
 
-		const { container } = renderWithProviders(<App />, {
+		const { container } = renderApp({
 			memoryRouterProps: {
 				initialEntries: ["/editor"],
 			},
@@ -342,7 +300,7 @@ describe("App", () => {
 	it("Should render reviewer when on /reviewer", async () => {
 		// Act
 
-		const { container } = renderWithProviders(<App />, {
+		const { container } = renderApp({
 			memoryRouterProps: {
 				initialEntries: ["/reviewer"],
 			},
@@ -361,7 +319,7 @@ describe("App", () => {
 	it("Should render searcher when on /search", async () => {
 		// Act
 
-		const { container } = renderWithProviders(<App />, {
+		const { container } = renderApp({
 			memoryRouterProps: {
 				initialEntries: ["/search"],
 			},
@@ -384,7 +342,7 @@ describe("App", () => {
 
 		// Act
 
-		const { container } = renderWithProviders(<App />);
+		const { container } = renderApp();
 
 		// Assert
 
@@ -402,7 +360,7 @@ describe("App", () => {
 
 		// Act
 
-		const { container } = renderWithProviders(<App />);
+		const { container } = renderApp();
 
 		// Assert
 
@@ -417,7 +375,7 @@ describe("App", () => {
 		// Arrange
 
 		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX;
-		const { container } = renderWithProviders(<App />);
+		const { container } = renderApp();
 
 		// Act
 
@@ -436,7 +394,7 @@ describe("App", () => {
 		// Arrange
 
 		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX;
-		renderWithProviders(<App />);
+		renderApp();
 
 		// Act
 		await waitFor(async () => {

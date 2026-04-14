@@ -28,7 +28,7 @@ pub struct DiskSettingsRepository {
 }
 
 impl DiskSettingsRepository {
-    pub async fn init_settings_and_get(
+    pub async fn get_or_create_settings(
         app_data_directory: &AppDataDirectory,
         settings_if_non_existing: Settings,
     ) -> Result<Settings, SettingsRepositoryError> {
@@ -101,14 +101,14 @@ pub mod tests {
     use tokio::fs::File;
 
     use crate::{
-        settings::{entities::settings::SettingsProfile, value_objects::theme::Theme},
+        settings::value_objects::{settings_profile::SettingsProfile, theme::Theme},
         test_utils::create_temp_directory,
     };
 
     use super::*;
 
     #[tokio::test]
-    pub async fn init_settings_and_get_new_settings_created_and_saved_to_disk() {
+    pub async fn get_or_create_settings_new_settings_created_and_saved_to_disk() {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
@@ -119,7 +119,7 @@ pub mod tests {
 
         // Act
 
-        DiskSettingsRepository::init_settings_and_get(&app_data_directory, default_settings)
+        DiskSettingsRepository::get_or_create_settings(&app_data_directory, default_settings)
             .await
             .unwrap();
 
@@ -142,7 +142,7 @@ pub mod tests {
 
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
         assert_eq!(
-            *settings.get_database_location().get_path(),
+            *settings.database_location().get_path(),
             app_data_directory.get_path().join("brainy.db")
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
@@ -151,7 +151,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    pub async fn init_settings_and_get_existing_setting_read_from_disk() {
+    pub async fn get_or_create_settings_existing_setting_read_from_disk() {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
@@ -159,7 +159,7 @@ pub mod tests {
             app_data_directory.get_path().clone(),
             SettingsProfile::Default,
         );
-        let mut settings = DiskSettingsRepository::init_settings_and_get(
+        let mut settings = DiskSettingsRepository::get_or_create_settings(
             &app_data_directory,
             default_settings.clone(),
         )
@@ -176,7 +176,7 @@ pub mod tests {
         // Act
 
         let actual =
-            DiskSettingsRepository::init_settings_and_get(&app_data_directory, default_settings)
+            DiskSettingsRepository::get_or_create_settings(&app_data_directory, default_settings)
                 .await
                 .unwrap();
 

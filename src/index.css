@@ -15,6 +15,10 @@ html {
 	font-size: 12px;
 }
 
+html:has(body.mobile) {
+	font-size: 10px;
+}
+
 body {
 	font-size: 1.6rem;
 	line-height: 1.5;
@@ -86,13 +90,6 @@ body {
 	--placeholder-color: #adb5bd;
 
 	--dragged-opacity: 0.75;
-}
-
-@media (max-width: 480px) {
-	/* Scale down for mobile phones. */
-	html {
-		font-size: 10px;
-	}
 }
 
 /* On dark theme, the roles of shade and tint colors are reversed. */

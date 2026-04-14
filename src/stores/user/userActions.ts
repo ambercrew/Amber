@@ -1,9 +1,17 @@
-import { isSignedIn as isSignedInApi } from "../../api/authApi";
+import { NavigateFunction } from "react-router";
+import {
+	isSignedIn as isSignedInApi,
+	signIn as signInApi,
+	signUp as signUpApi,
+	signOut as signOutApi,
+} from "../../api/authApi";
 import { getUserInformation } from "../../api/userApi";
+import { reloadApplicationState } from "../app/appActions";
 import { AppDispatch } from "../store";
-import { setUserInformation } from "./userReducer";
+import { setLoggedOf, setUserInformation } from "./userReducer";
+import SignUpRequest from "../../types/backend/dto/signUpRequest";
 
-export function loadInitialUserState() {
+export function loadUserState() {
 	return async function (dispatch: AppDispatch): Promise<void> {
 		try {
 			const isSignedIn = await isSignedInApi();
@@ -13,5 +21,31 @@ export function loadInitialUserState() {
 		} catch (e) {
 			console.error(e);
 		}
+	};
+}
+
+export function signIn(
+	navigate: NavigateFunction,
+	username: string,
+	password: string,
+) {
+	return async function (dispatch: AppDispatch): Promise<void> {
+		const userInformation = await signInApi(username, password);
+		await dispatch(reloadApplicationState(navigate, userInformation));
+	};
+}
+
+export function signUp(navigate: NavigateFunction, request: SignUpRequest) {
+	return async function (dispatch: AppDispatch): Promise<void> {
+		const userInformation = await signUpApi(request);
+		await dispatch(reloadApplicationState(navigate, userInformation));
+	};
+}
+
+export function signOut(navigate: NavigateFunction) {
+	return async function (dispatch: AppDispatch): Promise<void> {
+		await signOutApi();
+		dispatch(setLoggedOf());
+		await dispatch(reloadApplicationState(navigate));
 	};
 }

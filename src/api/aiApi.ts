@@ -2,7 +2,7 @@ import { Channel, invoke } from "@tauri-apps/api/core";
 import { StreamLlmResponseEvent } from "../types/backend/events/streamLlmResponseEvent";
 import Chat from "../types/backend/entity/chat";
 import Message from "../types/backend/entity/message";
-import StreamAiRequest from "../types/backend/model/stream_ai_request";
+import StreamAiRequest from "../types/backend/model/streamAiRequest";
 
 export function streamAiResponse(
 	request: StreamAiRequest,

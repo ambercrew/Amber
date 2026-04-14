@@ -1,4 +1,4 @@
-use crate::backend::models::SyncEntityDto;
+use crate::backend::{dto::sign_up_request::SignUpRequest, models::SyncEntityDto};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 #[cfg(test)]
@@ -34,16 +34,12 @@ pub trait BrainyBackendClient: Send + Sync {
         &self,
         username: String,
         password: String,
-    ) -> Result<(), BrainyBackendClientError>;
+    ) -> Result<UserInformationDto, BrainyBackendClientError>;
 
     async fn sign_up(
         &self,
-        username: String,
-        password: String,
-        email: String,
-        first_name: String,
-        last_name: String,
-    ) -> Result<(), BrainyBackendClientError>;
+        request: SignUpRequest,
+    ) -> Result<UserInformationDto, BrainyBackendClientError>;
 
     async fn sign_out(&self) -> Result<(), BrainyBackendClientError>;
 

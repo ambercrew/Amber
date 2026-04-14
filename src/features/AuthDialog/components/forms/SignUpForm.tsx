@@ -9,11 +9,10 @@ import Form, {
 import { mdiAccountBoxPlusOutline } from "@mdi/js";
 import Alert from "../../../../components/Alert/Alert";
 import Spinner from "../../../../components/Spinner/Spinner";
-import { signUp } from "../../../../api/authApi";
 import errorToString from "../../../../utils/errorToString";
-import { setUserInformation } from "../../../../stores/user/userReducer";
-import { getUserInformation } from "../../../../api/userApi";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useNavigate } from "react-router";
+import { signUp } from "../../../../stores/user/userActions";
 
 interface Props {
 	isSendingRequest: boolean;
@@ -38,6 +37,7 @@ export default function SignUpForm({
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [errorMessage, setErrorMessage] = useState("");
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -50,9 +50,15 @@ export default function SignUpForm({
 
 		try {
 			onRequestStart();
-			await signUp(username, password, email, firstName, lastName);
-			const userInformation = await getUserInformation();
-			dispatch(setUserInformation(userInformation));
+			await dispatch(
+				signUp(navigate, {
+					username,
+					password,
+					email,
+					firstName,
+					lastName,
+				}),
+			);
 			onClose();
 		} catch (e) {
 			console.error(e);

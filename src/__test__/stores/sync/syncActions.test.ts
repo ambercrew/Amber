@@ -1,14 +1,14 @@
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
-} from "../../../../stores/sync/managers/syncEventManager";
-import { sync } from "../../../../stores/sync/syncActions";
-import { setIsSyncing } from "../../../../stores/sync/syncReducer";
-import { sync as syncApi } from "../../../../api/syncApi";
-import { RootState } from "../../../../stores/store";
+} from "../../../stores/sync/managers/syncEventManager";
+import { sync } from "../../../stores/sync/syncActions";
+import { setIsSyncing } from "../../../stores/sync/syncReducer";
+import { sync as syncApi } from "../../../api/syncApi";
+import { RootState } from "../../../stores/store";
 
-vi.mock("../../../../stores/sync/managers/syncEventManager");
-vi.mock("../../../../api/syncApi.ts");
+vi.mock("../../../stores/sync/managers/syncEventManager");
+vi.mock("../../../api/syncApi.ts");
 
 const createGetState = ({
 	isSignedIn,
@@ -40,11 +40,11 @@ describe("sync", () => {
 		notifyListenersMock.mockImplementation((type: ListenerType) => {
 			// Asserting the order
 			if (type === ListenerType.PreSyncStart) {
-				expect(dispatch).not.toBeCalledWith(setIsSyncing(true));
+				expect(dispatch).not.toHaveBeenCalledWith(setIsSyncing(true));
 			} else if (type === ListenerType.PreSyncComplete) {
-				expect(dispatch).not.toBeCalledWith(setIsSyncing(false));
+				expect(dispatch).not.toHaveBeenCalledWith(setIsSyncing(false));
 			} else if (type === ListenerType.PostSyncComplete) {
-				expect(dispatch).toBeCalledWith(setIsSyncing(false));
+				expect(dispatch).toHaveBeenCalledWith(setIsSyncing(false));
 			}
 		});
 		manager.notifyListeners = notifyListenersMock;
@@ -62,7 +62,7 @@ describe("sync", () => {
 
 		// Assert
 
-		expect(syncApi).toBeCalled();
+		expect(syncApi).toHaveBeenCalled();
 		expect(dispatch).toHaveBeenNthCalledWith(1, setIsSyncing(true));
 		expect(dispatch).toHaveBeenNthCalledWith(2, setIsSyncing(false));
 	});
@@ -85,7 +85,7 @@ describe("sync", () => {
 
 		// Assert
 
-		expect(syncApi).not.toBeCalled();
+		expect(syncApi).not.toHaveBeenCalled();
 	});
 
 	it("Should not sync when user is not signed in", async () => {
@@ -106,6 +106,6 @@ describe("sync", () => {
 
 		// Assert
 
-		expect(syncApi).not.toBeCalled();
+		expect(syncApi).not.toHaveBeenCalled();
 	});
 });

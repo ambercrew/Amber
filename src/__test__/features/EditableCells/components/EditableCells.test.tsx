@@ -412,7 +412,7 @@ describe("Scrolling", () => {
 			},
 		});
 
-		vi.mocked(createCell).mockReturnValue(Promise.resolve("4"));
+		vi.mocked(createCell).mockResolvedValue("4");
 
 		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
 		renderEditableCells({
@@ -659,8 +659,8 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(saveChangesMock).toBeCalled();
-			expect(vi.mocked(moveCell)).toBeCalledWith("3", 1);
+			expect(saveChangesMock).toHaveBeenCalled();
+			expect(vi.mocked(moveCell)).toHaveBeenCalledWith("3", 1);
 		});
 	});
 
@@ -700,8 +700,8 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(saveChangesMock).toBeCalled();
-			expect(vi.mocked(moveCell)).toBeCalledWith("1", 2);
+			expect(saveChangesMock).toHaveBeenCalled();
+			expect(vi.mocked(moveCell)).toHaveBeenCalledWith("1", 2);
 		});
 	});
 
@@ -720,8 +720,8 @@ describe("EditableCells logic", () => {
 
 		// Assert
 
-		expect(saveChangesMock).toBeCalled();
-		expect(vi.mocked(deleteCell)).toBeCalledWith("2");
+		expect(saveChangesMock).toHaveBeenCalled();
+		expect(vi.mocked(deleteCell)).toHaveBeenCalledWith("2");
 
 		const classList = screen.getByTestId("CellBlock-1").classList.value;
 		expect(classList).contains("selected-cell");
@@ -740,7 +740,7 @@ describe("EditableCells logic", () => {
 			],
 		});
 
-		vi.mocked(createCell).mockReturnValue(Promise.resolve("4"));
+		vi.mocked(createCell).mockResolvedValue("4");
 
 		// Act
 
@@ -751,8 +751,8 @@ describe("EditableCells logic", () => {
 
 		// Assert
 
-		expect(saveChangesMock).toBeCalled();
-		expect(vi.mocked(createCell)).toBeCalledWith(
+		expect(saveChangesMock).toHaveBeenCalled();
+		expect(vi.mocked(createCell)).toHaveBeenCalledWith(
 			expect.objectContaining({
 				cellType: "TrueFalse",
 			}),
@@ -801,7 +801,7 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		// Indexing start from zero.
-		expect(vi.mocked(moveCell)).toBeCalledWith("3", 1);
+		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("3", 1);
 	});
 
 	it("Should called backend with correct arguments when moving selected cell using ctrl + alt + arrow down", async () => {
@@ -819,7 +819,7 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		// Indexing start from zero.
-		expect(vi.mocked(moveCell)).toBeCalledWith("2", 2);
+		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("2", 2);
 	});
 
 	it("Should not call the backend when moving to invalid place using shortcuts (ctrl + alt + arrow down)", async () => {
@@ -836,7 +836,7 @@ describe("EditableCells logic", () => {
 
 		// Assert
 
-		expect(vi.mocked(moveCell)).not.toBeCalled();
+		expect(vi.mocked(moveCell)).not.toHaveBeenCalled();
 	});
 
 	it("Should not call the backend when moving to invalid place using shortcuts (ctrl + alt + arrow up)", async () => {
@@ -853,7 +853,7 @@ describe("EditableCells logic", () => {
 
 		// Assert
 
-		expect(vi.mocked(moveCell)).not.toBeCalled();
+		expect(vi.mocked(moveCell)).not.toHaveBeenCalled();
 	});
 
 	it("Should re-focus last focused element when insert new cell is hidden", async () => {

@@ -13,6 +13,7 @@ import { registerReview } from "../../../../api/reviewApi.ts";
 import { FSRS, generatorParameters } from "ts-fsrs";
 import createCardFromRepetition from "../../../../features/Reviewer/utils/createCardFromRepetition.ts";
 import createRepetitionFromCard from "../../../../features/Reviewer/utils/createRepetitionFromCard.ts";
+import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
 vi.mock(import("../../../../api/fsrsApi.ts"));
 vi.mock(import("../../../../api/cellApi.ts"));
@@ -64,17 +65,15 @@ describe("Reviewer", () => {
 			},
 		];
 
-		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockReturnValue(
-			Promise.resolve(cellsWithFsrsProfileIds),
+		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockResolvedValue(
+			cellsWithFsrsProfileIds,
 		);
 
-		vi.mocked(getAllFsrsProfiles).mockReturnValue(
-			Promise.resolve([
-				{
-					id: "",
-				} as FsrsProfile,
-			]),
-		);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([
+			{
+				id: "",
+			} as FsrsProfile,
+		]);
 
 		// Act
 
@@ -130,8 +129,8 @@ describe("Reviewer", () => {
 			},
 		];
 
-		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockReturnValue(
-			Promise.resolve(cellsWithFsrsProfileIds),
+		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockResolvedValue(
+			cellsWithFsrsProfileIds,
 		);
 
 		const fsrsProfile: FsrsProfile = {
@@ -145,9 +144,7 @@ describe("Reviewer", () => {
 			],
 		};
 
-		vi.mocked(getAllFsrsProfiles).mockReturnValue(
-			Promise.resolve([fsrsProfile]),
-		);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([fsrsProfile]);
 
 		renderWithProviders(
 			<Reviewer
@@ -186,14 +183,12 @@ describe("Reviewer", () => {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { due, lastReview, ...newRepetitionCompare } = newRepetition;
 
-		expect(vi.mocked(registerReview)).toBeCalledWith(
+		expect(vi.mocked(registerReview)).toHaveBeenCalledWith(
 			expect.objectContaining(newRepetitionCompare),
 			"Good",
 			expect.anything(),
 		);
 
-		expect(await screen.findByTestId("location-display")).toHaveTextContent(
-			"/home",
-		);
+		expect(await getCurrentLocation()).toBe("/home");
 	});
 });

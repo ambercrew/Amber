@@ -9,8 +9,8 @@ use crate::{
     },
     settings::{
         dto::update_settings_request::UpdateSettingsRequest,
-        entities::settings::SettingsProfile,
         repositories::settings_repository::{SettingsRepository, SettingsRepositoryError},
+        value_objects::settings_profile::SettingsProfile,
     },
 };
 
@@ -34,14 +34,19 @@ impl SettingsService {
         new_settings: UpdateSettingsRequest,
     ) -> Result<(), SettingsServiceError> {
         let mut settings = self.settings_repository.get_settings().await;
+        let mut change_database_location = false;
 
-        if let Some(new_base_dir) = new_settings.database_location_base_dir
-            && new_base_dir != settings.base_database_location
+        if let Some(new_base_dir) = new_settings.base_database_directory
+            && new_base_dir != settings.base_database_directory
         {
-            settings.base_database_location = new_base_dir;
-            self.database_connection_manager
-                .change_database_location(&settings.get_database_location())
-                .await?;
+            settings.base_database_directory = new_base_dir;
+            change_database_location = true;
+        }
+        if let Some(new_profile) = new_settings.profile
+            && new_profile != settings.profile
+        {
+            settings.profile = new_profile;
+            change_database_location = true;
         }
         if let Some(theme) = new_settings.theme {
             settings.theme = theme;
@@ -62,17 +67,31 @@ impl SettingsService {
             settings.ollama_embeddings_model_name = ollama_embeddings_model_name;
         }
 
+        if change_database_location {
+            log::info!(
+                "Changing database location to {}",
+                settings.database_location()
+            );
+            self.database_connection_manager
+                .connect_to_database(settings.database_location())
+                .await?;
+        }
+
         self.settings_repository.save_settings(settings).await?;
 
         Ok(())
     }
 
-    // TODO: unit testing
-    pub async fn set_profile(&self, profile: SettingsProfile) -> Result<(), SettingsServiceError> {
+    /// Sets the profile for settings when the user is newly created, leading to
+    /// database being moved to the new user location.
+    pub async fn set_profile_for_new_user(
+        &self,
+        profile_name: String,
+    ) -> Result<(), SettingsServiceError> {
         let mut settings = self.settings_repository.get_settings().await;
-        settings.profile = profile;
+        settings.profile = SettingsProfile::User(profile_name);
         self.database_connection_manager
-            .change_database_location(&settings.get_database_location())
+            .move_database_to(settings.database_location())
             .await?;
         self.settings_repository.save_settings(settings).await?;
         Ok(())
@@ -123,13 +142,13 @@ mod tests {
         // Arrange
 
         let request = UpdateSettingsRequest {
-            database_location_base_dir: Some("new path".into()),
+            base_database_directory: Some("new path".into()),
             ..Default::default()
         };
 
         let mut database_connection_manager = MockDatabaseConnectionManager::new();
         database_connection_manager
-            .expect_change_database_location()
+            .expect_connect_to_database()
             .with(eq(DatabaseLocation::new_unchecked(
                 PathBuf::from_str("new path").unwrap().join("brainy.db"),
             )))
@@ -154,7 +173,7 @@ mod tests {
 
         let mut database_connection_manager = MockDatabaseConnectionManager::new();
         database_connection_manager
-            .expect_change_database_location()
+            .expect_connect_to_database()
             .never();
 
         let injector = initialize_test_injector(database_connection_manager).await;

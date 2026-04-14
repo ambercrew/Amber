@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Settings from "../../types/backend/model/settings";
+import SettingsDto from "../../types/backend/dto/settingsDto";
 
 export interface SettingsState {
-	settings: Settings | null;
+	settings: SettingsDto | null;
 }
 
 const initialState: SettingsState = {
@@ -13,7 +13,7 @@ export const settingsSlice = createSlice({
 	name: "settings",
 	initialState,
 	reducers: {
-		setSettings: (state, payload: PayloadAction<Settings>) => {
+		setSettings: (state, payload: PayloadAction<SettingsDto>) => {
 			state.settings = payload.payload;
 		},
 	},

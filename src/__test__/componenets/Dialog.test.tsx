@@ -24,7 +24,7 @@ describe("Dialog", () => {
 
 		// Assert
 
-		expect(onHide).toBeCalled();
+		expect(onHide).toHaveBeenCalled();
 	});
 
 	it("Should call onHide when pressing Escape", async () => {
@@ -44,7 +44,7 @@ describe("Dialog", () => {
 
 		// Assert
 
-		expect(onHide).toBeCalled();
+		expect(onHide).toHaveBeenCalled();
 	});
 
 	it("Should focus last focused element when dialog is hidden", async () => {

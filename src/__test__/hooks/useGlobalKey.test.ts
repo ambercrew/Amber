@@ -16,7 +16,7 @@ describe("useGlobalKey", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(cb).toBeCalled();
+			expect(cb).toHaveBeenCalled();
 		});
 	});
 
@@ -34,7 +34,7 @@ describe("useGlobalKey", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(cb).not.toBeCalled();
+			expect(cb).not.toHaveBeenCalled();
 		});
 	});
 });

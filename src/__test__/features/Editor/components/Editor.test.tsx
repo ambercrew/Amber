@@ -15,14 +15,12 @@ vi.mock(import("../../../../api/cellApi"));
 
 describe("TitleBar", () => {
 	beforeAll(() => {
-		vi.mocked(getStudyRepetitionCounts).mockReturnValue(
-			Promise.resolve({
-				new: 0,
-				learning: 0,
-				relearning: 0,
-				review: 0,
-			}),
-		);
+		vi.mocked(getStudyRepetitionCounts).mockResolvedValue({
+			new: 0,
+			learning: 0,
+			relearning: 0,
+			review: 0,
+		});
 	});
 
 	it("Should show and focus input when pressing ctrl + f", async () => {
@@ -132,14 +130,12 @@ describe("TitleBar", () => {
 
 describe("Editor", () => {
 	beforeEach(() => {
-		vi.mocked(getStudyRepetitionCounts).mockReturnValue(
-			Promise.resolve({
-				new: 0,
-				learning: 0,
-				relearning: 0,
-				review: 0,
-			}),
-		);
+		vi.mocked(getStudyRepetitionCounts).mockResolvedValue({
+			new: 0,
+			learning: 0,
+			relearning: 0,
+			review: 0,
+		});
 	});
 
 	it("Should start study on F5 keyboard", async () => {
@@ -160,24 +156,20 @@ describe("Editor", () => {
 
 		// Assert
 
-		expect(onStudyStart).toBeCalled();
+		expect(onStudyStart).toHaveBeenCalled();
 	});
 
 	it("Should retrieve initial state correctly", async () => {
 		// Arrange
 
-		vi.mocked(getStudyRepetitionCounts).mockReturnValue(
-			Promise.resolve({
-				new: 10,
-				learning: 0,
-				relearning: 0,
-				review: 0,
-			}),
-		);
+		vi.mocked(getStudyRepetitionCounts).mockResolvedValue({
+			new: 10,
+			learning: 0,
+			relearning: 0,
+			review: 0,
+		});
 		const cells: Cell[] = [createDefaultCell("Note", "123", 1)];
-		vi.mocked(getFileCellsOrderedByIndex).mockReturnValue(
-			Promise.resolve(cells),
-		);
+		vi.mocked(getFileCellsOrderedByIndex).mockResolvedValue(cells);
 
 		// Act
 
@@ -204,22 +196,18 @@ describe("Editor", () => {
 
 		vi.useFakeTimers();
 		vi.mocked(getStudyRepetitionCounts)
-			.mockReturnValueOnce(
-				Promise.resolve({
-					new: 10,
-					learning: 0,
-					relearning: 0,
-					review: 0,
-				}),
-			)
-			.mockReturnValueOnce(
-				Promise.resolve({
-					new: 20,
-					learning: 0,
-					relearning: 0,
-					review: 0,
-				}),
-			);
+			.mockResolvedValueOnce({
+				new: 10,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			})
+			.mockResolvedValueOnce({
+				new: 20,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			});
 
 		// Act
 

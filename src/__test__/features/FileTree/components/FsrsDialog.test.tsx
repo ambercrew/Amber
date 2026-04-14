@@ -33,20 +33,14 @@ describe("FsrsDialog", () => {
 	it("Should be able to update profile", async () => {
 		// Arrange
 
-		vi.mocked(getAllFsrsProfiles).mockReturnValue(
-			Promise.resolve([FILLED_PROFILE]),
-		);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([FILLED_PROFILE]);
 
-		vi.mocked(getFsrsProfileChoiceForFolder).mockReturnValue(
-			Promise.resolve({
-				type: "id",
-				content: FILLED_PROFILE.id,
-			}),
-		);
+		vi.mocked(getFsrsProfileChoiceForFolder).mockResolvedValue({
+			type: "id",
+			content: FILLED_PROFILE.id,
+		});
 
-		vi.mocked(getFolderFsrsProfile).mockReturnValue(
-			Promise.resolve(FILLED_PROFILE),
-		);
+		vi.mocked(getFolderFsrsProfile).mockResolvedValue(FILLED_PROFILE);
 
 		const onCloseMock = vi.fn();
 
@@ -58,8 +52,6 @@ describe("FsrsDialog", () => {
 				name=""
 			/>,
 		);
-
-		await Promise.resolve();
 
 		// Act
 
@@ -80,9 +72,11 @@ describe("FsrsDialog", () => {
 		// Assert
 
 		const expectedWeights = [...FILLED_PROFILE.weights];
-		expectedWeights[0] = Number("1" + expectedWeights[0].toString());
+		expectedWeights[expectedWeights.length - 1] = Number(
+			expectedWeights[expectedWeights.length - 1].toString() + "1",
+		);
 
-		expect(vi.mocked(updateProfile)).toBeCalledWith({
+		expect(vi.mocked(updateProfile)).toHaveBeenCalledWith({
 			id: FILLED_PROFILE.id,
 			name: "new name",
 			requestRetention: 8,
@@ -90,29 +84,23 @@ describe("FsrsDialog", () => {
 			weights: expectedWeights,
 		} as FsrsProfile);
 
-		expect(onCloseMock).toBeCalled();
+		expect(onCloseMock).toHaveBeenCalled();
 	});
 
 	it("Should be able to change chosen profile", async () => {
 		// Arrange
 
-		vi.mocked(getAllFsrsProfiles).mockReturnValue(
-			Promise.resolve([
-				FILLED_PROFILE,
-				{ ...FILLED_PROFILE, name: "profile-2", id: "profile-2" },
-			]),
-		);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([
+			FILLED_PROFILE,
+			{ ...FILLED_PROFILE, name: "profile-2", id: "profile-2" },
+		]);
 
-		vi.mocked(getFsrsProfileChoiceForFolder).mockReturnValue(
-			Promise.resolve({
-				type: "id",
-				content: FILLED_PROFILE.id,
-			}),
-		);
+		vi.mocked(getFsrsProfileChoiceForFolder).mockResolvedValue({
+			type: "id",
+			content: FILLED_PROFILE.id,
+		});
 
-		vi.mocked(getFolderFsrsProfile).mockReturnValue(
-			Promise.resolve(FILLED_PROFILE),
-		);
+		vi.mocked(getFolderFsrsProfile).mockResolvedValue(FILLED_PROFILE);
 
 		const onCloseMock = vi.fn();
 
@@ -133,7 +121,7 @@ describe("FsrsDialog", () => {
 
 		// Assert
 
-		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toBeCalledWith(
+		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toHaveBeenCalledWith(
 			ITEM_ID,
 			{
 				type: "id",
@@ -147,25 +135,17 @@ describe("FsrsDialog", () => {
 
 		const clonedProfile = { ...FILLED_PROFILE, id: "profile-2" };
 		vi.mocked(getAllFsrsProfiles)
-			.mockReturnValueOnce(Promise.resolve([FILLED_PROFILE]))
-			.mockReturnValueOnce(
-				Promise.resolve([FILLED_PROFILE, clonedProfile]),
-			);
+			.mockResolvedValueOnce([FILLED_PROFILE])
+			.mockResolvedValueOnce([FILLED_PROFILE, clonedProfile]);
 
-		vi.mocked(createProfile).mockReturnValue(
-			Promise.resolve(clonedProfile),
-		);
+		vi.mocked(createProfile).mockResolvedValue(clonedProfile);
 
-		vi.mocked(getFsrsProfileChoiceForFolder).mockReturnValue(
-			Promise.resolve({
-				type: "id",
-				content: FILLED_PROFILE.id,
-			}),
-		);
+		vi.mocked(getFsrsProfileChoiceForFolder).mockResolvedValue({
+			type: "id",
+			content: FILLED_PROFILE.id,
+		});
 
-		vi.mocked(getFolderFsrsProfile).mockReturnValue(
-			Promise.resolve(FILLED_PROFILE),
-		);
+		vi.mocked(getFolderFsrsProfile).mockResolvedValue(FILLED_PROFILE);
 
 		renderWithProviders(
 			<FsrsDialog
@@ -185,14 +165,14 @@ describe("FsrsDialog", () => {
 
 		// Assert
 
-		expect(vi.mocked(createProfile)).toBeCalledWith({
+		expect(vi.mocked(createProfile)).toHaveBeenCalledWith({
 			name: FILLED_PROFILE.name + " clone",
 			maximumInterval: FILLED_PROFILE.maximumInterval,
 			requestRetention: FILLED_PROFILE.requestRetention,
 			weights: FILLED_PROFILE.weights,
 		});
 
-		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toBeCalledWith(
+		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toHaveBeenCalledWith(
 			ITEM_ID,
 			{
 				type: "id",
@@ -200,7 +180,7 @@ describe("FsrsDialog", () => {
 			} as FsrsProfileChoice,
 		);
 
-		expect(vi.mocked(updateProfile)).toBeCalledWith(
+		expect(vi.mocked(updateProfile)).toHaveBeenCalledWith(
 			expect.objectContaining({
 				id: clonedProfile.id,
 				requestRetention: 18,
@@ -213,28 +193,22 @@ describe("FsrsDialog", () => {
 
 		const selectedProfile = { ...FILLED_PROFILE, id: "profile-2" };
 		vi.mocked(getAllFsrsProfiles)
-			.mockReturnValueOnce(
-				Promise.resolve([FILLED_PROFILE, selectedProfile]),
-			)
-			.mockReturnValueOnce(Promise.resolve([FILLED_PROFILE]));
+			.mockResolvedValueOnce([FILLED_PROFILE, selectedProfile])
+			.mockResolvedValue([FILLED_PROFILE]);
 
 		vi.mocked(getFsrsProfileChoiceForFolder)
-			.mockReturnValueOnce(
-				Promise.resolve({
-					type: "id",
-					content: selectedProfile.id,
-				}),
-			)
-			.mockReturnValueOnce(
-				Promise.resolve({
-					type: "id",
-					content: FILLED_PROFILE.id,
-				}),
-			);
+			.mockResolvedValueOnce({
+				type: "id",
+				content: selectedProfile.id,
+			})
+			.mockResolvedValueOnce({
+				type: "id",
+				content: FILLED_PROFILE.id,
+			});
 
 		vi.mocked(getFolderFsrsProfile)
-			.mockReturnValueOnce(Promise.resolve(selectedProfile))
-			.mockReturnValueOnce(Promise.resolve(FILLED_PROFILE));
+			.mockResolvedValueOnce(selectedProfile)
+			.mockResolvedValueOnce(FILLED_PROFILE);
 
 		renderWithProviders(
 			<FsrsDialog
@@ -255,9 +229,11 @@ describe("FsrsDialog", () => {
 
 		// Assert
 
-		expect(vi.mocked(deleteFsrsProfile)).toBeCalledWith(selectedProfile.id);
+		expect(vi.mocked(deleteFsrsProfile)).toHaveBeenCalledWith(
+			selectedProfile.id,
+		);
 
-		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toBeCalledWith(
+		expect(vi.mocked(setFsrsProfileChoiceForFolder)).toHaveBeenCalledWith(
 			ITEM_ID,
 			{
 				type: "id",
@@ -265,7 +241,7 @@ describe("FsrsDialog", () => {
 			} as FsrsProfileChoice,
 		);
 
-		expect(vi.mocked(updateProfile)).toBeCalledWith(
+		expect(vi.mocked(updateProfile)).toHaveBeenCalledWith(
 			expect.objectContaining({
 				id: FILLED_PROFILE.id,
 				requestRetention: 18,

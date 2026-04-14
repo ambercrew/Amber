@@ -40,7 +40,7 @@ it("Should be able to change selection", async () => {
 	// Assert
 
 	expect(onChangeValueFn).toHaveBeenCalledOnce();
-	expect(onChangeValueFn).toBeCalledWith("choice-3");
+	expect(onChangeValueFn).toHaveBeenCalledWith("choice-3");
 });
 
 it("Should hide options when escape is pressed", async () => {
@@ -156,8 +156,8 @@ it("Should be able to navigate using arrows", async () => {
 	// Assert
 
 	expect(onChangeValueFn).toHaveBeenCalledOnce();
-	expect(onChangeValueFn).toBeCalledWith("choice-1");
+	expect(onChangeValueFn).toHaveBeenCalledWith("choice-1");
 
 	// Asserting that scrolling was not called.
-	expect(preventDefaultSpy).toBeCalledTimes(2);
+	expect(preventDefaultSpy).toHaveBeenCalledTimes(2);
 });

@@ -15,7 +15,7 @@ describe("useBeforeUnload", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(cb).toBeCalled();
+			expect(cb).toHaveBeenCalled();
 		});
 	});
 
@@ -33,7 +33,7 @@ describe("useBeforeUnload", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(cb).not.toBeCalled();
+			expect(cb).not.toHaveBeenCalled();
 		});
 	});
 });

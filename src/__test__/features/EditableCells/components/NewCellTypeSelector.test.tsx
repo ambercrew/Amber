@@ -18,7 +18,7 @@ describe("NewCellTypeSelector", () => {
 
 		// Assert
 
-		expect(onClick).toBeCalledWith("Note" as CellType);
+		expect(onClick).toHaveBeenCalledWith("Note" as CellType);
 	});
 
 	it("Should be able to navigate with arrow up", async () => {
@@ -35,7 +35,7 @@ describe("NewCellTypeSelector", () => {
 
 		// Assert
 
-		expect(onClick).toBeCalledWith("TrueFalse" as CellType);
+		expect(onClick).toHaveBeenCalledWith("TrueFalse" as CellType);
 	});
 
 	it("Should be able to retain search choice", async () => {
@@ -52,7 +52,7 @@ describe("NewCellTypeSelector", () => {
 
 		// Assert
 
-		expect(onClick).toBeCalledWith("Note" as CellType);
+		expect(onClick).toHaveBeenCalledWith("Note" as CellType);
 	});
 
 	it("Should do nothing when pressing enter and no search results are found", async () => {
@@ -69,6 +69,6 @@ describe("NewCellTypeSelector", () => {
 
 		// Assert
 
-		expect(onClick).not.toBeCalled();
+		expect(onClick).not.toHaveBeenCalled();
 	});
 });

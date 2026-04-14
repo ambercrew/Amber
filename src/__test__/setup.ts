@@ -9,3 +9,5 @@ vi.stubGlobal(
 		disconnect() {}
 	},
 );
+
+vi.stubGlobal("alert", vi.fn());

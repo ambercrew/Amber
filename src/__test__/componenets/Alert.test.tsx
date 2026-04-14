@@ -21,7 +21,7 @@ describe("Alert", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(fn).toBeCalled();
+			expect(fn).toHaveBeenCalled();
 		});
 	});
 });

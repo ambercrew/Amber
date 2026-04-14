@@ -54,8 +54,8 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(onCellsUpdateSaveCb).toBeCalled();
-		expect(updateCellsContentsSpy).toBeCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
 		vi.useRealTimers();
 		vi.clearAllTimers();
 	});
@@ -75,8 +75,8 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(onCellsUpdateSaveCb).not.toBeCalled();
-		expect(updateCellsContentsSpy).not.toBeCalled();
+		expect(onCellsUpdateSaveCb).not.toHaveBeenCalled();
+		expect(updateCellsContentsSpy).not.toHaveBeenCalled();
 		vi.useRealTimers();
 		vi.clearAllTimers();
 	});
@@ -107,9 +107,9 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(preventDefaultSpy).toBeCalled();
-		expect(updateCellsContentsSpy).toBeCalled();
-		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(preventDefaultSpy).toHaveBeenCalled();
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
 	});
 
 	it("Saves on window close request", async () => {
@@ -128,15 +128,15 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(addHandlerSpy).toBeCalledWith(
+		expect(addHandlerSpy).toHaveBeenCalledWith(
 			CLOSE_REQUESTED_HANDLER_NAME,
 			expect.objectContaining({
 				priority: 0,
 			}),
 		);
 		await (addHandlerSpy.mock.calls[0][1].cb as () => Promise<void>)();
-		expect(updateCellsContentsSpy).toBeCalled();
-		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
 	});
 
 	it("Saves on unmount", async () => {
@@ -149,13 +149,15 @@ describe("useAutoSave", () => {
 		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 		returnValue.unmount();
-		// Waiting for all async functions to be called.
-		await Promise.resolve();
+		// Waiting for async callback to finish.
+		await act(async () => {
+			/* Nothing */
+		});
 
 		// Assert
 
-		expect(updateCellsContentsSpy).toBeCalled();
-		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
 	});
 
 	it("Saves on pre-sync start", async () => {
@@ -177,8 +179,8 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(updateCellsContentsSpy).toBeCalled();
-		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
 	});
 
 	it("Calls onCellsUpdateSave on pre-sync complete", async () => {
@@ -198,7 +200,7 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(onCellsUpdateSaveCb).toBeCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
 	});
 
 	it("Unregister useEffect dependencies on unmount", () => {
@@ -220,12 +222,14 @@ describe("useAutoSave", () => {
 
 		// Assert
 
-		expect(removeHandlerSpy).toBeCalledWith(CLOSE_REQUESTED_HANDLER_NAME);
-		expect(removeListenerSpy).toBeCalledWith(
+		expect(removeHandlerSpy).toHaveBeenCalledWith(
+			CLOSE_REQUESTED_HANDLER_NAME,
+		);
+		expect(removeListenerSpy).toHaveBeenCalledWith(
 			ListenerType.PreSyncStart,
 			expect.anything(),
 		);
-		expect(removeListenerSpy).toBeCalledWith(
+		expect(removeListenerSpy).toHaveBeenCalledWith(
 			ListenerType.PreSyncComplete,
 			expect.anything(),
 		);

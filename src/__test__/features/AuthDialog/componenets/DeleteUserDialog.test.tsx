@@ -27,7 +27,7 @@ describe("DeleteUserDialog", () => {
 			),
 		).not.toBeNull();
 
-		expect(deleteUser).not.toBeCalled();
+		expect(deleteUser).not.toHaveBeenCalled();
 	});
 
 	it("Should have the checkbox as required", () => {
@@ -66,8 +66,8 @@ describe("DeleteUserDialog", () => {
 
 		// Assert
 
-		expect(onHideMock).toBeCalled();
-		expect(deleteUser).toBeCalled();
+		expect(onHideMock).toHaveBeenCalled();
+		expect(deleteUser).toHaveBeenCalled();
 		expect(store.getState().user.isSignedIn).toBe(false);
 	});
 });

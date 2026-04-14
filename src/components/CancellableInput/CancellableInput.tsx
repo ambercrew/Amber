@@ -1,8 +1,7 @@
-interface Props
-	extends React.DetailedHTMLProps<
-		React.InputHTMLAttributes<HTMLInputElement>,
-		HTMLInputElement
-	> {
+interface Props extends React.DetailedHTMLProps<
+	React.InputHTMLAttributes<HTMLInputElement>,
+	HTMLInputElement
+> {
 	onCancel: () => void;
 }
 

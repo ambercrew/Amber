@@ -1,28 +1,28 @@
 import { getCurrentWebview, Webview } from "@tauri-apps/api/webview";
-import { getSettings } from "../../../../api/settingsApi.ts";
-import * as settingsApi from "../../../../api/settingsApi.ts";
+import { getSettings } from "../../../api/settingsApi.ts";
+import * as settingsApi from "../../../api/settingsApi.ts";
 import {
-	initialLoadAndApplySettings,
+	loadAndApplySettings,
 	SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 	updateAndApplySettings,
-} from "../../../../stores/settings/settingsActions.ts";
-import Settings from "../../../../types/backend/model/settings.ts";
-import { setSettings } from "../../../../stores/settings/settingsReducer.ts";
-import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager.ts";
-import * as syncActions from "../../../../stores/sync/syncActions.ts";
+} from "../../../stores/settings/settingsActions.ts";
+import SettingsDto from "../../../types/backend/dto/settingsDto.ts";
+import { setSettings } from "../../../stores/settings/settingsReducer.ts";
+import { defaultCloseRequestedEventManager } from "../../../managers/closeRequestedEventManager.ts";
+import * as syncActions from "../../../stores/sync/syncActions.ts";
 import { Window } from "@tauri-apps/api/window";
 import { type } from "@tauri-apps/plugin-os";
 
 vi.mock(import("@tauri-apps/api/webview"));
-vi.mock(import("../../../../api/settingsApi.ts"));
-vi.mock(import("../../../../stores/sync/syncActions.ts"));
-vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
+vi.mock(import("../../../api/settingsApi.ts"));
+vi.mock(import("../../../stores/sync/syncActions.ts"));
+vi.mock(import("../../../managers/closeRequestedEventManager.ts"));
 vi.mock(import("@tauri-apps/plugin-os"));
 
 const getAndSetDefaultSettings = () => {
-	const settings: Settings = {
+	const settings: SettingsDto = {
 		autoSync: true,
-		databaseLocation: "",
+		baseDatabaseDirectory: "",
 		theme: "Dark",
 		zoomPercentage: 150,
 		enableAi: true,
@@ -30,7 +30,7 @@ const getAndSetDefaultSettings = () => {
 		ollamaEmbeddingsModelName: "",
 	};
 	const getSettingsMock = vi.mocked(getSettings);
-	getSettingsMock.mockReturnValue(Promise.resolve(settings));
+	getSettingsMock.mockResolvedValue(settings);
 	return settings;
 };
 
@@ -68,19 +68,19 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Act
 
-		const cb = initialLoadAndApplySettings();
+		const cb = loadAndApplySettings();
 		await cb(dispatch);
 
 		// Assert
 
-		expect(dispatch).toBeCalledWith(setSettings(settings));
-		expect(setZoomMock).toBeCalledWith(1.5);
-		expect(setThemeMock).toBeCalledWith("dark");
+		expect(dispatch).toHaveBeenCalledWith(setSettings(settings));
+		expect(setZoomMock).toHaveBeenCalledWith(1.5);
+		expect(setThemeMock).toHaveBeenCalledWith("dark");
 		expect(document.body.classList.contains("dark")).toBe(true);
-		expect(removeHandlerSpy).toBeCalledWith(
+		expect(removeHandlerSpy).toHaveBeenCalledWith(
 			SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 		);
-		expect(addHandlerSpy).toBeCalledWith(
+		expect(addHandlerSpy).toHaveBeenCalledWith(
 			SETTINGS_CLOSE_REQUESTED_HANDLER_NAME,
 			expect.anything(),
 		);
@@ -96,12 +96,12 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Act
 
-		const cb = initialLoadAndApplySettings();
+		const cb = loadAndApplySettings();
 		await cb(dispatch);
 
 		// Assert
 
-		expect(dispatch).toBeCalledWith(setSettings(settings));
+		expect(dispatch).toHaveBeenCalledWith(setSettings(settings));
 		expect(document.body.classList.contains("dark")).toBe(false);
 	});
 
@@ -121,15 +121,15 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Act
 
-		const cb = initialLoadAndApplySettings();
+		const cb = loadAndApplySettings();
 		await cb(dispatch);
 
 		// Assert
 
-		expect(dispatch).toBeCalledWith(setSettings(settings));
+		expect(dispatch).toHaveBeenCalledWith(setSettings(settings));
 		expect(document.body.classList.contains("dark")).toBe(true);
-		expect(setThemeMock).toBeCalledWith(null);
-		expect(setThemeMock).toBeCalledWith("dark");
+		expect(setThemeMock).toHaveBeenCalledWith(null);
+		expect(setThemeMock).toHaveBeenCalledWith("dark");
 	});
 
 	it("Should sync on close", async () => {
@@ -147,13 +147,13 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Act
 
-		const cb = initialLoadAndApplySettings();
+		const cb = loadAndApplySettings();
 		await cb(dispatch);
 		await addHandlerSpy.mock.calls[0][1].cb();
 
 		// Assert
 
-		expect(syncSpy).toBeCalledTimes(1);
+		expect(syncSpy).toHaveBeenCalledTimes(1);
 	});
 
 	it("Should not sync on close when auto-sync is false", async () => {
@@ -171,13 +171,13 @@ describe("initialLoadAndApplySettings", () => {
 
 		// Act
 
-		const cb = initialLoadAndApplySettings();
+		const cb = loadAndApplySettings();
 		await cb(dispatch);
 		await addHandlerSpy.mock.calls[0][1].cb();
 
 		// Assert
 
-		expect(syncSpy).toBeCalledTimes(0);
+		expect(syncSpy).toHaveBeenCalledTimes(0);
 	});
 });
 
@@ -195,13 +195,15 @@ describe("updateAndApplySettings", () => {
 
 		// Act
 
-		const cb = updateAndApplySettings(settings);
+		const cb = updateAndApplySettings({
+			...settings,
+		});
 		await cb(dispatch);
 
 		// Assert
 
-		expect(updateSettingsSpy).toBeCalled();
-		expect(dispatch).toBeCalledWith(setSettings(settings));
+		expect(updateSettingsSpy).toHaveBeenCalled();
+		expect(dispatch).toHaveBeenCalledWith(setSettings(settings));
 		expect(document.body.classList.contains("dark")).toBe(true);
 	});
 
@@ -229,12 +231,14 @@ describe("updateAndApplySettings", () => {
 
 		// Act
 
-		const cb = updateAndApplySettings(settings);
+		const cb = updateAndApplySettings({
+			...settings,
+		});
 		await cb(dispatch);
 
 		// Assert
 
-		expect(dispatch).toBeCalledWith(setSettings(settings));
+		expect(dispatch).toHaveBeenCalledWith(setSettings(settings));
 		expect(document.body.classList.contains("no-transition")).toBe(false);
 	});
 
@@ -248,7 +252,9 @@ describe("updateAndApplySettings", () => {
 
 		// Act
 
-		const cb = updateAndApplySettings(settings);
+		const cb = updateAndApplySettings({
+			...settings,
+		});
 		await cb(dispatch);
 
 		// Assert
@@ -266,7 +272,9 @@ describe("updateAndApplySettings", () => {
 
 		// Act
 
-		const cb = updateAndApplySettings(settings);
+		const cb = updateAndApplySettings({
+			...settings,
+		});
 		await cb(dispatch);
 
 		// Assert

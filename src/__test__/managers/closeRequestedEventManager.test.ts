@@ -31,7 +31,7 @@ describe("CloseRequestedEventManager", () => {
 
 		// Assert
 
-		expect(cb).toBeCalled();
+		expect(cb).toHaveBeenCalled();
 	});
 
 	it("Should not call removed handler", async () => {
@@ -55,8 +55,8 @@ describe("CloseRequestedEventManager", () => {
 		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
 		// Assert
-		expect(cb0).toBeCalled();
-		expect(cb1).not.toBeCalled();
+		expect(cb0).toHaveBeenCalled();
+		expect(cb1).not.toHaveBeenCalled();
 	});
 
 	it("Should call handlers in correct order", async () => {
@@ -70,7 +70,7 @@ describe("CloseRequestedEventManager", () => {
 
 		const cb0 = vi.fn();
 		cb0.mockImplementation(() => {
-			expect(cb1).not.toBeCalled();
+			expect(cb1).not.toHaveBeenCalled();
 		});
 		manager.addHandler("test 0", {
 			priority: 0,
@@ -81,7 +81,7 @@ describe("CloseRequestedEventManager", () => {
 
 		await (onCloseRequestedMock.mock.calls[0][0] as () => Promise<void>)();
 
-		expect(cb0).toBeCalled();
-		expect(cb1).toBeCalled();
+		expect(cb0).toHaveBeenCalled();
+		expect(cb1).toHaveBeenCalled();
 	});
 });

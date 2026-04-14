@@ -23,7 +23,7 @@ describe("ConfirmationDialog", () => {
 
 		// Assert
 
-		expect(onCancel).toBeCalled();
+		expect(onCancel).toHaveBeenCalled();
 	});
 
 	it("Should calls onConfirm when clicking on Yes", async () => {
@@ -46,6 +46,6 @@ describe("ConfirmationDialog", () => {
 
 		// Assert
 
-		expect(onConfirm).toBeCalled();
+		expect(onConfirm).toHaveBeenCalled();
 	});
 });

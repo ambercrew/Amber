@@ -1,10 +1,10 @@
 import { FormRows } from "../../../../components/Form/Form";
 import CheckBox from "../../../../components/Checkbox/Checkbox";
-import Settings from "../../../../types/backend/model/settings";
+import SettingsDto from "../../../../types/backend/dto/settingsDto";
 import { TabProps } from "../../types/tabProps";
 
 export default function AiTab({ state, setState }: TabProps) {
-	const updateSettings = (newSettings: Partial<Settings>) => {
+	const updateSettings = (newSettings: Partial<SettingsDto>) => {
 		setState({
 			...state,
 			localSettings: {
@@ -30,6 +30,7 @@ export default function AiTab({ state, setState }: TabProps) {
 										enableAi: e.target.checked,
 									})
 								}
+								autoFocus
 							/>
 						),
 					},
@@ -48,7 +49,6 @@ export default function AiTab({ state, setState }: TabProps) {
 										ollamaModelName: e.target.value,
 									})
 								}
-								autoFocus
 							/>
 						),
 					},
@@ -69,7 +69,6 @@ export default function AiTab({ state, setState }: TabProps) {
 											e.target.value,
 									})
 								}
-								autoFocus
 							/>
 						),
 					},

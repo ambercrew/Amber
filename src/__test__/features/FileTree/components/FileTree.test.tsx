@@ -40,6 +40,7 @@ import DraggedFileItemData, {
 } from "../../../../features/FileTree/types/draggedFileItemData.ts";
 import { DragEndEvent } from "@dnd-kit/react";
 import { pointerIntersection } from "@dnd-kit/collision";
+import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
 vi.mock(import("../../../../api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/exportImportApi.ts"));
@@ -94,10 +95,8 @@ describe("FileTree", () => {
 
 		// Assert
 
-		expect(vi.mocked(deleteFolder)).toBeCalledWith("1");
-		expect(screen.getByTestId("location-display")).toHaveTextContent(
-			"/home",
-		);
+		expect(vi.mocked(deleteFolder)).toHaveBeenCalledWith("1");
+		expect(await getCurrentLocation()).toBe("/home");
 	});
 
 	it("Should delete file when pressing DEL", async () => {
@@ -116,10 +115,8 @@ describe("FileTree", () => {
 
 		// Assert
 
-		expect(vi.mocked(deleteFile)).toBeCalledWith("1");
-		expect(screen.getByTestId("location-display")).toHaveTextContent(
-			"/home",
-		);
+		expect(vi.mocked(deleteFile)).toHaveBeenCalledWith("1");
+		expect(await getCurrentLocation()).toBe("/home");
 	});
 
 	it("Should set drag and drop data correctly", () => {
@@ -211,7 +208,10 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(createFolder)).toBeCalledWith("test", ROOT_FOLDER_ID);
+		expect(vi.mocked(createFolder)).toHaveBeenCalledWith(
+			"test",
+			ROOT_FOLDER_ID,
+		);
 	});
 
 	it("Should be able create new folder using shortcut", async () => {
@@ -228,7 +228,10 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(createFolder)).toBeCalledWith("test", ROOT_FOLDER_ID);
+		expect(vi.mocked(createFolder)).toHaveBeenCalledWith(
+			"test",
+			ROOT_FOLDER_ID,
+		);
 	});
 
 	it("Should be able create new file using shortcut", async () => {
@@ -245,7 +248,10 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(createFile)).toBeCalledWith("test", ROOT_FOLDER_ID);
+		expect(vi.mocked(createFile)).toHaveBeenCalledWith(
+			"test",
+			ROOT_FOLDER_ID,
+		);
 	});
 
 	it("Should be able to rename using shortcut", async () => {
@@ -263,7 +269,10 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(renameFolder)).toBeCalledWith("1", "test new name");
+		expect(vi.mocked(renameFolder)).toHaveBeenCalledWith(
+			"1",
+			"test new name",
+		);
 	});
 
 	it("Should be able create new file by text shown on an empty folder", async () => {
@@ -284,7 +293,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(createFile)).toBeCalledWith("test file", "1");
+		expect(vi.mocked(createFile)).toHaveBeenCalledWith("test file", "1");
 	});
 
 	it("Should be able to continue writing the file name when the input is hidden then re-shown", async () => {
@@ -304,7 +313,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(createFile)).toBeCalledWith(
+		expect(vi.mocked(createFile)).toHaveBeenCalledWith(
 			"test file",
 			ROOT_FOLDER_ID,
 		);
@@ -341,7 +350,10 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(renameFolder)).toBeCalledWith("1", "test new name");
+		expect(vi.mocked(renameFolder)).toHaveBeenCalledWith(
+			"1",
+			"test new name",
+		);
 	});
 
 	it("Should be able to append more text to existing name when renaming", async () => {
@@ -359,7 +371,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(renameFolder)).toBeCalledWith("1", "test extra");
+		expect(vi.mocked(renameFolder)).toHaveBeenCalledWith("1", "test extra");
 	});
 
 	it("Should export folder using actions", async () => {
@@ -386,7 +398,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(exportFolder)).toBeCalledWith(
+		expect(vi.mocked(exportFolder)).toHaveBeenCalledWith(
 			"1",
 			"/usr/test/test.json",
 		);
@@ -413,11 +425,11 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(importExportedItem)).toBeCalledWith(
+		expect(vi.mocked(importExportedItem)).toHaveBeenCalledWith(
 			"/usr/test/test.json",
 			"1",
 		);
-		expect(vi.mocked(getReviewTreeFolderForRoot)).toBeCalled();
+		expect(vi.mocked(getReviewTreeFolderForRoot)).toHaveBeenCalled();
 	});
 
 	it("Should export file using actions", async () => {
@@ -444,7 +456,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(vi.mocked(exportFile)).toBeCalledWith(
+		expect(vi.mocked(exportFile)).toHaveBeenCalledWith(
 			"1",
 			"/usr/test/test.json",
 		);
@@ -546,7 +558,7 @@ describe("FileTreeItem", () => {
 		// Assert
 
 		await waitFor(() => {
-			expect(vi.mocked(moveFolder)).toBeCalledWith("2", "1");
+			expect(vi.mocked(moveFolder)).toHaveBeenCalledWith("2", "1");
 		});
 	});
 
@@ -563,9 +575,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(screen.getByTestId("location-display")).toHaveTextContent(
-			"/editor?fileId=1",
-		);
+		expect(await getCurrentLocation()).toBe("/editor?fileId=1");
 	});
 
 	it("Should navigate to home on click on root", async () => {
@@ -583,7 +593,7 @@ describe("FileTreeItem", () => {
 
 		// Assert
 
-		expect(screen.getByTestId("location-display")).toHaveTextContent("/");
+		expect(await getCurrentLocation()).toBe("/");
 	});
 
 	it("Should focus new folder after create", async () => {
@@ -606,13 +616,11 @@ describe("FileTreeItem", () => {
 			},
 		});
 
-		vi.mocked(createFolder).mockReturnValue(Promise.resolve("1"));
+		vi.mocked(createFolder).mockResolvedValue("1");
 
 		const newRoot = createTestFolder("", ROOT_FOLDER_ID);
 		newRoot.subfolders.push(createTestFolder("test", "1"));
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			Promise.resolve(newRoot),
-		);
+		vi.mocked(getReviewTreeFolderForRoot).mockResolvedValue(newRoot);
 
 		// Act
 
@@ -651,8 +659,8 @@ describe("FileTreeItem", () => {
 			},
 		});
 
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			Promise.resolve(createTestFolder("", ROOT_FOLDER_ID)),
+		vi.mocked(getReviewTreeFolderForRoot).mockResolvedValue(
+			createTestFolder("", ROOT_FOLDER_ID),
 		);
 
 		// Act
@@ -686,7 +694,7 @@ describe("FileTreeItem", () => {
 			},
 		});
 
-		vi.mocked(createFolder).mockReturnValue(Promise.resolve("1"));
+		vi.mocked(createFolder).mockResolvedValue("1");
 
 		// Act
 

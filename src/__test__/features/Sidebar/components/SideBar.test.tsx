@@ -8,6 +8,7 @@ import useAppDispatch from "../../../../hooks/useAppDispatch";
 import { setUserInformation } from "../../../../stores/user/userReducer";
 
 vi.mock(import("../../../../api/authApi.ts"));
+vi.mock(import("../../../../api/userApi.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 
 describe("SideBar", () => {
@@ -40,7 +41,7 @@ describe("SideBar", () => {
 
 		// Assert
 
-		expect(vi.mocked(verifyUserEmail)).toBeCalledWith("12345678");
+		expect(vi.mocked(verifyUserEmail)).toHaveBeenCalledWith("12345678");
 	});
 
 	it("Should not see verify email button if verified", () => {
@@ -134,6 +135,6 @@ describe("SideBar", () => {
 
 		// Assert
 
-		expect(vi.mocked(verifyUserEmail)).toBeCalledWith("12345678");
+		expect(vi.mocked(verifyUserEmail)).toHaveBeenCalledWith("12345678");
 	});
 });

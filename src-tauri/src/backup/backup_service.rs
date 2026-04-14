@@ -6,8 +6,10 @@ use thiserror::Error;
 use tokio::fs;
 
 use crate::{
-    backup::repositories::backup_repository::BackupRepository,
     common::repository_error::RepositoryError,
+    database::database_connection_manager::{
+        DatabaseConnectionManager, DatabaseConnectionManagerError,
+    },
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
         repositories::local_configuration_repository::LocalConfigurationRepository,
@@ -19,6 +21,8 @@ use crate::{
 pub enum BackupServiceError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
+    #[error(transparent)]
+    DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
     #[error("The application is not able to list the entries in the settings folder!")]
     CannotListEntriesInFolder(String),
 }
@@ -31,7 +35,7 @@ const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 #[derive(ScopeInjectable)]
 pub struct BackupService {
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
-    backup_repository: Arc<dyn BackupRepository>,
+    database_connection_manager: Arc<dyn DatabaseConnectionManager>,
     settings_repository: Arc<dyn SettingsRepository>,
 }
 
@@ -78,11 +82,13 @@ impl BackupService {
         );
         let settings = self.settings_repository.get_settings().await;
         let backup_path = settings.database_directory().join(backup_name);
-        let backup_path_str = backup_path.to_string_lossy();
 
-        log::info!("Creating a new backup at path {}", backup_path_str);
-        self.backup_repository
-            .create_backup(&backup_path_str)
+        log::info!(
+            "Creating a new backup at path {}",
+            backup_path.to_string_lossy()
+        );
+        self.database_connection_manager
+            .copy_database_to(&backup_path)
             .await?;
         Ok(())
     }
@@ -164,16 +170,19 @@ pub mod tests {
         },
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
+            managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
             repositories::{
                 disk::disk_settings_repository::DiskSettingsRepository,
-                sqlite::{
-                    sqlite_backup_repository::SqliteBackupRepository,
-                    sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
-                },
+                sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
             },
             value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
         },
-        settings::entities::settings::{Settings, SettingsProfile},
+        settings::{
+            entities::settings::Settings,
+            value_objects::{
+                database_location::DatabaseLocation, settings_profile::SettingsProfile,
+            },
+        },
         test_utils::create_temp_directory,
     };
 
@@ -189,13 +198,15 @@ pub mod tests {
         injector.register_singleton(Arc::new(Mutex::new(settings)));
 
         let app_data_directory = create_temp_directory().await;
-        injector.register_singleton(Arc::new(AppDataDirectory::new(app_data_directory)));
+        injector.register_singleton(Arc::new(AppDataDirectory::new(app_data_directory.clone())));
 
         // Must use database that is saved on disk for backups to work.
         let sqlite_pool = create_sqlite_pool(&format!("sqlite:///{}", path.to_string_lossy()))
             .await
             .unwrap();
-        let db_pool = DbPool::new(Mutex::new(sqlite_pool));
+        let database_location = DatabaseLocation::new_unchecked(app_data_directory);
+
+        let db_pool = DbPool::new(sqlite_pool, database_location);
         injector.register_singleton(Arc::new(db_pool));
         register_scoped_tx(&mut injector);
 
@@ -204,8 +215,12 @@ pub mod tests {
             dyn LocalConfigurationRepository,
             SqliteLocalConfigurationRepository
         );
-        register_scope!(injector, dyn BackupRepository, SqliteBackupRepository);
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
+        register_scope!(
+            injector,
+            dyn DatabaseConnectionManager,
+            SqliteDatabaseConnectionManager
+        );
         register_scope!(injector, BackupService);
 
         injector
@@ -298,7 +313,7 @@ pub mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let backup_repository = scope.resolve::<dyn BackupRepository>().await;
+        let database_connection_manager = scope.resolve::<dyn DatabaseConnectionManager>().await;
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<BackupService>().await;
@@ -313,8 +328,8 @@ pub mod tests {
                     .format(DATETIME_FORMAT_IN_FILE_NAMES)
             ));
 
-            backup_repository
-                .create_backup(&path.to_string_lossy())
+            database_connection_manager
+                .copy_database_to(&path)
                 .await
                 .unwrap();
 
@@ -338,7 +353,7 @@ pub mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let backup_repository = scope.resolve::<dyn BackupRepository>().await;
+        let database_connection_manager = scope.resolve::<dyn DatabaseConnectionManager>().await;
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<BackupService>().await;
@@ -353,8 +368,8 @@ pub mod tests {
                     .format(DATETIME_FORMAT_IN_FILE_NAMES)
             ));
 
-            backup_repository
-                .create_backup(&path.to_string_lossy())
+            database_connection_manager
+                .copy_database_to(&path)
                 .await
                 .unwrap();
 

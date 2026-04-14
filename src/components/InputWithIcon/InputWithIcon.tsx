@@ -2,11 +2,10 @@ import { ForwardedRef, forwardRef } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 
-interface Props
-	extends React.DetailedHTMLProps<
-		React.InputHTMLAttributes<HTMLInputElement>,
-		HTMLInputElement
-	> {
+interface Props extends React.DetailedHTMLProps<
+	React.InputHTMLAttributes<HTMLInputElement>,
+	HTMLInputElement
+> {
 	iconName: string;
 	containerClassName?: string;
 }

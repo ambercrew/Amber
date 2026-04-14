@@ -1,7 +1,5 @@
 pub mod sqlite_ai_repository;
-pub mod sqlite_backup_repository;
 pub mod sqlite_cell_repository;
-pub mod sqlite_database_connection_manager;
 pub mod sqlite_file_repository;
 pub mod sqlite_folder_repository;
 pub mod sqlite_fsrs_repository;

@@ -549,8 +549,8 @@ pub mod tests {
             },
         },
         settings::{
-            entities::settings::{Settings, SettingsProfile},
-            repositories::settings_repository::SettingsRepository,
+            entities::settings::Settings, repositories::settings_repository::SettingsRepository,
+            value_objects::settings_profile::SettingsProfile,
         },
         test_utils::{create_temp_directory, create_test_injector},
     };

@@ -1,17 +1,18 @@
 import { getSettings, updateSettings } from "../../api/settingsApi";
 import { AppDispatch } from "../store";
 import { setSettings } from "./settingsReducer";
-import Settings from "../../types/backend/model/settings";
+import SettingsDto from "../../types/backend/dto/settingsDto";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
 import { tryGetCurrentWebView, isMobile } from "../../utils/tauriUtils";
+import UpdateSettingsRequest from "../../types/backend/dto/updateSettingsRequest";
 
 export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
 /** This function should be called on startup, and it loads the settings and
  * applies them.
  */
-export function initialLoadAndApplySettings() {
+export function loadAndApplySettings() {
 	return async function (dispatch: AppDispatch) {
 		const settings = await getSettings();
 		dispatch(setSettings(settings));
@@ -20,17 +21,16 @@ export function initialLoadAndApplySettings() {
 	};
 }
 
-export function updateAndApplySettings(settings: Settings) {
+export function updateAndApplySettings(request: UpdateSettingsRequest) {
 	return async function (dispatch: AppDispatch) {
-		await updateSettings({
-			...settings,
-		});
+		await updateSettings(request);
+		const settings = await getSettings();
 		dispatch(setSettings(settings));
 		await applySettings(settings, dispatch);
 	};
 }
 
-async function applySettings(settings: Settings, dispatch: AppDispatch) {
+async function applySettings(settings: SettingsDto, dispatch: AppDispatch) {
 	try {
 		document.body.classList.add("no-transition");
 
