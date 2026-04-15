@@ -1,25 +1,26 @@
 {
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Capability for the main window",
-  "windows": [
-    "main"
-  ],
-  "permissions": [
-    "core:default",
-    "core:webview:allow-set-webview-zoom",
-    "core:window:allow-close",
-    "core:window:allow-destroy",
-    "core:window:allow-set-theme",
-    "dialog:default",
-    "os:default",
-    {
-        "identifier": "opener:allow-open-url",
-        "allow": [
-            {
-                "url": "https://ramialkawadri.github.io/Brainy-help/"
-            }
-        ]
-    }
-  ]
+    "$schema": "../gen/schemas/desktop-schema.json",
+    "identifier": "default",
+    "description": "Capability for the main window",
+    "windows": [
+        "main"
+    ],
+    "permissions": [
+        "core:default",
+        "core:webview:allow-set-webview-zoom",
+        "core:window:allow-close",
+        "core:window:allow-destroy",
+        "core:window:allow-set-theme",
+        "dialog:default",
+        "os:default",
+        "updater:default",
+        {
+            "identifier": "opener:allow-open-url",
+            "allow": [
+                {
+                    "url": "https://ramialkawadri.github.io/Brainy-help/"
+                }
+            ]
+        }
+    ]
 }

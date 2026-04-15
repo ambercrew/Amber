@@ -75,11 +75,13 @@ pub async fn run() -> Result<(), String> {
 
     #[cfg(desktop)]
     {
-        tauri_builder = tauri_builder.plugin(
-            tauri_plugin_window_state::Builder::new()
-                .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
-                .build(),
-        );
+        tauri_builder = tauri_builder
+            .plugin(
+                tauri_plugin_window_state::Builder::new()
+                    .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
+                    .build(),
+            )
+            .plugin(tauri_plugin_updater::Builder::new().build());
     }
 
     tauri_builder
