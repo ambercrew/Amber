@@ -79,7 +79,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	};
 
 	const openHelpWebsite = useCallback(async () => {
-		await openUrl("https://ramialkawadri.github.io/brainy-help/");
+		await openUrl("https://ramikw.github.io/brainy-help/");
 	}, []);
 
 	useGlobalKey(e => {
