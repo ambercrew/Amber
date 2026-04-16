@@ -54,6 +54,9 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: choco install protoc
 
+      - name: install sqlx-cli
+        run: cargo install sqlx-cli
+
       - name: install frontend dependencies
         run: npm ci
 
