@@ -18,7 +18,7 @@
             "identifier": "opener:allow-open-url",
             "allow": [
                 {
-                    "url": "https://ramialkawadri.github.io/Brainy-help/"
+                    "url": "https://ramialkawadri.github.io/brainy-help/"
                 }
             ]
         }
