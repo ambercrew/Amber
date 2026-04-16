@@ -26,6 +26,7 @@ jobs:
         run: |
           cd src-tauri
           cargo build
+
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
