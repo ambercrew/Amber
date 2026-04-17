@@ -1,39 +1,58 @@
 <h1 align="center" style="border-bottom: none">
     <b>
-        🧠 Brainy<br/>
+        Brainy<br/>
     </b>
-    Free and open source learning app 
-    <br>
 </h1>
+<p align="center">
+Brainy is an open-source, AI-integrated learning app built around spaced 
+repetition — so what you study actually sticks.
+</p>
 
-<p align="center">Brainy is a learning app with focus on active repetitions, and spaced learning.</p>
-<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot1.png" alt="Screenshot 1" width="1040px">
-<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot2.png" alt="Screenshot 2" width="1040px">
-<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot3.png" alt="Screenshot 3" width="1040px">
-<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot4.png" alt="Screenshot 4" width="1040px">
+---
 
-## Key features
+## 📸 Screenshots
 
-- **Notebook Style Files:** Seamlessly organize notes and ideas all in one
-  place.
-- **Structured Folders and Files:** Easily manage and access your study
-  materials with robust organization.
-- **Active Learning and Spaced Repetitions:** Retain knowledge effectively
-  with scientifically-backed methods.
-- **Interactive Tools:** Dive into flash cards and cloze exercises for dynamic
-  study sessions.
+<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot1.svg" alt="Screenshot 1" width="1040px">
+<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot2.svg" alt="Screenshot 2" width="1040px">
+<img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot3.svg" alt="Screenshot 3" width="1040px">
 
-- **Efficient Keyboard Shortcuts:** Navigate the app quickly to enhance your
-  learning experience.
+---
 
-- **Advanced File Management:** Efficiently store and organize your notes and
-  files using our sophisticated file management system.
+## What makes Brainy different?
 
-## User installation
+- **🧠 Spaced Repetition** — Powered by the FSRS algorithm, Brainy adapts to how well you know each card and schedules reviews at the perfect moment
+- **🎯 Multiple study formats** — Flashcards, cloze deletions, and more
+- **🤖 AI-generated study materials** — Drop in a PDF, textbook, or lecture notes and let Brainy turn them into a ready-to-study card set instantly
+- **✨ Clean, intuitive interface** — A thoughtfully designed UI that stays out of your way so you can focus on learning
+- **☁️ Synced across devices** — Your progress follows you everywhere
+- **💾 Automatic backups** — Your data is always safe
+
+---
+
+## 📦 Installation
 
 [Download Brainy Desktop (Windows, macOS and Linux)](https://github.com/ramikw/brainy/releases)
 
-## Roadmap
+---
 
+## 📖 Documentation
+
+Full documentation at **[ramikw.github.io/brainy-help](https://ramikw.github.io/brainy-help/)**
+
+## 🐛 Issues & Feedback
+
+[Open an issue](https://github.com/ramikw/brainy/issues/new)
+
+---
+
+## 🗺️ Roadmap
+
+TODO:
 Brainy is still in beta phase until it has been tested thoroughly and all
 bugs found are fixed.
+
+---
+
+## 📄 License
+
+This project is open source. See the [LICENSE](LICENSE) file for details.
