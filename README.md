@@ -5,7 +5,7 @@
 </h1>
 <p align="center">
 Brainy is an open-source, AI-integrated learning app built around spaced 
-repetition — so what you study actually sticks.
+repetition — so what you study actually sticks
 </p>
 
 ---
@@ -39,7 +39,7 @@ repetition — so what you study actually sticks.
 
 ## 📖 Documentation
 
-Full documentation at **[ramikw.github.io/brainy-help](https://ramikw.github.io/brainy-help/)**
+Full documentation at **[this site](https://ramikw.github.io/brainy-help/)**
 
 ## 🐛 Issues & Feedback
 
