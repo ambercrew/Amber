@@ -4,8 +4,7 @@
     </b>
 </h1>
 <p align="center">
-Brainy is an open-source, AI-integrated learning app built around spaced 
-repetition — so what you study actually sticks
+    An open-source, AI-integrated learning app built around spaced repetition
 </p>
 
 ---
