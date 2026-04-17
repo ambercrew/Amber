@@ -19,7 +19,7 @@
 
 ---
 
-## What makes Brainy different?
+## ⚡ What makes Brainy different?
 
 - **🧠 Spaced Repetition** — Powered by the FSRS algorithm, Brainy adapts to how well you know each card and schedules reviews at the perfect moment
 - **🎯 Multiple study formats** — Flashcards, cloze deletions, and more
@@ -39,6 +39,8 @@
 ## 📖 Documentation
 
 Full documentation at **[this site](https://ramikw.github.io/brainy-help/)**
+
+---
 
 ## 🐛 Issues & Feedback
 
