@@ -12,9 +12,9 @@
 ## 📸 Screenshots
 
 <div align="center">
-    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot1.svg" alt="Screenshot 1 - Editor" width="700">
-    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot2.svg" alt="Screenshot 2 - Reviewer" width="700">
-    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot3.svg" alt="Screenshot 3 - AI Integration" width="700">
+    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot1.svg" alt="Screenshot 1 - Editor" width="760">
+    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot2.svg" alt="Screenshot 2 - Reviewer" width="760">
+    <img src="https://github.com/ramikw/brainy/blob/main/screenshots/screenshot3.svg" alt="Screenshot 3 - AI Integration" width="760">
 </div>
 
 ---
