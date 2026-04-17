@@ -47,14 +47,6 @@ Full documentation at **[ramikw.github.io/brainy-help](https://ramikw.github.io/
 
 ---
 
-## 🗺️ Roadmap
-
-TODO:
-Brainy is still in beta phase until it has been tested thoroughly and all
-bugs found are fixed.
-
----
-
 ## 📄 License
 
 This project is open source. See the [LICENSE](LICENSE) file for details.
