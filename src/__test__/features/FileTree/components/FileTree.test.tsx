@@ -38,9 +38,10 @@ import FileItemDropContainerData, {
 import DraggedFileItemData, {
 	DRAGGED_FILE_ITEM_TYPE,
 } from "../../../../features/FileTree/types/draggedFileItemData.ts";
-import { DragEndEvent } from "@dnd-kit/react";
+import { DragDropEventHandlers } from "@dnd-kit/react";
 import { pointerIntersection } from "@dnd-kit/collision";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
+import { Feedback } from "@dnd-kit/dom";
 
 vi.mock(import("../../../../api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/exportImportApi.ts"));
@@ -143,7 +144,9 @@ describe("FileTree", () => {
 				id: ROOT_FOLDER_ID,
 				isFolder: true,
 			} as DraggedFileItemData,
-			feedback: "clone",
+			plugins: [
+				Feedback.configure({ feedback: "clone", dropAnimation: null }),
+			],
 		});
 
 		expect(draggableInputs[1]).toMatchObject({
@@ -154,7 +157,9 @@ describe("FileTree", () => {
 				id: "1",
 				isFolder: true,
 			} as DraggedFileItemData,
-			feedback: "clone",
+			plugins: [
+				Feedback.configure({ feedback: "clone", dropAnimation: null }),
+			],
 		});
 
 		const draggableOutputs = getUseDroppableInputs();
@@ -551,8 +556,12 @@ describe("FileTreeItem", () => {
 		const capturedProps = getCapturedProviderProps();
 		expect(capturedProps).toHaveLength(1);
 		capturedProps[0].onDragEnd!(
-			input as unknown as Parameters<DragEndEvent>[0],
-			null as unknown as Parameters<DragEndEvent>[1],
+			input as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[0],
+			null as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[1],
 		);
 
 		// Assert

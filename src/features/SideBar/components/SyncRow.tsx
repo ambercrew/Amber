@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiAccountSyncOutline } from "@mdi/js";
 import Dialog from "../../../components/Dialog/Dialog";

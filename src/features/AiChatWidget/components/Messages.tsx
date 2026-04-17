@@ -6,7 +6,7 @@ import Markdown from "react-markdown";
 import Alert from "../../../components/Alert/Alert";
 import { AUTO_SCROLL_THRESHOLD } from "../config/constants";
 import { mdiFileDocumentOutline } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 
 interface Props {
 	messages: Message[];

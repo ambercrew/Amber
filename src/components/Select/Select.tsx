@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 
 export interface Option {
 	label: string;

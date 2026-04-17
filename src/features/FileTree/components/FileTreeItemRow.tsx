@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import {
 	mdiDotsHorizontal,
@@ -27,6 +27,7 @@ import DraggedFileItemData, {
 	DRAGGED_FILE_ITEM_TYPE,
 } from "../types/draggedFileItemData";
 import mergeRefs from "../../../utils/mergeRefs";
+import { Feedback } from "@dnd-kit/dom";
 
 interface Props {
 	isRoot: boolean;
@@ -78,7 +79,9 @@ export default function FileTreeItemRow({
 		type: DRAGGED_FILE_ITEM_TYPE,
 		disabled: isRoot || isRenaming,
 		data: { id, isFolder } as DraggedFileItemData,
-		feedback: "clone",
+		plugins: [
+			Feedback.configure({ feedback: "clone", dropAnimation: null }),
+		],
 	});
 
 	useOutsideClick(

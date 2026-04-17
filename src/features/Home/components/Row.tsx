@@ -1,6 +1,6 @@
 import { mdiMinus, mdiPlus } from "@mdi/js";
 import styles from "./styles.module.css";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 
 interface Props {
 	expandable: boolean;

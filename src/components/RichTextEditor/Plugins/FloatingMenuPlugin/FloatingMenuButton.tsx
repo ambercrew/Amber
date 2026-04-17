@@ -1,6 +1,6 @@
 import { LexicalEditor, RangeSelection } from "lexical";
 import styles from "../../styles.module.css";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 
 export interface FloatingMenuButtonProps {
 	icon: string;

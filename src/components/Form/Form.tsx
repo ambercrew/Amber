@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 
 /** Used to create forms, comes with other components that helps,

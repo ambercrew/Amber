@@ -1,5 +1,5 @@
 import { mdiFileDocumentPlusOutline, mdiFolderPlusOutline } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { useRef, useState } from "react";
 import UiFolder from "../../../types/ui/uiFolder";

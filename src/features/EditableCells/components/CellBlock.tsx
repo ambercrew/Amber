@@ -6,7 +6,7 @@ import Cell, {
 } from "../../../types/backend/entity/cell";
 import EditableCell from "../../EditableCell/components/EditableCell";
 import getCellIcon from "../../../utils/getCellIcon";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import FocusTools from "./FocusTools";
 import Repetition from "../../../types/backend/entity/repetition";
 import NewCellTypeSelector from "./NewCellTypeSelector";
@@ -20,6 +20,7 @@ import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
 } from "../types/cellDropContainerData";
 import mergeRefs from "../../../utils/mergeRefs";
+import { Feedback } from "@dnd-kit/dom";
 
 interface Props {
 	cell: Cell;
@@ -74,7 +75,9 @@ function CellBlock(
 		id: `draggable-${cell.id}`,
 		type: DRAGGED_CELL_TYPE,
 		data: { cellId: cell.id } as DraggedCellData,
-		feedback: "clone",
+		plugins: [
+			Feedback.configure({ feedback: "clone", dropAnimation: null }),
+		],
 	});
 
 	const { ref: setDroppableNodeRef, isDropTarget } = useDroppable({

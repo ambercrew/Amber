@@ -6,7 +6,6 @@ import {
 	moveFile,
 	moveFolder,
 } from "../../../stores/fileSystem/fileSystemActions.ts";
-import { DragEndEvent } from "@dnd-kit/dom";
 import DraggedFileItemData, {
 	DRAGGED_FILE_ITEM_TYPE,
 } from "../types/draggedFileItemData.ts";
@@ -14,6 +13,7 @@ import FileItemDropContainerData, {
 	FILE_ITEM_DROP_CONTAINER_TYPE,
 } from "../types/fileItemDropContainerData.ts";
 import DefaultDragDropProvider from "../../../components/DefaultDragDropProvider/DefaultDragDropProvider.tsx";
+import { DragDropEventHandlers } from "@dnd-kit/react";
 
 interface Props {
 	folder: UiFolder;
@@ -22,7 +22,7 @@ interface Props {
 function FileTree({ folder }: Props) {
 	const dispatch = useAppDispatch();
 
-	const handleDragEnd: DragEndEvent = event => {
+	const handleDragEnd: DragDropEventHandlers["onDragEnd"] = event => {
 		if (
 			event.canceled ||
 			event.operation.target?.type !== FILE_ITEM_DROP_CONTAINER_TYPE ||

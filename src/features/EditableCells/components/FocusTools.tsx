@@ -7,7 +7,7 @@ import {
 	mdiRestore,
 } from "@mdi/js";
 import styles from "./styles.module.css";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import Repetition from "../../../types/backend/entity/repetition";
 import Cell from "../../../types/backend/entity/cell";
 import { useRef, useState } from "react";

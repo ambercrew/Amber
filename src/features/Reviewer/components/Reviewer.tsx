@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import ReviewerCell from "../../ReviewerCell/components/ReviewerCell";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
 import createCardFromCellRepetition from "../utils/createCardFromRepetition";
@@ -45,28 +45,28 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		CellWithFsrsProfileId[]
 	>([]);
 	const [allFsrsProfiles, setAllFsrsProfiles] = useState<FsrsProfile[]>([]);
+	const [startTime, setStartTime] = useState(new Date());
 	const studyTime = useRef(0);
 	const navigate = useNavigate();
-	const startTime = useRef(new Date());
 	const location = useLocation();
 
-	const loadCells = useCallback(async () => {
-		try {
-			setIsSendingRequest(true);
-			setAllFsrsProfiles(await getAllFsrsProfiles());
-			setCellsWithFsrsProfileIds(
-				await getCellsForFilesWithFsrsProfileIds(fileIds),
-			);
-			setCurrentCellIndex(0);
-			setShowAnswer(false);
-			setIsSendingRequest(false);
-		} catch (e) {
-			console.error(e);
-			onError(errorToString(e));
-		}
-	}, [fileIds, onError]);
-
 	useEffect(() => {
+		const loadCells = async () => {
+			try {
+				setIsSendingRequest(true);
+				setAllFsrsProfiles(await getAllFsrsProfiles());
+				setCellsWithFsrsProfileIds(
+					await getCellsForFilesWithFsrsProfileIds(fileIds),
+				);
+				setCurrentCellIndex(0);
+				setShowAnswer(false);
+				setIsSendingRequest(false);
+			} catch (e) {
+				console.error(e);
+				onError(errorToString(e));
+			}
+		};
+
 		void loadCells();
 
 		defaultGlobalSyncEventManager.addListener(
@@ -78,7 +78,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				ListenerType.PostSyncComplete,
 				loadCells,
 			);
-	}, [loadCells]);
+	}, [fileIds, onError]);
 
 	const dueToday = useMemo(() => {
 		return sortReviewerRepetitions(
@@ -93,9 +93,9 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 					);
 				})
 				.flat()
-				.filter(r => new Date(r.repetition.due) <= startTime.current),
+				.filter(r => new Date(r.repetition.due) <= startTime),
 		);
-	}, [cellsWithFsrsProfileIds]);
+	}, [cellsWithFsrsProfileIds, startTime]);
 
 	const recordLog: RecordLog | null = useMemo(() => {
 		if (dueToday.length === 0) return null;
@@ -114,33 +114,8 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 		});
 		const fsrs = new FSRS(params);
 
-		return fsrs.repeat(currentCard, startTime.current);
+		return fsrs.repeat(currentCard, startTime);
 	}, [dueToday, startTime, currentCellIndex, allFsrsProfiles]);
-
-	useGlobalKey(e => {
-		if (e.key === " ") {
-			setShowAnswer(true);
-		} else if (e.key.toLowerCase() === "e") {
-			onEditButtonClick(
-				dueToday[currentCellIndex].repetition.fileId,
-				dueToday[currentCellIndex].repetition.cellId,
-			);
-		}
-
-		if (!showAnswer) {
-			return;
-		}
-
-		if (e.key === "1") {
-			void handleGradeSubmit(Rating.Again);
-		} else if (e.key === "2") {
-			void handleGradeSubmit(Rating.Hard);
-		} else if (e.key === "3") {
-			void handleGradeSubmit(Rating.Good);
-		} else if (e.key === "4") {
-			void handleGradeSubmit(Rating.Easy);
-		}
-	});
 
 	const handleGradeSubmit = async (grade: Grade) => {
 		if (isSendingRequest || !recordLog) {
@@ -180,10 +155,35 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				{ replace: true },
 			);
 		} else {
-			startTime.current = new Date();
+			setStartTime(new Date());
 			setCurrentCellIndex(currentCellIndex + 1);
 		}
 	};
+
+	useGlobalKey(e => {
+		if (e.key === " ") {
+			setShowAnswer(true);
+		} else if (e.key.toLowerCase() === "e") {
+			onEditButtonClick(
+				dueToday[currentCellIndex].repetition.fileId,
+				dueToday[currentCellIndex].repetition.cellId,
+			);
+		}
+
+		if (!showAnswer) {
+			return;
+		}
+
+		if (e.key === "1") {
+			void handleGradeSubmit(Rating.Again);
+		} else if (e.key === "2") {
+			void handleGradeSubmit(Rating.Hard);
+		} else if (e.key === "3") {
+			void handleGradeSubmit(Rating.Good);
+		} else if (e.key === "4") {
+			void handleGradeSubmit(Rating.Easy);
+		}
+	});
 
 	const isCurrentCellNew =
 		dueToday[currentCellIndex]?.repetition.state === "new";
@@ -287,7 +287,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 
 				{showAnswer && recordLog && (
 					<ButtonRow
-						startTime={startTime.current}
+						startTime={startTime}
 						disabled={isSendingRequest}
 						onClick={grade => void handleGradeSubmit(grade)}
 						recordLog={recordLog}

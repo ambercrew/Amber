@@ -1,6 +1,6 @@
 import styles from "./styles.module.css";
 import { mdiClockOutline } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import { useEffect, useState } from "react";
 
 interface Props {

@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiMagnify, mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../../hooks/useAppSelector";

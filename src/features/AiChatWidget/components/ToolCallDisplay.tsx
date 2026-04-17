@@ -1,6 +1,6 @@
 import styles from "./styles.module.css";
 import { mdiClose, mdiCheckOutline, mdiFileDocumentOutline } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import Markdown from "react-markdown";
 import Message, {
 	ToolCall,

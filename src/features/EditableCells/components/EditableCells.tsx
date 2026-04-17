@@ -17,7 +17,7 @@ import {
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 import DefaultDragDropProvider from "../../../components/DefaultDragDropProvider/DefaultDragDropProvider";
-import { DragEndEvent } from "@dnd-kit/react";
+import { DragDropEventHandlers } from "@dnd-kit/react";
 import DraggedCellData, { DRAGGED_CELL_TYPE } from "../types/draggedCellData";
 import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
@@ -265,7 +265,7 @@ function EditableCells({
 		await onCellsUpdateSave();
 	};
 
-	const handleDragEnd: DragEndEvent = event => {
+	const handleDragEnd: DragDropEventHandlers["onDragEnd"] = event => {
 		if (
 			event.canceled ||
 			event.operation.target?.type !== CELL_DROP_CONTAINER_TYPE ||

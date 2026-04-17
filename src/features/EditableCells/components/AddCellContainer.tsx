@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiPlus } from "@mdi/js";
 import NewCellTypeSelector from "./NewCellTypeSelector";

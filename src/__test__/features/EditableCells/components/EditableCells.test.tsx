@@ -25,7 +25,8 @@ import CellDropContainerData, {
 import DraggedCellData, {
 	DRAGGED_CELL_TYPE,
 } from "../../../../features/EditableCells/types/draggedCellData.ts";
-import { DragEndEvent } from "@dnd-kit/react";
+import { DragDropEventHandlers } from "@dnd-kit/react";
+import { Feedback } from "@dnd-kit/dom";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cellApi"));
@@ -572,8 +573,12 @@ describe("Scrolling", () => {
 		const capturedProps = getCapturedProviderProps();
 		expect(capturedProps).toHaveLength(1);
 		capturedProps[0].onDragEnd!(
-			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
-			null as unknown as Parameters<DragEndEvent>[1],
+			dragEndEventArg as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[0],
+			null as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[1],
 		);
 
 		// Assert
@@ -652,8 +657,12 @@ describe("EditableCells logic", () => {
 		const capturedProps = getCapturedProviderProps();
 		expect(capturedProps).toHaveLength(1);
 		capturedProps[0].onDragEnd!(
-			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
-			null as unknown as Parameters<DragEndEvent>[1],
+			dragEndEventArg as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[0],
+			null as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[1],
 		);
 
 		// Assert
@@ -693,8 +702,12 @@ describe("EditableCells logic", () => {
 		const capturedProps = getCapturedProviderProps();
 		expect(capturedProps).toHaveLength(1);
 		capturedProps[0].onDragEnd!(
-			dragEndEventArg as unknown as Parameters<DragEndEvent>[0],
-			null as unknown as Parameters<DragEndEvent>[1],
+			dragEndEventArg as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[0],
+			null as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[1],
 		);
 
 		// Assert
@@ -900,7 +913,9 @@ describe("EditableCells logic", () => {
 			data: {
 				cellId: "1",
 			} as DraggedCellData,
-			feedback: "clone",
+			plugins: [
+				Feedback.configure({ feedback: "clone", dropAnimation: null }),
+			],
 		});
 
 		const draggableOutputs = getUseDroppableInputs();

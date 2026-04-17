@@ -33,7 +33,7 @@ import Spinner from "../../../components/Spinner/Spinner";
 import { SettingsState } from "../types/settingsState";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
 import { mdiMenu } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import AiTab from "./tabs/AiTab";
 import { reloadApplicationState } from "../../../stores/app/appActions.ts";
 import { useNavigate } from "react-router";

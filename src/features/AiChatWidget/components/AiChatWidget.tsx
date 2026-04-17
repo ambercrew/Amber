@@ -1,4 +1,4 @@
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import { mdiDeleteOutline, mdiRobotOutline } from "@mdi/js";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";

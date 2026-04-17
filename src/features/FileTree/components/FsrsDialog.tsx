@@ -6,7 +6,7 @@ import Form, {
 	FormRows,
 } from "../../../components/Form/Form";
 import { mdiDeleteOutline, mdiPlusBoxOutline, mdiTuneVariant } from "@mdi/js";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import { useCallback, useEffect, useState } from "react";
 import errorToString from "../../../utils/errorToString";
 import Alert from "../../../components/Alert/Alert";

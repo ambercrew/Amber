@@ -1,6 +1,6 @@
 import { ForwardedRef, forwardRef } from "react";
 import styles from "./styles.module.css";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 
 interface Props extends React.DetailedHTMLProps<
 	React.InputHTMLAttributes<HTMLInputElement>,

@@ -1,7 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { FormRows, FormRowsProps } from "../../../../components/Form/Form";
 import CheckBox from "../../../../components/Checkbox/Checkbox";
-import Icon from "@mdi/react";
+import { Icon } from "@mdi/react";
 import { mdiFolderOpenOutline } from "@mdi/js";
 import SettingsDto from "../../../../types/backend/dto/settingsDto";
 import { TabProps } from "../../types/tabProps";
