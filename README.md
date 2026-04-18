@@ -8,8 +8,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/ramikw/brainy/releases">Download</a> ●
-    <a href="https://ramikw.github.io/brainy-help/">Documentation</a> ●
+    <a href="https://github.com/ramikw/brainy/releases">Download</a> •
     <a href="https://discord.gg/H9bEfqDb8a">Discord</a>
 </p>
 
