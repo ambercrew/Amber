@@ -7,6 +7,12 @@
     An open-source, AI-integrated learning app built around spaced repetition
 </p>
 
+<p align="center">
+    <a href="https://github.com/ramikw/brainy/releases">Download</a> -
+    <a href="https://ramikw.github.io/brainy-help/">Help Website</a> -
+    <a href="https://discord.gg/H9bEfqDb8a">Discord</a>
+</p>
+
 ---
 
 ## 📸 Screenshots
@@ -27,18 +33,6 @@
 - **✨ Clean, intuitive interface** — A thoughtfully designed UI that stays out of your way so you can focus on learning
 - **☁️ Synced across devices** — Your progress follows you everywhere
 - **💾 Automatic backups** — Your data is always safe
-
----
-
-## 📦 Installation
-
-[Download Brainy Desktop (Windows, macOS and Linux)](https://github.com/ramikw/brainy/releases)
-
----
-
-## 📖 Documentation
-
-Full documentation at **[this site](https://ramikw.github.io/brainy-help/)**
 
 ---
 
