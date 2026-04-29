@@ -478,7 +478,7 @@ impl AiService {
                 .to_string();
 
             if model_name.is_empty() {
-                return Err(AiServiceError::OllamaModelNameIsNotFilled);
+                return Err(AiServiceError::OllamaEmbeddingsModelNameIsNotFilled);
             }
 
             log::info!("Using the embeddings model with name '{model_name}'.");
