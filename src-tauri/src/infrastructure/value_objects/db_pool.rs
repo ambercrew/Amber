@@ -26,9 +26,9 @@ impl DbPool {
 
     pub async fn set_pool(&self, new_pool: SqlitePool, new_location: DatabaseLocation) {
         let mut pool = self.pool.lock().await;
-        *pool = new_pool;
-
         let mut location = self.location.lock().await;
+
+        *pool = new_pool;
         *location = new_location;
     }
 }
