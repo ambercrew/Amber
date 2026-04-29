@@ -31,9 +31,6 @@ use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::infrastructure::value_objects::db_pool::DbPool;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::local_configurations::repositories::local_configuration_repository::LocalConfigurationRepository;
-#[cfg(test)]
-use crate::settings::entities::settings::Settings;
-#[cfg(not(test))]
 use crate::settings::entities::settings::Settings;
 use crate::settings::repositories::settings_repository::SettingsRepository;
 #[cfg(not(test))]
