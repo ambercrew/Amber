@@ -738,7 +738,7 @@ impl CellRepository for SqliteCellRepository {
             .unwrap()
             .with_day(31)
             .unwrap()
-            .with_time(NaiveTime::from_hms_opt(11, 59, 59).unwrap())
+            .with_time(NaiveTime::from_hms_opt(23, 59, 59).unwrap())
             .unwrap();
 
         let rows = sqlx::query!(
