@@ -260,10 +260,8 @@ impl AiService {
         let model_name = self.get_model_name().await?;
         let embeddings_model_name = self.get_embeddings_model_name().await?;
 
-        let embed_model = self
-            .get_multi_client()
-            .await?
-            .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
+        let embed_model =
+            client.embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
         let vector_store = self.get_sqlite_vector_store(&embed_model).await?;
         let index = Arc::new(vector_store.index(embed_model));
 
