@@ -78,8 +78,7 @@ pub async fn move_cell(
         .resolve::<CellService>()
         .await
         .move_cell(id, new_index)
-        .await
-        .unwrap();
+        .await?;
     scope.save_changes().await?;
     Ok(())
 }
