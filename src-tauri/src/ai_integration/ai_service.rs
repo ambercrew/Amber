@@ -135,7 +135,7 @@ impl AiService {
         request: StreamAiRequest,
         on_event: OnEventCallback,
     ) -> Result<(), AiServiceError> {
-        let _ = self.state.start_generation().await;
+        let _guard = self.state.start_generation().await;
 
         let messages;
         let chat_id;

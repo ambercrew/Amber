@@ -78,7 +78,7 @@ impl SyncService {
     /// entities that were not overwritten by the server during the pull phase.
     pub async fn sync_with_backend(&self) -> Result<(), SyncError> {
         // Only allowing one sync at a time.
-        let _ = self.sync_lock.0.lock().await;
+        let _guard = self.sync_lock.0.lock().await;
 
         let sync_start_time = Utc::now();
 
