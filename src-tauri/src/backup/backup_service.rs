@@ -28,7 +28,7 @@ pub enum BackupServiceError {
 }
 
 pub const TIME_BETWEEN_BACKUPS_IN_MINUTES: u64 = 120;
-const LAST_BACKUP_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
+const LAST_BACKUP_DATE_CONFIGURATION_NAME: &str = "LAST_BACKUP_DATE";
 const MAX_NUMBER_OF_BACKUPS: usize = 8;
 const DATETIME_FORMAT_IN_FILE_NAMES: &str = "%Y_%m_%d_%H_%M_%S";
 
