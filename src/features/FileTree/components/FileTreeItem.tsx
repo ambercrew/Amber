@@ -39,7 +39,7 @@ import {
 	exportFile,
 	exportFolder,
 	importExportedItem,
-} from "../../../api/exportImportApi.ts";
+} from "../../../api/fileSystem/api/exportImportApi.ts";
 import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog.tsx";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";

@@ -12,7 +12,7 @@ import {
 	getReviewTreeFolderForRoot,
 	moveFolder,
 	renameFolder,
-} from "../../../../api/fileSystemApi.ts";
+} from "../../../../api/fileSystem/api/fileSystemApi.ts";
 import UiFile from "../../../../types/ui/uiFile.ts";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { JSON_FILE_FILTER } from "../../../../features/FileTree/config/constants.ts";
@@ -20,7 +20,7 @@ import {
 	exportFile,
 	exportFolder,
 	importExportedItem,
-} from "../../../../api/exportImportApi.ts";
+} from "../../../../api/fileSystem/api/exportImportApi.ts";
 import { act } from "react";
 import fileTreeStyles from "../../../../features/FileTree/components/styles.module.css";
 import useAppSelector from "../../../../hooks/useAppSelector.ts";
@@ -43,8 +43,8 @@ import { pointerIntersection } from "@dnd-kit/collision";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 import { Feedback } from "@dnd-kit/dom";
 
-vi.mock(import("../../../../api/fileSystemApi.ts"));
-vi.mock(import("../../../../api/exportImportApi.ts"));
+vi.mock(import("../../../../api/fileSystem/api/fileSystemApi.ts"));
+vi.mock(import("../../../../api/fileSystem/api/exportImportApi.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/plugin-dialog"));
 vi.mock(import("@dnd-kit/react"));

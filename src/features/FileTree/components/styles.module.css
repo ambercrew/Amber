@@ -1,5 +1,5 @@
 .file-tree-container {
-	padding: var(--sidebar-inner-padding);
+	padding: 0 var(--sidebar-inner-horizontal-padding);
 }
 
 .file-item-outer-container {

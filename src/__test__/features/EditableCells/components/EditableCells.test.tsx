@@ -1,11 +1,15 @@
 import { screen, waitFor } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
-import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
-import Cell from "../../../../types/backend/entity/cell";
+import createDefaultCellDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto.ts";
+import Cell from "../../../../api/cells/entities/cell.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { useState } from "react";
 import userEvent from "@testing-library/user-event";
-import { createCell, deleteCell, moveCell } from "../../../../api/cellApi";
+import {
+	createCell,
+	deleteCell,
+	moveCell,
+} from "../../../../api/cells/api/cellApi.ts";
 import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
@@ -27,9 +31,10 @@ import DraggedCellData, {
 } from "../../../../features/EditableCells/types/draggedCellData.ts";
 import { DragDropEventHandlers } from "@dnd-kit/react";
 import { Feedback } from "@dnd-kit/dom";
+import callApiMock from "../../../test-utils/callApiMock.ts";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
-vi.mock(import("../../../../api/cellApi"));
+vi.mock(import("../../../../api/cells/api/cellApi.ts"));
 vi.mock(import("../../../../features/EditableCells/hooks/useAutoSave"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@dnd-kit/react"));
@@ -37,8 +42,13 @@ vi.mock(import("@dnd-kit/react"));
 /** Creates a cell for testing where the id is equal to the index.
  */
 function createTestCell(index: number): Cell {
-	const cell = createDefaultCell("Note", index + "", index);
-	cell.id = index + "";
+	const request = createDefaultCellDto("Note", index + "", index);
+	const cell: Cell = {
+		...request,
+		id: index + "",
+		searchableContent: "",
+		repetitions: [],
+	};
 	return cell;
 }
 
@@ -76,7 +86,7 @@ function renderEditableCells({
 		return (
 			<EditableCells
 				fileMode="single"
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onCellsUpdateSave={() => {
 					if (onCellsUpdateSave) {
 						setCells(onCellsUpdateSave());
@@ -502,7 +512,7 @@ describe("Scrolling", () => {
 					/>
 					<EditableCells
 						fileMode="single"
-						onError={vi.fn()}
+						callApi={callApiMock}
 						onCellsUpdateSave={vi.fn()}
 						cells={cells}
 						searchText={searchText}

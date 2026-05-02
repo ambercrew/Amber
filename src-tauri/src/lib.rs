@@ -37,14 +37,12 @@ pub use file_system::api::export_import_api::*;
 use tauri_plugin_window_state::StateFlags;
 use tokio::runtime::Handle;
 
-use crate::backup::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
+use crate::backup::services::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
 use crate::common::utils::create_injector::create_injector;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 
-pub type Guid = uuid::Uuid;
-
-pub const ROOT_FOLDER_ID: Guid = uuid::uuid!("00000000-0000-0000-0000-000000000001");
-pub const DEFAULT_FSRS_PROFILE_ID: Guid = uuid::uuid!("00000000-0000-0000-0000-000000000002");
+pub use common::constants::{DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID};
+pub use common::types::{Guid, SourceError};
 
 pub mod generated_code {
     include!(concat!(env!("OUT_DIR"), "/generated_code.rs"));
@@ -110,12 +108,18 @@ pub async fn run() -> Result<(), String> {
             tokio::spawn(async move {
                 let mut interval =
                     tokio::time::interval(Duration::from_mins(TIME_BETWEEN_BACKUPS_IN_MINUTES));
+                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
                 loop {
                     interval.tick().await;
                     let scope = injector.start_scope();
 
-                    if let Err(err) = scope.resolve::<BackupService>().await.ensure_backup().await {
+                    if let Err(err) = scope
+                        .resolve::<dyn BackupService>()
+                        .await
+                        .ensure_backup()
+                        .await
+                    {
                         log::error!("An error happened when creating a backup {:?}", err);
                     }
                 }

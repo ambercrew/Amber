@@ -1,4 +1,4 @@
-use std::{error::Error, str::FromStr};
+use std::str::FromStr;
 
 use sqlite_vec::sqlite3_vec_init;
 use sqlx::{
@@ -8,11 +8,11 @@ use sqlx::{
 use tokio::fs;
 use tokio_rusqlite::ffi::sqlite3_auto_extension;
 
-use crate::settings::value_objects::database_location::DatabaseLocation;
+use crate::{SourceError, settings::value_objects::database_location::DatabaseLocation};
 
 pub async fn create_sqlite_pool_from_location(
     database_location: &DatabaseLocation,
-) -> Result<SqlitePool, Box<dyn Error>> {
+) -> Result<SqlitePool, SourceError> {
     if let Some(parent) = database_location.get_path().parent() {
         fs::create_dir_all(parent).await?;
     }

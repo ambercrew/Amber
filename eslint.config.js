@@ -58,6 +58,7 @@ export default defineConfig([
 			"@lexical": lexicalPlugin,
 		},
 		rules: {
+			"@typescript-eslint/no-unnecessary-type-assertion": "off",
 			"@typescript-eslint/switch-exhaustiveness-check": "error",
 			"react-refresh/only-export-components": [
 				"warn",

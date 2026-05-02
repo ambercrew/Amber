@@ -1,16 +1,16 @@
 import userEvent from "@testing-library/user-event";
-import { getUserInformation } from "../../../../api/userApi.ts";
+import { getUserInformation } from "../../../../api/backend/api/userApi.ts";
 import VerifyEmailDialog from "../../../../features/AuthDialog/components/VerifyEmailDialog.tsx";
-import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto.ts";
+import { UserInformationDto } from "../../../../api/backend/dto/userInformationDto.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import {
 	resendEmailVerificationCode,
 	verifyUserEmail,
-} from "../../../../api/authApi.ts";
+} from "../../../../api/backend/api/authApi.ts";
 import { screen } from "@testing-library/react";
 
-vi.mock(import("../../../../api/authApi.ts"));
-vi.mock(import("../../../../api/userApi.ts"));
+vi.mock(import("../../../../api/backend/api/authApi.ts"));
+vi.mock(import("../../../../api/backend/api/userApi.ts"));
 
 describe("VerifyEmailDialog", () => {
 	test("Should call backend, update user information, and close on successful submit", async () => {

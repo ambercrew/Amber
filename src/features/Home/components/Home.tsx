@@ -4,27 +4,25 @@ import { selectRootFolder } from "../../../stores/fileSystem/fileSystemSelectors
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ReviewHeatmap from "./ReviewHeatmap";
-import HomeStatistics from "../../../types/backend/dto/homeStatistics";
-import errorToString from "../../../utils/errorToString";
+import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
 import secondsToLongString from "../utils/secondsToLongString";
-import { getHomeStatistics } from "../../../api/reviewApi";
-import {
-	ReviewTreeFile,
-	ReviewTreeFolder,
-} from "../../../types/backend/dto/reviewTreeFolder";
+import { getHomeStatistics } from "../../../api/cells/api/reviewApi";
+import { ReviewTreeFolderDto } from "../../../api/fileSystem/dto/reviewTreeFolderDto";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
+import { CallApiFn } from "../../../hooks/useApi";
+import { ReviewTreeFileDto } from "../../../api/fileSystem/dto/reviewTreeFileDto";
 
 interface Props {
 	onStudyClick: (fileIds: string[]) => void;
-	onError: (message: string) => void;
+	callApi: CallApiFn;
 }
 
-function Home({ onStudyClick, onError }: Props) {
+function Home({ onStudyClick, callApi }: Props) {
 	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
 		null,
 	);
@@ -32,13 +30,8 @@ function Home({ onStudyClick, onError }: Props) {
 	const dispatch = useAppDispatch();
 
 	const fetchHomeStatistics = useCallback(async () => {
-		try {
-			setHomeStatistics(await getHomeStatistics());
-		} catch (e) {
-			console.error(e);
-			onError(errorToString(e));
-		}
-	}, [onError]);
+		await callApi(async () => setHomeStatistics(await getHomeStatistics()));
+	}, [callApi]);
 
 	useEffect(() => {
 		void (async () => await fetchHomeStatistics())();
@@ -58,7 +51,7 @@ function Home({ onStudyClick, onError }: Props) {
 
 	const handleStudyClick = (
 		fileIds: string[],
-		item: ReviewTreeFolder | ReviewTreeFile,
+		item: ReviewTreeFolderDto | ReviewTreeFileDto,
 	) => {
 		if (
 			item.repetitionCounts.new +
@@ -70,7 +63,7 @@ function Home({ onStudyClick, onError }: Props) {
 		}
 	};
 
-	const handleFolderClick = (folder: ReviewTreeFolder) => {
+	const handleFolderClick = (folder: ReviewTreeFolderDto) => {
 		const fileIds = [];
 		const folderQueue = [folder];
 		while (folderQueue.length > 0) {

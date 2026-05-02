@@ -1,14 +1,12 @@
-import {
-	ReviewTreeFile,
-	ReviewTreeFolder,
-} from "../../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFileDto } from "../../api/fileSystem/dto/reviewTreeFileDto";
+import { ReviewTreeFolderDto } from "../../api/fileSystem/dto/reviewTreeFolderDto";
 import getFolderChildById from "../../utils/getFolderChildById";
 
 describe("getFolderChildById", () => {
 	it("Returns existing file", () => {
 		// Arrange
 
-		const expectedFile: ReviewTreeFile = {
+		const expectedFile: ReviewTreeFileDto = {
 			id: "2",
 			name: "test",
 			repetitionCounts: {
@@ -18,7 +16,7 @@ describe("getFolderChildById", () => {
 				review: 0,
 			},
 		};
-		const folder: ReviewTreeFolder = {
+		const folder: ReviewTreeFolderDto = {
 			id: "1",
 			name: "",
 			files: [expectedFile],
@@ -43,7 +41,7 @@ describe("getFolderChildById", () => {
 	it("Returns existing folder", () => {
 		// Arrange
 
-		const expectedFolder: ReviewTreeFolder = {
+		const expectedFolder: ReviewTreeFolderDto = {
 			id: "2",
 			name: "test",
 			subfolders: [],
@@ -55,7 +53,7 @@ describe("getFolderChildById", () => {
 				review: 0,
 			},
 		};
-		const folder: ReviewTreeFolder = {
+		const folder: ReviewTreeFolderDto = {
 			id: "1",
 			name: "",
 			files: [],
@@ -80,7 +78,7 @@ describe("getFolderChildById", () => {
 	it("Non existing file", () => {
 		// Arrange
 
-		const folder: ReviewTreeFolder = {
+		const folder: ReviewTreeFolderDto = {
 			id: "1",
 			name: "",
 			files: [],

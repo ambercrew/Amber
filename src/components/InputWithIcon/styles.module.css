@@ -1,6 +1,5 @@
 .container {
 	position: relative;
-	margin-top: 6px;
 
 	& {
 		font-size: 1.6rem;

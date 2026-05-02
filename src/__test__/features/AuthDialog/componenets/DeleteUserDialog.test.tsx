@@ -2,9 +2,9 @@ import userEvent from "@testing-library/user-event";
 import DeleteUserDialog from "../../../../features/AuthDialog/components/DeleteUserDialog.tsx";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import { screen } from "@testing-library/react";
-import { deleteUser } from "../../../../api/userApi.ts";
+import { deleteUser } from "../../../../api/backend/api/userApi.ts";
 
-vi.mock(import("../../../../api/userApi.ts"));
+vi.mock(import("../../../../api/backend/api/userApi.ts"));
 
 describe("DeleteUserDialog", () => {
 	it("Show show an error if the input field is not filled correctly", async () => {

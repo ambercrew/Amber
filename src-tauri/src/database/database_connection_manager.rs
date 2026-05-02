@@ -6,15 +6,24 @@ use thiserror::Error;
 #[cfg(test)]
 use mockall::automock;
 
+use crate::SourceError;
 use crate::settings::value_objects::database_location::DatabaseLocation;
 
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug)]
 pub enum DatabaseConnectionManagerError {
-    #[error("Error changing the database: {0}")]
-    ErrorChangingDatabase(String),
-    #[error("{0}")]
-    Unknown(String),
+    #[error("Error changing the database.")]
+    ErrorChangingDatabase(#[source] SourceError),
+    #[error("An unknown database error occurred")]
+    Unknown(#[source] SourceError),
 }
+
+impl PartialEq for DatabaseConnectionManagerError {
+    fn eq(&self, other: &Self) -> bool {
+        std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+impl Eq for DatabaseConnectionManagerError {}
 
 #[async_trait]
 #[cfg_attr(test, automock)]

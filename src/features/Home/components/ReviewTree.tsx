@@ -1,18 +1,16 @@
 import styles from "./styles.module.css";
 import Row from "./Row";
-import {
-	ReviewTreeFile,
-	ReviewTreeFolder,
-} from "../../../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFolderDto } from "../../../api/fileSystem/dto/reviewTreeFolderDto";
 import useLocalStorage from "../../../hooks/useLocalStorage";
+import { ReviewTreeFileDto } from "../../../api/fileSystem/dto/reviewTreeFileDto";
 
 interface Props {
-	folder?: ReviewTreeFolder;
-	file?: ReviewTreeFile;
+	folder?: ReviewTreeFolderDto;
+	file?: ReviewTreeFileDto;
 	name?: string;
 	indentationLevel: number;
-	onFileClick: (file: ReviewTreeFile) => void;
-	onFolderClick: (folder: ReviewTreeFolder) => void;
+	onFileClick: (file: ReviewTreeFileDto) => void;
+	onFolderClick: (folder: ReviewTreeFolderDto) => void;
 }
 
 function ReviewTree({

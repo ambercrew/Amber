@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import styles from "./styles.module.css";
-import Message from "../../../types/backend/entity/message";
+import Message from "../../../api/aiIntegration/entities/message";
 import ToolCallDisplay from "./ToolCallDisplay";
 import Markdown from "react-markdown";
 import Alert from "../../../components/Alert/Alert";
@@ -11,7 +11,7 @@ import { Icon } from "@mdi/react";
 interface Props {
 	messages: Message[];
 	isSendingRequest: boolean;
-	errorMessage: string;
+	errorMessage: string | null;
 	selectedChatId: string | null;
 	onToolCallUpdate: () => Promise<void>;
 	onCloseError: () => void;

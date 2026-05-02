@@ -38,9 +38,7 @@ impl SyncRepository for SqliteSyncRepository {
             .execute(&mut *tx)
             .await;
 
-        if let Err(err) = result {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        result?;
 
         let result = sqlx::query!(
             r#"UPDATE deleted_entities
@@ -53,12 +51,9 @@ impl SyncRepository for SqliteSyncRepository {
             entity_id
         )
         .execute(&mut *tx)
-        .await;
+        .await?;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result.rows_affected())
     }
 
     async fn get_all_deleted_entities_on_or_after(
@@ -80,11 +75,8 @@ impl SyncRepository for SqliteSyncRepository {
             deleted_date
         )
         .fetch_all(&mut *tx)
-        .await;
+        .await?;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().collect()),
-        }
+        Ok(rows.into_iter().collect())
     }
 }

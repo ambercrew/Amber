@@ -1,14 +1,14 @@
 import userEvent from "@testing-library/user-event";
 import SideBar from "../../../../features/SideBar/components/SideBar";
-import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto";
+import { UserInformationDto } from "../../../../api/backend/dto/userInformationDto.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { screen } from "@testing-library/react";
-import { verifyUserEmail } from "../../../../api/authApi";
+import { verifyUserEmail } from "../../../../api/backend/api/authApi.ts";
 import useAppDispatch from "../../../../hooks/useAppDispatch";
 import { setUserInformation } from "../../../../stores/user/userReducer";
 
-vi.mock(import("../../../../api/authApi.ts"));
-vi.mock(import("../../../../api/userApi.ts"));
+vi.mock(import("../../../../api/backend/api/authApi.ts"));
+vi.mock(import("../../../../api/backend/api/userApi.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 
 describe("SideBar", () => {

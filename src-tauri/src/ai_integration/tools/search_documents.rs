@@ -34,8 +34,6 @@ pub struct SearchDocumentsArgs {
 pub enum SearchDocumentsError {
     #[error("Error fetching documents from vector store")]
     Fetching(#[from] VectorStoreError),
-    #[error("Error building search query")]
-    SearchQuery(VectorStoreError),
 }
 
 pub struct SearchDocuments {
@@ -78,15 +76,11 @@ impl Tool for SearchDocuments {
             serde_json::to_value(self.chat_id.to_string()).unwrap(),
         );
 
-        let req = match VectorSearchRequest::builder()
+        let req = VectorSearchRequest::builder()
             .samples(args.top_k)
             .query(args.query)
             .filter(filter)
-            .build()
-        {
-            Ok(req) => req,
-            Err(err) => return Err(SearchDocumentsError::SearchQuery(err)),
-        };
+            .build();
 
         let results = self
             .index
@@ -110,7 +104,7 @@ pub mod tests {
     use tokio_rusqlite::{Connection, ffi::sqlite3_auto_extension};
 
     use crate::ai_integration::{
-        ai_service::EMBEDDINGS_DIMENSIONS, clients::mock_client::MockClient,
+        clients::mock_client::MockClient, services::EMBEDDINGS_DIMENSIONS,
     };
 
     use super::*;

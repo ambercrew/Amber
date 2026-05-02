@@ -55,10 +55,8 @@ impl ReviewRepository for SqliteReviewRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(_) => Ok(()),
-        }
+        result?;
+        Ok(())
     }
 
     async fn get_all_modified_on_or_after(
@@ -85,10 +83,7 @@ impl ReviewRepository for SqliteReviewRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
     async fn upsert_with_modified_date_if_modified_before(
@@ -140,9 +135,6 @@ impl ReviewRepository for SqliteReviewRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result?.rows_affected())
     }
 }

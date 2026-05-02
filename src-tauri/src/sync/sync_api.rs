@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     common::api_error::ApiError, infrastructure::extensions::unit_of_work::UnitOfWorkExt,
-    sync::sync_service::SyncService,
+    sync::services::syncer::Syncer,
 };
 use injector::injector::Injector;
 use tauri::State;
@@ -16,7 +16,7 @@ pub async fn sync(injector: State<'_, Arc<Injector>>) -> Result<(), ApiError> {
         .await?;
 
     scope
-        .resolve::<SyncService>()
+        .resolve::<dyn Syncer>()
         .await
         .sync_with_backend()
         .await?;

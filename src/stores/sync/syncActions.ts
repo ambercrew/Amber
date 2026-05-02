@@ -1,5 +1,5 @@
 import { AppDispatch, RootState } from "../store";
-import { sync as syncApi } from "../../api/syncApi";
+import { sync as syncApi } from "../../api/sync/api/syncApi";
 import errorToString from "../../utils/errorToString";
 import { setIsSyncing } from "./syncReducer";
 import {

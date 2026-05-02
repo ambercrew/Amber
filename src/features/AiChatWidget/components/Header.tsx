@@ -2,7 +2,7 @@ import Select from "../../../components/Select/Select";
 import { Icon } from "@mdi/react";
 import { mdiPencilOutline, mdiDeleteOutline, mdiClose } from "@mdi/js";
 import styles from "./styles.module.css";
-import Chat from "../../../types/backend/entity/chat";
+import Chat from "../../../api/aiIntegration/entities/chat";
 
 interface Props {
 	selectedChatId: string | null;

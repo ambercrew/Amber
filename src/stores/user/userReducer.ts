@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { UserInformationDto } from "../../types/backend/dto/userInformationDto";
+import { UserInformationDto } from "../../api/backend/dto/userInformationDto";
 
 export interface UserState {
 	isSignedIn: boolean;

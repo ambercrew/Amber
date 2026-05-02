@@ -6,7 +6,7 @@ import {
 	allCellTypes,
 	CellType,
 	cellTypesDisplayNames,
-} from "../../../types/backend/entity/cell";
+} from "../../../api/cells/entities/cell";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import { mdiMagnify } from "@mdi/js";
 import useOutsideClick from "../../../hooks/useOutsideClick";

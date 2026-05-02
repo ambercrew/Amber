@@ -2,43 +2,34 @@ use std::sync::Arc;
 
 use crate::{
     Guid,
-    cells::repositories::cell_repository::CellRepository,
     common::api_error::ApiError,
     file_system::{
-        file_system_service::FileSystemService,
         repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
+        services::{
+            item_creator::{FileCreator, FolderCreator},
+            item_mover::{FileMover, FolderMover},
+            item_renamer::{FileRenamer, FolderRenamer},
+            review_tree_builder::ReviewTreeBuilder,
+        },
     },
     infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use injector::injector::Injector;
 use tauri::State;
 
-use crate::file_system::dto::review_tree_folder::ReviewTreeFolder;
+use crate::file_system::dto::review_tree_folder_dto::ReviewTreeFolderDto;
 
 #[tauri::command]
 pub async fn get_review_tree_folder_for_root(
     injector: State<'_, Arc<Injector>>,
-) -> Result<ReviewTreeFolder, ApiError> {
+) -> Result<ReviewTreeFolderDto, ApiError> {
     let scope = injector.start_scope();
 
-    let folders = scope
-        .resolve::<dyn FolderRepository>()
+    let result = scope
+        .resolve::<dyn ReviewTreeBuilder>()
         .await
-        .get_all_folders()
+        .build()
         .await?;
-    let files = scope
-        .resolve::<dyn FileRepository>()
-        .await
-        .get_all_files()
-        .await?;
-
-    let repetition_counts = scope
-        .resolve::<dyn CellRepository>()
-        .await
-        .get_study_repetitions_for_all_files()
-        .await?;
-
-    let result = ReviewTreeFolder::parse_file_system_from_root(&folders, &files, repetition_counts);
     Ok(result)
 }
 
@@ -51,7 +42,7 @@ pub async fn create_folder(
     let scope = injector.start_scope();
 
     let folder_id = scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FolderCreator>()
         .await
         .create_folder(parent_id, name.try_into()?)
         .await?;
@@ -70,7 +61,7 @@ pub async fn create_file(
     let scope = injector.start_scope();
 
     let file_id = scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FileCreator>()
         .await
         .create_file(parent_id, name.try_into()?)
         .await?;
@@ -118,7 +109,7 @@ pub async fn move_file(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FileMover>()
         .await
         .move_file(file_id, destination_folder_id)
         .await?;
@@ -134,7 +125,7 @@ pub async fn move_folder(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FolderMover>()
         .await
         .move_folder(folder_id, destination_folder_id)
         .await?;
@@ -150,7 +141,7 @@ pub async fn rename_file(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FileRenamer>()
         .await
         .rename_file(file_id, new_name.try_into()?)
         .await?;
@@ -166,7 +157,7 @@ pub async fn rename_folder(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn FolderRenamer>()
         .await
         .rename_folder(folder_id, new_name.try_into()?)
         .await?;

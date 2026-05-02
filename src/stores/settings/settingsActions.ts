@@ -1,11 +1,14 @@
-import { getSettings, updateSettings } from "../../api/settingsApi";
+import {
+	getSettings,
+	updateSettings,
+} from "../../api/settings/api/settingsApi";
 import { AppDispatch } from "../store";
 import { setSettings } from "./settingsReducer";
-import SettingsDto from "../../types/backend/dto/settingsDto";
+import UpdateSettingsRequestDto from "../../api/settings/dto/updateSettingsRequestDto";
 import { sync } from "../sync/syncActions";
 import { defaultCloseRequestedEventManager } from "../../managers/closeRequestedEventManager";
 import { tryGetCurrentWebView, isMobile } from "../../utils/tauriUtils";
-import UpdateSettingsRequest from "../../types/backend/dto/updateSettingsRequest";
+import UpdateSettingsRequest from "../../api/settings/models/updateSettingsRequest";
 
 export const SETTINGS_CLOSE_REQUESTED_HANDLER_NAME = "Settings handler";
 
@@ -30,7 +33,10 @@ export function updateAndApplySettings(request: UpdateSettingsRequest) {
 	};
 }
 
-async function applySettings(settings: SettingsDto, dispatch: AppDispatch) {
+async function applySettings(
+	settings: UpdateSettingsRequestDto,
+	dispatch: AppDispatch,
+) {
 	try {
 		document.body.classList.add("no-transition");
 

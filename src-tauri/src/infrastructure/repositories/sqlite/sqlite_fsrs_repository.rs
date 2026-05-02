@@ -45,10 +45,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match row {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(row) => Ok(row.into()),
-        }
+        Ok(row?.into())
     }
 
     async fn get_all_fsrs_profiles(&self) -> Result<Vec<FsrsProfile>, RepositoryError> {
@@ -70,10 +67,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
     async fn create(&self, fsrs_profile: &FsrsProfile) -> Result<(), RepositoryError> {
@@ -114,10 +108,8 @@ impl FsrsRepository for SqliteFsrsRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn update(&self, fsrs_profile: &FsrsProfile) -> Result<(), RepositoryError> {
@@ -158,10 +150,8 @@ impl FsrsRepository for SqliteFsrsRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn delete_by_id(&self, request: DeleteFsrsRequest) -> Result<(), RepositoryError> {
@@ -173,10 +163,8 @@ impl FsrsRepository for SqliteFsrsRepository {
             .execute(&mut *tx)
             .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn upsert_with_modified_date_if_modified_before(
@@ -230,10 +218,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result?.rows_affected())
     }
 
     async fn get_all_modified_on_or_after(
@@ -260,10 +245,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 }
 

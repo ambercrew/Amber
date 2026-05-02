@@ -1,5 +1,5 @@
-import Cell from "../../../types/backend/entity/cell";
-import Repetition from "../../../types/backend/entity/repetition";
+import Cell from "../../../api/cells/entities/cell";
+import Repetition from "../../../api/cells/entities/repetition";
 import ClozeReviewView from "./Cloze";
 import FlashCardReviewView from "./FlashCardReviewView";
 import TrueFalseReviewView from "./TrueFalseReviewView";

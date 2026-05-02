@@ -3,12 +3,12 @@ import { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
 import Cell, {
 	CellType,
 	cellTypesDisplayNames,
-} from "../../../types/backend/entity/cell";
+} from "../../../api/cells/entities/cell";
 import EditableCell from "../../EditableCell/components/EditableCell";
 import getCellIcon from "../../../utils/getCellIcon";
 import { Icon } from "@mdi/react";
 import FocusTools from "./FocusTools";
-import Repetition from "../../../types/backend/entity/repetition";
+import Repetition from "../../../api/cells/entities/repetition";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -21,6 +21,7 @@ import CellDropContainerData, {
 } from "../types/cellDropContainerData";
 import mergeRefs from "../../../utils/mergeRefs";
 import { Feedback } from "@dnd-kit/dom";
+import { CallApiFn } from "../../../hooks/useApi";
 
 interface Props {
 	cell: Cell;
@@ -30,9 +31,9 @@ interface Props {
 	enableFileSpecificFunctionality: boolean;
 	fileMode: "single" | "global search";
 	eagerLoadRichTextEditor: boolean;
+	callApi: CallApiFn;
 	onFocus: (e: React.FocusEvent<HTMLDivElement>) => void;
 	onClick: (id: string) => void;
-	onError: (error: string) => void;
 	onChange: (content: string) => void;
 	onDelete: () => void;
 	onInsertNewCell: (cellType: CellType) => void;
@@ -49,7 +50,7 @@ function CellBlock(
 		enableFileSpecificFunctionality,
 		fileMode,
 		eagerLoadRichTextEditor,
-		onError,
+		callApi,
 		onFocus,
 		onClick,
 		onChange,
@@ -144,7 +145,7 @@ function CellBlock(
 					repetitions={repetitions}
 					onShowRepetitionsInfo={() => setShowInsertNewCell(false)}
 					onResetRepetitions={onResetRepetitions}
-					onError={onError}
+					callApi={callApi}
 					onCellDeleteConfirm={onDelete}
 					fileMode={fileMode}
 					setHandleDragRef={setHandleDragRef}

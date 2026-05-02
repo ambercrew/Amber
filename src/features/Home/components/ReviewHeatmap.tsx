@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import ReviewHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
-import HomeStatistics from "../../../types/backend/dto/homeStatistics";
+import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 

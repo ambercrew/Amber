@@ -1,7 +1,7 @@
 import { Card, State } from "ts-fsrs";
 import Repetition, {
 	RepetitionState,
-} from "../../../types/backend/entity/repetition";
+} from "../../../api/cells/entities/repetition";
 
 function createRepetitionFromCard(
 	card: Card,

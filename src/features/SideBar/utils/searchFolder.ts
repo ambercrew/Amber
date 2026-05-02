@@ -1,8 +1,11 @@
-import { ReviewTreeFolder } from "../../../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFolderDto } from "../../../api/fileSystem/dto/reviewTreeFolderDto";
 import UiFile from "../../../types/ui/uiFile";
 import UiFolder from "../../../types/ui/uiFolder";
 
-function searchFolder(folder: ReviewTreeFolder, searchText: string): UiFolder {
+function searchFolder(
+	folder: ReviewTreeFolderDto,
+	searchText: string,
+): UiFolder {
 	const subFolders = folder.subfolders.map(f => searchFolder(f, searchText));
 	const files: UiFile[] = folder.files.map(f => ({
 		...f,

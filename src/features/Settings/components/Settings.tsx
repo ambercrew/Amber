@@ -11,7 +11,6 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 import SideBar from "./SideBar";
 import DataTab from "./tabs/DataTab";
-import errorToString from "../../../utils/errorToString";
 import { updateAndApplySettings } from "../../../stores/settings/settingsActions";
 import { SettingsTab, settingsTabIcons } from "../types/settingsTab";
 import AppearanceTab from "./tabs/AppearanceTab";
@@ -26,9 +25,9 @@ import Alert from "../../../components/Alert/Alert";
 import {
 	getUserInformation,
 	updateUserInformation,
-} from "../../../api/userApi";
+} from "../../../api/backend/api/userApi.ts";
 import { setUserInformation } from "../../../stores/user/userReducer";
-import { updatePassword } from "../../../api/authApi";
+import { updatePassword } from "../../../api/backend/api/authApi.ts";
 import Spinner from "../../../components/Spinner/Spinner";
 import { SettingsState } from "../types/settingsState";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
@@ -37,15 +36,21 @@ import { Icon } from "@mdi/react";
 import AiTab from "./tabs/AiTab";
 import { reloadApplicationState } from "../../../stores/app/appActions.ts";
 import { useNavigate } from "react-router";
+import useApiWithCustomError from "../../../hooks/useApiWithCustomError.ts";
 
 interface Props {
 	onClose: () => void;
 }
 
 export default function Settings({ onClose }: Props) {
-	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const {
+		isSendingRequest,
+		errorMessage,
+		callApi,
+		clearErrorMessage,
+		setCustomErrorMessage,
+	} = useApiWithCustomError();
 	const [selectedTab, setSelectedTab] = useState(SettingsTab.Appearance);
-	const [errorMessage, setErrorMessage] = useState("");
 	// Only used for small screens.
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
 	const isSmallScreen = useIsSmallScreen();
@@ -75,17 +80,6 @@ export default function Settings({ onClose }: Props) {
 		setSelectedTab(SettingsTab.Appearance);
 	}
 
-	const executeRequest = async (cb: () => Promise<void>) => {
-		try {
-			await cb();
-		} catch (e) {
-			console.error(e);
-			setErrorMessage(errorToString(e));
-		} finally {
-			setIsSendingRequest(false);
-		}
-	};
-
 	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
@@ -94,7 +88,7 @@ export default function Settings({ onClose }: Props) {
 				state.securityTabState.newPassword !==
 				state.securityTabState.confirmNewPassword
 			) {
-				setErrorMessage("Passwords do not match!");
+				setCustomErrorMessage("Passwords do not match!");
 				return;
 			}
 
@@ -102,19 +96,20 @@ export default function Settings({ onClose }: Props) {
 				!state.userInformation!.firstName ||
 				!state.userInformation!.lastName
 			) {
-				setErrorMessage("Fill first name and last name");
+				setCustomErrorMessage("Fill first name and last name");
 				return;
 			}
 		}
 
 		const zoomPercentage = state.localSettings?.zoomPercentage ?? 100;
 		if (zoomPercentage < 50 || zoomPercentage > 200) {
-			setErrorMessage("Zoom percentage must be between 50% and 200%");
+			setCustomErrorMessage(
+				"Zoom percentage must be between 50% and 200%",
+			);
 			return;
 		}
 
-		await executeRequest(async () => {
-			setIsSendingRequest(true);
+		await callApi(async () => {
 			if (isSignedIn) {
 				if (
 					state.userInformation?.firstName !==
@@ -171,7 +166,7 @@ export default function Settings({ onClose }: Props) {
 		setSelectedTab(newTab);
 	};
 
-	const tabProps = { state, setState, executeRequest };
+	const tabProps = { state, setState, executeRequest: callApi };
 
 	return (
 		<Dialog
@@ -224,7 +219,7 @@ export default function Settings({ onClose }: Props) {
 					<Alert
 						className={styles.alert}
 						type="error"
-						onClose={() => setErrorMessage("")}>
+						onClose={() => clearErrorMessage()}>
 						<p>{errorMessage}</p>
 					</Alert>
 				)}

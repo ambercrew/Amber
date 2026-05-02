@@ -199,7 +199,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 					</button>
 				)}
 
-				<FileTree folder={rootUiFolder} />
+				<FileTree folder={rootUiFolder} className={styles.fileTree} />
 			</div>
 
 			{!isSignedIn && (

@@ -4,12 +4,12 @@ import {
 	signIn as signInApi,
 	signUp as signUpApi,
 	signOut as signOutApi,
-} from "../../api/authApi";
-import { getUserInformation } from "../../api/userApi";
+} from "../../api/backend/api/authApi";
+import { getUserInformation } from "../../api/backend/api/userApi";
 import { reloadApplicationState } from "../app/appActions";
 import { AppDispatch } from "../store";
 import { setLoggedOf, setUserInformation } from "./userReducer";
-import SignUpRequest from "../../types/backend/dto/signUpRequest";
+import SignUpRequestDto from "../../api/backend/dto/signUpRequestDto";
 
 export function loadUserState() {
 	return async function (dispatch: AppDispatch): Promise<void> {
@@ -35,7 +35,7 @@ export function signIn(
 	};
 }
 
-export function signUp(navigate: NavigateFunction, request: SignUpRequest) {
+export function signUp(navigate: NavigateFunction, request: SignUpRequestDto) {
 	return async function (dispatch: AppDispatch): Promise<void> {
 		const userInformation = await signUpApi(request);
 		await dispatch(reloadApplicationState(navigate, userInformation));

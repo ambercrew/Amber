@@ -1,6 +1,6 @@
 import { Card, State } from "ts-fsrs";
 import createRepetitionFromCard from "../../../../features/Reviewer/utils/createRepetitionFromCard";
-import Repetition from "../../../../types/backend/entity/repetition";
+import Repetition from "../../../../api/cells/entities/repetition";
 
 describe("createRepetitionFromCard", () => {
 	it("Converts correctly", () => {

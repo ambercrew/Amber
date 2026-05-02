@@ -2,18 +2,22 @@ use std::sync::Arc;
 
 use crate::{
     Guid,
-    common::{api_error::ApiError, repository_error::RepositoryError},
+    common::api_error::ApiError,
     file_system::{
         repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
     },
     fsrs::{
-        entities::fsrs_profile::FsrsProfile, fsrs_service::FsrsService,
+        dto::create_profile_request_dto::CreateProfileRequestDto,
+        entities::fsrs_profile::FsrsProfile,
         repositories::fsrs_repository::FsrsRepository,
+        services::{
+            fsrs_profile_deleter::FsrsProfileDeleter, fsrs_profile_resolver::FsrsProfileResolver,
+        },
     },
     infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
-use injector::{injector::Injector, injector_scope::InjectorScope};
+use injector::injector::Injector;
 use tauri::State;
 
 #[tauri::command]
@@ -41,9 +45,11 @@ pub async fn get_file_fsrs_profile(
         .get_by_id(id)
         .await?;
 
-    let result =
-        get_fsrs_profile_recursively_for_item(&scope, file.fsrs_profile_choice(), file.parent_id())
-            .await?;
+    let result = scope
+        .resolve::<dyn FsrsProfileResolver>()
+        .await
+        .get_for_item(file.fsrs_profile_choice(), file.parent_id())
+        .await?;
     Ok(result)
 }
 
@@ -59,12 +65,11 @@ pub async fn get_folder_fsrs_profile(
         .get_by_id(id)
         .await?;
 
-    let result = get_fsrs_profile_recursively_for_item(
-        &scope,
-        folder.fsrs_profile_choice(),
-        folder.parent_id(),
-    )
-    .await?;
+    let result = scope
+        .resolve::<dyn FsrsProfileResolver>()
+        .await
+        .get_for_item(folder.fsrs_profile_choice(), folder.parent_id())
+        .await?;
     Ok(result)
 }
 
@@ -108,12 +113,11 @@ pub async fn get_parent_fsrs_profile_for_folder(
     let parent = folder_repository
         .get_by_id(folder.parent_id().unwrap())
         .await?;
-    let result = get_fsrs_profile_recursively_for_item(
-        &scope,
-        parent.fsrs_profile_choice(),
-        parent.parent_id(),
-    )
-    .await?;
+    let result = scope
+        .resolve::<dyn FsrsProfileResolver>()
+        .await
+        .get_for_item(parent.fsrs_profile_choice(), parent.parent_id())
+        .await?;
     Ok(result)
 }
 
@@ -133,47 +137,27 @@ pub async fn get_parent_fsrs_profile_for_file(
         .await
         .get_by_id(file.parent_id().unwrap())
         .await?;
-    let result = get_fsrs_profile_recursively_for_item(
-        &scope,
-        parent.fsrs_profile_choice(),
-        parent.parent_id(),
-    )
-    .await?;
+    let result = scope
+        .resolve::<dyn FsrsProfileResolver>()
+        .await
+        .get_for_item(parent.fsrs_profile_choice(), parent.parent_id())
+        .await?;
     Ok(result)
-}
-
-async fn get_fsrs_profile_recursively_for_item(
-    scope: &InjectorScope<'_>,
-    mut fsrs_profile_choice: FsrsProfileChoice,
-    mut parent_id: Option<Guid>,
-) -> Result<FsrsProfile, RepositoryError> {
-    let folder_repository = scope.resolve::<dyn FolderRepository>().await;
-    let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
-
-    while FsrsProfileChoice::Inherit == fsrs_profile_choice {
-        let parent = folder_repository.get_by_id(parent_id.unwrap()).await?;
-        fsrs_profile_choice = parent.fsrs_profile_choice();
-        parent_id = parent.parent_id();
-    }
-
-    if let FsrsProfileChoice::Id(id) = fsrs_profile_choice {
-        let result = fsrs_repository.get_by_id(id).await?;
-        return Ok(result);
-    }
-
-    unreachable!()
 }
 
 #[tauri::command]
 pub async fn create_profile(
     injector: State<'_, Arc<Injector>>,
-    name: String,
-    request_retention: f64,
-    maximum_interval: f64,
-    weights: Vec<f64>,
+    request: CreateProfileRequestDto,
 ) -> Result<FsrsProfile, ApiError> {
     let scope = injector.start_scope();
-    let profile = FsrsProfile::new(None, name, request_retention, maximum_interval, weights)?;
+    let profile = FsrsProfile::new(
+        None,
+        request.name,
+        request.request_retention,
+        request.maximum_interval,
+        request.weights,
+    )?;
     scope
         .resolve::<dyn FsrsRepository>()
         .await
@@ -245,124 +229,10 @@ pub async fn delete_fsrs_profile(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<FsrsService>()
+        .resolve::<dyn FsrsProfileDeleter>()
         .await
         .delete_by_id(id)
         .await?;
     scope.save_changes().await?;
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{
-        DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID,
-        file_system::entities::{file::File, folder::Folder},
-        infrastructure::repositories::sqlite::{
-            sqlite_file_repository::SqliteFileRepository,
-            sqlite_folder_repository::SqliteFolderRepository,
-            sqlite_fsrs_repository::SqliteFsrsRepository,
-        },
-        test_utils::create_test_injector,
-    };
-    use chrono::Utc;
-    use injector::register_scope;
-
-    async fn initialize_test_injector() -> Injector {
-        let mut injector = create_test_injector().await;
-        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
-        register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
-        injector
-    }
-
-    #[tokio::test]
-    pub async fn get_fsrs_profile_recursively_for_item_nested_file_returns_profile_correctly() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let file_repository = scope.resolve::<dyn FileRepository>().await;
-        let folder_repository = scope.resolve::<dyn FolderRepository>().await;
-
-        let parent = Folder::new_unchecked(
-            Guid::new_v4(),
-            Utc::now(),
-            Utc::now(),
-            Some(ROOT_FOLDER_ID),
-            "test".try_into().unwrap(),
-            FsrsProfileChoice::Inherit,
-        );
-        folder_repository.create(&parent).await.unwrap();
-
-        let file = File::new_unchecked(
-            Guid::new_v4(),
-            Utc::now(),
-            Utc::now(),
-            Some(parent.id()),
-            "test".try_into().unwrap(),
-            FsrsProfileChoice::Inherit,
-        );
-        file_repository.create(&file).await.unwrap();
-
-        // Act
-
-        let result = get_fsrs_profile_recursively_for_item(
-            &scope,
-            file.fsrs_profile_choice(),
-            file.parent_id(),
-        )
-        .await
-        .unwrap();
-
-        // Assert
-
-        assert_eq!(result.id(), DEFAULT_FSRS_PROFILE_ID);
-    }
-
-    #[tokio::test]
-    pub async fn get_fsrs_profile_recursively_for_item_file_with_custom_profile_returned_profile() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let file_repository = scope.resolve::<dyn FileRepository>().await;
-        let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
-
-        let profile = FsrsProfile::new_unchecked(
-            Guid::new_v4(),
-            Utc::now(),
-            Utc::now(),
-            "test".into(),
-            1f64,
-            1f64,
-            vec![1f64],
-        );
-        fsrs_repository.create(&profile).await.unwrap();
-
-        let file = File::new_unchecked(
-            Guid::new_v4(),
-            Utc::now(),
-            Utc::now(),
-            Some(ROOT_FOLDER_ID),
-            "test".try_into().unwrap(),
-            FsrsProfileChoice::Id(profile.id()),
-        );
-        file_repository.create(&file).await.unwrap();
-
-        // Act
-
-        let result = get_fsrs_profile_recursively_for_item(
-            &scope,
-            file.fsrs_profile_choice(),
-            file.parent_id(),
-        )
-        .await
-        .unwrap();
-
-        // Assert
-
-        assert_eq!(result.id(), profile.id());
-    }
 }

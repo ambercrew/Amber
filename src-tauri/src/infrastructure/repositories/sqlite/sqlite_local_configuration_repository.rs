@@ -34,10 +34,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         .fetch_optional(&mut *tx)
         .await;
 
-        match row {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(row) => Ok(row.map(|value| value.into())),
-        }
+        Ok(row?.map(|value| value.into()))
     }
 
     async fn upsert(&self, configuration: &LocalConfiguration) -> Result<(), RepositoryError> {
@@ -55,10 +52,7 @@ impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
         .execute(&mut *tx)
         .await;
 
-        if let Err(err) = result {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
-
+        result?;
         Ok(())
     }
 }

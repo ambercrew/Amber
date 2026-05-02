@@ -1,12 +1,10 @@
-import {
-	ReviewTreeFile,
-	ReviewTreeFolder,
-} from "../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFileDto } from "../api/fileSystem/dto/reviewTreeFileDto";
+import { ReviewTreeFolderDto } from "../api/fileSystem/dto/reviewTreeFolderDto";
 
 function getFolderChildById(
-	folder: ReviewTreeFolder,
+	folder: ReviewTreeFolderDto,
 	id: string,
-): ReviewTreeFolder | ReviewTreeFile | null {
+): ReviewTreeFolderDto | ReviewTreeFileDto | null {
 	let queue = [folder];
 
 	while (queue.length > 0) {

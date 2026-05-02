@@ -4,7 +4,7 @@ import {
 	mdiNumericNegative1,
 	mdiNumericPositive1,
 } from "@mdi/js";
-import Cell from "../../../types/backend/entity/cell";
+import Cell from "../../../api/cells/entities/cell";
 import {
 	ClozePlugin,
 	DECREASE_CLOZE_GROUP_NUMBER,

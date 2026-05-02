@@ -1,5 +1,5 @@
 import { FormRows } from "../../../../components/Form/Form";
-import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto";
+import { UserInformationDto } from "../../../../api/backend/dto/userInformationDto";
 import { TabProps } from "../../types/tabProps";
 
 export default function ProfileTab({ state, setState }: TabProps) {

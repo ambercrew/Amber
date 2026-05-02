@@ -3,7 +3,7 @@ import { mdiDeleteOutline, mdiRobotOutline } from "@mdi/js";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Channel } from "@tauri-apps/api/core";
-import { StreamLlmResponseEvent } from "../../../types/backend/events/streamLlmResponseEvent";
+import { StreamLlmResponseEvent } from "../../../api/aiIntegration/events/streamLlmResponseEvent";
 import {
 	deleteAiChat,
 	getAllAiChatsSortedByDateDesc,
@@ -12,17 +12,16 @@ import {
 	stopAiGeneration as stopAiGenerationApi,
 	streamAiResponse,
 	uploadDocument,
-} from "../../../api/aiApi";
+} from "../../../api/aiIntegration/api/aiApi";
 import Message, {
 	MessageContentHumanAssistant,
-} from "../../../types/backend/entity/message";
-import errorToString from "../../../utils/errorToString";
+} from "../../../api/aiIntegration/entities/message";
 import {
 	TEMP_ASSISTANT_MESSAGE_ID,
 	TEMP_CHAT_ID,
 	TEMP_HUMAN_MESSAGE_ID,
 } from "../config/constants";
-import Chat from "../../../types/backend/entity/chat";
+import Chat from "../../../api/aiIntegration/entities/chat";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
@@ -33,6 +32,7 @@ import Header from "./Header";
 import RenameDialog from "./RenameDialog";
 import Messages from "./Messages";
 import PromptForm from "./PromptForm";
+import useApiWithCustomError from "../../../hooks/useApiWithCustomError";
 
 export default function AiChatWidget() {
 	const settings = useAppSelector(selectSettings);
@@ -44,8 +44,13 @@ function AiChatWidgetInner() {
 	const [showDeleteChatDialog, setShowDeleteChatDialog] = useState(false);
 	const [showRenameDialog, setShowRenameDialog] = useState(false);
 	const [userPrompt, setUserPrompt] = useState("");
-	const [errorMessage, setErrorMessage] = useState("");
-	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const {
+		errorMessage,
+		isSendingRequest,
+		callApi,
+		clearErrorMessage,
+		setCustomErrorMessage,
+	} = useApiWithCustomError();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [chats, setChats] = useState<Chat[]>([]);
 	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -71,7 +76,7 @@ function AiChatWidgetInner() {
 
 	const handleChangeSelectedChatId = async (newChatId: string | null) => {
 		if (newChatId !== selectedChatId) {
-			setErrorMessage("");
+			clearErrorMessage();
 			setSelectedChatId(newChatId);
 			await stopAiGeneration();
 		}
@@ -86,8 +91,7 @@ function AiChatWidgetInner() {
 	const sendMessage = async () => {
 		if (!userPrompt.trim() || isSendingRequest) return;
 
-		setErrorMessage("");
-		setIsSendingRequest(true);
+		clearErrorMessage();
 		setMessages(messages => [
 			...messages,
 			{
@@ -142,7 +146,7 @@ function AiChatWidgetInner() {
 					];
 				});
 			} else if (event.event === "error") {
-				setErrorMessage(event.data);
+				setCustomErrorMessage(event.data);
 			} else if (event.event === "toolCalled") {
 				setMessages(messages => {
 					const tempAssistantMessage = messages.find(
@@ -161,28 +165,28 @@ function AiChatWidgetInner() {
 		};
 		setUserPrompt("");
 
-		try {
-			await streamAiResponse(
-				{
-					prompt: userPrompt,
-					chatId: selectedChatId,
-					fileId: selectedFileId,
-				},
-				onEvent,
-			);
-		} catch (e) {
-			setErrorMessage(errorToString(e));
-		} finally {
-			if (selectedChatIdRef.current === null) {
-				setMessages([]);
-				setUserPrompt(userPrompt);
-			} else {
-				setMessages(
-					await getChatMessagesOrdered(selectedChatIdRef.current),
+		await callApi(
+			async () => {
+				await streamAiResponse(
+					{
+						prompt: userPrompt,
+						chatId: selectedChatId,
+						fileId: selectedFileId,
+					},
+					onEvent,
 				);
-			}
-			setIsSendingRequest(false);
-		}
+			},
+			async () => {
+				if (selectedChatIdRef.current === null) {
+					setMessages([]);
+					setUserPrompt(userPrompt);
+				} else {
+					setMessages(
+						await getChatMessagesOrdered(selectedChatIdRef.current),
+					);
+				}
+			},
+		);
 	};
 
 	const handleToolCallUpdate = async () => {
@@ -222,7 +226,7 @@ function AiChatWidgetInner() {
 
 		await deleteAiChat(selectedChatId);
 		await handleChangeSelectedChatId(null);
-		setErrorMessage("");
+		clearErrorMessage();
 		setShowDeleteChatDialog(false);
 		setChats(await getAllAiChatsSortedByDateDesc());
 	};
@@ -237,12 +241,10 @@ function AiChatWidgetInner() {
 		e.preventDefault();
 		setShowRenameDialog(false);
 
-		try {
+		await callApi(async () => {
 			await renameAiChat(selectedChatId, newTitle);
 			setChats(await getAllAiChatsSortedByDateDesc());
-		} catch (e) {
-			setErrorMessage(errorToString(e));
-		}
+		});
 	};
 
 	const handleUploadDocument = async (path: string) => {
@@ -263,20 +265,19 @@ function AiChatWidgetInner() {
 				},
 			} as Message,
 		]);
-		setIsSendingRequest(true);
 
-		try {
-			await uploadDocument(path, selectedChatId);
-		} catch (e) {
-			setErrorMessage(errorToString(e));
-		} finally {
-			if (selectedChatIdRef.current !== null) {
-				setMessages(
-					await getChatMessagesOrdered(selectedChatIdRef.current),
-				);
-			}
-			setIsSendingRequest(false);
-		}
+		await callApi(
+			async () => {
+				await uploadDocument(path, selectedChatId);
+			},
+			async () => {
+				if (selectedChatIdRef.current !== null) {
+					setMessages(
+						await getChatMessagesOrdered(selectedChatIdRef.current),
+					);
+				}
+			},
+		);
 	};
 
 	return (
@@ -323,7 +324,7 @@ function AiChatWidgetInner() {
 							isSendingRequest={isSendingRequest}
 							selectedChatId={selectedChatId}
 							onToolCallUpdate={handleToolCallUpdate}
-							onCloseError={() => setErrorMessage("")}
+							onCloseError={clearErrorMessage}
 						/>
 
 						<PromptForm

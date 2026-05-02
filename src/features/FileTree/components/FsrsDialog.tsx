@@ -8,9 +8,8 @@ import Form, {
 import { mdiDeleteOutline, mdiPlusBoxOutline, mdiTuneVariant } from "@mdi/js";
 import { Icon } from "@mdi/react";
 import { useCallback, useEffect, useState } from "react";
-import errorToString from "../../../utils/errorToString";
 import Alert from "../../../components/Alert/Alert";
-import FsrsProfile from "../../../types/backend/entity/fsrsProfile";
+import FsrsProfile from "../../../api/fsrs/entities/fsrsProfile";
 import {
 	createProfile,
 	deleteFsrsProfile,
@@ -24,14 +23,15 @@ import {
 	setFsrsProfileChoiceForFile,
 	setFsrsProfileChoiceForFolder,
 	updateProfile,
-} from "../../../api/fsrsApi";
+} from "../../../api/fsrs/api/fsrsApi";
 import { ROOT_FOLDER_ID } from "../../../config/constants";
 import {
 	FsrsProfileChoice,
 	FsrsProfileChoiceId,
-} from "../../../types/backend/valueObjects/fsrsProfileChoice";
+} from "../../../api/fileSystem/valueObjects/fsrsProfileChoice";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 import Select, { Option } from "../../../components/Select/Select";
+import useApiWithCustomError from "../../../hooks/useApiWithCustomError";
 
 interface FsrsDialogState {
 	profileChoice: FsrsProfileChoice;
@@ -47,24 +47,13 @@ interface Props {
 
 export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 	const [allFsrsProfiles, setAllFsrsProfiles] = useState<FsrsProfile[]>([]);
-	const [errorMessage, setErrorMessage] = useState("");
+	const { errorMessage, callApi, clearErrorMessage, setCustomErrorMessage } =
+		useApiWithCustomError();
 	const [state, setState] = useState<FsrsDialogState | null>(null);
 	const [showDeleteProfileDialog, setShowDeleteProfileDialog] =
 		useState(false);
 
 	const isRoot = id === ROOT_FOLDER_ID;
-
-	const executeRequest = useCallback(
-		async (cb: () => Promise<void>): Promise<void> => {
-			try {
-				await cb();
-			} catch (e) {
-				console.error(e);
-				setErrorMessage(errorToString(e));
-			}
-		},
-		[],
-	);
 
 	const setStateHelper = (
 		profileChoice: FsrsProfileChoice,
@@ -106,7 +95,9 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 			.filter(w => !isNaN(w));
 
 		if (weightsAsNumber?.length !== 21) {
-			setErrorMessage("Please enter 21 weights separated by space!");
+			setCustomErrorMessage(
+				"Please enter 21 weights separated by space!",
+			);
 			return null;
 		}
 
@@ -119,7 +110,7 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 		const weightsAsNumber = verifyWeightsAndGetAsNumbers();
 		if (weightsAsNumber === null) return;
 
-		await executeRequest(async () => {
+		await callApi(async () => {
 			await updateProfile({
 				...state!.profile,
 				weights: weightsAsNumber,
@@ -171,7 +162,7 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 		const weightsAsNumber = verifyWeightsAndGetAsNumbers();
 		if (weightsAsNumber === null) return;
 
-		await executeRequest(async () => {
+		await callApi(async () => {
 			const profile = await createProfile({
 				name: state?.profile.name + " clone",
 				maximumInterval: state?.profile.maximumInterval,
@@ -398,7 +389,7 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 					)}
 
 					{errorMessage && (
-						<Alert type="error" onClose={() => setErrorMessage("")}>
+						<Alert type="error" onClose={clearErrorMessage}>
 							<p>{errorMessage}</p>
 						</Alert>
 					)}

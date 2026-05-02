@@ -1,10 +1,10 @@
 import { FormRows } from "../../../../components/Form/Form";
 import CheckBox from "../../../../components/Checkbox/Checkbox";
-import SettingsDto from "../../../../types/backend/dto/settingsDto";
+import UpdateSettingsRequestDto from "../../../../api/settings/dto/updateSettingsRequestDto";
 import { TabProps } from "../../types/tabProps";
 
 export default function AiTab({ state, setState }: TabProps) {
-	const updateSettings = (newSettings: Partial<SettingsDto>) => {
+	const updateSettings = (newSettings: Partial<UpdateSettingsRequestDto>) => {
 		setState({
 			...state,
 			localSettings: {

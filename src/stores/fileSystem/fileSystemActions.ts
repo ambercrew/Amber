@@ -14,7 +14,7 @@ import {
 	createFile as createFileApi,
 	getReviewTreeFolderForRoot as getReviewTreeFolderForRootApi,
 	renameFolder as renameFolderApi,
-} from "../../api/fileSystemApi";
+} from "../../api/fileSystem/api/fileSystemApi";
 import { AppDispatch, RootState } from "../store";
 import errorToString from "../../utils/errorToString";
 

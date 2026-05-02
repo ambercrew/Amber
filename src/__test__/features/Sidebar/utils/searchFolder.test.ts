@@ -1,6 +1,6 @@
 import UiFolder from "../../../../types/ui/uiFolder";
 import searchFolder from "../../../../features/SideBar/utils/searchFolder";
-import { ReviewTreeFolder } from "../../../../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFolderDto } from "../../../../api/fileSystem/dto/reviewTreeFolderDto";
 
 describe("searchFolder", () => {
 	it("Searches folder correctly", () => {
@@ -13,7 +13,7 @@ describe("searchFolder", () => {
 			review: 0,
 		};
 
-		const folder: ReviewTreeFolder = {
+		const folder: ReviewTreeFolderDto = {
 			id: "0",
 			name: "",
 			files: [

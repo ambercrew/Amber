@@ -44,10 +44,7 @@ impl FileRepository for SqliteFileRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match row {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(row) => Ok(row.into()),
-        }
+        Ok(row?.into())
     }
 
     async fn get_all_files(&self) -> Result<Vec<File>, RepositoryError> {
@@ -68,10 +65,7 @@ impl FileRepository for SqliteFileRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
     async fn get_folder_files(&self, parent_folder_id: Guid) -> Result<Vec<File>, RepositoryError> {
@@ -94,10 +88,7 @@ impl FileRepository for SqliteFileRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
     async fn get_all_modified_on_or_after(
@@ -123,10 +114,7 @@ impl FileRepository for SqliteFileRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => Ok(rows.into_iter().map(|row| row.into()).collect()),
-        }
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
     async fn exists(
@@ -146,10 +134,7 @@ impl FileRepository for SqliteFileRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match row {
-            Ok(cnt) => Ok(cnt > 0),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(row? > 0)
     }
 
     async fn create(&self, file: &File) -> Result<(), RepositoryError> {
@@ -182,10 +167,8 @@ impl FileRepository for SqliteFileRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn update(&self, file: &File) -> Result<(), RepositoryError> {
@@ -218,10 +201,8 @@ impl FileRepository for SqliteFileRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn upsert_with_modified_date_if_modified_before(
@@ -266,10 +247,7 @@ impl FileRepository for SqliteFileRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result?.rows_affected())
     }
 
     async fn delete_by_id(&self, id: Guid) -> Result<(), RepositoryError> {
@@ -280,10 +258,8 @@ impl FileRepository for SqliteFileRepository {
             .execute(&mut *tx)
             .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 }
 

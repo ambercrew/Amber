@@ -8,7 +8,7 @@ use crate::{
     Guid,
     cells::{
         entities::repetition::Repetition,
-        models::{flash_card::FlashCard, true_false::TrueFalse},
+        value_objects::{flash_card::FlashCard, true_false::TrueFalse},
     },
 };
 

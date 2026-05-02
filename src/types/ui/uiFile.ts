@@ -1,5 +1,5 @@
-import { ReviewTreeFile } from "../backend/dto/reviewTreeFolder";
+import { ReviewTreeFileDto } from "../../api/fileSystem/dto/reviewTreeFileDto";
 
-export default interface UiFile extends ReviewTreeFile {
+export default interface UiFile extends ReviewTreeFileDto {
 	isVisible: boolean;
 }

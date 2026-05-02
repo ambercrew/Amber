@@ -11,7 +11,6 @@ use crate::{
 };
 
 #[derive(Debug)]
-/// Used to select cells with left join on repetitions.
 pub struct CellRow {
     // Cell fields
     pub cell_id: Guid,

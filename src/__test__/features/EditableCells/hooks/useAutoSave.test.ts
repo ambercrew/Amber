@@ -3,22 +3,24 @@ import useAutoSave, {
 	CLOSE_REQUESTED_HANDLER_NAME,
 } from "../../../../features/EditableCells/hooks/useAutoSave";
 import { act } from "react";
-import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
+import createDefaultCellDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto.ts";
 import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../../stores/sync/managers/syncEventManager";
-import * as cellApi from "../../../../api/cellApi";
+import * as cellApi from "../../../../api/cells/api/cellApi.ts";
+import callApiMock from "../../../test-utils/callApiMock.ts";
+import Cell from "../../../../api/cells/entities/cell.ts";
 
 const cellId = "1";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../stores/sync/managers/syncEventManager"));
-vi.mock(import("../../../../api/cellApi.ts"));
+vi.mock(import("../../../../api/cells/api/cellApi.ts"));
 
 const renderAutoSave = () => {
-	const cell = createDefaultCell("FlashCard", "0", 0);
+	const cell = createDefaultCellDto("FlashCard", "0", 0) as Cell;
 	cell.id = cellId;
 
 	const onCellsUpdateSaveCb = vi.fn();
@@ -27,9 +29,7 @@ const renderAutoSave = () => {
 		useAutoSave({
 			cells: [cell],
 			onCellsUpdateSave: onCellsUpdateSaveCb,
-			onError: () => {
-				/* Empty */
-			},
+			callApi: callApiMock,
 		}),
 	);
 

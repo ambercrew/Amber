@@ -12,11 +12,10 @@ use crate::{
             cell::Cell,
             repetition::{Repetition, State},
         },
-        models::{
-            cell_deletion_request::CellDeletionRequest,
+        repositories::cell_repository::{CellDeletionRequest, CellRepository, MoveDirection},
+        value_objects::{
             file_repetitions_count::FileRepetitionCounts, home_statistics::HomeStatistics,
         },
-        repositories::cell_repository::{CellRepository, MoveDirection},
     },
     common::repository_error::RepositoryError,
     infrastructure::{
@@ -75,14 +74,10 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                // Should be a single cell in list.
-                let cell = convert_rows_to_cells(rows).remove(0);
-                Ok(cell)
-            }
-        }
+        let rows = rows?;
+        // Should be a single cell in list.
+        let cell = convert_rows_to_cells(rows).remove(0);
+        Ok(cell)
     }
 
     async fn get_number_of_cells_in_file_with_index(
@@ -101,10 +96,7 @@ impl CellRepository for SqliteCellRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match row {
-            Ok(cnt) => Ok(cnt as u32),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(row? as u32)
     }
 
     async fn get_number_of_cells_in_file(&self, file_id: Guid) -> Result<u32, RepositoryError> {
@@ -115,10 +107,7 @@ impl CellRepository for SqliteCellRepository {
             .fetch_one(&mut *tx)
             .await;
 
-        match row {
-            Ok(cnt) => Ok(cnt as u32),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(row? as u32)
     }
 
     async fn get_file_cells_ordered_by_index(
@@ -166,13 +155,8 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let cells = convert_rows_to_cells(rows);
-                Ok(cells)
-            }
-        }
+        let cells = convert_rows_to_cells(rows?);
+        Ok(cells)
     }
 
     async fn get_all_cells_modified_on_or_after(
@@ -218,13 +202,8 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let cells = convert_rows_to_cells(rows);
-                Ok(cells)
-            }
-        }
+        let cells = convert_rows_to_cells(rows?);
+        Ok(cells)
     }
 
     async fn get_all_repetitions_modified_on_or_after(
@@ -260,13 +239,8 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let result = rows.into_iter().map(|row| row.into()).collect::<Vec<_>>();
-                Ok(result)
-            }
-        }
+        let result = rows?.into_iter().map(|row| row.into()).collect::<Vec<_>>();
+        Ok(result)
     }
 
     async fn create(&self, cell: &Cell) -> Result<(), RepositoryError> {
@@ -305,9 +279,7 @@ impl CellRepository for SqliteCellRepository {
         .execute(&mut *tx)
         .await;
 
-        if let Err(err) = result {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        result?;
 
         upsert_repetitions(tx, cell.repetitions()).await
     }
@@ -348,9 +320,7 @@ impl CellRepository for SqliteCellRepository {
         .execute(&mut *tx)
         .await;
 
-        if let Err(err) = result {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        result?;
 
         // Deleting removed repetitions.
 
@@ -364,9 +334,7 @@ impl CellRepository for SqliteCellRepository {
         }
         separated.push_unseparated(")");
 
-        if let Err(err) = query_builder.build().execute(&mut *tx).await {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        query_builder.build().execute(&mut *tx).await?;
 
         upsert_repetitions(tx, cell.repetitions()).await
     }
@@ -419,10 +387,7 @@ impl CellRepository for SqliteCellRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result?.rows_affected())
     }
 
     async fn upsert_repetition_with_modified_date_if_modified_before(
@@ -502,10 +467,7 @@ impl CellRepository for SqliteCellRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(result) => Ok(result.rows_affected()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(result?.rows_affected())
     }
 
     async fn move_cells_indices_starting_from(
@@ -534,10 +496,8 @@ impl CellRepository for SqliteCellRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn delete_by_id(
@@ -552,63 +512,94 @@ impl CellRepository for SqliteCellRepository {
             .execute(&mut *tx)
             .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn search_cells(&self, search_text: &str) -> Result<Vec<Cell>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let search_match = format!("%{}%", search_text);
-        let rows = sqlx::query_as!(
-            CellRow,
-            r#"SELECT
-                cell.id as "cell_id: _",
-                cell.created_date as "cell_created_date: _",
-                cell.modified_date as "cell_modified_date: _",
-                cell.file_id as "cell_file_id: _",
-                cell.content as cell_content,
-                cell.cell_index as "cell_index: _",
-                cell.cell_type as "cell_type: _",
-                cell.searchable_content as cell_searchable_content,
+        // Trigram tokenizer requires ≥3 chars to use the FTS index.
+        // Shorter inputs (including empty, which becomes '%%' = all) fall back to LIKE.
+        let rows = if search_text.chars().count() >= 3 {
+            let fts_query = format!("\"{}\"", search_text.replace('"', "\"\""));
+            sqlx::query_as!(
+                CellRow,
+                r#"SELECT
+                    cell.id as "cell_id: _",
+                    cell.created_date as "cell_created_date: _",
+                    cell.modified_date as "cell_modified_date: _",
+                    cell.file_id as "cell_file_id: _",
+                    cell.content as cell_content,
+                    cell.cell_index as "cell_index: _",
+                    cell.cell_type as "cell_type: _",
+                    cell.searchable_content as cell_searchable_content,
+                    repetition.id as "repetition_id: _",
+                    repetition.created_date as "repetition_created_date: _",
+                    repetition.modified_date as "repetition_modified_date: _",
+                    repetition.file_id as "repetition_file_id: _",
+                    repetition.cell_id as "repetition_cell_id: _",
+                    repetition.due as "repetition_due: _",
+                    repetition.stability as "repetition_stability: _",
+                    repetition.difficulty as "repetition_difficulty: _",
+                    repetition.elapsed_days as "repetition_elapsed_days: _",
+                    repetition.scheduled_days as "repetition_scheduled_days",
+                    repetition.reps as "repetition_reps: _",
+                    repetition.lapses as "repetition_lapses: _",
+                    repetition.state as "repetition_state: _",
+                    repetition.last_review as "repetition_last_review: _",
+                    repetition.additional_content as "repetition_additional_content: _"
+                FROM cells_fts AS fts
+                JOIN cells AS cell ON fts.rowid = cell.rowid
+                LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
+                WHERE cells_fts MATCH $1
+                LIMIT 150"#,
+                fts_query
+            )
+            .fetch_all(&mut *tx)
+            .await
+        } else {
+            let like_pattern = format!("%{}%", search_text);
+            sqlx::query_as!(
+                CellRow,
+                r#"SELECT
+                    cell.id as "cell_id: _",
+                    cell.created_date as "cell_created_date: _",
+                    cell.modified_date as "cell_modified_date: _",
+                    cell.file_id as "cell_file_id: _",
+                    cell.content as cell_content,
+                    cell.cell_index as "cell_index: _",
+                    cell.cell_type as "cell_type: _",
+                    cell.searchable_content as cell_searchable_content,
+                    repetition.id as "repetition_id: _",
+                    repetition.created_date as "repetition_created_date: _",
+                    repetition.modified_date as "repetition_modified_date: _",
+                    repetition.file_id as "repetition_file_id: _",
+                    repetition.cell_id as "repetition_cell_id: _",
+                    repetition.due as "repetition_due: _",
+                    repetition.stability as "repetition_stability: _",
+                    repetition.difficulty as "repetition_difficulty: _",
+                    repetition.elapsed_days as "repetition_elapsed_days: _",
+                    repetition.scheduled_days as "repetition_scheduled_days",
+                    repetition.reps as "repetition_reps: _",
+                    repetition.lapses as "repetition_lapses: _",
+                    repetition.state as "repetition_state: _",
+                    repetition.last_review as "repetition_last_review: _",
+                    repetition.additional_content as "repetition_additional_content: _"
+                FROM cells_fts AS fts
+                JOIN cells AS cell ON fts.rowid = cell.rowid
+                LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
+                WHERE fts.searchable_content LIKE $1
+                LIMIT 150"#,
+                like_pattern
+            )
+            .fetch_all(&mut *tx)
+            .await
+        };
 
-                repetition.id as "repetition_id: _",
-                repetition.created_date as "repetition_created_date: _",
-                repetition.modified_date as "repetition_modified_date: _",
-                repetition.file_id as "repetition_file_id: _",
-                repetition.cell_id as "repetition_cell_id: _",
-                repetition.due as "repetition_due: _",
-                repetition.stability as "repetition_stability: _",
-                repetition.difficulty as "repetition_difficulty: _",
-                repetition.elapsed_days as "repetition_elapsed_days: _",
-                repetition.scheduled_days as "repetition_scheduled_days",
-                repetition.reps as "repetition_reps: _",
-                repetition.lapses as "repetition_lapses: _",
-                repetition.state as "repetition_state: _",
-                repetition.last_review as "repetition_last_review: _",
-                repetition.additional_content as "repetition_additional_content: _"
-
-            FROM cells_fts AS fts
-            JOIN cells AS cell ON fts.rowid = cell.rowid
-            LEFT JOIN repetitions AS repetition ON repetition.cell_id = cell.id
-
-            WHERE fts.searchable_content LIKE $1
-            LIMIT 150"#,
-            search_match
-        )
-        .fetch_all(&mut *tx)
-        .await;
-
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let cells = convert_rows_to_cells(rows);
-                Ok(cells)
-            }
-        }
+        let cells = convert_rows_to_cells(rows?);
+        Ok(cells)
     }
 
     async fn get_study_repetitions(
@@ -632,26 +623,21 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let mut counts: FileRepetitionCounts = Default::default();
+        let mut counts: FileRepetitionCounts = Default::default();
 
-                for row in rows {
-                    if row.state == State::New {
-                        counts.new = row.count.unwrap_or_default();
-                    } else if row.state == State::Learning {
-                        counts.learning = row.count.unwrap_or_default();
-                    } else if row.state == State::Relearning {
-                        counts.relearning = row.count.unwrap_or_default();
-                    } else if row.state == State::Review {
-                        counts.review = row.count.unwrap_or_default();
-                    }
-                }
-
-                Ok(counts)
+        for row in rows? {
+            if row.state == State::New {
+                counts.new = row.count.unwrap_or_default();
+            } else if row.state == State::Learning {
+                counts.learning = row.count.unwrap_or_default();
+            } else if row.state == State::Relearning {
+                counts.relearning = row.count.unwrap_or_default();
+            } else if row.state == State::Review {
+                counts.review = row.count.unwrap_or_default();
             }
         }
+
+        Ok(counts)
     }
 
     async fn get_study_repetitions_for_all_files(
@@ -673,28 +659,23 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match rows {
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-            Ok(rows) => {
-                let mut output = HashMap::new();
+        let mut output = HashMap::new();
 
-                for row in rows {
-                    let entry: &mut FileRepetitionCounts = output.entry(row.file_id).or_default();
+        for row in rows? {
+            let entry: &mut FileRepetitionCounts = output.entry(row.file_id).or_default();
 
-                    if row.state == State::New {
-                        entry.new = row.count;
-                    } else if row.state == State::Learning {
-                        entry.learning = row.count;
-                    } else if row.state == State::Relearning {
-                        entry.relearning = row.count;
-                    } else if row.state == State::Review {
-                        entry.review = row.count;
-                    }
-                }
-
-                Ok(output)
+            if row.state == State::New {
+                entry.new = row.count;
+            } else if row.state == State::Learning {
+                entry.learning = row.count;
+            } else if row.state == State::Relearning {
+                entry.relearning = row.count;
+            } else if row.state == State::Review {
+                entry.review = row.count;
             }
         }
+
+        Ok(output)
     }
 
     async fn get_home_statistics(&self) -> Result<HomeStatistics, RepositoryError> {
@@ -721,10 +702,8 @@ impl CellRepository for SqliteCellRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        let (number_of_reviews, total_study_time) = match row {
-            Ok(result) => (result.count, result.total_study_time.unwrap_or(0)),
-            Err(err) => return Err(RepositoryError::Unknown(err.to_string())),
-        };
+        let row = row?;
+        let (number_of_reviews, total_study_time) = (row.count, row.total_study_time.unwrap_or(0));
 
         let start_of_year = Utc::now()
             .with_month(1)
@@ -754,12 +733,8 @@ impl CellRepository for SqliteCellRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        if let Err(err) = rows {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
-
         let mut review_counts: HashMap<NaiveDate, u64> = HashMap::new();
-        for row in rows.unwrap() {
+        for row in rows? {
             review_counts.insert(row.date.unwrap(), row.count.unwrap_or(0));
         }
 
@@ -774,14 +749,10 @@ impl CellRepository for SqliteCellRepository {
             end_of_year
         )
         .fetch_all(&mut *tx)
-        .await;
-
-        if let Err(err) = rows {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        .await?;
 
         let mut due_counts: HashMap<NaiveDate, u64> = HashMap::new();
-        for row in rows.unwrap() {
+        for row in rows {
             due_counts.insert(row.due.unwrap(), row.count);
         }
 
@@ -868,9 +839,7 @@ async fn upsert_repetitions(
         .execute(&mut *tx)
         .await;
 
-        if let Err(err) = result {
-            return Err(RepositoryError::Unknown(err.to_string()));
-        }
+        result?;
     }
 
     Ok(())

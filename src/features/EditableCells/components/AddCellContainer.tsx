@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import { mdiPlus } from "@mdi/js";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import { useState } from "react";
-import { CellType } from "../../../types/backend/entity/cell";
+import { CellType } from "../../../api/cells/entities/cell";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import Dialog from "../../../components/Dialog/Dialog";
 import { useDroppable } from "@dnd-kit/react";

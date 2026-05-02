@@ -3,7 +3,10 @@ use std::sync::Arc;
 use crate::{
     Guid,
     common::api_error::ApiError,
-    file_system::{file_system_service::FileSystemService, models::exported_item::ExportedItem},
+    file_system::{
+        services::{item_exporter::ItemExporter, item_importer::ItemImporter},
+        value_objects::exported_item::ExportedItem,
+    },
     infrastructure::extensions::unit_of_work::UnitOfWorkExt,
 };
 use injector::injector::Injector;
@@ -21,7 +24,7 @@ pub async fn export_folder(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     let exported_item = scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn ItemExporter>()
         .await
         .convert_folder_to_exported_item(folder_id)
         .await?;
@@ -36,7 +39,7 @@ pub async fn export_file(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     let exported_item = scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn ItemExporter>()
         .await
         .convert_file_to_exported_item(file_id)
         .await?;
@@ -73,7 +76,7 @@ pub async fn import(
     let exported_item: ExportedItem = serde_json::from_str(&file_content)?;
 
     scope
-        .resolve::<FileSystemService>()
+        .resolve::<dyn ItemImporter>()
         .await
         .import_exported_item(import_into_folder_id, exported_item)
         .await?;

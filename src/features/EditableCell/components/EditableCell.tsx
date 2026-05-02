@@ -1,4 +1,4 @@
-import Cell from "../../../types/backend/entity/cell";
+import Cell from "../../../api/cells/entities/cell";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import ClozeCell from "./ClozeCell";
 import FlashCardCell from "./FlashCardCell";

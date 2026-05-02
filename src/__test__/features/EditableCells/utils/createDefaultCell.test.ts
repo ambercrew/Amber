@@ -1,5 +1,5 @@
-import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
-import Cell from "../../../../types/backend/entity/cell";
+import createDefaultCellDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto";
+import CreateCellRequestDto from "../../../../api/cells/dto/createCellRequestDto";
 
 describe("createDefaultCell", () => {
 	it("Note", () => {
@@ -7,19 +7,16 @@ describe("createDefaultCell", () => {
 
 		const fileId = "2";
 		const index = 3;
-		const expected: Cell = {
-			id: "",
+		const expected: CreateCellRequestDto = {
 			cellType: "Note",
 			content: "",
-			searchableContent: "",
 			fileId,
 			index,
-			repetitions: [],
 		};
 
 		// Act
 
-		const actual = createDefaultCell("Note", fileId, index);
+		const actual = createDefaultCellDto("Note", fileId, index);
 
 		// Assert
 

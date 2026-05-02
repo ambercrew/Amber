@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import AiChatWidget from "../../../../features/AiChatWidget/components/AiChatWidget";
-import SettingsDto from "../../../../types/backend/dto/settingsDto.ts";
+import UpdateSettingsRequestDto from "../../../../api/settings/dto/updateSettingsRequestDto.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	acceptToolCall,
@@ -11,23 +11,23 @@ import {
 	stopAiGeneration,
 	streamAiResponse,
 	uploadDocument,
-} from "../../../../api/aiApi.ts";
+} from "../../../../api/aiIntegration/api/aiApi.ts";
 import userEvent from "@testing-library/user-event";
 import Message, {
 	ToolCall,
 	ToolCallStatus,
-} from "../../../../types/backend/entity/message.ts";
+} from "../../../../api/aiIntegration/entities/message.ts";
 import { Channel } from "@tauri-apps/api/core";
-import { StreamLlmResponseEvent } from "../../../../types/backend/events/streamLlmResponseEvent.ts";
+import { StreamLlmResponseEvent } from "../../../../api/aiIntegration/events/streamLlmResponseEvent.ts";
 import { MemoryRouterProps } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../../config/constants.ts";
 import { RootState } from "../../../../stores/store.ts";
-import { ReviewTreeFolder } from "../../../../types/backend/dto/reviewTreeFolder.ts";
+import { ReviewTreeFolderDto } from "../../../../api/fileSystem/dto/reviewTreeFolderDto.ts";
 import { TOOL_CALL_ACCEPTED_EVENT } from "../../../../types/events/toolCallAcceptedEvent.ts";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
-vi.mock(import("../../../../api/aiApi.ts"));
+vi.mock(import("../../../../api/aiIntegration/api/aiApi.ts"));
 
 vi.mock("@tauri-apps/api/core", () => {
 	class MockChannel {
@@ -52,7 +52,7 @@ function renderComponent({
 			settings: {
 				settings: {
 					enableAi,
-				} as SettingsDto,
+				} as UpdateSettingsRequestDto,
 			},
 			...preloadedState,
 		},
@@ -581,7 +581,7 @@ describe("ToolCallDisplay", () => {
 								id: "file-1",
 							},
 						],
-					} as unknown as ReviewTreeFolder,
+					} as unknown as ReviewTreeFolderDto,
 				},
 			},
 		});
@@ -652,7 +652,7 @@ describe("ToolCallDisplay", () => {
 								id: "file-1",
 							},
 						],
-					} as unknown as ReviewTreeFolder,
+					} as unknown as ReviewTreeFolderDto,
 				},
 			},
 		});
@@ -707,7 +707,7 @@ describe("ToolCallDisplay", () => {
 								name: "file 1",
 							},
 						],
-					} as unknown as ReviewTreeFolder,
+					} as unknown as ReviewTreeFolderDto,
 				},
 			},
 		});
@@ -768,7 +768,7 @@ describe("ToolCallDisplay", () => {
 								name: "file 1",
 							},
 						],
-					} as unknown as ReviewTreeFolder,
+					} as unknown as ReviewTreeFolderDto,
 				},
 			},
 		});

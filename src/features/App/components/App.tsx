@@ -32,10 +32,11 @@ import AiChatWidget from "../../AiChatWidget/components/AiChatWidget";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
+import useApi from "../../../hooks/useApi.ts";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const [searchParams] = useSearchParams();
 	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
 	const [editorInitialSelectedCellId, setInitialSelectedCellId] = useState<
@@ -133,7 +134,7 @@ function App() {
 
 			{errorMessage && (
 				<div className={styles.errorDialog}>
-					<Alert type="error" onClose={() => setErrorMessage(null)}>
+					<Alert type="error" onClose={() => clearErrorMessage()}>
 						<p>{errorMessage}</p>
 					</Alert>
 				</div>
@@ -156,7 +157,7 @@ function App() {
 							element={
 								<Home
 									onStudyClick={handleHomeStudyClick}
-									onError={setErrorMessage}
+									callApi={callApi}
 								/>
 							}
 						/>
@@ -168,7 +169,7 @@ function App() {
 								initialSelectedCellId={
 									editorInitialSelectedCellId
 								}
-								onError={setErrorMessage}
+								callApi={callApi}
 								onStudyStart={() => handleEditorStudyClick()}
 								key={selectedFileId}
 							/>
@@ -179,7 +180,7 @@ function App() {
 						element={
 							<Reviewer
 								onEditButtonClick={handleEditButtonClick}
-								onError={setErrorMessage}
+								callApi={callApi}
 								fileIds={studyFileIds}
 							/>
 						}
@@ -188,7 +189,7 @@ function App() {
 						path="/search"
 						element={
 							<Searcher
-								onError={setErrorMessage}
+								callApi={callApi}
 								onEditButtonClick={handleEditButtonClick}
 							/>
 						}

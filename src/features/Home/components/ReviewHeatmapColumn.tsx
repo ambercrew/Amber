@@ -1,7 +1,7 @@
 import styles from "./styles.module.css";
 import { Tooltip } from "react-tooltip";
 import React, { useMemo } from "react";
-import HomeStatistics from "../../../types/backend/dto/homeStatistics";
+import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
 import { colors } from "../config/colors";
 import { reviewsDivisor } from "../config/constants";
 import { formatDateHeatmapTooltip } from "../utils/formatDateHeatmapTooltip";

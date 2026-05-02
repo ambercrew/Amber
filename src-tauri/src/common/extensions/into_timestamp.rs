@@ -9,7 +9,7 @@ impl IntoTimestamp for DateTime<Utc> {
     fn into_timestamp(self) -> Timestamp {
         Timestamp {
             seconds: self.timestamp(),
-            nanos: self.timestamp_nanos_opt().unwrap_or(0) as i32,
+            nanos: self.timestamp_subsec_nanos() as i32,
         }
     }
 }

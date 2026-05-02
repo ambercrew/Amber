@@ -1,5 +1,5 @@
 import { Card, createEmptyCard, State } from "ts-fsrs";
-import Repetition from "../../../types/backend/entity/repetition";
+import Repetition from "../../../api/cells/entities/repetition";
 
 function createCardFromRepetition(repetition: Repetition): Card {
 	const card = createEmptyCard();

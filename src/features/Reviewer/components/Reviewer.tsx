@@ -10,10 +10,9 @@ import createRepetitionFromCard from "../utils/createRepetitionFromCard";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import FromRouteState from "../../../types/fromRouteState";
-import { getCellsForFilesWithFsrsProfileIds } from "../../../api/cellApi";
-import errorToString from "../../../utils/errorToString";
+import { getCellsForFilesWithFsrsProfileIds } from "../../../api/cells/api/cellApi";
 import gradeToRating from "../utils/gradeToRating";
-import { registerReview } from "../../../api/reviewApi";
+import { registerReview } from "../../../api/cells/api/reviewApi";
 import sortReviewerRepetitions from "../utils/sortReviewerRepetitions";
 import ButtonRow from "./ButtonRow";
 import accumulateRepetitionsCounts from "../utils/accumulateRepetitionsCounts";
@@ -21,15 +20,16 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
-import FsrsProfile from "../../../types/backend/entity/fsrsProfile";
-import { getAllFsrsProfiles } from "../../../api/fsrsApi";
-import { CellWithFsrsProfileId } from "../../../types/backend/dto/cellWithFsrsProfileId";
-import Repetition from "../../../types/backend/entity/repetition";
+import FsrsProfile from "../../../api/fsrs/entities/fsrsProfile";
+import { getAllFsrsProfiles } from "../../../api/fsrs/api/fsrsApi";
+import { CellWithFsrsProfileIdDto } from "../../../api/cells/dto/cellWithFsrsProfileIdDto";
+import Repetition from "../../../api/cells/entities/repetition";
+import { CallApiFn } from "../../../hooks/useApi";
 
 interface Props {
 	fileIds: string[];
 	onEditButtonClick: (fileId: string, cellId: string) => void;
-	onError: (message: string) => void;
+	callApi: CallApiFn;
 }
 
 export interface RepetitionWithFsrsProfileId {
@@ -37,12 +37,12 @@ export interface RepetitionWithFsrsProfileId {
 	fsrsProfileId: string;
 }
 
-function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
+function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(true);
 	const [cellsWithFsrsProfileIds, setCellsWithFsrsProfileIds] = useState<
-		CellWithFsrsProfileId[]
+		CellWithFsrsProfileIdDto[]
 	>([]);
 	const [allFsrsProfiles, setAllFsrsProfiles] = useState<FsrsProfile[]>([]);
 	const [startTime, setStartTime] = useState(new Date());
@@ -52,7 +52,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 
 	useEffect(() => {
 		const loadCells = async () => {
-			try {
+			await callApi(async () => {
 				setIsSendingRequest(true);
 				setAllFsrsProfiles(await getAllFsrsProfiles());
 				setCellsWithFsrsProfileIds(
@@ -61,10 +61,7 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				setCurrentCellIndex(0);
 				setShowAnswer(false);
 				setIsSendingRequest(false);
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
+			});
 		};
 
 		void loadCells();
@@ -78,19 +75,16 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				ListenerType.PostSyncComplete,
 				loadCells,
 			);
-	}, [fileIds, onError]);
+	}, [fileIds, callApi]);
 
 	const dueToday = useMemo(() => {
 		return sortReviewerRepetitions(
 			cellsWithFsrsProfileIds
 				.map(c => {
-					return c.cell.repetitions.map(
-						r =>
-							({
-								repetition: r,
-								fsrsProfileId: c.fsrsProfileId,
-							}) as RepetitionWithFsrsProfileId,
-					);
+					return c.cell.repetitions.map(r => ({
+						repetition: r,
+						fsrsProfileId: c.fsrsProfileId,
+					}));
 				})
 				.flat()
 				.filter(r => new Date(r.repetition.due) <= startTime),
@@ -122,27 +116,28 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 			return;
 		}
 		setIsSendingRequest(true);
-		try {
-			const card = recordLog[grade]?.card;
-			const newRepetition = createRepetitionFromCard(
-				card,
-				dueToday[currentCellIndex].repetition.id,
-				dueToday[currentCellIndex].repetition.fileId,
-				dueToday[currentCellIndex].repetition.cellId,
-				dueToday[currentCellIndex].repetition.additionalContent,
-			);
-			await registerReview(
-				newRepetition,
-				gradeToRating(grade),
-				studyTime.current,
-			);
-			studyTime.current = 0;
-		} catch (e) {
-			onError("An error happened!");
-			console.error(e);
-		} finally {
-			setIsSendingRequest(false);
-		}
+		await callApi(
+			async () => {
+				const card = recordLog[grade]?.card;
+				const newRepetition = createRepetitionFromCard(
+					card,
+					dueToday[currentCellIndex].repetition.id,
+					dueToday[currentCellIndex].repetition.fileId,
+					dueToday[currentCellIndex].repetition.cellId,
+					dueToday[currentCellIndex].repetition.additionalContent,
+				);
+				await registerReview(
+					newRepetition,
+					gradeToRating(grade),
+					studyTime.current,
+				);
+				studyTime.current = 0;
+			},
+			() => {
+				setIsSendingRequest(false);
+				return Promise.resolve();
+			},
+		);
 		setShowAnswer(false);
 
 		if (currentCellIndex + 1 === dueToday.length) {

@@ -10,7 +10,7 @@ import Form, {
 } from "../../../components/Form/Form";
 import { useState, useTransition } from "react";
 import errorToString from "../../../utils/errorToString";
-import { deleteUser } from "../../../api/userApi";
+import { deleteUser } from "../../../api/backend/api/userApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { setLoggedOf } from "../../../stores/user/userReducer";
 

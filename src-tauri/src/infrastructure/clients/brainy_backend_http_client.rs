@@ -4,12 +4,12 @@ use std::{
 };
 
 use crate::backend::{
-    clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
-    dto::sign_up_request::SignUpRequest,
-    models::{
+    backend_dto::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
         UpdatePasswordDto, UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
     },
+    clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
+    dto::sign_up_request_dto::SignUpRequestDto,
 };
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
@@ -102,17 +102,17 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         }
         let response = status?;
 
-        self.persist_cookies();
+        self.persist_cookies()?;
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
     async fn sign_up(
         &self,
-        request: SignUpRequest,
+        request: SignUpRequestDto,
     ) -> Result<UserInformationDto, BrainyBackendClientError> {
         let dto = SignUpDto {
             first_name: request.first_name,
@@ -131,11 +131,11 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         let response = ensure_success_response(response).await?;
-        self.persist_cookies();
+        self.persist_cookies()?;
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
@@ -147,7 +147,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
         ensure_success_response(response).await?;
-        self.persist_cookies();
+        self.persist_cookies()?;
         Ok(())
     }
 
@@ -169,7 +169,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies();
+        self.persist_cookies()?;
 
         Ok(())
     }
@@ -199,20 +199,26 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
-    fn is_signed_in(&self) -> bool {
-        let store = self.cookie_store.lock().unwrap();
+    fn is_signed_in(&self) -> Result<bool, BrainyBackendClientError> {
+        let store = match self.cookie_store.lock() {
+            Ok(store) => store,
+            Err(err) => {
+                log::error!("Cookie store mutex poisoned: {:?}", err);
+                return Err(BrainyBackendClientError::CannotLoadStoredCookies);
+            }
+        };
 
         for cookie in store.iter_unexpired() {
             if cookie.name() == ".AspNetCore.Cookies" {
-                return true;
+                return Ok(true);
             }
         }
 
-        false
+        Ok(false)
     }
 
     async fn update_user_information(
@@ -255,7 +261,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<SyncedEntitiesPageDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
@@ -290,7 +296,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies();
+        self.persist_cookies()?;
 
         Ok(())
     }
@@ -313,24 +319,36 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies();
+        self.persist_cookies()?;
 
         Ok(())
     }
 }
 
 impl BrainyBackendHttpClient {
-    fn persist_cookies(&self) {
+    fn persist_cookies(&self) -> Result<(), BrainyBackendClientError> {
         let mut writer = std::io::BufWriter::new(Vec::new());
-        let store = self.cookie_store.lock().unwrap();
+        let store = match self.cookie_store.lock() {
+            Ok(store) => store,
+            Err(err) => {
+                log::error!("Cookie store mutex poisoned: {:?}", err);
+                return Err(BrainyBackendClientError::CannotLoadStoredCookies);
+            }
+        };
         cookie_store::serde::json::save(&store, &mut writer).unwrap();
         let cookies_json = String::from_utf8(writer.into_inner().unwrap()).unwrap();
 
         if let Some(keyring_entry) = self.keyring_entry.as_ref() {
             #[cfg(debug_assertions)]
             log::info!("Saving the following cookies to keyring: {cookies_json}");
-            keyring_entry.set_password(&cookies_json).unwrap();
+            if let Err(err) = keyring_entry.set_password(&cookies_json) {
+                return Err(BrainyBackendClientError::CannotSaveAuthenticationCookies(
+                    Box::new(err),
+                ));
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -348,7 +366,7 @@ async fn ensure_success_response(
         } else if err.is_timeout() {
             return Err(BrainyBackendClientError::Timeout);
         } else {
-            return Err(BrainyBackendClientError::Unknown(err.to_string()));
+            return Err(BrainyBackendClientError::Unknown(Box::new(err)));
         }
     }
 
@@ -361,13 +379,13 @@ async fn ensure_success_response(
     log::info!("{response:#?}");
 
     match response.status() {
+        status if status.is_success() => Ok(response),
         StatusCode::UNAUTHORIZED => Err(BrainyBackendClientError::Unauthorized),
-        StatusCode::OK => Ok(response),
         StatusCode::BAD_REQUEST => match response.json::<ProblemDetails>().await {
             Ok(problem_details) => {
                 Err(BrainyBackendClientError::BadRequest(problem_details.detail))
             }
-            Err(err) => Err(BrainyBackendClientError::Deserialization(err.to_string())),
+            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
         },
         _ => Err(BrainyBackendClientError::UnexpectedResponse),
     }

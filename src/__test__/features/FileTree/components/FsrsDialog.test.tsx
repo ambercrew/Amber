@@ -7,14 +7,14 @@ import {
 	getFsrsProfileChoiceForFolder,
 	setFsrsProfileChoiceForFolder,
 	updateProfile,
-} from "../../../../api/fsrsApi";
+} from "../../../../api/fsrs/api/fsrsApi.ts";
 import FsrsDialog from "../../../../features/FileTree/components/FsrsDialog.tsx";
-import FsrsProfile from "../../../../types/backend/entity/fsrsProfile.ts";
+import FsrsProfile from "../../../../api/fsrs/entities/fsrsProfile.ts";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import { screen } from "@testing-library/react";
-import { FsrsProfileChoice } from "../../../../types/backend/valueObjects/fsrsProfileChoice.ts";
+import { FsrsProfileChoice } from "../../../../api/fileSystem/valueObjects/fsrsProfileChoice.ts";
 
-vi.mock(import("../../../../api/fsrsApi.ts"));
+vi.mock(import("../../../../api/fsrs/api/fsrsApi.ts"));
 
 describe("FsrsDialog", () => {
 	const ITEM_ID = "test_item";

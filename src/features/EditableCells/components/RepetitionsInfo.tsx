@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { CellType } from "../../../types/backend/entity/cell";
-import Repetition from "../../../types/backend/entity/repetition";
+import { CellType } from "../../../api/cells/entities/cell";
+import Repetition from "../../../api/cells/entities/repetition";
 import styles from "./styles.module.css";
 import repetitionsInfoFormatDate from "../utils/repetitionsInfoFormatDate";
 

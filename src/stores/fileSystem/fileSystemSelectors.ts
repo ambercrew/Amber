@@ -1,7 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import getFolderChildById from "../../utils/getFolderChildById";
-import { ReviewTreeFile } from "../../types/backend/dto/reviewTreeFolder";
 
 export const selectErrorMessage = (state: RootState) =>
 	state.fileSystem.errorMessage;
@@ -13,6 +12,5 @@ export const selectRootFolder = (state: RootState) =>
 
 export const selectFileById = createSelector(
 	[selectRootFolder, (_, id: string) => id],
-	(rootFolder, id) =>
-		getFolderChildById(rootFolder, id) as ReviewTreeFile | null,
+	(rootFolder, id) => getFolderChildById(rootFolder, id),
 );

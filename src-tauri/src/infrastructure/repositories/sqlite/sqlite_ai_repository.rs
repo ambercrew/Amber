@@ -48,10 +48,7 @@ impl AiRepository for SqliteAiRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match chat_rows {
-            Ok(chat_rows) => Ok(chat_rows.into_iter().map(|chat| chat.into()).collect()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(chat_rows?.into_iter().map(|chat| chat.into()).collect())
     }
 
     async fn upsert_chat(&self, chat: &Chat) -> Result<(), RepositoryError> {
@@ -80,10 +77,8 @@ impl AiRepository for SqliteAiRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn get_chat_by_id(&self, id: Guid) -> Result<Chat, RepositoryError> {
@@ -103,10 +98,7 @@ impl AiRepository for SqliteAiRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match chat_row {
-            Ok(chat_row) => Ok(chat_row.into()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(chat_row?.into())
     }
 
     async fn upsert_message(&self, message: &Message) -> Result<(), RepositoryError> {
@@ -163,10 +155,8 @@ impl AiRepository for SqliteAiRepository {
         .execute(&mut *tx)
         .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn get_chat_messages_ordered(&self, id: Guid) -> Result<Vec<Message>, RepositoryError> {
@@ -189,13 +179,10 @@ impl AiRepository for SqliteAiRepository {
         .fetch_all(&mut *tx)
         .await;
 
-        match message_rows {
-            Ok(message_rows) => Ok(message_rows
-                .into_iter()
-                .map(|message| message.into())
-                .collect()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(message_rows?
+            .into_iter()
+            .map(|message| message.into())
+            .collect())
     }
 
     async fn delete_chat(&self, id: Guid) -> Result<(), RepositoryError> {
@@ -206,10 +193,8 @@ impl AiRepository for SqliteAiRepository {
             .execute(&mut *tx)
             .await;
 
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        result?;
+        Ok(())
     }
 
     async fn get_message_by_id(&self, id: Guid) -> Result<Message, RepositoryError> {
@@ -231,10 +216,7 @@ impl AiRepository for SqliteAiRepository {
         .fetch_one(&mut *tx)
         .await;
 
-        match message_row {
-            Ok(message_row) => Ok(message_row.into()),
-            Err(err) => Err(RepositoryError::Unknown(err.to_string())),
-        }
+        Ok(message_row?.into())
     }
 }
 

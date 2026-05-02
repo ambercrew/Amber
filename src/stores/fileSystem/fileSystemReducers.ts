@@ -1,11 +1,11 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { ROOT_FOLDER_ID } from "../../config/constants";
-import { ReviewTreeFolder } from "../../types/backend/dto/reviewTreeFolder";
+import { ReviewTreeFolderDto } from "../../api/fileSystem/dto/reviewTreeFolderDto";
 
 interface FileSystemState {
 	errorMessage: string | null;
 	successMessage: string | null;
-	rootFolder: ReviewTreeFolder;
+	rootFolder: ReviewTreeFolderDto;
 }
 
 const initialState: FileSystemState = {
@@ -33,7 +33,10 @@ export const fileSystemSlice = createSlice({
 			state.errorMessage = null;
 			state.successMessage = null;
 		},
-		requestSuccess: (state, payload: PayloadAction<ReviewTreeFolder>) => {
+		requestSuccess: (
+			state,
+			payload: PayloadAction<ReviewTreeFolderDto>,
+		) => {
 			state.rootFolder = payload.payload;
 		},
 		requestFailure: (state, payload: PayloadAction<string>) => {

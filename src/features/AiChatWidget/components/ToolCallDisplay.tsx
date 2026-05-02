@@ -5,9 +5,12 @@ import Markdown from "react-markdown";
 import Message, {
 	ToolCall,
 	ToolCallStatus,
-} from "../../../types/backend/entity/message";
+} from "../../../api/aiIntegration/entities/message";
 import { useTransition } from "react";
-import { acceptToolCall, rejectToolCall } from "../../../api/aiApi";
+import {
+	acceptToolCall,
+	rejectToolCall,
+} from "../../../api/aiIntegration/api/aiApi";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectRootFolder } from "../../../stores/fileSystem/fileSystemSelectors";
 import getFolderChildById from "../../../utils/getFolderChildById";

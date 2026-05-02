@@ -1,4 +1,4 @@
-import Repetition from "../../../types/backend/entity/repetition";
+import Repetition from "../../../api/cells/entities/repetition";
 
 function accumulateRepetitionsCounts(repetitions: Repetition[]) {
 	const counts = {

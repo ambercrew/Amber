@@ -1,9 +1,9 @@
-import { UserInformationDto } from "../../../types/backend/dto/userInformationDto";
-import SettingsDto from "../../../types/backend/dto/settingsDto";
+import { UserInformationDto } from "../../../api/backend/dto/userInformationDto";
+import UpdateSettingsRequestDto from "../../../api/settings/dto/updateSettingsRequestDto";
 import { SecurityTabState } from "./securityTabState";
 
 export interface SettingsState {
-	localSettings: SettingsDto | null;
+	localSettings: UpdateSettingsRequestDto | null;
 	userInformation: UserInformationDto | null;
 	securityTabState: SecurityTabState;
 }

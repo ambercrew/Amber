@@ -28,6 +28,6 @@
 	align-items: center;
 
 	& input {
-		margin-right: var(--spacing-2);
+		margin-right: var(--spacing-3);
 	}
 }

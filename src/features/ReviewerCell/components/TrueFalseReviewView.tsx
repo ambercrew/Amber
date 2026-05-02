@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Cell from "../../../types/backend/entity/cell";
-import TrueFalse from "../../../types/backend/valueObjects/trueFalse";
+import Cell from "../../../api/cells/entities/cell";
+import TrueFalse from "../../../api/cells/valueObjects/trueFalse";
 import styles from "./styles.module.css";
 
 interface Props {

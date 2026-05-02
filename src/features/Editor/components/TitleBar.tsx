@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import { mdiMagnify, mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectFileById } from "../../../stores/fileSystem/fileSystemSelectors";
-import FileRepetitionCounts from "../../../types/backend/model/fileRepetitionCounts";
+import FileRepetitionCounts from "../../../api/cells/valueObjects/fileRepetitionCounts";
 import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";

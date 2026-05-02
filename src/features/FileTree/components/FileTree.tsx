@@ -17,9 +17,10 @@ import { DragDropEventHandlers } from "@dnd-kit/react";
 
 interface Props {
 	folder: UiFolder;
+	className?: string;
 }
 
-function FileTree({ folder }: Props) {
+function FileTree({ folder, className }: Props) {
 	const dispatch = useAppDispatch();
 
 	const handleDragEnd: DragDropEventHandlers["onDragEnd"] = event => {
@@ -45,7 +46,7 @@ function FileTree({ folder }: Props) {
 	};
 
 	return (
-		<div className={styles.fileTreeContainer}>
+		<div className={`${styles.fileTreeContainer} ${className}`}>
 			<DefaultDragDropProvider onDragEnd={handleDragEnd}>
 				<FileTreeItem
 					fullPath=""

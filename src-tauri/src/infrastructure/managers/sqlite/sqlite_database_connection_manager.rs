@@ -26,9 +26,7 @@ impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
     ) -> Result<(), DatabaseConnectionManagerError> {
         let new_pool = match create_sqlite_pool_from_location(&database_location).await {
             Err(err) => {
-                return Err(DatabaseConnectionManagerError::ErrorChangingDatabase(
-                    err.to_string(),
-                ));
+                return Err(DatabaseConnectionManagerError::ErrorChangingDatabase(err));
             }
             Ok(pool) => pool,
         };
@@ -49,7 +47,7 @@ impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
         self.connect_to_database(new_database_location).await?;
 
         if let Err(err) = fs::remove_file(old_location).await {
-            return Err(DatabaseConnectionManagerError::Unknown(err.to_string()));
+            return Err(DatabaseConnectionManagerError::Unknown(Box::new(err)));
         }
 
         Ok(())
@@ -61,7 +59,7 @@ impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
         if let Some(parent) = path.parent()
             && let Err(err) = fs::create_dir_all(parent).await
         {
-            return Err(DatabaseConnectionManagerError::Unknown(err.to_string()));
+            return Err(DatabaseConnectionManagerError::Unknown(Box::new(err)));
         }
         let path = path.to_string_lossy();
 
@@ -71,7 +69,7 @@ impl DatabaseConnectionManager for SqliteDatabaseConnectionManager {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(DatabaseConnectionManagerError::Unknown(err.to_string())),
+            Err(err) => Err(DatabaseConnectionManagerError::Unknown(Box::new(err))),
         }
     }
 }

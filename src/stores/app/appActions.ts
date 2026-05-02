@@ -4,7 +4,7 @@ import { loadAndApplySettings } from "../settings/settingsActions";
 import { AppDispatch, RootState } from "../store";
 import { sync } from "../sync/syncActions";
 import { loadUserState } from "../user/userActions";
-import { UserInformationDto } from "../../types/backend/dto/userInformationDto";
+import { UserInformationDto } from "../../api/backend/dto/userInformationDto";
 import { setUserInformation } from "../user/userReducer";
 import { selectStartedInitialStateLoading } from "./appSelectors";
 import { markStartLoadingOfInitialState } from "./appReducer";

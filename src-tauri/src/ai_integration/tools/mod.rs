@@ -4,8 +4,8 @@ use serde_json::Value;
 use thiserror::Error;
 
 use crate::{
-    ai_integration::entities::message::ToolCallContent, cells::cell_service::CellServiceError,
-    common::repository_error::RepositoryError,
+    ai_integration::entities::message::ToolCallContent,
+    cells::services::cell_creator::CellCreatorError, common::repository_error::RepositoryError,
 };
 
 pub mod create_flash_card;
@@ -16,7 +16,7 @@ pub enum AcceptToolCallError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
     #[error(transparent)]
-    CellService(#[from] CellServiceError),
+    CellCreator(#[from] CellCreatorError),
     #[error(transparent)]
     Parsing(#[from] serde_json::Error),
     #[error("{0}")]

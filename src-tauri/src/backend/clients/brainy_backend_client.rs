@@ -1,31 +1,47 @@
-use crate::backend::{dto::sign_up_request::SignUpRequest, models::SyncEntityDto};
+use crate::backend::{backend_dto::SyncEntityDto, dto::sign_up_request_dto::SignUpRequestDto};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 #[cfg(test)]
 use mockall::automock;
 use thiserror::Error;
 
-use crate::backend::models::{SyncedEntitiesPageDto, UpdatePasswordDto, UserInformationDto};
+use crate::SourceError;
+use crate::backend::backend_dto::{SyncedEntitiesPageDto, UpdatePasswordDto, UserInformationDto};
 
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug)]
 pub enum BrainyBackendClientError {
     #[error("Invalid credentials!")]
     InvalidCredentials,
     #[error("Unauthorized!")]
     Unauthorized,
-    #[error("The application received an unexpected respone!")]
+    #[error("The application received an unexpected response!")]
     UnexpectedResponse,
-    #[error("An unknown error happend while sending the request!")]
-    Unknown(String),
+    #[error("An unknown error happened while sending the request")]
+    Unknown(#[source] SourceError),
     #[error("Error deserializing the response received.")]
-    Deserialization(String),
+    Deserialization(#[source] SourceError),
     #[error("{0}")]
     BadRequest(String),
     #[error("Error connecting to the server, please try again!")]
     Connect,
     #[error("The request has timed out, please try again!")]
     Timeout,
+    #[error("Cannot save authentication cookies")]
+    CannotSaveAuthenticationCookies(#[source] SourceError),
+    #[error("Cannot load stored cookies")]
+    CannotLoadStoredCookies,
 }
+
+impl PartialEq for BrainyBackendClientError {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::BadRequest(a), Self::BadRequest(b)) => a == b,
+            _ => std::mem::discriminant(self) == std::mem::discriminant(other),
+        }
+    }
+}
+
+impl Eq for BrainyBackendClientError {}
 
 #[cfg_attr(test, automock)]
 #[async_trait]
@@ -38,7 +54,7 @@ pub trait BrainyBackendClient: Send + Sync {
 
     async fn sign_up(
         &self,
-        request: SignUpRequest,
+        request: SignUpRequestDto,
     ) -> Result<UserInformationDto, BrainyBackendClientError>;
 
     async fn sign_out(&self) -> Result<(), BrainyBackendClientError>;
@@ -52,7 +68,7 @@ pub trait BrainyBackendClient: Send + Sync {
 
     async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError>;
 
-    fn is_signed_in(&self) -> bool;
+    fn is_signed_in(&self) -> Result<bool, BrainyBackendClientError>;
 
     async fn update_user_information(
         &self,

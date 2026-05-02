@@ -1,11 +1,13 @@
-import SettingsDto, { Theme } from "../../../../types/backend/dto/settingsDto";
+import UpdateSettingsRequestDto, {
+	Theme,
+} from "../../../../api/settings/dto/updateSettingsRequestDto";
 import { FormRows, FormRowsProps } from "../../../../components/Form/Form";
 import { TabProps } from "../../types/tabProps";
 import Select from "../../../../components/Select/Select";
 import { isMobile } from "../../../../utils/tauriUtils";
 
 export default function AppearanceTab({ state, setState }: TabProps) {
-	const updateSettings = (newSettings: Partial<SettingsDto>) => {
+	const updateSettings = (newSettings: Partial<UpdateSettingsRequestDto>) => {
 		setState({
 			...state,
 			localSettings: {

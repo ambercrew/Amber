@@ -1,5 +1,5 @@
 import styles from "./styles.module.css";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { mdiEmailCheckOutline } from "@mdi/js";
 import Alert from "../../../components/Alert/Alert";
@@ -10,29 +10,29 @@ import Form, {
 	FormRowsProps,
 } from "../../../components/Form/Form";
 import Spinner from "../../../components/Spinner/Spinner";
-import errorToString from "../../../utils/errorToString";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectUserInformation } from "../../../stores/user/userSelectors";
-import { getUserInformation } from "../../../api/userApi";
+import { getUserInformation } from "../../../api/backend/api/userApi";
 import { setUserInformation } from "../../../stores/user/userReducer";
 import {
 	resendEmailVerificationCode,
 	verifyUserEmail,
-} from "../../../api/authApi";
+} from "../../../api/backend/api/authApi";
 import Dialog from "../../../components/Dialog/Dialog";
+import useApi from "../../../hooks/useApi";
 
 interface Props {
 	onClose: () => void;
 }
 
 export default function VerifyEmailDialog({ onClose }: Props) {
-	const [isSendingRequest, startRequest] = useTransition();
 	const [verificationCode, setVerificationCode] = useState("");
-	const [errorMessage, setErrorMessage] = useState("");
 	const [
 		showVerificationCodeSentSuccessMessage,
 		setShowVerificationCodeSentSuccessMessage,
 	] = useState(false);
+	const { errorMessage, isSendingRequest, clearErrorMessage, callApi } =
+		useApi();
 	const userInformation = useAppSelector(selectUserInformation);
 	const dispatch = useAppDispatch();
 
@@ -42,34 +42,24 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 
 	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		setErrorMessage("");
+		clearErrorMessage();
 
-		startRequest(async () => {
-			try {
-				await verifyUserEmail(verificationCode);
+		void callApi(async () => {
+			await verifyUserEmail(verificationCode);
 
-				const userInformation = await getUserInformation();
-				dispatch(setUserInformation(userInformation));
+			const userInformation = await getUserInformation();
+			dispatch(setUserInformation(userInformation));
 
-				handleClose();
-			} catch (e) {
-				console.error(e);
-				setErrorMessage(errorToString(e));
-			}
+			handleClose();
 		});
 	};
 
 	const handleResendVerificationCode = () => {
-		setErrorMessage("");
+		clearErrorMessage();
 
-		startRequest(async () => {
-			try {
-				await resendEmailVerificationCode();
-				setShowVerificationCodeSentSuccessMessage(true);
-			} catch (e) {
-				console.error(e);
-				setErrorMessage(errorToString(e));
-			}
+		void callApi(async () => {
+			await resendEmailVerificationCode();
+			setShowVerificationCodeSentSuccessMessage(true);
 		});
 	};
 

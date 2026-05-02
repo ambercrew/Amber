@@ -4,35 +4,44 @@ import { screen } from "@testing-library/react";
 import {
 	getUserInformation,
 	updateUserInformation,
-} from "../../../../api/userApi.ts";
-import { UserInformationDto } from "../../../../types/backend/dto/userInformationDto.ts";
-import { signOut, updatePassword } from "../../../../api/authApi.ts";
+} from "../../../../api/backend/api/userApi.ts";
+import { UserInformationDto } from "../../../../api/backend/dto/userInformationDto.ts";
+import {
+	signOut,
+	updatePassword,
+} from "../../../../api/backend/api/authApi.ts";
 import { UserState } from "../../../../stores/user/userReducer.ts";
 import useAppSelector from "../../../../hooks/useAppSelector.ts";
 import { selectIsSignedIn } from "../../../../stores/user/userSelectors.ts";
 import Settings from "../../../../features/Settings/components/Settings.tsx";
-import { getSettings, updateSettings } from "../../../../api/settingsApi.ts";
+import {
+	getSettings,
+	updateSettings,
+} from "../../../../api/settings/api/settingsApi.ts";
 import { SettingsState } from "../../../../stores/settings/settingsReducer.ts";
 import { Window } from "@tauri-apps/api/window";
 import { Webview } from "@tauri-apps/api/webview";
 import { isMobile } from "../../../../utils/tauriUtils.ts";
-import SettingsDto from "../../../../types/backend/dto/settingsDto.ts";
+import UpdateSettingsRequestDto from "../../../../api/settings/dto/updateSettingsRequestDto.ts";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
-vi.mock(import("../../../../api/authApi.ts"));
-vi.mock(import("../../../../api/fileSystemApi.ts"));
-vi.mock(import("../../../../api/userApi.ts"));
-vi.mock(import("../../../../api/settingsApi.ts"), async importOriginal => {
-	const getSettings = vi.fn();
-	getSettings.mockResolvedValue({} as SettingsDto);
+vi.mock(import("../../../../api/backend/api/authApi.ts"));
+vi.mock(import("../../../../api/fileSystem/api/fileSystemApi.ts"));
+vi.mock(import("../../../../api/backend/api/userApi.ts"));
+vi.mock(
+	import("../../../../api/settings/api/settingsApi.ts"),
+	async importOriginal => {
+		const getSettings = vi.fn();
+		getSettings.mockResolvedValue({} as UpdateSettingsRequestDto);
 
-	return {
-		...(await importOriginal()),
-		getSettings,
-		updateSettings: vi.fn(),
-	};
-});
+		return {
+			...(await importOriginal()),
+			getSettings,
+			updateSettings: vi.fn(),
+		};
+	},
+);
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/plugin-dialog"));
@@ -64,7 +73,7 @@ const createInitialUserState = ({
 
 const createInitialSettingsState = () => {
 	return {
-		settings: {} as SettingsDto,
+		settings: {} as UpdateSettingsRequestDto,
 	} as SettingsState;
 };
 
@@ -263,7 +272,7 @@ describe("Appearance & Data tab", () => {
 
 		vi.mocked(getSettings).mockResolvedValue({
 			zoomPercentage: 120,
-		} as SettingsDto);
+		} as UpdateSettingsRequestDto);
 
 		// Act
 
@@ -283,7 +292,7 @@ describe("Appearance & Data tab", () => {
 			expect.objectContaining({
 				zoomPercentage: 120,
 				autoSync: true,
-			} as SettingsDto),
+			} as UpdateSettingsRequestDto),
 		);
 
 		expect(onCloseMock).toHaveBeenCalled();

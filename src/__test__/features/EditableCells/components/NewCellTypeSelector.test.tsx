@@ -1,7 +1,7 @@
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import NewCellTypeSelector from "../../../../features/EditableCells/components/NewCellTypeSelector";
 import userEvent from "@testing-library/user-event";
-import { CellType } from "../../../../types/backend/entity/cell";
+import { CellType } from "../../../../api/cells/entities/cell";
 
 describe("NewCellTypeSelector", () => {
 	it("Should be able to navigate with arrow down", async () => {

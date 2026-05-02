@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import Cell from "../../../types/backend/entity/cell";
-import FileRepetitionCounts from "../../../types/backend/model/fileRepetitionCounts";
-import { getFileCellsOrderedByIndex } from "../../../api/cellApi";
-import { getStudyRepetitionCounts } from "../../../api/repetitionApi";
-import errorToString from "../../../utils/errorToString";
+import Cell from "../../../api/cells/entities/cell";
+import FileRepetitionCounts from "../../../api/cells/valueObjects/fileRepetitionCounts";
+import { getFileCellsOrderedByIndex } from "../../../api/cells/api/cellApi";
+import { getStudyRepetitionCounts } from "../../../api/cells/api/repetitionApi";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
@@ -14,14 +13,15 @@ import {
 	TOOL_CALL_ACCEPTED_EVENT,
 	ToolCallAcceptedPayload,
 } from "../../../types/events/toolCallAcceptedEvent";
+import { CallApiFn } from "../../../hooks/useApi";
 
 interface Props {
 	initialSelectedCellId: string | null;
-	onError: (error: string) => void;
+	callApi: CallApiFn;
 	onStudyStart: () => void;
 }
 
-function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
+function Editor({ initialSelectedCellId, callApi, onStudyStart }: Props) {
 	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
@@ -41,34 +41,21 @@ function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
 		}
 	}, "keydown");
 
-	const executeRequest = useCallback(
-		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
-			try {
-				return await cb();
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-			return null;
-		},
-		[onError],
-	);
-
 	const retrieveRepetitionCounts = useCallback(async () => {
-		await executeRequest(async () => {
+		await callApi(async () => {
 			const repetitionCounts =
 				await getStudyRepetitionCounts(selectedFileId);
 			setRepetitionCounts(repetitionCounts);
 		});
-	}, [executeRequest, selectedFileId]);
+	}, [callApi, selectedFileId]);
 
 	const retrieveSelectedFileCells = useCallback(async () => {
-		return await executeRequest(async () => {
+		return await callApi(async () => {
 			const fetchedCells =
 				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
 		});
-	}, [executeRequest, selectedFileId]);
+	}, [callApi, selectedFileId]);
 
 	useEffect(() => {
 		const cb = (e: CustomEvent<ToolCallAcceptedPayload>) => {
@@ -79,7 +66,7 @@ function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
 		};
 
 		window.addEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
-		return () => window.removeEventListener("toolCallAccepted", cb);
+		return () => window.removeEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
 	}, [retrieveRepetitionCounts, retrieveSelectedFileCells, selectedFileId]);
 
 	useEffect(() => {
@@ -117,7 +104,7 @@ function Editor({ initialSelectedCellId, onError, onStudyStart }: Props) {
 			<EditableCells
 				cells={cells}
 				searchText={searchText}
-				onError={onError}
+				callApi={callApi}
 				initialSelectedCellId={initialSelectedCellId}
 				fileId={selectedFileId}
 				onCellsUpdateSave={handleCellsUpdate}

@@ -7,8 +7,7 @@ use crate::{
     Guid,
     cells::{
         entities::{cell::Cell, repetition::Repetition},
-        models::{
-            cell_deletion_request::CellDeletionRequest,
+        value_objects::{
             file_repetitions_count::FileRepetitionCounts, home_statistics::HomeStatistics,
         },
     },
@@ -91,4 +90,16 @@ pub trait CellRepository: Send + Sync {
 pub enum MoveDirection {
     Up,
     Down,
+}
+
+pub struct CellDeletionRequest(Guid);
+
+impl CellDeletionRequest {
+    pub(in crate::cells) fn new(uuid: Guid) -> Self {
+        Self(uuid)
+    }
+
+    pub fn id(&self) -> Guid {
+        self.0
+    }
 }

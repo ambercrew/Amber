@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::Guid;
-use crate::cells::models::file_repetitions_count::FileRepetitionCounts;
 use crate::cells::repositories::cell_repository::CellRepository;
+use crate::cells::value_objects::file_repetitions_count::FileRepetitionCounts;
 use crate::common::api_error::ApiError;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;

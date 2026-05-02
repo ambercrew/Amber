@@ -2,11 +2,12 @@ use chrono::{DateTime, Utc};
 use prost_types::Timestamp;
 
 pub trait IntoDateTime {
-    fn into_datetime(self) -> DateTime<Utc>;
+    fn into_datetime(self) -> Option<DateTime<Utc>>;
 }
 
 impl IntoDateTime for Timestamp {
-    fn into_datetime(self) -> DateTime<Utc> {
-        DateTime::<Utc>::from_timestamp(self.seconds, 0).expect("Failed to convert timestamp")
+    fn into_datetime(self) -> Option<DateTime<Utc>> {
+        // Not using the nanos field as it is not compatible with the chrono datetime.
+        DateTime::from_timestamp(self.seconds, 0)
     }
 }

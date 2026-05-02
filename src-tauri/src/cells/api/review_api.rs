@@ -2,9 +2,9 @@ use std::sync::Arc;
 
 use crate::{
     cells::{
-        cell_service::CellService, entities::review::Rating,
-        models::home_statistics::HomeStatistics, repositories::cell_repository::CellRepository,
-        value_objects::repetition_update::RepetitionUpdate,
+        dto::update_repetition_request_dto::UpdateRepetitionRequestDto, entities::review::Rating,
+        repositories::cell_repository::CellRepository, services::review_registrar::ReviewRegistrar,
+        value_objects::home_statistics::HomeStatistics,
     },
     common::api_error::ApiError,
     infrastructure::extensions::unit_of_work::UnitOfWorkExt,
@@ -28,13 +28,13 @@ pub async fn get_home_statistics(
 #[tauri::command]
 pub async fn register_review(
     injector: State<'_, Arc<Injector>>,
-    repetition_update: RepetitionUpdate,
+    repetition_update: UpdateRepetitionRequestDto,
     rating: Rating,
     study_time: u32,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<CellService>()
+        .resolve::<dyn ReviewRegistrar>()
         .await
         .register_review(repetition_update, rating, study_time)
         .await?;

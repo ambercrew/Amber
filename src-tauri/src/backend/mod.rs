@@ -1,5 +1,5 @@
 pub mod api;
-pub mod auth_service;
+pub mod backend_dto;
 pub mod clients;
 pub mod dto;
-pub mod models;
+pub mod services;

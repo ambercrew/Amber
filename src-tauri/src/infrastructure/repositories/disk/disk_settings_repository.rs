@@ -53,16 +53,16 @@ async fn read_settings_from_file(
     let settings_path = app_data_directory.get_path().join(SETTINGS_FILE_NAME);
     log::info!("Reading settings from '{SETTINGS_FILE_NAME}'.");
     let mut file = match File::open(settings_path).await {
-        Err(err) => return Err(SettingsRepositoryError::ErrorOpeningFile(err.to_string())),
+        Err(err) => return Err(SettingsRepositoryError::ErrorOpeningFile(Box::new(err))),
         Ok(file) => file,
     };
     let mut file_content = String::new();
     if let Err(err) = file.read_to_string(&mut file_content).await {
-        return Err(SettingsRepositoryError::ErrorReadingFile(err.to_string()));
+        return Err(SettingsRepositoryError::ErrorReadingFile(Box::new(err)));
     }
     match serde_json::from_str(&file_content) {
         Ok(settings) => Ok(settings),
-        Err(err) => Err(SettingsRepositoryError::Parsing(err.to_string())),
+        Err(err) => Err(SettingsRepositoryError::Parsing(Box::new(err))),
     }
 }
 
@@ -85,14 +85,14 @@ async fn save_to_disk_inner(
     app_data_directory: &AppDataDirectory,
 ) -> Result<(), SettingsRepositoryError> {
     if let Err(err) = fs::create_dir_all(app_data_directory.get_path()).await {
-        return Err(SettingsRepositoryError::Saving(err.to_string()));
+        return Err(SettingsRepositoryError::Saving(Box::new(err)));
     }
 
     let path = app_data_directory.get_path().join(SETTINGS_FILE_NAME);
-    log::info!("Saving settings into '{}'.", path.to_str().unwrap());
+    log::info!("Saving settings into '{}'.", path.to_string_lossy());
     match fs::write(path, serde_json::to_string(settings).unwrap()).await {
         Ok(_) => Ok(()),
-        Err(err) => Err(SettingsRepositoryError::Saving(err.to_string())),
+        Err(err) => Err(SettingsRepositoryError::Saving(Box::new(err))),
     }
 }
 

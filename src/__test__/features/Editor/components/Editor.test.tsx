@@ -4,14 +4,15 @@ import editorStyles from "../../../../features/Editor/components/styles.module.c
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { screen, waitFor } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
-import { getStudyRepetitionCounts } from "../../../../api/repetitionApi";
-import { getFileCellsOrderedByIndex } from "../../../../api/cellApi";
-import Cell from "../../../../types/backend/entity/cell";
-import createDefaultCell from "../../../../features/EditableCells/utils/createDefaultCell";
+import { getStudyRepetitionCounts } from "../../../../api/cells/api/repetitionApi";
+import { getFileCellsOrderedByIndex } from "../../../../api/cells/api/cellApi";
+import Cell from "../../../../api/cells/entities/cell";
+import callApiMock from "../../../test-utils/callApiMock";
+import createCreateCellRequestDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto";
 
 vi.mock(import("../../../../features/EditableCells/components/EditableCells"));
-vi.mock(import("../../../../api/repetitionApi"));
-vi.mock(import("../../../../api/cellApi"));
+vi.mock(import("../../../../api/cells/api/repetitionApi"));
+vi.mock(import("../../../../api/cells/api/cellApi"));
 
 describe("TitleBar", () => {
 	beforeAll(() => {
@@ -29,7 +30,7 @@ describe("TitleBar", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);
@@ -53,7 +54,7 @@ describe("TitleBar", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);
@@ -76,7 +77,7 @@ describe("TitleBar", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);
@@ -106,7 +107,7 @@ describe("TitleBar", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);
@@ -145,7 +146,7 @@ describe("Editor", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={onStudyStart}
 			/>,
 		);
@@ -168,7 +169,9 @@ describe("Editor", () => {
 			relearning: 0,
 			review: 0,
 		});
-		const cells: Cell[] = [createDefaultCell("Note", "123", 1)];
+		const cells: Cell[] = [
+			createCreateCellRequestDto("Note", "123", 1) as Cell,
+		];
 		vi.mocked(getFileCellsOrderedByIndex).mockResolvedValue(cells);
 
 		// Act
@@ -176,7 +179,7 @@ describe("Editor", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);
@@ -214,7 +217,7 @@ describe("Editor", () => {
 		renderWithProviders(
 			<Editor
 				initialSelectedCellId={null}
-				onError={vi.fn()}
+				callApi={callApiMock}
 				onStudyStart={vi.fn()}
 			/>,
 		);

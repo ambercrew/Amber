@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Cell, { CellType } from "../../../types/backend/entity/cell";
+import Cell, { CellType } from "../../../api/cells/entities/cell";
 import RenderIfVisible from "../../../components/RenderIfVisible/RenderIfVisible";
 import AddCellContainer from "./AddCellContainer";
 import styles from "./styles.module.css";
 import CellBlock from "./CellBlock";
-import createDefaultCell from "../utils/createDefaultCell";
-import { createCell, deleteCell, moveCell } from "../../../api/cellApi";
-import errorToString from "../../../utils/errorToString";
+import createCreateCellRequest from "../utils/createCreateCellRequestDto";
+import {
+	createCell,
+	deleteCell,
+	moveCell,
+} from "../../../api/cells/api/cellApi";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import scrollUntilVisible from "../utils/scrollUntilVisible";
 import useAutoSave from "../hooks/useAutoSave";
@@ -22,6 +25,7 @@ import DraggedCellData, { DRAGGED_CELL_TYPE } from "../types/draggedCellData";
 import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
 } from "../types/cellDropContainerData";
+import { CallApiFn } from "../../../hooks/useApi";
 
 /** Used to say how many cells are always eagerly loaded from the current
  * selected cell.
@@ -37,7 +41,7 @@ interface Props {
 	className?: string;
 	/** Indicates whether the editor is showing the cells for a single or multiple files. */
 	fileMode: "single" | "global search";
-	onError: (error: string) => void;
+	callApi: CallApiFn;
 	/** Used when the changes to cells are applied, this callback should
 	 * retrieve the new cells and repetitions.
 	 */
@@ -53,7 +57,7 @@ function EditableCells({
 	autoFocusEditor,
 	className,
 	fileMode,
-	onError,
+	callApi,
 	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
@@ -84,7 +88,7 @@ function EditableCells({
 	const { saveChanges, onCellContentUpdate, ignoreCell } = useAutoSave({
 		cells,
 		onCellsUpdateSave,
-		onError,
+		callApi,
 	});
 
 	let selectedCellIndex: number | null = cells.findIndex(
@@ -124,11 +128,13 @@ function EditableCells({
 	}, [searchText, scrollToCurrentCell]);
 
 	useEffect(() => {
-		const cb = async () => {
-			if (!containerRef.current) return;
-			containerScrollTopBeforeSync.current =
-				containerRef.current.scrollTop;
-			await Promise.resolve();
+		const cb = () => {
+			if (containerRef.current) {
+				containerScrollTopBeforeSync.current =
+					containerRef.current.scrollTop;
+			}
+
+			return Promise.resolve();
 		};
 		defaultGlobalSyncEventManager.addListener(
 			ListenerType.PreSyncStart,
@@ -164,19 +170,6 @@ function EditableCells({
 		scrollToCurrentCell();
 	});
 
-	const executeRequest = useCallback(
-		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
-			try {
-				return await cb();
-			} catch (e) {
-				console.error(e);
-				onError(errorToString(e));
-			}
-			return null;
-		},
-		[onError],
-	);
-
 	const moveSelectedCellByNumber = async (number: number) => {
 		if (!enableFileSpecificFunctionality) return;
 
@@ -186,7 +179,7 @@ function EditableCells({
 			selectedCellIndex + number < cells.length
 		) {
 			await saveChanges();
-			await executeRequest(async () => {
+			await callApi(async () => {
 				await moveCell(
 					cells[selectedCellIndex].id,
 					selectedCellIndex + number,
@@ -240,8 +233,8 @@ function EditableCells({
 	}, "keydown");
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
-		const cell = createDefaultCell(cellType, fileId!, index);
-		const cellId = await executeRequest(async () => await createCell(cell));
+		const request = createCreateCellRequest(cellType, fileId!, index);
+		const cellId = await callApi(async () => await createCell(request));
 		if (!cellId) return;
 		scrollToSelectedCellOnNextRender.current = true;
 		setSelectedCellId(cellId);
@@ -252,7 +245,7 @@ function EditableCells({
 	const handleCellDeleteConfirm = async () => {
 		ignoreCell(selectedCellId!);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
-		await executeRequest(async () => await deleteCell(selectedCellId!));
+		await callApi(async () => await deleteCell(selectedCellId!));
 		scrollToSelectedCellOnNextRender.current = true;
 		if (cellIndex > 0) {
 			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id : null);
@@ -288,9 +281,7 @@ function EditableCells({
 		scrollToSelectedCellOnNextRender.current = true;
 
 		void (async () => {
-			await executeRequest(
-				async () => await moveCell(dragCellId, dropIndex),
-			);
+			await callApi(async () => await moveCell(dragCellId, dropIndex));
 			await saveChanges();
 			await onCellsUpdateSave();
 		})();
@@ -338,7 +329,7 @@ function EditableCells({
 							}
 							onFocus={() => setSelectedCellId(cell.id)}
 							onClick={() => setSelectedCellId(cell.id)}
-							onError={onError}
+							callApi={callApi}
 							onChange={content =>
 								onCellContentUpdate(cell.id, content)
 							}

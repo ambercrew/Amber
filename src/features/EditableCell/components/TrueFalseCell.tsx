@@ -1,5 +1,5 @@
-import Cell from "../../../types/backend/entity/cell";
-import TrueFalse from "../../../types/backend/valueObjects/trueFalse";
+import Cell from "../../../api/cells/entities/cell";
+import TrueFalse from "../../../api/cells/valueObjects/trueFalse";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 import { useRef, useState } from "react";
