@@ -12,7 +12,7 @@ pub enum BackupServiceError {
     Repository(#[from] RepositoryError),
     #[error(transparent)]
     DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
-    #[error("The application is not able to list the entries in the settings folder!")]
+    #[error("Failed to list entries in the settings folder")]
     CannotListEntriesInFolder(#[source] SourceError),
 }
 

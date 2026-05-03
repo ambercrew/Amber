@@ -8,9 +8,7 @@ pub enum FsrsProfileDeleterError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
 
-    #[error(
-        "You cannot delete the last profile, please create another one before deleting the current one"
-    )]
+    #[error("Cannot delete the last profile, please create another one first")]
     CannotDeleteLastProfile,
 }
 

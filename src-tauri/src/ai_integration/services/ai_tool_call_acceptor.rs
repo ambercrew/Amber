@@ -9,7 +9,7 @@ use crate::{
 pub enum AiToolCallAcceptorError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error("Unknown tool name was given")]
+    #[error("Unknown tool name")]
     UnknownToolName,
     #[error("Can only accept tool calls")]
     CanOnlyAcceptToolCalls,

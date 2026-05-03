@@ -18,15 +18,15 @@ use crate::{
 pub enum DocumentUploaderError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error("An unknown error has happened")]
+    #[error("An unknown error occurred")]
     Unknown(#[source] SourceError),
-    #[error("Error loading file")]
+    #[error("Failed to load the file")]
     FileLoader(#[from] FileLoaderError),
-    #[error("Error loading pdf file")]
+    #[error("Failed to load the PDF file")]
     PdfLoader(#[from] PdfLoaderError),
-    #[error("Embed error")]
+    #[error("Failed to embed content")]
     Embed(#[from] EmbedError),
-    #[error("Embedding error")]
+    #[error("Failed to generate embeddings")]
     Embedding(#[from] EmbeddingError),
     #[error(transparent)]
     VectorStore(#[from] VectorStoreError),

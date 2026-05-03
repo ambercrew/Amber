@@ -16,15 +16,15 @@ pub enum BrainyBackendClientError {
     Unauthorized,
     #[error("The application received an unexpected response!")]
     UnexpectedResponse,
-    #[error("An unknown error happened while sending the request")]
+    #[error("An unknown error occurred while sending the request")]
     Unknown(#[source] SourceError),
-    #[error("Error deserializing the response received.")]
+    #[error("Failed to deserialize the response")]
     Deserialization(#[source] SourceError),
     #[error("{0}")]
     BadRequest(String),
-    #[error("Error connecting to the server, please try again!")]
+    #[error("Failed to connect to the server, please try again!")]
     Connect,
-    #[error("The request has timed out, please try again!")]
+    #[error("The request timed out, please try again!")]
     Timeout,
     #[error("Cannot save authentication cookies")]
     CannotSaveAuthenticationCookies(#[source] SourceError),

@@ -11,7 +11,7 @@ use crate::settings::value_objects::database_location::DatabaseLocation;
 
 #[derive(Error, Debug)]
 pub enum DatabaseConnectionManagerError {
-    #[error("Error changing the database.")]
+    #[error("Failed to change the database")]
     ErrorChangingDatabase(#[source] SourceError),
     #[error("An unknown database error occurred")]
     Unknown(#[source] SourceError),

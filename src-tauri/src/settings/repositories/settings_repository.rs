@@ -6,13 +6,13 @@ use crate::settings::entities::settings::Settings;
 
 #[derive(Error, Debug)]
 pub enum SettingsRepositoryError {
-    #[error("Error when trying to open the settings file!")]
+    #[error("Failed to open the settings file!")]
     ErrorOpeningFile(#[source] SourceError),
-    #[error("Error when trying to read the settings file!")]
+    #[error("Failed to read the settings file!")]
     ErrorReadingFile(#[source] SourceError),
-    #[error("Error when parsing the settings file!")]
+    #[error("Failed to parse the settings file!")]
     Parsing(#[source] SourceError),
-    #[error("Error when saving the settings file!")]
+    #[error("Failed to save the settings file!")]
     Saving(#[source] SourceError),
 }
 

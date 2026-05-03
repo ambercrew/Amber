@@ -32,7 +32,7 @@ pub struct SearchDocumentsArgs {
 
 #[derive(Error, Debug)]
 pub enum SearchDocumentsError {
-    #[error("Error fetching documents from vector store")]
+    #[error("Failed to fetch documents from the vector store")]
     Fetching(#[from] VectorStoreError),
 }
 

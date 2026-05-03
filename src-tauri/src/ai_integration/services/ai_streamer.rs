@@ -25,7 +25,7 @@ pub enum StreamLlmResponseEvent {
 
 #[derive(Error, Debug)]
 pub enum OnEventCallbackError {
-    #[error("An unkown error has happened: {0}")]
+    #[error("An unknown error occurred: {0}")]
     Tauri(#[from] tauri::Error),
 }
 
@@ -36,7 +36,7 @@ pub type OnEventCallback =
 pub enum AiStreamerError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error("An error happened while creating the new chat")]
+    #[error("Failed to create the chat")]
     CreateChat(#[source] SourceError),
     #[error(transparent)]
     AiClientProvider(#[from] AiClientProviderError),

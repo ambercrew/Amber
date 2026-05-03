@@ -13,17 +13,17 @@ pub enum AiClientProviderError {
     #[error("AI is not enabled in settings!")]
     AiNotEnabled,
     #[cfg(not(test))]
-    #[error("Ollama model name is not filled in settings!")]
+    #[error("Ollama model name is not set in settings!")]
     OllamaModelNameIsNotFilled,
     #[cfg(not(test))]
-    #[error("Ollama embeddings model name is not filled in settings!")]
+    #[error("Ollama embeddings model name is not set in settings!")]
     OllamaEmbeddingsModelNameIsNotFilled,
-    #[error("Error connecting to embeddings database")]
+    #[error("Failed to connect to the embeddings database")]
     ConnectingToEmbeddingsDatabase(#[source] SourceError),
     #[error(transparent)]
     VectorStore(#[from] VectorStoreError),
     #[cfg(not(test))]
-    #[error("Erfror creating the client")]
+    #[error("Failed to create the client")]
     CreateClient,
 }
 

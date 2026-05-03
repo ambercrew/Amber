@@ -4,16 +4,16 @@ use crate::SourceError;
 
 #[derive(Debug, Error)]
 pub enum RepositoryError {
-    #[error("The requested record was not found.")]
+    #[error("The requested record was not found")]
     NotFound(#[source] SourceError),
 
-    #[error("A record with the same unique identifier already exists.")]
+    #[error("A record with the same unique identifier already exists")]
     Conflict(#[source] SourceError),
 
-    #[error("Could not reach the database. Please try again.")]
+    #[error("Could not reach the database, please try again")]
     ConnectionFailed(#[source] SourceError),
 
-    #[error("A database error occurred. Please try again.")]
+    #[error("A database error occurred, please try again")]
     QueryFailed(#[source] SourceError),
 }
 

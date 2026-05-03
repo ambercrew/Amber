@@ -8,7 +8,7 @@ use crate::{
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum FolderRenamerError {
-    #[error("The folder with the name '{name}' already exists!")]
+    #[error("A folder named '{name}' already exists!")]
     FolderExists { name: String },
     #[error(transparent)]
     Repository(#[from] RepositoryError),
@@ -25,7 +25,7 @@ pub trait FolderRenamer: Send + Sync {
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum FileRenamerError {
-    #[error("The file with the name '{name}' already exists!")]
+    #[error("A file named '{name}' already exists!")]
     FileExists { name: String },
     #[error(transparent)]
     Repository(#[from] RepositoryError),

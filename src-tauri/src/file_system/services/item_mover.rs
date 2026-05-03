@@ -5,9 +5,9 @@ use crate::{Guid, common::repository_error::RepositoryError};
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum FolderMoverError {
-    #[error("The folder with the name '{name}' already exists!")]
+    #[error("A folder named '{name}' already exists!")]
     FolderExists { name: String },
-    #[error("Cannot move folder to a nested folder within the current folder")]
+    #[error("Cannot move a folder into one of its own subfolders")]
     CannotMoveChildIntoInnerFolder,
     #[error(transparent)]
     Repository(#[from] RepositoryError),
@@ -24,7 +24,7 @@ pub trait FolderMover: Send + Sync {
 
 #[derive(Error, Debug, PartialEq, Eq)]
 pub enum FileMoverError {
-    #[error("The file with the name '{name}' already exists!")]
+    #[error("A file named '{name}' already exists!")]
     FileExists { name: String },
     #[error(transparent)]
     Repository(#[from] RepositoryError),
