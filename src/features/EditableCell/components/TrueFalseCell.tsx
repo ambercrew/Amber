@@ -13,7 +13,7 @@ interface Props {
 	onFocus: (editor: LexicalEditor) => void;
 }
 
-export function TrueFalseCell({
+function TrueFalseCell({
 	cell,
 	autofocus,
 	eagerLoadRichTextEditor,

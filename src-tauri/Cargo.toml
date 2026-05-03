@@ -24,7 +24,6 @@ async-trait = "0.1.89"
 base64 = "0.22.1"
 chrono = { version = "0.4.44", features = ["serde"] }
 cookie_store = "0.22.1"
-dirs = "6.0.0"
 injector = { path = "./injector" }
 injector_derive = { path="./injector_derive" }
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }

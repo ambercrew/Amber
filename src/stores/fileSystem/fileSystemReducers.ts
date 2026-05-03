@@ -25,7 +25,7 @@ const initialState: FileSystemState = {
 	},
 };
 
-export const fileSystemSlice = createSlice({
+const fileSystemSlice = createSlice({
 	name: "fileSystem",
 	initialState,
 	reducers: {

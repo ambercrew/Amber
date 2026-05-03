@@ -9,7 +9,7 @@ const initialState: SettingsState = {
 	settings: null,
 };
 
-export const settingsSlice = createSlice({
+const settingsSlice = createSlice({
 	name: "settings",
 	initialState,
 	reducers: {

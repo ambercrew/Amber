@@ -8,7 +8,7 @@ const initialState: AppState = {
 	startedInitialStateLoading: false,
 };
 
-export const appSlice = createSlice({
+const appSlice = createSlice({
 	name: "app",
 	initialState,
 	reducers: {

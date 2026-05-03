@@ -8,7 +8,7 @@ interface Props {
 	showAnswer: boolean;
 }
 
-export function TrueFalseReviewView({ cell, showAnswer }: Props) {
+function TrueFalseReviewView({ cell, showAnswer }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 	const [chosenAnswer, setChosenAnswer] = useState<boolean | null>(null);
 

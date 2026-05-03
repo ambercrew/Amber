@@ -8,7 +8,7 @@ const initialState: SyncState = {
 	isSyncing: false,
 };
 
-export const syncSlice = createSlice({
+const syncSlice = createSlice({
 	name: "sync",
 	initialState,
 	reducers: {
