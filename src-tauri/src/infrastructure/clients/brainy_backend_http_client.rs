@@ -17,7 +17,7 @@ use keyring::Entry;
 use reqwest::{Response, StatusCode, Url};
 use reqwest_cookie_store::CookieStoreMutex;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
-use reqwest_retry::{RetryTransientMiddleware, policies::ExponentialBackoff};
+use reqwest_retry::{RetryError, RetryTransientMiddleware, policies::ExponentialBackoff};
 
 pub struct BrainyBackendHttpClient {
     backend_url: Url,
@@ -361,9 +361,23 @@ async fn ensure_success_response(
     response: Result<Response, reqwest_middleware::Error>,
 ) -> Result<Response, BrainyBackendClientError> {
     if let Err(err) = response {
-        if err.is_connect() {
+        // reqwest_retry wraps the final error as:
+        //   reqwest_middleware::Error::Middleware(anyhow<RetryError>)
+        // so we must unwrap through RetryError to reach the reqwest::Error.
+        let inner = match &err {
+            reqwest_middleware::Error::Reqwest(_) => Some(&err),
+            reqwest_middleware::Error::Middleware(e) => {
+                e.downcast_ref::<RetryError>()
+                    .map(|retry_err| match retry_err {
+                        RetryError::WithRetries { err, .. } => err,
+                        RetryError::Error(err) => err,
+                    })
+            }
+        };
+
+        if inner.is_some_and(|e| e.is_connect()) {
             return Err(BrainyBackendClientError::Connect);
-        } else if err.is_timeout() {
+        } else if inner.is_some_and(|e| e.is_timeout()) {
             return Err(BrainyBackendClientError::Timeout);
         } else {
             return Err(BrainyBackendClientError::Unknown(Box::new(err)));
