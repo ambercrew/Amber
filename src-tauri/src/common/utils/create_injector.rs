@@ -26,6 +26,7 @@ use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
+use crate::infrastructure::repositories::keyring::keyring_secrets_repository::KeyringSecretsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_cell_repository::SqliteCellRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_file_repository::SqliteFileRepository;
@@ -38,6 +39,7 @@ use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::infrastructure::value_objects::db_pool::DbPool;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::local_configurations::repositories::local_configuration_repository::LocalConfigurationRepository;
+use crate::secrets::repositories::secrets_repository::SecretsRepository;
 use crate::settings::entities::settings::Settings;
 use crate::settings::repositories::settings_repository::SettingsRepository;
 #[cfg(not(test))]
@@ -107,8 +109,6 @@ use crate::{
 pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     let mut injector = Injector::default();
 
-    injector.register_singleton(Arc::new(app_data_directory.clone()));
-
     #[cfg(not(test))]
     let settings = DiskSettingsRepository::get_or_create_settings(
         &app_data_directory,
@@ -123,6 +123,8 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     #[cfg(test)]
     let settings = Settings::default();
 
+    // Sqlite & Database
+
     #[cfg(not(test))]
     let sqlite_pool = create_sqlite_pool_from_location(&settings.database_location())
         .await
@@ -134,35 +136,32 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         .expect("Error connecting to Sqlite database");
 
     let db_pool = DbPool::new(sqlite_pool, settings.database_location().clone());
-
     injector.register_singleton(Arc::new(db_pool));
+    register_scoped_tx(&mut injector);
+
+    // Secret repository
+
+    let secrets_repository: Arc<dyn SecretsRepository> =
+        Arc::new(KeyringSecretsRepository::new("brainy"));
+    injector.register_singleton::<dyn SecretsRepository>(secrets_repository.clone());
+
+    // Backend
 
     let backend_url = Url::parse("http://localhost:5078").unwrap();
     injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
-        BrainyBackendHttpClient::new(backend_url).expect("Cannot create backend client"),
+        BrainyBackendHttpClient::new(backend_url, secrets_repository)
+            .expect("Cannot create backend client"),
     ));
 
-    injector.register_singleton(Arc::new(Mutex::new(settings)));
-    injector.register_singleton(Arc::new(AiState::default()));
-    injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
+    // Local configuration
 
-    // Repositories
-
-    register_scope!(injector, dyn AiRepository, SqliteAiRepository);
-    register_scope!(injector, dyn CellRepository, SqliteCellRepository);
-    register_scope!(injector, dyn FileRepository, SqliteFileRepository);
-    register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-    register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
-    register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
-    register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
-    register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
     register_scope!(
         injector,
         dyn LocalConfigurationRepository,
         SqliteLocalConfigurationRepository
     );
 
-    // Cell services
+    // Cell
 
     register_scope!(injector, dyn CellCreator, DefaultCellCreator);
     register_scope!(injector, dyn CellDeleter, DefaultCellDeleter);
@@ -175,7 +174,13 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     register_scope!(injector, dyn CellMover, DefaultCellMover);
     register_scope!(injector, dyn ReviewRegistrar, DefaultReviewRegistrar);
 
-    // File system services
+    register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+    register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+
+    // File system
+
+    register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+    register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
 
     register_scope!(injector, dyn FolderCreator, DefaultItemCreator);
     register_scope!(injector, dyn FileCreator, DefaultItemCreator);
@@ -191,8 +196,9 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     register_scope!(injector, dyn ReviewTreeBuilder, DefaultReviewTreeBuilder);
 
-    // FSRS services
+    // FSRS
 
+    register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
     register_scope!(injector, dyn FsrsProfileDeleter, DefaultFsrsProfileDeleter);
     register_scope!(
         injector,
@@ -200,36 +206,43 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         DefaultFsrsProfileResolver
     );
 
-    // Settings services
+    // Settings
 
+    injector.register_singleton(Arc::new(Mutex::new(settings)));
     register_scope!(injector, dyn SettingsUpdater, DefaultSettingsUpdater);
+    register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
 
-    // Syncer services
+    // Syncer
 
+    injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
+    register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
     register_scope!(injector, dyn Syncer, DefaultSyncer);
 
-    // Backup services
+    // Backup
 
     register_scope!(injector, dyn BackupService, DefaultBackupService);
 
-    // AI services
+    // AI
 
+    injector.register_singleton(Arc::new(AiState::default()));
+    register_scope!(injector, dyn AiRepository, SqliteAiRepository);
     register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
     register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
     register_scope!(injector, dyn AiToolCallAcceptor, DefaultAiToolCallAcceptor);
     register_scope!(injector, dyn DocumentUploader, DefaultDocumentUploader);
 
-    // Auth services
+    // Auth
 
     register_scope!(injector, dyn Authenticator, DefaultAuthenticator);
-
     register_scope!(
         injector,
         dyn DatabaseConnectionManager,
         SqliteDatabaseConnectionManager
     );
 
-    register_scoped_tx(&mut injector);
+    // Other
+
+    injector.register_singleton(Arc::new(app_data_directory.clone()));
 
     injector
 }

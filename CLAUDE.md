@@ -67,6 +67,7 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 - **fsrs** — Spaced repetition profiles (FSRS algorithm config)
 - **ai_integration** — AI chat, streaming, tool calls, document upload
 - **backend** — Remote auth (sign-up, sign-in, etc.)
+- **secrets** — `SecretsRepository` trait for reading/writing OS-level secrets; keyring implementation lives in `infrastructure/repositories/keyring/`
 - **settings** — User preferences
 - **sync** — Cloud sync via protobuf messages
 - **backup** — Background auto-backup service

@@ -11,37 +11,38 @@ use crate::backend::{
     clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
     dto::sign_up_request_dto::SignUpRequestDto,
 };
+use crate::secrets::repositories::secrets_repository::SecretsRepository;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use keyring::Entry;
 use reqwest::{Response, StatusCode, Url};
 use reqwest_cookie_store::CookieStoreMutex;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{RetryError, RetryTransientMiddleware, policies::ExponentialBackoff};
 
+const COOKIES_SECRET_KEY: &str = "backend-cookies";
+
 pub struct BrainyBackendHttpClient {
     backend_url: Url,
     reqwest_client: ClientWithMiddleware,
     cookie_store: Arc<CookieStoreMutex>,
-    keyring_entry: Option<Entry>,
+    secrets_repository: Arc<dyn SecretsRepository>,
 }
 
 impl BrainyBackendHttpClient {
-    pub fn new(backend_url: Url) -> Result<Self, String> {
+    pub fn new(
+        backend_url: Url,
+        secrets_repository: Arc<dyn SecretsRepository>,
+    ) -> Result<Self, String> {
         let mut cookie_store = reqwest_cookie_store::CookieStore::new();
 
-        let mut keyring_entry = None;
-        if let Ok(entry) = Entry::new("brainy", "backend-cookies") {
-            keyring_entry = Some(entry);
-            if let Ok(cookies) = keyring_entry.as_ref().unwrap().get_password() {
-                let cursor = Cursor::new(cookies);
-                let reader = BufReader::new(cursor);
-                if let Ok(result) = cookie_store::serde::json::load(reader) {
-                    cookie_store = result;
-                }
+        if let Some(cookies) = secrets_repository.get_secret(COOKIES_SECRET_KEY) {
+            let cursor = Cursor::new(cookies);
+            let reader = BufReader::new(cursor);
+            if let Ok(result) = cookie_store::serde::json::load(reader) {
+                cookie_store = result;
             }
         } else {
-            log::info!("The application was not able to access the keyring.")
+            log::info!("The application was not able to load stored cookies.")
         }
 
         let cookie_store = reqwest_cookie_store::CookieStoreMutex::new(cookie_store);
@@ -71,7 +72,7 @@ impl BrainyBackendHttpClient {
             backend_url,
             reqwest_client: client_with_middleware,
             cookie_store,
-            keyring_entry,
+            secrets_repository,
         })
     }
 }
@@ -338,14 +339,15 @@ impl BrainyBackendHttpClient {
         cookie_store::serde::json::save(&store, &mut writer).unwrap();
         let cookies_json = String::from_utf8(writer.into_inner().unwrap()).unwrap();
 
-        if let Some(keyring_entry) = self.keyring_entry.as_ref() {
-            #[cfg(debug_assertions)]
-            log::info!("Saving the following cookies to keyring: {cookies_json}");
-            if let Err(err) = keyring_entry.set_password(&cookies_json) {
-                return Err(BrainyBackendClientError::CannotSaveAuthenticationCookies(
-                    Box::new(err),
-                ));
-            }
+        #[cfg(debug_assertions)]
+        log::info!("Saving the following cookies to keyring: {cookies_json}");
+        if let Err(err) = self
+            .secrets_repository
+            .set_secret(COOKIES_SECRET_KEY, &cookies_json)
+        {
+            return Err(BrainyBackendClientError::CannotSaveAuthenticationCookies(
+                Box::new(err),
+            ));
         }
 
         Ok(())

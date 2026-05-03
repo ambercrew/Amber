@@ -8,6 +8,7 @@ mod file_system;
 mod fsrs;
 mod infrastructure;
 mod local_configurations;
+mod secrets;
 mod settings;
 mod sync;
 #[cfg(test)]
