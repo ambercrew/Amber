@@ -74,7 +74,7 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 ### Naming Conventions
 
 - DTOs: `*RequestDto`, `*ResponseDto` (used at the API boundary)
-- Entities: plain struct names (used in services/repositories)
+- Entities: plain struct names
 - Repository traits live in `repositories/`, implementations in `repositories/infrastructure/sqlite/`
 - Error types use `thiserror`; all commands return `Result<T, ApiError>`
 
