@@ -104,6 +104,57 @@ The `useApi` hook standardizes async calls.
 
 The editor uses **Lexical**. Cell content is stored and transferred as Lexical JSON.
 
+## Testing Conventions
+
+These conventions apply to both Rust (`src-tauri/`) and TypeScript (`src/`) tests.
+
+### Naming
+
+- **Rust:** function names follow `MethodName_Scenario_ExpectedResult` in `snake_case`, e.g. `set_content_on_cloze_added_new_repetitions_correctly`
+- **TypeScript:** the string passed to `it()` follows `Should <expected behavior> when <input>`, e.g. `"Should return null when id is invalid"`
+
+### Structure
+
+Each test is divided into three sections using AAA comments, with a blank line between each section:
+
+```rust
+#[test]
+fn method_name_scenario_expected_result() {
+    // Arrange
+
+    let input = ...;
+
+    // Act
+
+    let actual = subject.method(input);
+
+    // Assert
+
+    assert_eq!(expected, actual);
+}
+```
+
+```typescript
+it("Should <expected behavior> when <input>", () => {
+    // Arrange
+
+    const input = ...;
+
+    // Act
+
+    const actual = subject.method(input);
+
+    // Assert
+
+    expect(actual).toBe(expected);
+});
+```
+
+### File locations
+
+- Rust: inline `#[cfg(test)] mod tests { ... }` at the bottom of the source file
+- TypeScript: `src/__test__/` mirroring the source tree
+
 ## Adding a Feature
 
 1. **Backend:** Add entity/DTO → repository trait + SQLite impl → service → register in `create_injector.rs` → expose as Tauri command in `api/`
