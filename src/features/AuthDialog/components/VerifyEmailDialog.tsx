@@ -106,8 +106,9 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 				/>
 				<p className={`${styles.instructionText}`}>
 					A verification code to is sent to{" "}
-					<b>{userInformation?.email}</b>. Please check your inbox and
-					enter the code below to verify your account.
+					<b>{userInformation?.email}</b>. Please check your inbox (or
+					spam folder) and enter the code below to verify your
+					account.
 				</p>
 				<FormRows {...formRowsProps} />
 
