@@ -48,6 +48,8 @@ export default function SignUpForm({
 			return;
 		}
 
+		if (isSendingRequest) return;
+
 		try {
 			onRequestStart();
 			await dispatch(
