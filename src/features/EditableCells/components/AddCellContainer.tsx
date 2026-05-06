@@ -5,6 +5,7 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import { useState } from "react";
 import { CellType } from "../../../api/cells/entities/cell";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import Dialog from "../../../components/Dialog/Dialog";
 import { useDroppable } from "@dnd-kit/react";
 import CellDropContainerData, {
@@ -28,7 +29,7 @@ function AddCellContainer({ onAddNewCell }: Props) {
 		e => {
 			if (e.key === "Escape") {
 				setShowAddNewCellPopup(false);
-			} else if (e.ctrlKey && !e.shiftKey && e.key === "Enter") {
+			} else if (isModKey(e) && !e.shiftKey && e.key === "Enter") {
 				e.stopPropagation();
 				setShowAddNewCellPopup(true);
 			}

@@ -26,6 +26,7 @@ import ConfirmationDialog from "../../../components/ConfirmationDialog/Confirmat
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import Header from "./Header";
@@ -64,7 +65,7 @@ function AiChatWidgetInner() {
 	}, [selectedChatId]);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key.toLowerCase() === "j") {
+		if (isModKey(e) && e.key.toLowerCase() === "j") {
 			e.preventDefault();
 			setIsOpen(isOpen => !isOpen);
 		}

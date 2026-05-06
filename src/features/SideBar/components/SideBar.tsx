@@ -37,6 +37,7 @@ import {
 import SyncRow from "./SyncRow";
 import VerifyEmailDialog from "../../AuthDialog/components/VerifyEmailDialog";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
+import { isModKey } from "../../../utils/keyboardUtils";
 
 interface Props {
 	isExpanded: boolean;
@@ -83,11 +84,11 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 	}, []);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key === "\\") {
+		if (isModKey(e) && e.key === "\\") {
 			handleToggleExpand();
 		} else if (e.key === "F1") {
 			void openHelpWebsite();
-		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
+		} else if (isModKey(e) && e.shiftKey && e.key.toLowerCase() === "f") {
 			void navigate("/search");
 		}
 	});

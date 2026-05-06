@@ -21,6 +21,7 @@ import {
 	$isClozeNode,
 	ClozeNode,
 } from "./clozeNode";
+import { isModKey } from "../../../utils/keyboardUtils";
 
 export const TOGGLE_CLOZE_NODE: LexicalCommand<void> = createCommand();
 export const INCREASE_CLOZE_GROUP_NUMBER: LexicalCommand<void> =
@@ -104,13 +105,9 @@ export function ClozePlugin() {
 		const unregisterKeyDown = editor.registerCommand(
 			KEY_DOWN_COMMAND,
 			event => {
-				const { ctrlKey, metaKey, shiftKey, key } = event;
+				const { shiftKey, key } = event;
 
-				if (
-					(ctrlKey || metaKey) &&
-					shiftKey &&
-					key.toLowerCase() === "c"
-				) {
+				if (isModKey(event) && shiftKey && key.toLowerCase() === "c") {
 					event.preventDefault();
 					editor.dispatchCommand(TOGGLE_CLOZE_NODE, undefined);
 					return true;

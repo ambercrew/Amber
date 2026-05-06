@@ -49,6 +49,7 @@ import FileItemDropContainerData, {
 	FILE_ITEM_DROP_CONTAINER_TYPE,
 } from "../types/fileItemDropContainerData.ts";
 import { pointerIntersection } from "@dnd-kit/collision";
+import { isModKey } from "../../../utils/keyboardUtils";
 
 interface Props {
 	folder: UiFolder | null;
@@ -236,10 +237,10 @@ function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 			enableRenaming();
 		} else if (e.key === "Delete" && !isRenaming) {
 			showDeleteDialog();
-		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "n") {
+		} else if (isModKey(e) && e.shiftKey && e.key.toLowerCase() === "n") {
 			stopPropagation = isFolder;
 			showCreateNewFolderInput();
-		} else if (e.ctrlKey && e.key.toLowerCase() === "n") {
+		} else if (isModKey(e) && e.key.toLowerCase() === "n") {
 			stopPropagation = isFolder;
 			showCreateNewFileInput();
 		} else if (e.key === "Escape") {

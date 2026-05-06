@@ -11,6 +11,7 @@ import {
 	moveCell,
 } from "../../../api/cells/api/cellApi";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import scrollUntilVisible from "../utils/scrollUntilVisible";
 import useAutoSave from "../hooks/useAutoSave";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -199,13 +200,13 @@ function EditableCells({
 		: cells;
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.altKey && e.key === "ArrowDown") {
+		if (isModKey(e) && e.altKey && e.key === "ArrowDown") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(1);
-		} else if (e.ctrlKey && e.altKey && e.key === "ArrowUp") {
+		} else if (isModKey(e) && e.altKey && e.key === "ArrowUp") {
 			e.preventDefault();
 			void moveSelectedCellByNumber(-1);
-		} else if (e.ctrlKey && e.key === "ArrowDown") {
+		} else if (isModKey(e) && e.key === "ArrowDown") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
 			const selectedCellIndex = filteredCells.findIndex(
@@ -217,7 +218,7 @@ function EditableCells({
 					Math.min(filteredCells.length - 1, selectedCellIndex + 1)
 				].id,
 			);
-		} else if (e.ctrlKey && e.key === "ArrowUp") {
+		} else if (isModKey(e) && e.key === "ArrowUp") {
 			e.preventDefault();
 			if (filteredCells.length === 0) return;
 			const selectedCellIndex = filteredCells.findIndex(
@@ -227,7 +228,7 @@ function EditableCells({
 			setSelectedCellId(
 				filteredCells[Math.max(0, selectedCellIndex - 1)].id,
 			);
-		} else if (e.ctrlKey && e.key === " ") {
+		} else if (isModKey(e) && e.key === " ") {
 			scrollToCurrentCell();
 		}
 	}, "keydown");

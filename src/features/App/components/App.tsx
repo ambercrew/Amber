@@ -9,6 +9,7 @@ import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSyste
 import SideBar from "../../SideBar/components/SideBar";
 import Settings from "../../Settings/components/Settings";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import {
 	Route,
 	Routes,
@@ -101,16 +102,16 @@ function App() {
 	}, [dispatch]);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key.toLowerCase() === "p") {
+		if (isModKey(e) && e.key.toLowerCase() === "p") {
 			e.preventDefault();
 			setShowSettings(true);
-		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
+		} else if (isModKey(e) && e.key.toLowerCase() === "h") {
 			e.preventDefault();
 			void navigate("/home");
 		} else if (
-			(e.ctrlKey && e.key.toLowerCase() === "r") ||
+			(isModKey(e) && e.key.toLowerCase() === "r") ||
 			e.key === "F5" ||
-			(e.ctrlKey && e.key.toLowerCase() === "f")
+			(isModKey(e) && e.key.toLowerCase() === "f")
 		) {
 			e.preventDefault();
 		}

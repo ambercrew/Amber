@@ -5,6 +5,7 @@ import Dialog from "../../../components/Dialog/Dialog";
 import Spinner from "../../../components/Spinner/Spinner";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSyncing } from "../../../stores/sync/syncSelector";
 import { sync } from "../../../stores/sync/syncActions";
@@ -22,7 +23,7 @@ export default function SyncRow() {
 	const isSyncing = useAppSelector(selectIsSyncing);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "y") {
+		if (isModKey(e) && e.shiftKey && e.key.toLowerCase() === "y") {
 			e.preventDefault();
 			void dispatch(sync());
 		}

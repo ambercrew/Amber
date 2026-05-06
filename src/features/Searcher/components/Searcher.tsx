@@ -3,6 +3,7 @@ import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import EditableCells from "../../EditableCells/components/EditableCells";
 import { searchCells } from "../../../api/cells/api/searchApi";
 import { useSearchParams } from "react-router";
@@ -43,7 +44,7 @@ function Searcher({ callApi, onEditButtonClick }: Props) {
 	}, [searchParamsSearchText, retrieveSearchResult]);
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
+		if (isModKey(e) && !e.shiftKey && e.key.toLowerCase() === "f") {
 			e.preventDefault();
 			searchInputRef.current?.focus();
 		}

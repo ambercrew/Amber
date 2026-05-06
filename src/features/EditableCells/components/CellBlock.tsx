@@ -11,6 +11,7 @@ import FocusTools from "./FocusTools";
 import Repetition from "../../../api/cells/entities/repetition";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectIsSyncing } from "../../../stores/sync/syncSelector";
 import { LexicalEditor } from "lexical";
@@ -89,12 +90,12 @@ function CellBlock(
 
 	useGlobalKey(
 		e => {
-			if (e.ctrlKey && e.shiftKey && e.key === "Enter") {
+			if (isModKey(e) && e.shiftKey && e.key === "Enter") {
 				if (isSelected) {
 					e.stopPropagation();
 					setShowInsertNewCell(!showInsertNewCell);
 				}
-			} else if (e.ctrlKey && e.key === " ") {
+			} else if (isModKey(e) && e.key === " ") {
 				if (isSelected) editorRef.current?.focus();
 			}
 		},

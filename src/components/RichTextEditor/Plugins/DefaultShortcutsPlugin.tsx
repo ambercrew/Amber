@@ -5,6 +5,7 @@ import {
 	KEY_DOWN_COMMAND,
 } from "lexical";
 import { useEffect } from "react";
+import { isModKey } from "../../../utils/keyboardUtils";
 import { TOGGLE_LIST } from "./ListCommandsPluginHandler/CustomListCommands";
 
 export default function DefaultShortcutPlugin() {
@@ -14,27 +15,28 @@ export default function DefaultShortcutPlugin() {
 		return editor.registerCommand(
 			KEY_DOWN_COMMAND,
 			event => {
-				const { ctrlKey, metaKey, shiftKey, key, code } = event;
+				const { shiftKey, key, code } = event;
+				const modKey = isModKey(event);
 
-				if ((ctrlKey || metaKey) && shiftKey && code === "Equal") {
+				if (modKey && shiftKey && code === "Equal") {
 					event.preventDefault();
 					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "subscript");
 					return true;
 				}
 
-				if ((ctrlKey || metaKey) && key === "=") {
+				if (modKey && key === "=") {
 					event.preventDefault();
 					editor.dispatchCommand(FORMAT_TEXT_COMMAND, "superscript");
 					return true;
 				}
 
-				if ((ctrlKey || metaKey) && key === ",") {
+				if (modKey && key === ",") {
 					event.preventDefault();
 					editor.dispatchCommand(TOGGLE_LIST, "bullet");
 					return true;
 				}
 
-				if ((ctrlKey || metaKey) && key === ".") {
+				if (modKey && key === ".") {
 					event.preventDefault();
 					editor.dispatchCommand(TOGGLE_LIST, "number");
 					return true;

@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../../hooks/useGlobalKey";
+import { isModKey } from "../../../utils/keyboardUtils";
 import { useEffect, useRef, useState } from "react";
 
 interface Props {
@@ -44,7 +45,7 @@ function TitleBar({
 		0;
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
+		if (isModKey(e) && !e.shiftKey && e.key.toLowerCase() === "f") {
 			e.preventDefault();
 			setShowSearchBar(true);
 			searchInputRef.current?.focus();
