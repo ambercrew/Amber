@@ -1,3 +1,6 @@
+<p align="center">
+    <img src="./public/icon.svg" alt="Brainy logo" width="96">
+</p>
 <h1 align="center" style="border-bottom: none">
     <b>
         Brainy<br/>
@@ -8,8 +11,8 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/ramikw/brainy/releases">Download</a> •
-    <a href="https://discord.gg/H9bEfqDb8a">Discord</a>
+    <a href="https://github.com/ramikw/brainy/releases">⬇️ Download</a> •
+    <a href="https://discord.gg/H9bEfqDb8a">💬 Join the Discord</a>
 </p>
 
 ---
