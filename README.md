@@ -1,10 +1,6 @@
-<p align="center">
-    <img src="./public/icon.svg" alt="Brainy logo" width="96">
-</p>
 <h1 align="center" style="border-bottom: none">
-    <b>
-        Brainy<br/>
-    </b>
+    <img src="./public/icon.svg" alt="Brainy logo" width="48" valign="middle">
+    <b> Brainy</b>
 </h1>
 <p align="center">
     An open-source, AI-integrated learning app built around spaced repetition
