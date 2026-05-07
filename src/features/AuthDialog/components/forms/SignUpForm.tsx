@@ -71,7 +71,7 @@ export default function SignUpForm({
 	};
 
 	const openTermsAndPrivacy = () => {
-		void openUrl("https://google.com/");
+		void openUrl("https://brainylearn.app/privacy");
 	};
 
 	return (

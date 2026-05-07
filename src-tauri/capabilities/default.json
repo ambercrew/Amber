@@ -18,6 +18,9 @@
             "allow": [
                 {
                     "url": "https://help.brainylearn.app/"
+                },
+                {
+                    "url": "https://brainylearn.app/privacy"
                 }
             ]
         }
