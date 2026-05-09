@@ -1,5 +1,5 @@
 name: brainy
-base: core22
+base: core24
 title: Brainy
 version: '1.0.0'
 license: AGPL-3.0
@@ -15,8 +15,8 @@ grade: stable
 confinement: strict
 
 layout:
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1:
-    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/webkit2gtk-4.1
+  /usr/lib/$CRAFT_ARCH_TRIPLET/webkit2gtk-4.1:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/webkit2gtk-4.1
 
 apps:
   brainy:
@@ -63,6 +63,8 @@ parts:
       - librsvg2-dev
       - dpkg
       - unzip
+      - protobuf-compiler
+      - libprotobuf-dev
     stage-packages:
       - libwebkit2gtk-4.1-0
       - libayatana-appindicator3-1
@@ -70,24 +72,18 @@ parts:
     override-build: |
       # Used for local builds
       if [ -f $SNAPCRAFT_PROJECT_DIR/.build-secrets ]; then
+        # Add secrets
         set -a
         source $SNAPCRAFT_PROJECT_DIR/.build-secrets
         set +a
       fi
 
+      # Setup Rust
       rustup default stable
 
       set -eu
-
-      # Install protoc
-      PROTOC_VERSION=29.3
-      curl -Lo /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip
-      unzip /tmp/protoc.zip -d /tmp/protoc
-      export PATH="/tmp/protoc/bin:$PATH"
-
       npm install
       npm run tauri build -- --bundles deb
-
       dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
       sed -i -e "s|Icon=Brainy|Icon=/usr/share/icons/hicolor/128x128/apps/Brainy.png|g" $SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy.desktop
 
@@ -96,12 +92,12 @@ parts:
     after: [build-app]
     plugin: nil
     build-snaps:
-      - core22
+      - core24
       - gtk-common-themes
-      - gnome-42-2204
+      - gnome-46-2404
     override-prime: |
       set -eux
-      for snap in "core22" "gtk-common-themes" "gnome-42-2204"; do
+      for snap in "core24" "gtk-common-themes" "gnome-46-2404"; do
         cd "/snap/$snap/current" && find . -type f,l -name "*.so*" | while read -r sofile; do
           if [ -f "${SNAPCRAFT_PRIME}/${sofile#./}" ]; then
             echo "Removing duplicate: ${sofile#./}"
