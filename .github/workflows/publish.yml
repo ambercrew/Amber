@@ -16,7 +16,7 @@ jobs:
             args: "--target aarch64-apple-darwin"
           - platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
-          - platform: "ubuntu-24.04"
+          - platform: "ubuntu-22.04"
             args: ""
           - platform: "windows-latest"
             args: ""
@@ -41,7 +41,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-24.04'  # Needs to be updated always with version
+        if: matrix.platform == 'ubuntu-22.04'  # Needs to be updated always with version
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf protobuf-compiler
@@ -69,6 +69,25 @@ jobs:
           releaseName: "Brainy v__VERSION__"
           releaseDraft: true
           args: ${{ matrix.args }}
+
+      # Producing snap file
+      - name: install snapcraft
+        if: matrix.platform == 'ubuntu-22.04'
+        run: sudo snap install snapcraft --classic
+
+      - name: build snap
+        if: matrix.platform == 'ubuntu-22.04'
+        run: snapcraft --destructive-mode
+
+      - name: upload snap to release
+        if: matrix.platform == 'ubuntu-22.04'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pre-release
+          draft: true
+          files: "*.snap"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-tauri-android:
     permissions:
