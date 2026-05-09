@@ -1,4 +1,4 @@
-name: brainy-learn
+name: brainy
 base: core22
 title: Brainy
 version: '1.0.0'
@@ -6,6 +6,10 @@ license: AGPL-3.0
 summary: An open-source, AI-integrated learning app built around spaced repetition
 description: |
   Brainy is an active learning app that combines notebook-style notes, flashcards, and the FSRS spaced repetition algorithm — so what you study actually sticks.
+
+website: https://brainylearn.app
+issues: https://github.com/ramikw/brainy/issues/new
+source-code: https://github.com/ramikw/brainy
 
 grade: stable
 confinement: strict
@@ -16,14 +20,14 @@ layout:
 
 apps:
   brainy:
-    command: usr/bin/brainy
-    desktop: usr/share/applications/brainy.desktop
+    command: usr/bin/Brainy
+    desktop: usr/share/applications/Brainy.desktop
     extensions: [gnome]
     plugs:
       - network
       - home
       - removable-media
-      - secret-service
+      - password-manager-service
       - single-instance-plug
     slots:
       - single-instance
@@ -58,13 +62,56 @@ parts:
       - libayatana-appindicator3-dev
       - librsvg2-dev
       - dpkg
+      - unzip
     stage-packages:
       - libwebkit2gtk-4.1-0
       - libayatana-appindicator3-1
     source: .
     override-build: |
+      # Used for local builds
+      if [ -f $SNAPCRAFT_PROJECT_DIR/.build-secrets ]; then
+        set -a
+        source $SNAPCRAFT_PROJECT_DIR/.build-secrets
+        set +a
+      fi
+
+      rustup default stable
+
       set -eu
+
+      # Install protoc
+      PROTOC_VERSION=29.3
+      curl -Lo /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip
+      unzip /tmp/protoc.zip -d /tmp/protoc
+      export PATH="/tmp/protoc/bin:$PATH"
+
       npm install
       npm run tauri build -- --bundles deb
+
       dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
-      sed -i -e "s|Icon=brainy|Icon=/usr/share/icons/hicolor/32x32/apps/brainy.png|g" $SNAPCRAFT_PART_INSTALL/usr/share/applications/brainy.desktop
+      sed -i -e "s|Icon=Brainy|Icon=/usr/share/icons/hicolor/128x128/apps/Brainy.png|g" $SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy.desktop
+
+  # Necessary otherwise the following error shows: libEGL fatal: did not find extension DRI_Mesa version 1
+  cleanup:
+    after: [build-app]
+    plugin: nil
+    build-snaps:
+      - core22
+      - gtk-common-themes
+      - gnome-42-2204
+    override-prime: |
+      set -eux
+      for snap in "core22" "gtk-common-themes" "gnome-42-2204"; do
+        cd "/snap/$snap/current" && find . -type f,l -name "*.so*" | while read -r sofile; do
+          if [ -f "${SNAPCRAFT_PRIME}/${sofile#./}" ]; then
+            echo "Removing duplicate: ${sofile#./}"
+            rm -f "${SNAPCRAFT_PRIME}/${sofile#./}"
+          fi
+        done
+      done
+      # Explicitly remove any leftover Mesa files that conflict with the content snap
+      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libEGL_mesa.so.0
+      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libEGL_mesa.so.0.0.0
+      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libGLX_mesa.so.0
+      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libGLX_mesa.so.0.0.0
+      rm -f ${SNAPCRAFT_PRIME}/usr/share/glvnd/egl_vendor.d/50_mesa.json
