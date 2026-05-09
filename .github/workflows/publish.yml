@@ -79,7 +79,9 @@ jobs:
 
       - name: build snap
         if: matrix.platform == 'ubuntu-24.04'
-        run: sudo snapcraft --destructive-mode
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: sudo -E snapcraft --destructive-mode
 
       - name: upload snap to release
         if: matrix.platform == 'ubuntu-24.04'
