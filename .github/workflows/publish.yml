@@ -12,13 +12,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # TODO:
-          # - platform: "macos-latest" # for Arm based macs (M1 and above).
-          #   args: "--target aarch64-apple-darwin"
-          # - platform: "macos-latest" # for Intel based macs.
-          #   args: "--target x86_64-apple-darwin"
-          # - platform: "ubuntu-24.04"
-          #   args: ""
+          - platform: "macos-latest" # for Arm based macs (M1 and above).
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest" # for Intel based macs.
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-24.04"
+            args: ""
           - platform: "windows-latest"
             args: ""
 
@@ -114,75 +113,74 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # TODO:
-  # publish-tauri-android:
-  #   permissions:
-  #     contents: write
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #
-  #     - name: setup node
-  #       uses: actions/setup-node@v5
-  #       with:
-  #         node-version: lts/*
-  #
-  #     - name: setup Java
-  #       uses: actions/setup-java@v4
-  #       with:
-  #         distribution: temurin
-  #         java-version: "17"
-  #
-  #     - name: install Rust stable
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-  #
-  #     - name: Rust cache
-  #       uses: swatinem/rust-cache@v2
-  #       with:
-  #         workspaces: "./src-tauri -> target"
-  #
-  #     - name: setup Android SDK
-  #       uses: android-actions/setup-android@v3
-  #
-  #     - name: install NDK
-  #       run: sdkmanager "ndk;27.0.12077973"
-  #
-  #     - name: add NDK toolchain to PATH
-  #       run: |
-  #         echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> $GITHUB_ENV
-  #         echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
-  #
-  #     - name: install dependencies
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y protobuf-compiler
-  #
-  #     - name: install sqlx-cli
-  #       run: cargo install sqlx-cli
-  #
-  #     - name: install frontend dependencies
-  #       run: npm ci
-  #
-  #     - name: setup Android signing
-  #       run: |
-  #         cd src-tauri/gen/android
-  #         echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
-  #         echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
-  #         base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
-  #         echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
-  #
-  #     - name: build Android APK and AAB
-  #       run: npm run tauri android build -- --apk --aab
-  #
-  #     - name: upload Android artifacts to release
-  #       uses: softprops/action-gh-release@v2
-  #       with:
-  #         tag_name: pre-release
-  #         draft: true
-  #         files: |
-  #           src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-  #           src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish-tauri-android:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: install NDK
+        run: sdkmanager "ndk;27.0.12077973"
+
+      - name: add NDK toolchain to PATH
+        run: |
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: install sqlx-cli
+        run: cargo install sqlx-cli
+
+      - name: install frontend dependencies
+        run: npm ci
+
+      - name: setup Android signing
+        run: |
+          cd src-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+
+      - name: build Android APK and AAB
+        run: npm run tauri android build -- --apk --aab
+
+      - name: upload Android artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pre-release
+          draft: true
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
