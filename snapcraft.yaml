@@ -3,7 +3,7 @@ base: core24
 title: Brainy
 version: '1.0.0'
 license: AGPL-3.0
-summary: An open-source, AI-integrated learning app built around spaced repetition
+summary: Open-source, AI-integrated learning app built around spaced repetition
 description: |
   Brainy is an active learning app that combines notebook-style notes, flashcards, and the FSRS spaced repetition algorithm — so what you study actually sticks.
 

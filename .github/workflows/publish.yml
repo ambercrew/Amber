@@ -32,8 +32,7 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Those targets are only used on macos runners so it's in an `if` to slightly speed up windows and linux builds.
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || matrix.platform == 'windows-latest' && 'aarch64-pc-windows-msvc' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -88,6 +87,25 @@ jobs:
           tag_name: pre-release
           draft: true
           files: "*.snap"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Producing MSIX bundle
+      - name: install msixbundle-cli
+        if: matrix.platform == 'windows-latest'
+        run: cargo install msixbundle-cli
+
+      - name: build MSIX
+        if: matrix.platform == 'windows-latest'
+        run: npm run tauri:windows:build -- --arch x64,arm64
+
+      - name: upload MSIX to release
+        if: matrix.platform == 'windows-latest'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pre-release
+          draft: true
+          files: src-tauri/target/msix/*.msixbundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

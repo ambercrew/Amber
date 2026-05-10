@@ -3,7 +3,7 @@
     <b> Brainy</b>
 </h1>
 <p align="center">
-    An open-source, AI-integrated learning app built around spaced repetition
+    Open-source, AI-integrated learning app built around spaced repetition
 </p>
 
 <p align="center">
