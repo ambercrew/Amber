@@ -96,6 +96,10 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: cargo install msixbundle-cli
 
+      - name: install tauri-cli
+        if: matrix.platform == 'windows-latest'
+        run: cargo install tauri-cli
+
       - name: build MSIX
         if: matrix.platform == 'windows-latest'
         run: npm run tauri:windows:build -- --arch x64,arm64
