@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "Brainy"
+name = "BrainyLearn"
 version = "1.0.0"
 dependencies = [
  "ammonia",
