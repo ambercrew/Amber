@@ -147,7 +147,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     // Backend
 
+    #[cfg(debug_assertions)]
     let backend_url = Url::parse("http://localhost:5078").unwrap();
+    #[cfg(not(debug_assertions))]
+    let backend_url = Url::parse("https://api.brainylearn.app").unwrap();
+
     injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
         BrainyBackendHttpClient::new(backend_url, secrets_repository)
             .expect("Cannot create backend client"),
