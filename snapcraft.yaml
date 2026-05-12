@@ -1,6 +1,6 @@
 name: brainy
 base: core24
-title: Brainy
+title: Brainy Learn
 version: '1.0.0'
 license: AGPL-3.0
 summary: Open-source, AI-integrated learning app built around spaced repetition
