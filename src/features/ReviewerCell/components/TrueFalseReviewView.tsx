@@ -20,9 +20,11 @@ function TrueFalseReviewView({ cell, showAnswer }: Props) {
 
 	return (
 		<>
-			<div dangerouslySetInnerHTML={{ __html: trueFalse.question }} />
-			<hr />
-			<div className={styles.trueFalseRow}>
+			<div
+				className={`${styles.cardSection} ${styles.questionSection}`}
+				dangerouslySetInnerHTML={{ __html: trueFalse.question }}
+			/>
+			<div className={`${styles.cardSection} ${styles.trueFalseRow}`}>
 				<button
 					className={`transparent
                         ${chosenAnswer === true && !showAnswer && styles.checked}

@@ -48,7 +48,7 @@ body {
 	--border-color: var(--surface-background-color-shade-10);
 	--hover-border-color: var(--surface-background-color-shade-20);
 
-	--surface-background-color-tint-10: rgb(248, 248, 249);
+	--surface-background-color-tint-10: rgb(248, 248, 248);
 	--surface-background-color: #e6e9ec;
 	--surface-background-color-shade-10: #c9d0d6;
 	--surface-background-color-shade-20: #acb6c0;

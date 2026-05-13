@@ -19,14 +19,18 @@ function ClozeReviewView({ cell, showAnswer, repetition }: Props) {
 			if (
 				element.getAttribute("index") === repetition.additionalContent
 			) {
-				element.className = styles.cloze;
-				if (!showAnswer) element.textContent = "[...]";
+				element.className = `${styles.cloze}${!showAnswer ? ` ${styles.clozeHidden}` : ""}`;
 			}
 		}
 		return tmp.innerHTML;
 	}, [cell, showAnswer, repetition.additionalContent]);
 
-	return <div dangerouslySetInnerHTML={{ __html: html }} />;
+	return (
+		<div
+			className={`${styles.cardSection} ${styles.questionSection}`}
+			dangerouslySetInnerHTML={{ __html: html }}
+		/>
+	);
 }
 
 export default ClozeReviewView;

@@ -202,7 +202,7 @@ function App() {
 				<Settings onClose={() => setShowSettings(false)} />
 			)}
 
-			{location.pathname !== "/reviewer" && <AiChatWidget />}
+			<AiChatWidget />
 		</div>
 	);
 }

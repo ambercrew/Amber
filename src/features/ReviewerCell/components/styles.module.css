@@ -1,7 +1,26 @@
+.card-section {
+	padding: var(--content-pad);
+}
+
+.question-section {
+	background-color: var(--surface-background-color);
+	border-bottom: var(--default-border-width) solid var(--border-color);
+}
+
 .cloze {
-	color: var(--primary-color);
+	background-color: var(--primary-color);
+	color: #fff;
 	font-weight: 600;
 	display: inline-block;
+	border-radius: var(--default-border-radius);
+	padding: var(--spacing-2);
+}
+
+.cloze-hidden {
+	color: var(--primary-color);
+	user-select: none;
+	-webkit-user-select: none;
+	cursor: default;
 }
 
 .true-false-row {
@@ -27,6 +46,10 @@
 
 		&.checked {
 			border-color: var(--primary-color);
+		}
+
+		&.correct:not(disabled) {
+			border-color: var(--primary-color);
 			background-color: var(--primary-color);
 			color: #fff;
 
@@ -34,10 +57,6 @@
 			&:active {
 				background-color: var(--primary-color);
 			}
-		}
-
-		&.correct:not(disabled) {
-			border-color: var(--primary-color);
 		}
 	}
 }

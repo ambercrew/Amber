@@ -12,66 +12,58 @@ interface Props {
 function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 	return (
 		<div className={styles.buttonRow}>
-			<div className={styles.buttonColumn}>
-				<p>
+			<button
+				className={`red ${styles.gradeButton}`}
+				onClick={() => onClick(Rating.Again)}
+				disabled={disabled}
+				title="(1)">
+				Again
+				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
 						recordLog[Rating.Again].card.due,
 					)}
-				</p>
-				<button
-					className="red"
-					onClick={() => onClick(Rating.Again)}
-					disabled={disabled}
-					title="(1)">
-					Again
-				</button>
-			</div>
-			<div className={styles.buttonColumn}>
-				<p>
+				</span>
+			</button>
+			<button
+				className={`${styles.hardButton} ${styles.gradeButton}`}
+				onClick={() => onClick(Rating.Hard)}
+				disabled={disabled}
+				title="(2)">
+				Hard
+				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
 						recordLog[Rating.Hard].card.due,
 					)}
-				</p>
-				<button
-					className={styles.hardButton}
-					onClick={() => onClick(Rating.Hard)}
-					disabled={disabled}
-					title="(2)">
-					Hard
-				</button>
-			</div>
-			<div className={styles.buttonColumn}>
-				<p>
+				</span>
+			</button>
+			<button
+				className={`${styles.goodButton} ${styles.gradeButton}`}
+				onClick={() => onClick(Rating.Good)}
+				disabled={disabled}
+				title="(3)">
+				Good
+				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
 						recordLog[Rating.Good].card.due,
 					)}
-				</p>
-				<button
-					className={styles.goodButton}
-					onClick={() => onClick(Rating.Good)}
-					disabled={disabled}
-					title="(3)">
-					Good
-				</button>
-			</div>
-			<div className={styles.buttonColumn}>
-				<p>
+				</span>
+			</button>
+			<button
+				className={`primary ${styles.gradeButton}`}
+				onClick={() => onClick(Rating.Easy)}
+				disabled={disabled}
+				title="(4)">
+				Easy
+				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
 						recordLog[Rating.Easy].card.due,
 					)}
-				</p>
-				<button
-					className="primary"
-					onClick={() => onClick(Rating.Easy)}
-					disabled={disabled}
-					title="(4)">
-					Easy
-				</button>
-			</div>
+				</span>
+			</button>
 		</div>
 	);
 }

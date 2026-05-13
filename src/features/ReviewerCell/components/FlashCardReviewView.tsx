@@ -1,5 +1,6 @@
 import Cell from "../../../api/cells/entities/cell";
 import FlashCard from "../../../api/cells/valueObjects/flashCard";
+import styles from "./styles.module.css";
 
 interface Props {
 	cell: Cell;
@@ -11,10 +12,15 @@ function FlashCardReviewView({ cell, showAnswer }: Props) {
 
 	return (
 		<>
-			<div dangerouslySetInnerHTML={{ __html: flashCard.question }} />
-			<hr />
+			<div
+				className={`${styles.cardSection} ${styles.questionSection}`}
+				dangerouslySetInnerHTML={{ __html: flashCard.question }}
+			/>
 			{showAnswer && (
-				<div dangerouslySetInnerHTML={{ __html: flashCard.answer }} />
+				<div
+					className={styles.cardSection}
+					dangerouslySetInnerHTML={{ __html: flashCard.answer }}
+				/>
 			)}
 		</>
 	);

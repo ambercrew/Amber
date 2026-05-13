@@ -204,90 +204,105 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	);
 
 	return (
-		<div className={styles.reviewer}>
+		<div className={`container ${styles.reviewer}`}>
 			{!dueToday[currentCellIndex] && !isSendingRequest && (
 				<Navigate replace to="/home" />
 			)}
 
-			<div className={`${styles.container}`}>
-				{dueToday[currentCellIndex] && (
-					<ReviewerCell
-						cell={
-							cellsWithFsrsProfileIds.find(
-								c =>
-									c.cell.id ===
-									dueToday[currentCellIndex].repetition
-										.cellId,
-							)!.cell
-						}
-						repetition={dueToday[currentCellIndex].repetition}
-						showAnswer={showAnswer}
-						key={currentCellIndex}
-					/>
-				)}
+			<div className={styles.countRow}>
+				<div
+					className={`${styles.countBox} ${isCurrentCellNew ? styles.active : ""}`}>
+					<span className={styles.countLabel}>New</span>
+					<span
+						className={`new-color ${styles.countValue}`}
+						data-testid="new-count">
+						{repetitionsCounts.new}
+					</span>
+				</div>
+				<div
+					className={`${styles.countBox} ${isCurrentCellLearning ? styles.active : ""}`}>
+					<span className={styles.countLabel}>Learning</span>
+					<span
+						className={`learning-color ${styles.countValue}`}
+						data-testid="learning-count">
+						{repetitionsCounts.learning}
+					</span>
+				</div>
+				<div
+					className={`${styles.countBox} ${isCurrentCellReview ? styles.active : ""}`}>
+					<span className={styles.countLabel}>To Review</span>
+					<span
+						className={`review-color ${styles.countValue}`}
+						data-testid="review-count">
+						{repetitionsCounts.review}
+					</span>
+				</div>
 			</div>
 
-			<div className={styles.bottomBar}>
-				<div className={styles.editButtonContainer}>
+			<div className={styles.studyBox}>
+				<div className={styles.timer}>
 					<Timer
 						key={dueToday[currentCellIndex]?.repetition.id ?? 0}
 						onTimeUpdate={handleTimeUpdate}
 					/>
-					<button
-						className="row grey-button"
-						onClick={() =>
-							onEditButtonClick(
-								dueToday[currentCellIndex].repetition.fileId,
-								dueToday[currentCellIndex].repetition.cellId,
-							)
-						}
-						title="(e)">
-						<Icon path={mdiPencilOutline} size={1} />
-						<span>Edit</span>
-					</button>
 				</div>
 
-				{!showAnswer && (
-					<div className={styles.buttonColumn}>
-						<div className={styles.countRow}>
-							<p
-								className={`new-color
-                                ${isCurrentCellNew && styles.underline}`}
-								data-testid="new-count">
-								{repetitionsCounts.new}
-							</p>
-							<p>+</p>
-							<p
-								className={`learning-color
-                                ${isCurrentCellLearning && styles.underline}`}
-								data-testid="learning-count">
-								{repetitionsCounts.learning}
-							</p>
-							<p>+</p>
-							<p
-								className={`review-color
-                                ${isCurrentCellReview && styles.underline}`}
-								data-testid="review-count">
-								{repetitionsCounts.review}
-							</p>
-						</div>
+				<div className={styles.studyContent}>
+					{dueToday[currentCellIndex] && (
+						<ReviewerCell
+							cell={
+								cellsWithFsrsProfileIds.find(
+									c =>
+										c.cell.id ===
+										dueToday[currentCellIndex].repetition
+											.cellId,
+								)!.cell
+							}
+							repetition={dueToday[currentCellIndex].repetition}
+							showAnswer={showAnswer}
+							key={currentCellIndex}
+						/>
+					)}
+				</div>
+
+				<div className={styles.studyFooter}>
+					<div className={styles.footerLeft}>
 						<button
-							className="primary"
-							onClick={() => setShowAnswer(true)}
-							title="(Space)">
-							Show Answer
+							className="row grey-button"
+							onClick={() =>
+								onEditButtonClick(
+									dueToday[currentCellIndex].repetition
+										.fileId,
+									dueToday[currentCellIndex].repetition
+										.cellId,
+								)
+							}
+							title="(e)">
+							<Icon path={mdiPencilOutline} size={1} />
+							<span>Edit</span>
 						</button>
 					</div>
-				)}
 
-				{showAnswer && recordLog && (
-					<ButtonRow
-						startTime={startTime}
-						disabled={isSendingRequest}
-						onClick={grade => void handleGradeSubmit(grade)}
-						recordLog={recordLog}
-					/>
-				)}
+					<div className={styles.footerRight}>
+						{!showAnswer && (
+							<button
+								className="primary"
+								onClick={() => setShowAnswer(true)}
+								title="(Space)">
+								Show Answer
+							</button>
+						)}
+
+						{showAnswer && recordLog && (
+							<ButtonRow
+								startTime={startTime}
+								disabled={isSendingRequest}
+								onClick={grade => void handleGradeSubmit(grade)}
+								recordLog={recordLog}
+							/>
+						)}
+					</div>
+				</div>
 			</div>
 		</div>
 	);
