@@ -1,5 +1,7 @@
+import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
+import { mdiClockOutline } from "@mdi/js";
 
 interface Props {
 	onTimeUpdate: (time: number) => void;
@@ -22,7 +24,8 @@ function Timer({ onTimeUpdate }: Props) {
 
 	return (
 		<div className={styles.timerContainer}>
-			<div>
+			<div className="row">
+				<Icon path={mdiClockOutline} size={1} />
 				<p>
 					{time >= 60 * 60 &&
 						Math.floor(time / (60 * 60)).toLocaleString("en-US", {

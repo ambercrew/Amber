@@ -1,6 +1,9 @@
 .reviewer {
-	width: 100%;
 	height: 100%;
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 0 2.4rem;
+
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -11,8 +14,7 @@
 
 .count-row {
 	display: flex;
-	gap: 0.6rem;
-	margin-bottom: var(--spacing-3);
+	margin-bottom: var(--spacing-4);
 }
 
 .count-box {
@@ -21,12 +23,24 @@
 	flex-direction: column;
 	gap: var(--spacing-1);
 	padding: var(--spacing-4);
-	border-radius: var(--default-border-radius);
 	background-color: var(--surface-background-color-tint-10);
 	border: var(--default-border-width) solid var(--border-color);
+	text-align: center;
+
+	&:first-child {
+		border-top-left-radius: var(--default-border-radius);
+		border-bottom-left-radius: var(--default-border-radius);
+		border-right: none;
+	}
+
+	&:last-child {
+		border-top-right-radius: var(--default-border-radius);
+		border-bottom-right-radius: var(--default-border-radius);
+		border-left: none;
+	}
 
 	&.active {
-		border-color: var(--primary-color);
+		background-color: var(--surface-background-color);
 	}
 }
 
@@ -49,7 +63,7 @@
 	display: flex;
 	flex-direction: column;
 	background-color: var(--surface-background-color-tint-10);
-	height: 45rem;
+	height: 52rem;
 	max-height: 80vh;
 	border-radius: var(--default-border-radius);
 	border: var(--default-border-width) solid var(--border-color);
@@ -57,18 +71,9 @@
 	position: relative;
 }
 
-.timer {
-	position: absolute;
-	top: var(--spacing-3);
-	right: var(--spacing-3);
-	font-size: 1.2rem;
-	color: var(--text-color-secondary);
-	pointer-events: none;
-}
-
 .study-content {
-	--content-horizontal-pad: var(--spacing-6);
-	--content-vertical-pad: var(--spacing-6);
+	--content-horizontal-pad: var(--spacing-7);
+	--content-vertical-pad: var(--spacing-7);
 	--content-pad: var(--content-vertical-pad) var(--content-horizontal-pad);
 
 	flex: 1;
@@ -81,14 +86,18 @@
 	& ul {
 		margin: 0 var(--content-horizontal-pad);
 	}
+
+	& img {
+		max-width: 100%;
+		height: auto;
+	}
 }
 
 .study-footer {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: 0 var(--spacing-5);
-	height: 6.4rem;
+	padding: var(--spacing-3) var(--spacing-5);
 	border-top: var(--default-border-width) solid var(--border-color);
 	background-color: var(--surface-background-color-tint-10);
 	flex-shrink: 0;
@@ -100,15 +109,14 @@
 	& button {
 		padding-right: var(--spacing-5);
 		padding-left: var(--spacing-5);
-		box-shadow: var(--default-box-shadow);
+		height: 4.8rem;
 	}
 }
 
 .footer-left {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	gap: var(--spacing-1);
+	align-items: center;
+	gap: var(--spacing-5);
 
 	& button {
 		box-shadow: none;
@@ -130,6 +138,10 @@
 	display: flex;
 	align-items: center;
 	gap: var(--spacing-3);
+}
+
+button.transparent {
+	border: var(--default-border-width) solid var(--border-color);
 }
 
 .grade-button {
@@ -185,11 +197,10 @@
 	text-decoration: underline;
 }
 
-@media (max-width: 46rem) {
+@media (max-width: 60rem) {
 	.study-footer {
 		flex-direction: column;
 		padding: var(--spacing-3) var(--spacing-5);
-		gap: var(--spacing-2);
 		align-items: stretch;
 	}
 

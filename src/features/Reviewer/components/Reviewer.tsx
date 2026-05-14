@@ -204,7 +204,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	);
 
 	return (
-		<div className={`container ${styles.reviewer}`}>
+		<div className={`${styles.reviewer}`}>
 			{!dueToday[currentCellIndex] && !isSendingRequest && (
 				<Navigate replace to="/home" />
 			)}
@@ -240,13 +240,6 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 			</div>
 
 			<div className={styles.studyBox}>
-				<div className={styles.timer}>
-					<Timer
-						key={dueToday[currentCellIndex]?.repetition.id ?? 0}
-						onTimeUpdate={handleTimeUpdate}
-					/>
-				</div>
-
 				<div className={styles.studyContent}>
 					{dueToday[currentCellIndex] && (
 						<ReviewerCell
@@ -267,8 +260,13 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 
 				<div className={styles.studyFooter}>
 					<div className={styles.footerLeft}>
+						<Timer
+							key={dueToday[currentCellIndex]?.repetition.id ?? 0}
+							onTimeUpdate={handleTimeUpdate}
+						/>
+
 						<button
-							className="row grey-button"
+							className={`row transparent ${styles.transparent}`}
 							onClick={() =>
 								onEditButtonClick(
 									dueToday[currentCellIndex].repetition
@@ -286,7 +284,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 					<div className={styles.footerRight}>
 						{!showAnswer && (
 							<button
-								className="primary"
+								className={`transparent ${styles.transparent}`}
 								onClick={() => setShowAnswer(true)}
 								title="(Space)">
 								Show Answer
