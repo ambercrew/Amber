@@ -58,9 +58,6 @@ body {
 	--side-bar-background-color: var(--surface-background-color-tint-10);
 
 	--red-color: #e71d36;
-	--red-color-shade-10: #db172f;
-	--red-color-shade-20: #ca152c;
-
 	--green-color: #0faa77;
 
 	--new-color: var(--primary-color-shade-20);
@@ -114,7 +111,7 @@ body.dark {
 	--surface-background-color-shade-20: #646468;
 	--surface-background-color-shade-30: #7d7d82;
 
-	--red-color: #ef4444;
+	--red-color: #eb1616;
 
 	--placeholder-color: #b8bec7;
 }
@@ -266,6 +263,14 @@ button:disabled {
 	cursor: not-allowed;
 }
 
+button:not(:disabled):hover {
+	filter: brightness(92%);
+}
+
+button:not(:disabled):active {
+	filter: brightness(82%);
+}
+
 button.primary {
 	color: #fff;
 	background-color: var(--primary-color);
@@ -278,14 +283,6 @@ button.primary * {
 
 button.primary:not(:disabled):focus {
 	box-shadow: var(--default-box-shadow);
-}
-
-button.primary:hover {
-	background-color: var(--primary-color-shade-10);
-}
-
-button.primary:active {
-	background-color: var(--primary-color-shade-20);
 }
 
 button.secondary {
@@ -302,10 +299,6 @@ button.secondary:not(:disabled):focus {
 	box-shadow: var(--default-box-shadow);
 }
 
-button.secondary:active {
-	background-color: var(--secondary-color-shade-10);
-}
-
 button.secondary:focus {
 	outline-color: var(--secondary-color-shade-10);
 }
@@ -316,22 +309,16 @@ button.transparent {
 
 button.transparent:not(:disabled):hover {
 	background-color: var(--surface-background-color);
+	filter: none;
 }
 
 button.transparent:not(:disabled):active {
 	background-color: var(--surface-background-color-shade-10);
+	filter: none;
 }
 
 button.grey-button {
 	background-color: var(--surface-background-color);
-}
-
-button.grey-button:hover {
-	background-color: var(--surface-background-color-shade-10);
-}
-
-button.grey-button:active {
-	background-color: var(--surface-background-color-shade-20);
 }
 
 button.grey-button:focus {
@@ -341,14 +328,6 @@ button.grey-button:focus {
 button.red {
 	background-color: var(--red-color);
 	color: #fff;
-}
-
-button.red:hover {
-	background-color: var(--red-color-shade-10);
-}
-
-button.red:active {
-	background-color: var(--red-color-shade-20);
 }
 
 button.red:focus {

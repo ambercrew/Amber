@@ -79,7 +79,7 @@ export default function Select({
 				{...props}
 				onClick={() => setIsOpen(!isOpen)}
 				ref={dropDownRef}
-				className={`select ${styles.dropDownButton}`}
+				className={`select transparent ${styles.dropDownButton}`}
 				type="button"
 				title={selectedLabel}>
 				<p>{selectedLabel}</p>
