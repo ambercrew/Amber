@@ -118,7 +118,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         ),
     )
     .await
-    .unwrap();
+    .expect("Cannot get or create settings");
 
     #[cfg(test)]
     let settings = Settings::default();
@@ -148,9 +148,10 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     // Backend
 
     #[cfg(debug_assertions)]
-    let backend_url = Url::parse("http://localhost:5078").unwrap();
+    let backend_url = Url::parse("http://localhost:5078").expect("Cannot construct backend url");
     #[cfg(not(debug_assertions))]
-    let backend_url = Url::parse("https://api.brainylearn.app").unwrap();
+    let backend_url =
+        Url::parse("https://api.brainylearn.app").expect("Cannot construct backend url");
 
     injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
         BrainyBackendHttpClient::new(backend_url, secrets_repository)
