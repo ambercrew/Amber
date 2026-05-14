@@ -4,6 +4,10 @@
 	overflow: hidden;
 }
 
+:global(body.mobile) .workarea {
+	padding-top: env(safe-area-inset-top);
+}
+
 .workarea {
 	flex-shrink: 1;
 	min-width: 0;

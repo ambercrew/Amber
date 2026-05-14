@@ -99,6 +99,16 @@
 	}
 }
 
+:global(body.mobile) .side-bar {
+	padding-top: env(safe-area-inset-top);
+
+	& .header {
+		padding-top: 0;
+		height: auto;
+		padding-bottom: 0;
+	}
+}
+
 .side-bar.small-screen {
 	width: 100vw;
 	transition: none;

@@ -50,6 +50,7 @@ import FileItemDropContainerData, {
 } from "../types/fileItemDropContainerData.ts";
 import { pointerIntersection } from "@dnd-kit/collision";
 import { isModKey } from "../../../utils/keyboardUtils";
+import { isMobile } from "../../../utils/tauriUtils.ts";
 
 interface Props {
 	folder: UiFolder | null;
@@ -151,31 +152,33 @@ function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 		onClick: () => setIsFsrsDialogShown(true),
 	});
 
-	actions.push({
-		iconName: mdiExport,
-		text: "Export",
-		onClick: () => {
-			void (async () => {
-				setShowActions(false);
-				const savePath = await openSaveDialog({
-					filters: [JSON_FILE_FILTER],
-					defaultPath: getFileName(fullPath) + ".json",
-				});
-				if (!savePath) return;
-				try {
-					await (folder
-						? exportFolder(id, savePath)
-						: exportFile(id, savePath));
-					dispatch(setSuccessMessage("Item exported!"));
-				} catch (e) {
-					console.error(e);
-					dispatch(requestFailure(errorToString(e)));
-				}
-			})();
-		},
-	});
+	if (!isMobile()) {
+		actions.push({
+			iconName: mdiExport,
+			text: "Export",
+			onClick: () => {
+				void (async () => {
+					setShowActions(false);
+					const savePath = await openSaveDialog({
+						filters: [JSON_FILE_FILTER],
+						defaultPath: getFileName(fullPath) + ".json",
+					});
+					if (!savePath) return;
+					try {
+						await (folder
+							? exportFolder(id, savePath)
+							: exportFile(id, savePath));
+						dispatch(setSuccessMessage("Item exported!"));
+					} catch (e) {
+						console.error(e);
+						dispatch(requestFailure(errorToString(e)));
+					}
+				})();
+			},
+		});
+	}
 
-	if (folder) {
+	if (folder && !isMobile()) {
 		actions.push({
 			iconName: mdiImport,
 			text: "Import",
@@ -185,6 +188,7 @@ function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 						setShowActions(false);
 						const openPath = await openOpenDialog({
 							filters: [JSON_FILE_FILTER],
+							multiple: false,
 						});
 						if (!openPath) return;
 						await importExportedItem(openPath, id);
