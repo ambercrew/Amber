@@ -1,6 +1,7 @@
 use std::{
     io::{BufReader, Cursor},
     sync::Arc,
+    time::Duration,
 };
 
 use crate::backend::{
@@ -14,10 +15,10 @@ use crate::backend::{
 use crate::secrets::repositories::secrets_repository::SecretsRepository;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use reqwest::{Response, StatusCode, Url};
 use reqwest_cookie_store::CookieStoreMutex;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{RetryError, RetryTransientMiddleware, policies::ExponentialBackoff};
+use tauri_plugin_http::reqwest::{Response, StatusCode, Url};
 
 const COOKIES_SECRET_KEY: &str = "backend-cookies";
 
@@ -29,13 +30,13 @@ pub struct BrainyBackendHttpClient {
 }
 
 impl BrainyBackendHttpClient {
-    pub fn new(
+    pub async fn new(
         backend_url: Url,
         secrets_repository: Arc<dyn SecretsRepository>,
     ) -> Result<Self, String> {
         let mut cookie_store = reqwest_cookie_store::CookieStore::new();
 
-        if let Some(cookies) = secrets_repository.get_secret(COOKIES_SECRET_KEY) {
+        if let Some(cookies) = secrets_repository.get_secret(COOKIES_SECRET_KEY).await {
             let cursor = Cursor::new(cookies);
             let reader = BufReader::new(cursor);
             if let Ok(result) = cookie_store::serde::json::load(reader) {
@@ -48,7 +49,7 @@ impl BrainyBackendHttpClient {
         let cookie_store = reqwest_cookie_store::CookieStoreMutex::new(cookie_store);
         let cookie_store = std::sync::Arc::new(cookie_store);
 
-        let reqwest_client = reqwest::Client::builder()
+        let reqwest_client = tauri_plugin_http::reqwest::Client::builder()
             .cookie_provider(cookie_store.clone())
             .build();
 
@@ -62,7 +63,9 @@ impl BrainyBackendHttpClient {
             cookie_store.lock().unwrap()
         );
 
-        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
+        let retry_policy = ExponentialBackoff::builder()
+            .retry_bounds(Duration::from_secs(2), Duration::from_secs(30))
+            .build_with_max_retries(3);
 
         let client_with_middleware = ClientBuilder::new(reqwest_client.unwrap())
             .with(RetryTransientMiddleware::new_with_policy(retry_policy))
@@ -103,7 +106,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         }
         let response = status?;
 
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
@@ -132,7 +135,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         let response = ensure_success_response(response).await?;
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
@@ -148,7 +151,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .send()
             .await;
         ensure_success_response(response).await?;
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
         Ok(())
     }
 
@@ -170,7 +173,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
 
         Ok(())
     }
@@ -297,7 +300,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
 
         Ok(())
     }
@@ -320,30 +323,34 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
             .await;
 
         ensure_success_response(response).await?;
-        self.persist_cookies()?;
+        self.persist_cookies().await?;
 
         Ok(())
     }
 }
 
 impl BrainyBackendHttpClient {
-    fn persist_cookies(&self) -> Result<(), BrainyBackendClientError> {
-        let mut writer = std::io::BufWriter::new(Vec::new());
-        let store = match self.cookie_store.lock() {
-            Ok(store) => store,
-            Err(err) => {
-                log::error!("Cookie store mutex poisoned: {:?}", err);
-                return Err(BrainyBackendClientError::CannotLoadStoredCookies);
-            }
+    async fn persist_cookies(&self) -> Result<(), BrainyBackendClientError> {
+        let cookies_json = {
+            let mut writer = std::io::BufWriter::new(Vec::new());
+            let store = match self.cookie_store.lock() {
+                Ok(store) => store,
+                Err(err) => {
+                    log::error!("Cookie store mutex poisoned: {:?}", err);
+                    return Err(BrainyBackendClientError::CannotLoadStoredCookies);
+                }
+            };
+            cookie_store::serde::json::save(&store, &mut writer).unwrap();
+            String::from_utf8(writer.into_inner().unwrap()).unwrap()
+            // store (MutexGuard) dropped here, before the await below
         };
-        cookie_store::serde::json::save(&store, &mut writer).unwrap();
-        let cookies_json = String::from_utf8(writer.into_inner().unwrap()).unwrap();
 
         #[cfg(debug_assertions)]
         log::info!("Saving the following cookies to keyring: {cookies_json}");
         if let Err(err) = self
             .secrets_repository
             .set_secret(COOKIES_SECRET_KEY, &cookies_json)
+            .await
         {
             return Err(BrainyBackendClientError::CannotSaveAuthenticationCookies(
                 Box::new(err),

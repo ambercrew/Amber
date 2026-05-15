@@ -51,10 +51,11 @@ pub mod generated_code {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), String> {
-    simple_logger::init_with_level(log::Level::Info).unwrap();
+    simple_logger::init_with_level(log::Level::Info).expect("Cannot set the logger");
 
-    let mut tauri_builder =
-        tauri::Builder::default().plugin(tauri_plugin_clipboard_manager::init());
+    let mut tauri_builder = tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_clipboard_manager::init());
 
     #[cfg(desktop)]
     {
@@ -67,7 +68,6 @@ pub async fn run() -> Result<(), String> {
     }
 
     tauri_builder = tauri_builder
-        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init());
@@ -75,6 +75,7 @@ pub async fn run() -> Result<(), String> {
     #[cfg(desktop)]
     {
         tauri_builder = tauri_builder
+            .plugin(tauri_plugin_process::init())
             .plugin(
                 tauri_plugin_window_state::Builder::new()
                     .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
@@ -88,7 +89,7 @@ pub async fn run() -> Result<(), String> {
             let app_data_dir = app
                 .path()
                 .app_data_dir()
-                .expect("Cannot get settings directory");
+                .expect("Cannot get the data directory");
             let app_data_directory = AppDataDirectory::new(app_data_dir);
 
             let injector = Arc::new(tokio::task::block_in_place(|| {

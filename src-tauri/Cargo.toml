@@ -26,17 +26,16 @@ chrono = { version = "0.4.44", features = ["serde"] }
 cookie_store = "0.22.1"
 injector = { path = "./injector" }
 injector_derive = { path="./injector_derive" }
-keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 log = "0.4.29"
 ammonia = "4"
 markdown = "1.0.0"
 prost = "0.14.3"
 prost-types = "0.14.3"
 regex = "1.12.3"
-reqwest = { version = "0.13.3", features = ["json", "cookies", "query"] }
-reqwest-middleware = { version = "0.5.1", features = ["json", "query"] }
-reqwest-retry = "0.9.1"
-reqwest_cookie_store = "0.10.0"
+tauri-plugin-http = "2"
+reqwest-middleware = { version = "0.4.0", features = ["json"] }
+reqwest-retry = "0.8.0"
+reqwest_cookie_store = "0.9.0"
 rig-core = { version = "0.36.0", features = ["pdf", "derive"] }
 rig-sqlite = "0.2.5"
 schemars = "1.2.1"

@@ -19,3 +19,20 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+# Custom
+# Keep Tauri/Wry JNI bridge classes
+-keep class app.brainylearn.** { *; }
+-keep class app.brainylearn.WryActivity { *; }
+-keep class app.brainylearn.Rust { *; }
+
+# Keep WebView JavaScript interface
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Prevent R8 from stripping native method declarations
+-keepclasseswithmembernames class * {
+    native <methods>;
+}

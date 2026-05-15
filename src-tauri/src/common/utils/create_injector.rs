@@ -25,8 +25,8 @@ use crate::file_system::repositories::folder_repository::FolderRepository;
 use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
+use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
-use crate::infrastructure::repositories::keyring::keyring_secrets_repository::KeyringSecretsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_cell_repository::SqliteCellRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_file_repository::SqliteFileRepository;
@@ -142,7 +142,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     // Secret repository
 
     let secrets_repository: Arc<dyn SecretsRepository> =
-        Arc::new(KeyringSecretsRepository::new("brainy"));
+        Arc::new(DiskSecretsRepository::new(&app_data_directory));
     injector.register_singleton::<dyn SecretsRepository>(secrets_repository.clone());
 
     // Backend
@@ -155,6 +155,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
         BrainyBackendHttpClient::new(backend_url, secrets_repository)
+            .await
             .expect("Cannot create backend client"),
     ));
 
