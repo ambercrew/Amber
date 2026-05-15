@@ -6,7 +6,10 @@ use crate::settings::value_objects::{
     database_location::DatabaseLocation, settings_profile::SettingsProfile, theme::Theme,
 };
 
+#[cfg(not(debug_assertions))]
 const DATABASE_FILE_NAME: &str = "brainy.db";
+#[cfg(debug_assertions)]
+const DATABASE_FILE_NAME: &str = "brainy.dev.db";
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

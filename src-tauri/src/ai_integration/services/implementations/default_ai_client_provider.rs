@@ -20,6 +20,11 @@ use crate::ai_integration::services::ai_client_provider::{
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::settings::repositories::settings_repository::SettingsRepository;
 
+#[cfg(not(debug_assertions))]
+const VECTOR_STORE_NAME: &str = "vector_store.db";
+#[cfg(debug_assertions)]
+const VECTOR_STORE_NAME: &str = "vector_store.dev.db";
+
 #[derive(ScopeInjectable)]
 pub struct DefaultAiClientProvider {
     settings_repository: Arc<dyn SettingsRepository>,
@@ -117,7 +122,7 @@ impl AiClientProvider for DefaultAiClientProvider {
         &self,
         embed_model: &MultiEmbeddingModel,
     ) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiClientProviderError> {
-        let path = self.app_data_directory.get_path().join("vector_store.db");
+        let path = self.app_data_directory.get_path().join(VECTOR_STORE_NAME);
         let path = &*path.to_string_lossy();
         let conn = match Connection::open(path).await {
             Err(err) => {

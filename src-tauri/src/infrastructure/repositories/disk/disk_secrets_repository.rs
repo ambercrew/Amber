@@ -8,7 +8,10 @@ use crate::{
     secrets::repositories::secrets_repository::{SecretsRepository, SecretsRepositoryError},
 };
 
+#[cfg(not(debug_assertions))]
 const SECRETS_FILE_NAME: &str = ".secrets";
+#[cfg(debug_assertions)]
+const SECRETS_FILE_NAME: &str = ".dev.secrets";
 
 pub struct DiskSecretsRepository {
     path: PathBuf,
