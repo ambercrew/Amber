@@ -144,7 +144,7 @@ mod tests {
         database_connection_manager
             .expect_connect_to_database()
             .with(eq(DatabaseLocation::new_unchecked(
-                PathBuf::from_str("new path").unwrap().join("brainy.db"),
+                PathBuf::from_str("new path").unwrap().join("brainy.dev.db"),
             )))
             .returning(|_| Box::pin(async { Ok(()) }));
 

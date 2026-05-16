@@ -143,7 +143,7 @@ pub mod tests {
         let settings = serde_json::from_str::<Settings>(&file_content).unwrap();
         assert_eq!(
             *settings.database_location().get_path(),
-            app_data_directory.get_path().join("brainy.db")
+            app_data_directory.get_path().join("brainy.dev.db")
         );
         assert_eq!(settings.theme, Theme::FollowSystem);
         assert_eq!(settings.zoom_percentage, 100f64);
