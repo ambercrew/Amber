@@ -254,11 +254,10 @@ impl FileRepository for SqliteFileRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let result = sqlx::query!("DELETE FROM files WHERE id = $1", id)
+        sqlx::query!("DELETE FROM files WHERE id = $1", id)
             .execute(&mut *tx)
-            .await;
+            .await?;
 
-        result?;
         Ok(())
     }
 }
