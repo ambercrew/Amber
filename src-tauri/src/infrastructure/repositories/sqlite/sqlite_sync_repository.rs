@@ -5,10 +5,15 @@ use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
 
 use crate::{
+    Guid,
     common::repository_error::RepositoryError,
     infrastructure::value_objects::db_transaction::DbTransaction,
     sync::{
-        entities::deleted_entity::DeletedEntity, repositories::sync_repository::SyncRepository,
+        entities::{
+            deleted_entity::DeletedEntity,
+            synced_entity::{EntityType, SyncedEntity},
+        },
+        repositories::sync_repository::SyncRepository,
     },
 };
 
@@ -33,12 +38,10 @@ impl SyncRepository for SqliteSyncRepository {
             deleted_date,
         } = deleted_entity;
 
-        let result = sqlx::query(&format!("DELETE FROM {entity_name} WHERE id = $1"))
+        sqlx::query(&format!("DELETE FROM {entity_name} WHERE id = $1"))
             .bind(entity_id)
             .execute(&mut *tx)
-            .await;
-
-        result?;
+            .await?;
 
         let result = sqlx::query!(
             r#"UPDATE deleted_entities
@@ -78,5 +81,83 @@ impl SyncRepository for SqliteSyncRepository {
         .await?;
 
         Ok(rows.into_iter().collect())
+    }
+
+    async fn is_entity_deleted(&self, entity_id: Guid) -> Result<bool, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let result = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM deleted_entities WHERE entity_id = $1"#,
+            entity_id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        Ok(result > 0)
+    }
+
+    async fn update_deleted_entity_deleted_date(
+        &self,
+        entity_id: Guid,
+        date: DateTime<Utc>,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        sqlx::query!(
+            r#"UPDATE deleted_entities SET deleted_date = datetime($1) WHERE entity_id = $2"#,
+            date,
+            entity_id
+        )
+        .execute(&mut *tx)
+        .await?;
+
+        Ok(())
+    }
+
+    async fn delete_synced_entity(&self, entity: &SyncedEntity) -> Result<(), RepositoryError> {
+        let table_name = get_entity_table_name(entity.entity_type);
+
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let result = sqlx::query(&format!("DELETE FROM {table_name} WHERE id = $1"))
+            .bind(entity.entity_id)
+            .execute(&mut *tx)
+            .await?;
+
+        if result.rows_affected() == 0 {
+            let deleted_date = Utc::now();
+            sqlx::query!(
+                r#"INSERT INTO deleted_entities(
+                    entity_name,
+                    entity_id,
+                    entity_created_date,
+                    deleted_date)
+                    VALUES ($1, $2, datetime($3), datetime($4))
+                "#,
+                table_name,
+                entity.entity_id,
+                entity.created_date,
+                deleted_date,
+            )
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        Ok(())
+    }
+}
+
+fn get_entity_table_name(entity_type: EntityType) -> &'static str {
+    match entity_type {
+        EntityType::FsrsProfile => "fsrs_profiles",
+        EntityType::Folder => "folders",
+        EntityType::File => "files",
+        EntityType::Cell => "cells",
+        EntityType::Repetition => "repetitions",
+        EntityType::Review => "reviews",
+        EntityType::DeletedEntity => "deleted_entities",
     }
 }

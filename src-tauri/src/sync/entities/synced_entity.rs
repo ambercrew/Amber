@@ -15,7 +15,7 @@ pub struct SyncedEntity {
     pub data: String,
 }
 
-#[derive(Serialize_repr, Deserialize_repr, Eq, PartialEq, Debug, Clone)]
+#[derive(Serialize_repr, Deserialize_repr, Eq, PartialEq, Debug, Clone, Copy)]
 #[serde(rename_all = "camelCase")]
 #[repr(u8)]
 pub enum EntityType {
