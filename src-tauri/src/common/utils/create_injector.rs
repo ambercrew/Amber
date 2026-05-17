@@ -10,6 +10,7 @@ use crate::ai_integration::services::implementations::default_ai_client_provider
 use crate::backend::services::{
     authenticator::Authenticator, implementations::default_authenticator::DefaultAuthenticator,
 };
+use crate::cells::entities::{cell::Cell, repetition::Repetition, review::Review};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::cells::repositories::review_repository::ReviewRepository;
 use crate::cells::services::cell_deleter::CellDeleter;
@@ -20,9 +21,12 @@ use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 #[cfg(not(test))]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool_from_location;
 use crate::database::database_connection_manager::DatabaseConnectionManager;
+use crate::file_system::entities::{file::File, folder::Folder};
 use crate::file_system::repositories::file_repository::FileRepository;
 use crate::file_system::repositories::folder_repository::FolderRepository;
+use crate::fsrs::entities::fsrs_profile::FsrsProfile;
 use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
+use crate::generated_code;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
@@ -100,9 +104,23 @@ use crate::{
         implementations::default_settings_updater::DefaultSettingsUpdater,
         settings_updater::SettingsUpdater,
     },
-    sync::services::{
-        implementations::default_syncer::DefaultSyncer,
-        syncer::{SyncLock, Syncer},
+    sync::{
+        entities::deleted_entity::DeletedEntity,
+        services::{
+            implementations::default_syncer::DefaultSyncer,
+            syncer::{SyncLock, Syncer},
+        },
+        strategies::{
+            implementations::{
+                cell_strategy::DefaultCellStrategy,
+                deleted_entity_strategy::DefaultDeletedEntityStrategy,
+                file_strategy::DefaultFileStrategy, folder_strategy::DefaultFolderStrategy,
+                fsrs_profile_strategy::DefaultFsrsProfileStrategy,
+                repetition_strategy::DefaultRepetitionStrategy,
+                review_strategy::DefaultReviewStrategy,
+            },
+            sync_entity_strategy::SyncEntityStrategy,
+        },
     },
 };
 
@@ -222,6 +240,41 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
     register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::FsrsProfile, Entity = FsrsProfile>,
+        DefaultFsrsProfileStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::Folder, Entity = Folder>,
+        DefaultFolderStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::File, Entity = File>,
+        DefaultFileStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::Cell, Entity = Cell>,
+        DefaultCellStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::Repetition, Entity = Repetition>,
+        DefaultRepetitionStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::Review, Entity = Review>,
+        DefaultReviewStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,
+        DefaultDeletedEntityStrategy
+    );
     register_scope!(injector, dyn Syncer, DefaultSyncer);
 
     // Backup

@@ -63,10 +63,6 @@ impl Review {
             rating,
         }
     }
-
-    pub fn modified_date(&self) -> DateTime<Utc> {
-        self.modified_date
-    }
 }
 
 impl Default for Review {

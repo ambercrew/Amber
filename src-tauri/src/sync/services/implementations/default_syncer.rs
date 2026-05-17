@@ -1,4 +1,4 @@
-use std::{collections::HashSet, future::Future, pin::Pin, sync::Arc};
+use std::{collections::HashSet, fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;
 use base64::{Engine as _, engine::general_purpose};
@@ -9,17 +9,9 @@ use prost::Message;
 use crate::{
     Guid,
     backend::{backend_dto::SyncEntityDto, clients::brainy_backend_client::BrainyBackendClient},
-    cells::{
-        entities::{cell::Cell, repetition::Repetition, review::Review},
-        repositories::{cell_repository::CellRepository, review_repository::ReviewRepository},
-        services::cell_invariants_enforcer::CellInvariantsEnforcer,
-    },
-    common::extensions::{into_base64::IntoBase64, into_timestamp::IntoTimestamp},
-    file_system::{
-        entities::{file::File, folder::Folder},
-        repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
-    },
-    fsrs::{entities::fsrs_profile::FsrsProfile, repositories::fsrs_repository::FsrsRepository},
+    cells::entities::{cell::Cell, repetition::Repetition, review::Review},
+    file_system::entities::{file::File, folder::Folder},
+    fsrs::entities::fsrs_profile::FsrsProfile,
     generated_code::{self},
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
@@ -32,7 +24,7 @@ use crate::{
         },
         repositories::sync_repository::SyncRepository,
         services::syncer::{SyncError, SyncLock, Syncer},
-        traits::parse_synced_entity::{ParseSyncedEntity, ParseSyncedEntityReference},
+        strategies::sync_entity_strategy::{ParseSyncedEntityReference, SyncEntityStrategy},
     },
 };
 
@@ -42,15 +34,19 @@ const STALE_SYNC_THRESHOLD_DAYS: i64 = 183;
 #[derive(ScopeInjectable)]
 pub struct DefaultSyncer {
     backend_client: Arc<dyn BrainyBackendClient>,
-    folder_repository: Arc<dyn FolderRepository>,
-    file_repository: Arc<dyn FileRepository>,
-    cell_repository: Arc<dyn CellRepository>,
-    review_repository: Arc<dyn ReviewRepository>,
     sync_repository: Arc<dyn SyncRepository>,
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
-    fsrs_repository: Arc<dyn FsrsRepository>,
-    cell_invariants_enforcer: Arc<dyn CellInvariantsEnforcer>,
     sync_lock: Arc<SyncLock>,
+    fsrs_profile_strategy:
+        Arc<dyn SyncEntityStrategy<Input = generated_code::FsrsProfile, Entity = FsrsProfile>>,
+    folder_strategy: Arc<dyn SyncEntityStrategy<Input = generated_code::Folder, Entity = Folder>>,
+    file_strategy: Arc<dyn SyncEntityStrategy<Input = generated_code::File, Entity = File>>,
+    cell_strategy: Arc<dyn SyncEntityStrategy<Input = generated_code::Cell, Entity = Cell>>,
+    repetition_strategy:
+        Arc<dyn SyncEntityStrategy<Input = generated_code::Repetition, Entity = Repetition>>,
+    review_strategy: Arc<dyn SyncEntityStrategy<Input = generated_code::Review, Entity = Review>>,
+    deleted_entity_strategy:
+        Arc<dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>>,
 }
 
 #[async_trait]
@@ -139,12 +135,79 @@ impl DefaultSyncer {
 
         for synced_entity in result.synced_entities {
             let entity_id = synced_entity.entity_id;
-            // `process_synced_entity` returns the number of rows affected by the
+
+            log::info!(
+                "Processing synced entity with id {} and of type {:?}",
+                synced_entity.entity_id,
+                synced_entity.entity_type
+            );
+
+            let bytes = general_purpose::STANDARD.decode(&synced_entity.data)?;
+
+            // The strategies returns the number of rows affected by the
             // upsert. A non-zero value means the server version was newer than what
             // we had locally, so the local state was actually overwritten. A zero
             // return means the local version was already equal or newer and the
             // upsert was a no-op.
-            let rows_affected = self.process_synced_entity(synced_entity).await?;
+            let rows_affected = match synced_entity.entity_type {
+                EntityType::FsrsProfile => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.fsrs_profile_strategy),
+                    )
+                    .await?
+                }
+                EntityType::Folder => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.folder_strategy),
+                    )
+                    .await?
+                }
+                EntityType::File => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.file_strategy),
+                    )
+                    .await?
+                }
+                EntityType::Cell => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.cell_strategy),
+                    )
+                    .await?
+                }
+                EntityType::Repetition => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.repetition_strategy),
+                    )
+                    .await?
+                }
+                EntityType::Review => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.review_strategy),
+                    )
+                    .await?
+                }
+                EntityType::DeletedEntity => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.deleted_entity_strategy),
+                    )
+                    .await?
+                }
+            };
+
             if rows_affected > 0 {
                 entities_overwritten_by_server.insert(entity_id);
             }
@@ -153,174 +216,58 @@ impl DefaultSyncer {
         Ok(result.has_more)
     }
 
-    async fn process_synced_entity<'a>(
-        &'a self,
-        synced_entity: SyncedEntity,
-    ) -> Result<u64, SyncError> {
-        log::info!(
-            "Processing synced entity with id {} and of type {:?}",
-            synced_entity.entity_id,
-            synced_entity.entity_type
-        );
+    async fn process_with_strategy<I, E>(
+        &self,
+        synced_entity: &SyncedEntity,
+        bytes: &[u8],
+        strategy: Arc<dyn SyncEntityStrategy<Input = I, Entity = E>>,
+    ) -> Result<u64, SyncError>
+    where
+        I: Message + Default,
+        E: Send + Debug,
+    {
+        let decoded = I::decode(bytes)?;
+        let parsed = strategy.parse(synced_entity, decoded);
+        let mut entity = parsed.entity;
 
-        let bytes = general_purpose::STANDARD.decode(&synced_entity.data)?;
+        #[cfg(debug_assertions)]
+        log::info!("Parsed entity {:#?}", entity);
 
-        let entity_id = synced_entity.entity_id;
-        let entity_type = synced_entity.entity_type;
-
-        let references_are_valid;
-
-        let upsert_fn: Pin<Box<dyn Future<Output = Result<u64, SyncError>> + Send + 'a>> =
-            match entity_type {
-                EntityType::FsrsProfile => {
-                    let decoded = generated_code::FsrsProfile::decode(&bytes[..])?;
-                    let parsed = FsrsProfile::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.fsrs_repository
-                            .upsert_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-                EntityType::Folder => {
-                    let decoded = generated_code::Folder::decode(&bytes[..])?;
-                    let parsed = Folder::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.folder_repository
-                            .upsert_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-                EntityType::File => {
-                    let decoded = generated_code::File::decode(&bytes[..])?;
-                    let parsed = File::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.file_repository
-                            .upsert_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-                EntityType::Cell => {
-                    let decoded = generated_code::Cell::decode(&bytes[..])?;
-                    let parsed = Cell::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        let result = self.cell_repository
-                            .upsert_cell_without_repetition_and_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await?;
-                        self.cell_invariants_enforcer
-                            .enforce_cell_invariants_on_cell(entity.id())
-                            .await?;
-                        Ok(result)
-                    })
-                }
-                EntityType::Repetition => {
-                    let decoded = generated_code::Repetition::decode(&bytes[..])?;
-                    let parsed = Repetition::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.cell_repository
-                            .upsert_repetition_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-                EntityType::Review => {
-                    let decoded = generated_code::Review::decode(&bytes[..])?;
-                    let parsed = Review::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.review_repository
-                            .upsert_with_modified_date_if_modified_before(
-                                &entity,
-                                entity.modified_date(),
-                            )
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-                EntityType::DeletedEntity => {
-                    let decoded = generated_code::DeletedEntity::decode(&bytes[..])?;
-                    let parsed = DeletedEntity::parse(&synced_entity, decoded);
-                    let mut entity = parsed.entity;
-                    references_are_valid = self
-                        .handle_parsed_entity_references(&mut entity, parsed.references)
-                        .await?;
-
-                    Box::pin(async move {
-                        self.sync_repository
-                            .apply_deleted_entity(entity)
-                            .await
-                            .map_err(Into::into)
-                    })
-                }
-            };
-
-        if !references_are_valid {
-            if self.sync_repository.is_entity_deleted(entity_id).await? {
-                // Updating deleted date to so that it will be sent to server!
-                self.sync_repository
-                    .update_deleted_entity_deleted_date(entity_id, Utc::now())
-                    .await?;
-            } else {
-                log::warn!(
-                    "The synced entity has a reference that is no longer existing in the database, deleting the synced entity!"
-                );
-                // This is the last resort when there is no way to fix the reference, to just
-                // delete it since one of its referenced entities are deleted locally!
-                self.sync_repository
-                    .delete_synced_entity(&synced_entity)
-                    .await?;
-            }
-
-            return Ok(0);
+        if !self
+            .handle_parsed_entity_references(&mut entity, parsed.references)
+            .await?
+        {
+            return self
+                .handle_invalid_references(synced_entity.entity_id, synced_entity)
+                .await;
         }
+        strategy.upsert(entity).await.map_err(Into::into)
+    }
 
-        upsert_fn.await
+    /// When an entity's required foreign-key reference is missing locally, either
+    /// refreshes its deleted-entity log entry (if already marked deleted) or marks
+    /// the entity as deleted so the server will be informed on the next push.
+    async fn handle_invalid_references(
+        &self,
+        entity_id: Guid,
+        synced_entity: &SyncedEntity,
+    ) -> Result<u64, SyncError> {
+        if self.sync_repository.is_entity_deleted(entity_id).await? {
+            // Updating deleted date so that it will be sent to server!
+            self.sync_repository
+                .update_deleted_entity_deleted_date(entity_id, Utc::now())
+                .await?;
+        } else {
+            log::warn!(
+                "The synced entity has a reference that is no longer existing in the database, deleting the synced entity!"
+            );
+            // This is the last resort when there is no way to fix the reference, to just
+            // delete it since one of its referenced entities are deleted locally!
+            self.sync_repository
+                .delete_synced_entity(synced_entity)
+                .await?;
+        }
+        Ok(0)
     }
 
     /// Checks whether an entity's foreign-key references exist in the local database.
@@ -365,182 +312,41 @@ impl DefaultSyncer {
         log::info!("Sending all entities modified after date {last_sync_date} to sync.");
 
         let mut synced_entities = Vec::<SyncEntityDto>::new();
-
-        for fsrs_profile in self
-            .fsrs_repository
-            .get_all_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::FsrsProfile {
-                modified_date: Some(fsrs_profile.modified_date().into_timestamp()),
-                name: fsrs_profile.name().to_string(),
-                request_retention: fsrs_profile.request_retention(),
-                maximum_interval: fsrs_profile.maximum_interval(),
-                weights: fsrs_profile.weights().to_vec(),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: fsrs_profile.id(),
-                created_date: fsrs_profile.created_date(),
-                entity_type: EntityType::FsrsProfile,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for folder in self
-            .folder_repository
-            .get_all_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::Folder {
-                modified_date: Some(folder.modified_date().into_timestamp()),
-                name: folder.name().to_string(),
-                parent_id: folder.parent_id().map(|value| value.into()),
-                fsrs_profile_id: Option::<Guid>::from(folder.fsrs_profile_choice())
-                    .map(|id| id.into()),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: folder.id(),
-                created_date: folder.created_date(),
-                entity_type: EntityType::Folder,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for file in self
-            .file_repository
-            .get_all_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::File {
-                modified_date: Some(file.modified_date().into_timestamp()),
-                name: file.name().to_string(),
-                parent_id: file.parent_id().map(|value| value.into()),
-                fsrs_profile_id: Option::<Guid>::from(file.fsrs_profile_choice())
-                    .map(|id| id.into()),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: file.id(),
-                created_date: file.created_date(),
-                entity_type: EntityType::File,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for cell in self
-            .cell_repository
-            .get_all_cells_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::Cell {
-                modified_date: Some(cell.modified_date().into_timestamp()),
-                index: cell.index(),
-                content: cell.content().to_string(),
-                file_id: cell.file_id().to_string(),
-                cell_type: serde_json::to_string(&cell.cell_type()).unwrap(),
-                searchable_content: cell.searchable_content().to_string(),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: cell.id(),
-                created_date: cell.created_date(),
-                entity_type: EntityType::Cell,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for repetition in self
-            .cell_repository
-            .get_all_repetitions_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::Repetition {
-                modified_date: Some(repetition.modified_date().into_timestamp()),
-                file_id: repetition.file_id().to_string(),
-                cell_id: repetition.cell_id().to_string(),
-                due: Some(repetition.due().into_timestamp()),
-                reps: repetition.reps(),
-                stability: repetition.stability(),
-                difficulty: repetition.difficulty(),
-                elapsed_days: repetition.elapsed_days(),
-                scheduled_days: repetition.scheduled_days(),
-                lapses: repetition.lapses(),
-                state: serde_json::to_string(&repetition.state()).unwrap(),
-                last_review: repetition.last_review().map(|value| value.into_timestamp()),
-                additional_content: repetition
-                    .additional_content()
-                    .map(|value| value.to_string()),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: repetition.id(),
-                created_date: repetition.created_date(),
-                entity_type: EntityType::Repetition,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for review in self
-            .review_repository
-            .get_all_modified_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::Review {
-                modified_date: Some(review.modified_date.into_timestamp()),
-                cell_id: review.cell_id.map(|value| value.to_string()),
-                date: Some(review.date.into_timestamp()),
-                rating: serde_json::to_string(&review.rating).unwrap(),
-                study_time: review.study_time,
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: review.id,
-                created_date: review.created_date,
-                entity_type: EntityType::Review,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
-
-        for deleted_entity in self
-            .sync_repository
-            .get_all_deleted_entities_on_or_after(last_sync_date)
-            .await?
-        {
-            let data = generated_code::DeletedEntity {
-                entity_name: deleted_entity.entity_name,
-                deleted_date: Some(deleted_entity.deleted_date.into_timestamp()),
-            }
-            .into_base64();
-
-            let dto = SyncEntityDto {
-                entity_id: deleted_entity.entity_id,
-                created_date: deleted_entity.entity_created_date,
-                entity_type: EntityType::DeletedEntity,
-                data,
-            };
-
-            synced_entities.push(dto);
-        }
+        synced_entities.extend(
+            self.fsrs_profile_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.folder_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.file_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.cell_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.repetition_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.review_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.deleted_entity_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
 
         synced_entities.retain(|entity| !excluded_entities.contains(&entity.entity_id));
 
@@ -572,15 +378,20 @@ mod tests {
         },
         cells::{
             entities::{cell::CellType, repetition::State, review::Rating},
+            repositories::{cell_repository::CellRepository, review_repository::ReviewRepository},
             services::{
                 cell_invariants_enforcer::CellInvariantsEnforcer,
                 implementations::default_cell_invariants_enforcer::DefaultCellInvariantsEnforcer,
             },
         },
         common::extensions::{into_base64::IntoBase64, into_timestamp::IntoTimestamp},
-        file_system::value_objects::{
-            file_system_item_name::FileSystemItemName, fsrs_profile_choice::FsrsProfileChoice,
+        file_system::{
+            repositories::{file_repository::FileRepository, folder_repository::FolderRepository},
+            value_objects::{
+                file_system_item_name::FileSystemItemName, fsrs_profile_choice::FsrsProfileChoice,
+            },
         },
+        fsrs::repositories::fsrs_repository::FsrsRepository,
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
             repositories::sqlite::{
@@ -596,6 +407,17 @@ mod tests {
         sync::{
             repositories::sync_repository::SyncRepository,
             services::syncer::{SyncLock, Syncer},
+            strategies::{
+                implementations::{
+                    cell_strategy::DefaultCellStrategy,
+                    deleted_entity_strategy::DefaultDeletedEntityStrategy,
+                    file_strategy::DefaultFileStrategy, folder_strategy::DefaultFolderStrategy,
+                    fsrs_profile_strategy::DefaultFsrsProfileStrategy,
+                    repetition_strategy::DefaultRepetitionStrategy,
+                    review_strategy::DefaultReviewStrategy,
+                },
+                sync_entity_strategy::SyncEntityStrategy,
+            },
         },
         test_utils::create_test_injector,
     };
@@ -621,6 +443,41 @@ mod tests {
             injector,
             dyn CellInvariantsEnforcer,
             DefaultCellInvariantsEnforcer
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::FsrsProfile, Entity = FsrsProfile>,
+            DefaultFsrsProfileStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::Folder, Entity = Folder>,
+            DefaultFolderStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::File, Entity = File>,
+            DefaultFileStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::Cell, Entity = Cell>,
+            DefaultCellStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::Repetition, Entity = Repetition>,
+            DefaultRepetitionStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::Review, Entity = Review>,
+            DefaultReviewStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,
+            DefaultDeletedEntityStrategy
         );
         register_scope!(injector, DefaultSyncer);
         injector

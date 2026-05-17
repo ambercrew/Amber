@@ -4,8 +4,8 @@ use tokio::sync::Mutex;
 
 use crate::{
     backend::clients::brainy_backend_client::BrainyBackendClientError,
-    cells::services::cell_invariants_enforcer::CellInvariantsEnforcerError,
     common::repository_error::RepositoryError,
+    sync::strategies::sync_entity_strategy::SyncEntityStrategyError,
 };
 
 #[derive(Error, Debug)]
@@ -15,7 +15,7 @@ pub enum SyncError {
     #[error(transparent)]
     Client(#[from] BrainyBackendClientError),
     #[error(transparent)]
-    CellInvariantsEnforcer(#[from] CellInvariantsEnforcerError),
+    Strategy(#[from] SyncEntityStrategyError),
     #[error("Failed to decode base64-encoded sync entity data.")]
     Base64Decode(#[from] base64::DecodeError),
     #[error("Failed to decode protobuf payload of sync entity.")]
