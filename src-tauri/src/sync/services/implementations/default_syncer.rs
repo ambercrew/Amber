@@ -237,27 +237,21 @@ impl DefaultSyncer {
             .handle_parsed_entity_references(&mut entity, parsed.references)
             .await?
         {
-            return self
-                .handle_invalid_references(synced_entity.entity_id, synced_entity)
-                .await;
+            self.handle_invalid_references(synced_entity.entity_id, synced_entity)
+                .await?;
+            return Ok(0);
         }
         strategy.upsert(entity).await.map_err(Into::into)
     }
 
-    /// When an entity's required foreign-key reference is missing locally, either
-    /// refreshes its deleted-entity log entry (if already marked deleted) or marks
+    /// When an entity's required foreign-key reference is missing locally, marks
     /// the entity as deleted so the server will be informed on the next push.
     async fn handle_invalid_references(
         &self,
         entity_id: Guid,
         synced_entity: &SyncedEntity,
-    ) -> Result<u64, SyncError> {
-        if self.sync_repository.is_entity_deleted(entity_id).await? {
-            // Updating deleted date so that it will be sent to server!
-            self.sync_repository
-                .update_deleted_entity_deleted_date(entity_id, Utc::now())
-                .await?;
-        } else {
+    ) -> Result<(), SyncError> {
+        if !self.sync_repository.is_entity_deleted(entity_id).await? {
             log::warn!(
                 "The synced entity has a reference that is no longer existing in the database, deleting the synced entity!"
             );
@@ -267,7 +261,7 @@ impl DefaultSyncer {
                 .delete_synced_entity(synced_entity)
                 .await?;
         }
-        Ok(0)
+        Ok(())
     }
 
     /// Checks whether an entity's foreign-key references exist in the local database.

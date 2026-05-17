@@ -21,12 +21,6 @@ pub trait SyncRepository: Send + Sync {
 
     async fn is_entity_deleted(&self, entity_id: Guid) -> Result<bool, RepositoryError>;
 
-    async fn update_deleted_entity_deleted_date(
-        &self,
-        entity_id: Guid,
-        date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError>;
-
     /// Deletes a synced entity from its table.
     async fn delete_synced_entity(&self, entity: &SyncedEntity) -> Result<(), RepositoryError>;
 }

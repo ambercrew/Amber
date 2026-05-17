@@ -97,25 +97,6 @@ impl SyncRepository for SqliteSyncRepository {
         Ok(result > 0)
     }
 
-    async fn update_deleted_entity_deleted_date(
-        &self,
-        entity_id: Guid,
-        date: DateTime<Utc>,
-    ) -> Result<(), RepositoryError> {
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-
-        sqlx::query!(
-            r#"UPDATE deleted_entities SET deleted_date = datetime($1) WHERE entity_id = $2"#,
-            date,
-            entity_id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        Ok(())
-    }
-
     async fn delete_synced_entity(&self, entity: &SyncedEntity) -> Result<(), RepositoryError> {
         let table_name = get_entity_table_name(entity.entity_type);
 
