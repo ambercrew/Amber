@@ -65,10 +65,15 @@ impl Syncer for DefaultSyncer {
             .local_configuration_repository
             .get_by_name(LAST_SYNC_DATE_CONFIGURATION_NAME)
             .await?
-            .map(|conf| {
-                DateTime::parse_from_rfc3339(&conf.value)
-                    .unwrap()
-                    .with_timezone(&Utc)
+            .and_then(|conf| match DateTime::parse_from_rfc3339(&conf.value) {
+                Ok(date) => Some(date.with_timezone(&Utc)),
+                Err(error) => {
+                    log::warn!(
+                        "Failed to parse stored {LAST_SYNC_DATE_CONFIGURATION_NAME} value {:?}: {error}. Falling back to initial date.",
+                        conf.value
+                    );
+                    None
+                }
             })
             // Discard stale sync dates so we re-pull data purged from the local DB.
             .filter(|date| Utc::now() - *date <= Duration::days(STALE_SYNC_THRESHOLD_DAYS))
@@ -158,9 +163,7 @@ impl DefaultSyncer {
             synced_entity.entity_type
         );
 
-        let bytes = general_purpose::STANDARD
-            .decode(&synced_entity.data)
-            .unwrap();
+        let bytes = general_purpose::STANDARD.decode(&synced_entity.data)?;
 
         let entity_id = synced_entity.entity_id;
         let entity_type = synced_entity.entity_type;
@@ -170,7 +173,7 @@ impl DefaultSyncer {
         let upsert_fn: Pin<Box<dyn Future<Output = Result<u64, SyncError>> + Send + 'a>> =
             match entity_type {
                 EntityType::FsrsProfile => {
-                    let decoded = generated_code::FsrsProfile::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::FsrsProfile::decode(&bytes[..])?;
                     let parsed = FsrsProfile::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -188,7 +191,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::Folder => {
-                    let decoded = generated_code::Folder::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::Folder::decode(&bytes[..])?;
                     let parsed = Folder::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -206,7 +209,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::File => {
-                    let decoded = generated_code::File::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::File::decode(&bytes[..])?;
                     let parsed = File::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -224,7 +227,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::Cell => {
-                    let decoded = generated_code::Cell::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::Cell::decode(&bytes[..])?;
                     let parsed = Cell::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -245,7 +248,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::Repetition => {
-                    let decoded = generated_code::Repetition::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::Repetition::decode(&bytes[..])?;
                     let parsed = Repetition::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -263,7 +266,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::Review => {
-                    let decoded = generated_code::Review::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::Review::decode(&bytes[..])?;
                     let parsed = Review::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self
@@ -281,7 +284,7 @@ impl DefaultSyncer {
                     })
                 }
                 EntityType::DeletedEntity => {
-                    let decoded = generated_code::DeletedEntity::decode(&bytes[..]).unwrap();
+                    let decoded = generated_code::DeletedEntity::decode(&bytes[..])?;
                     let parsed = DeletedEntity::parse(&synced_entity, decoded);
                     let mut entity = parsed.entity;
                     references_are_valid = self

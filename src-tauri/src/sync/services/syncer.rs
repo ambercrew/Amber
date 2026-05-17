@@ -8,7 +8,7 @@ use crate::{
     common::repository_error::RepositoryError,
 };
 
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug)]
 pub enum SyncError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
@@ -16,6 +16,10 @@ pub enum SyncError {
     Client(#[from] BrainyBackendClientError),
     #[error(transparent)]
     CellInvariantsEnforcer(#[from] CellInvariantsEnforcerError),
+    #[error("Failed to decode base64-encoded sync entity data.")]
+    Base64Decode(#[from] base64::DecodeError),
+    #[error("Failed to decode protobuf payload of sync entity.")]
+    ProstDecode(#[from] prost::DecodeError),
 }
 
 pub struct SyncLock(pub Mutex<()>);
