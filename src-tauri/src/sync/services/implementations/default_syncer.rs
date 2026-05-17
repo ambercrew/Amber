@@ -304,6 +304,9 @@ impl DefaultSyncer {
                     .update_deleted_entity_deleted_date(entity_id, Utc::now())
                     .await?;
             } else {
+                log::warn!(
+                    "The synced entity has a reference that is no longer existing in the database, deleting the synced entity!"
+                );
                 // This is the last resort when there is no way to fix the reference, to just
                 // delete it since one of its referenced entities are deleted locally!
                 self.sync_repository
