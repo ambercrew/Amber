@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/ramikw/brainy/releases">⬇️ Download</a> •
+    <a href="https://github.com/brainylearn/brainy-app/releases">⬇️ Download</a> •
     <a href="https://discord.gg/H9bEfqDb8a">💬 Join the Discord</a>
 </p>
 
@@ -36,7 +36,7 @@
 
 ## 🐛 Issues & Feedback
 
-[Open an issue](https://github.com/ramikw/brainy/issues/new)
+[Open an issue](https://github.com/brainylearn/brainy-app/issues/new)
 
 ---
 

@@ -8,8 +8,8 @@ description: |
   Brainy is an open-source, AI-integrated learning app that combines note-taking and studying in one place. Organize your materials in a notebook-and-folder structure, create flashcards, cloze deletions, true/false questions, and more — or let AI generate a complete card set from any PDF, textbook, or lecture notes instantly. You can also ask the AI questions directly about your uploaded content to deepen your understanding.
   The FSRS spaced repetition algorithm adapts to your performance and schedules each review at the optimal moment, so knowledge is retained long-term. Sync your progress across devices, with automatic backups to keep your data safe.
 website: https://brainylearn.app
-issues: https://github.com/ramikw/brainy/issues/new
-source-code: https://github.com/ramikw/brainy
+issues: https://github.com/brainylearn/brainy-app/issues/new
+source-code: https://github.com/brainylearn/brainy-app
 
 grade: stable
 confinement: strict
