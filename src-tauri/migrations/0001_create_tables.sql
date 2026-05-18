@@ -1,7 +1,7 @@
 CREATE TABLE fsrs_profiles(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     name                        TEXT        NOT NULL,
     request_retention           REAL        NOT NULL,
     maximum_interval            REAL        NOT NULL,
@@ -26,8 +26,8 @@ INSERT INTO fsrs_profiles(
 
 CREATE TABLE folders(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     name                        TEXT        NOT NULL,
     parent_id                   TEXT,
     fsrs_profile_id             TEXT,
@@ -54,8 +54,8 @@ INSERT INTO folders(
 
 CREATE TABLE files(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     name                        TEXT        NOT NULL,
     parent_id                   TEXT        NOT NULL,
     fsrs_profile_id             TEXT,
@@ -70,8 +70,8 @@ CREATE INDEX files_parent_id ON files(parent_id);
 
 CREATE TABLE cells(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     content                     TEXT        NOT NULL        DEFAULT "",
     cell_type                   TEXT        NOT NULL,
     cell_index                  INTEGER     NOT NULL,
@@ -117,8 +117,8 @@ END;
 
 CREATE TABLE repetitions(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     file_id                     TEXT        NOT NULL,
     cell_id                     TEXT        NOT NULL,
     due                         TEXT        NOT NULL,
@@ -143,8 +143,8 @@ CREATE INDEX repetitions_modified_date_index ON repetitions(modified_date);
 
 CREATE TABLE reviews(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    modified_date               TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
     cell_id                     TEXT,
     study_time                  INTEGER     NOT NULL,
     date                        TEXT        NOT NULL,
@@ -160,8 +160,8 @@ CREATE INDEX reviews_modified_date_index ON reviews(modified_date);
 CREATE TABLE deleted_entities(
     entity_id                   TEXT        NOT NULL,
     entity_name                 TEXT        NOT NULL,
-    entity_created_date         TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
-    deleted_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP
+    entity_created_date         TEXT        NOT NULL        DEFAULT (datetime('now')),
+    deleted_date                TEXT        NOT NULL        DEFAULT (datetime('now'))
 );
 
 CREATE INDEX deleted_entities_entity_id_and_name_index ON deleted_entities(entity_id, entity_name);
@@ -178,7 +178,7 @@ CREATE TABLE local_configurations(
 
 CREATE TABLE ai_chats(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
     title                       TEXT        NOT NULL
 );
 
@@ -186,7 +186,7 @@ CREATE TABLE ai_chats(
 
 CREATE TABLE ai_messages(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT CURRENT_TIMESTAMP,
+    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
     ai_chat_id                  TEXT        NOT NULL,
     content_type                TEXT        NOT NULL,
     content                     TEXT,
