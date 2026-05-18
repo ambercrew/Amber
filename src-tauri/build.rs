@@ -46,8 +46,9 @@ fn setup_sqlx() {
         println!("migration is applied to {}", db_path.display());
     } else {
         println!(
-            "Migration failed: {}",
-            String::from_utf8_lossy(&output.stderr)
+            "Migration failed.\nStdout: {}\nStderr: {}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
         );
         std::process::exit(1);
     }
