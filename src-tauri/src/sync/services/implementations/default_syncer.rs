@@ -102,6 +102,8 @@ impl Syncer for DefaultSyncer {
         self.local_configuration_repository
             .upsert(&LocalConfiguration {
                 name: LAST_SYNC_DATE_CONFIGURATION_NAME.to_string(),
+                // NOTE: this has to be set now, otherwise the entities sent from this machine will
+                // be refetched on next fetch.
                 value: Utc::now().to_rfc3339(),
             })
             .await?;
