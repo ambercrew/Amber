@@ -20,8 +20,8 @@ layout:
 
 apps:
   brainy:
-    command: usr/bin/Brainy
-    desktop: usr/share/applications/Brainy.desktop
+    command: usr/bin/BrainyLearn
+    desktop: "usr/share/applications/Brainy Learn.desktop"
     extensions: [gnome]
     plugs:
       - network
@@ -85,7 +85,7 @@ parts:
       npm install
       npm run tauri build -- --bundles deb
       dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
-      sed -i -e "s|Icon=Brainy|Icon=/usr/share/icons/hicolor/128x128/apps/Brainy.png|g" $SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy.desktop
+      sed -i -e "s|Icon=BrainyLearn|Icon=/usr/share/icons/hicolor/128x128/apps/BrainyLearn.png|g" "$SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy Learn.desktop"
 
   # Necessary otherwise the following error shows: libEGL fatal: did not find extension DRI_Mesa version 1
   cleanup:
