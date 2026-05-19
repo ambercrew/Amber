@@ -138,6 +138,15 @@ impl DefaultSyncer {
         for synced_entity in result.synced_entities {
             let entity_id = synced_entity.entity_id;
 
+            // If entity is deleted locally favor "deletes-win" strategy!
+            if self
+                .sync_repository
+                .is_entity_deleted(synced_entity.entity_id)
+                .await?
+            {
+                continue;
+            }
+
             log::info!(
                 "Processing synced entity with id {} and of type {:?}",
                 synced_entity.entity_id,
@@ -245,7 +254,7 @@ impl DefaultSyncer {
         strategy.upsert(entity).await.map_err(Into::into)
     }
 
-    /// Handles the entities that does not have valid foregin key references locally.
+    /// Handles the entities that does not have valid foreign key references locally.
     async fn handle_invalid_references(
         &self,
         synced_entity: &SyncedEntity,
@@ -1630,6 +1639,80 @@ mod tests {
         assert_eq!(1, files.len());
         assert_eq!(file_id, files[0].id());
         assert_eq!(FsrsProfileChoice::Inherit, files[0].fsrs_profile_choice());
+    }
+
+    #[tokio::test]
+    pub async fn sync_with_backend_locally_deleted_entity_received_from_backend_entity_skipped() {
+        // Arrange
+
+        let file_id = Guid::new_v4();
+
+        let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
+            user_id: Guid::new_v4(),
+            entity_id: file_id,
+            entity_type: EntityType::File,
+            created_date: Utc::now(),
+            last_sync_date: Utc::now(),
+            data: generated_code::File {
+                modified_date: Some(Utc::now().into_timestamp()),
+                name: "should not be inserted".into(),
+                parent_id: Some(ROOT_FOLDER_ID.into()),
+                fsrs_profile_id: None,
+            }
+            .into_base64(),
+        }];
+
+        let mut backend_client = MockBrainyBackendClient::new();
+        backend_client
+            .expect_get_synced_entities_after_ordered_by_created_date()
+            .returning(move |_, _| {
+                Ok(SyncedEntitiesPageDto {
+                    synced_entities: synced_entities.clone(),
+                    has_more: false,
+                })
+            });
+        backend_client
+            .expect_send_synced_entities()
+            .returning(move |_| Ok(()));
+
+        let injector = initialize_test_injector(backend_client).await;
+        let scope = injector.start_scope();
+
+        // Mark the file as deleted locally before sync so the deletes-win strategy applies.
+        scope
+            .resolve::<dyn SyncRepository>()
+            .await
+            .delete_synced_entity(&SyncedEntity {
+                user_id: Guid::new_v4(),
+                entity_id: file_id,
+                entity_type: EntityType::File,
+                created_date: Utc::now(),
+                last_sync_date: Utc::now(),
+                data: String::new(),
+            })
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
+
+        // Act
+
+        scope
+            .resolve::<DefaultSyncer>()
+            .await
+            .sync_with_backend()
+            .await
+            .unwrap();
+        scope.save_changes().await.unwrap();
+
+        // Assert
+
+        let files = scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .get_all_files()
+            .await
+            .unwrap();
+        assert_eq!(0, files.len());
     }
 
     #[tokio::test]
