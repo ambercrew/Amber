@@ -96,9 +96,9 @@ describe("Reviewer", () => {
 			"0",
 		);
 
-		expect(await screen.findByTestId("learning-count")).toHaveClass(
-			styles.underline,
-		);
+		expect(
+			(await screen.findByTestId("learning-count")).parentNode,
+		).toHaveClass(styles.active);
 	});
 
 	it("Should use FSRF profile correctly when submitting and then navigate to home", async () => {
