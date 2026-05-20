@@ -17,7 +17,8 @@
 
 <div align="center">
     <img src="./screenshots/screenshot1.svg" alt="Screenshot 1 - Editor" width="100%">
-    <img src="./screenshots/screenshot2.svg" alt="Screenshot 2 - Reviewer" width="100%">
+    <img src="./screenshots/screenshot2.svg" alt="Screenshot 2 - AI Integration" width="100%">
+    <img src="./screenshots/screenshot3.svg" alt="Screenshot 3 - Reviewer" width="100%">
 </div>
 
 ---
