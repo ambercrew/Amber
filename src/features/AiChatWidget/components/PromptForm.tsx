@@ -59,6 +59,7 @@ export default function PromptForm({
 				value={userPrompt}
 				onChange={e => onUserPromptChange(e.target.value)}
 				onKeyDown={onTextAreaKeyDown}
+				onKeyUp={e => e.stopPropagation()}
 				rows={1}
 				autoFocus
 			/>
