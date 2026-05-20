@@ -21,6 +21,9 @@
                 },
                 {
                     "url": "https://brainylearn.app/legal"
+                },
+                {
+                    "url": "https://github.com/brainylearn/brainy-app/issues/new*"
                 }
             ]
         }

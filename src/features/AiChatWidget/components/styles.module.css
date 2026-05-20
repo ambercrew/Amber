@@ -48,6 +48,30 @@
 		border-right: var(--default-border-width) solid var(--border-color);
 		border-left: var(--default-border-width) solid var(--border-color);
 
+		& .message-wrapper {
+			display: flex;
+			flex-direction: column;
+			gap: var(--spacing-1);
+
+			& .report-button {
+				display: flex;
+				align-items: center;
+				gap: var(--spacing-1);
+				font-size: 1.2rem;
+				color: var(--surface-background-color-shade-20);
+				padding: 0 var(--spacing-1);
+				opacity: 0;
+				transition: opacity 0.15s;
+				background: none;
+				border: none;
+				cursor: pointer;
+			}
+
+			&:hover .report-button {
+				opacity: 1;
+			}
+		}
+
 		& .message {
 			background-color: var(--default-background-color);
 			max-width: 92%;
