@@ -413,7 +413,7 @@ describe("AiChatWidget", () => {
 
 		await userEvent.keyboard("{Control>}j");
 		expect(screen.queryByRole("textbox")).not.toBeNull();
-		await userEvent.keyboard("{Control>}j");
+		await userEvent.keyboard("{Escape}");
 		expect(screen.queryByRole("textbox")).toBeNull();
 	});
 
