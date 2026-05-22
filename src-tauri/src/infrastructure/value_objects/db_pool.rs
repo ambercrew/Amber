@@ -28,6 +28,8 @@ impl DbPool {
         let mut pool = self.pool.lock().await;
         let mut location = self.location.lock().await;
 
+        pool.close().await;
+
         *pool = new_pool;
         *location = new_location;
     }
