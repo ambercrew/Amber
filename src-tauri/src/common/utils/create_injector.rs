@@ -101,7 +101,11 @@ use crate::{
         },
     },
     settings::services::{
-        implementations::default_settings_updater::DefaultSettingsUpdater,
+        implementations::{
+            default_settings_dto_provider::DefaultSettingsDtoProvider,
+            default_settings_updater::DefaultSettingsUpdater,
+        },
+        settings_dto_provider::SettingsDtoProvider,
         settings_updater::SettingsUpdater,
     },
     sync::{
@@ -233,6 +237,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     // Settings
 
     injector.register_singleton(Arc::new(Mutex::new(settings)));
+    register_scope!(
+        injector,
+        dyn SettingsDtoProvider,
+        DefaultSettingsDtoProvider
+    );
     register_scope!(injector, dyn SettingsUpdater, DefaultSettingsUpdater);
     register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
 

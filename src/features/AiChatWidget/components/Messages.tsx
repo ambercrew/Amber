@@ -69,59 +69,61 @@ export default function Messages({
 			ref={messagesContainerRef}
 			data-testid="messages-container"
 			onScroll={handleScroll}>
-			{messages.map((message, i) => (
-				<div key={i} className={styles.messageWrapper}>
-					<div
-						className={`${styles.message} ${
-							message.content.type === "human" ||
-							message.content.type === "document"
-								? styles.human
-								: styles.assistant
-						}`}>
-						{(message.content.type === "human" ||
-							message.content.type == "assistant") && (
-							<Markdown>{message.content.value}</Markdown>
-						)}
-						{message.content.type === "toolCall" && (
-							<ToolCallDisplay
-								isSendingRequest={isSendingRequest}
-								message={message}
-								onUpdate={onToolCallUpdate}
-							/>
-						)}
-						{message.content.type === "document" && (
-							<div
-								className={styles.document}
-								title="Uploaded document">
-								<div className={styles.icon}>
-									<Icon
-										path={mdiFileDocumentOutline}
-										size={1.6}
-									/>
+			{messages
+				.filter(m => m.content.type !== "toolResult")
+				.map((message, i) => (
+					<div key={i} className={styles.messageWrapper}>
+						<div
+							className={`${styles.message} ${
+								message.content.type === "human" ||
+								message.content.type === "document"
+									? styles.human
+									: styles.assistant
+							}`}>
+							{(message.content.type === "human" ||
+								message.content.type == "assistant") && (
+								<Markdown>{message.content.value}</Markdown>
+							)}
+							{message.content.type === "toolCall" && (
+								<ToolCallDisplay
+									isSendingRequest={isSendingRequest}
+									message={message}
+									onUpdate={onToolCallUpdate}
+								/>
+							)}
+							{message.content.type === "document" && (
+								<div
+									className={styles.document}
+									title="Uploaded document">
+									<div className={styles.icon}>
+										<Icon
+											path={mdiFileDocumentOutline}
+											size={1.6}
+										/>
+									</div>
+									<p>{message.content.value.fileName}</p>
 								</div>
-								<p>{message.content.value.fileName}</p>
-							</div>
-						)}
+							)}
 
-						{isSendingRequest && i === messages.length - 1 && (
-							<div className={styles.spinner}></div>
+							{isSendingRequest && i === messages.length - 1 && (
+								<div className={styles.spinner}></div>
+							)}
+						</div>
+						{message.content.type === "assistant" && (
+							<button
+								className={styles.reportButton}
+								title="Report inappropriate content"
+								onClick={() =>
+									void handleReport(
+										message.content.value as string,
+									)
+								}>
+								<Icon path={mdiFlagOutline} size={1} />
+								Report
+							</button>
 						)}
 					</div>
-					{message.content.type === "assistant" && (
-						<button
-							className={styles.reportButton}
-							title="Report inappropriate content"
-							onClick={() =>
-								void handleReport(
-									message.content.value as string,
-								)
-							}>
-							<Icon path={mdiFlagOutline} size={1} />
-							Report
-						</button>
-					)}
-				</div>
-			))}
+				))}
 
 			{errorMessage && (
 				<Alert type="error" onClose={onCloseError}>

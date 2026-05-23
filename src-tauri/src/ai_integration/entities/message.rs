@@ -70,6 +70,7 @@ pub enum MessageContent {
     Document(DocumentContent),
     Assistant(String),
     ToolCall(ToolCallContent),
+    ToolResult(ToolResultContent),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -97,6 +98,13 @@ pub enum ToolCallStatus {
     Rejected,
     Pending,
     AutomaticallyAccepted,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolResultContent {
+    pub(in crate::ai_integration) id: String,
+    pub(in crate::ai_integration) text: String,
 }
 
 impl From<Message> for rig::message::Message {
@@ -131,6 +139,15 @@ impl From<Message> for rig::message::Message {
                     additional_params: None,
                 })),
             },
+            MessageContent::ToolResult(ToolResultContent { id, text }) => {
+                rig::message::Message::User {
+                    content: OneOrMany::one(UserContent::ToolResult(rig::message::ToolResult {
+                        id,
+                        call_id: None,
+                        content: OneOrMany::one(rig::message::ToolResultContent::text(text)),
+                    })),
+                }
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ use crate::{
     settings::services::settings_updater::SettingsUpdaterError,
 };
 
-#[derive(Error, Debug, PartialEq, Eq)]
+#[derive(Error, Debug)]
 pub enum AuthenticatorError {
     #[error(transparent)]
     BrainyBackendClient(#[from] BrainyBackendClientError),

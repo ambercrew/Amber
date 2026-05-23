@@ -12,7 +12,6 @@ use crate::Guid;
 use crate::ai_integration::entities::document::Document;
 use crate::ai_integration::entities::message::{self, Message, MessageContent};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
-use crate::ai_integration::services::EMBEDDINGS_DIMENSIONS;
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
 use crate::ai_integration::services::document_uploader::{DocumentUploader, DocumentUploaderError};
 
@@ -35,7 +34,7 @@ impl DocumentUploader for DefaultDocumentUploader {
             .ai_client_provider
             .get_client()
             .await?
-            .embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
+            .embedding_model(embeddings_model_name);
 
         let mut embeddings_builder = EmbeddingsBuilder::new(embed_model.clone());
         let splitter = TextSplitter::new(ChunkConfig::new(512).with_trim(false));
@@ -132,12 +131,13 @@ pub mod tests {
         Guid,
         ai_integration::{
             clients::{
-                mock_client::MockClient, multi_client::multi_embedding_model::MultiEmbeddingModel,
+                mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient},
+                multi_client::multi_embedding_model::MultiEmbeddingModel,
             },
             entities::{chat::Chat, message::MessageContent},
             repositories::ai_repository::AiRepository,
             services::{
-                EMBEDDINGS_DIMENSIONS, document_uploader::DocumentUploader,
+                document_uploader::DocumentUploader,
                 implementations::default_ai_client_provider::DefaultAiClientProvider,
             },
             tools::search_documents::{SearchDocuments, SearchDocumentsArgs},
@@ -177,13 +177,13 @@ pub mod tests {
         // Arrange
 
         let mock_client = MockClient {
-            embeddings_model_dims: Some(EMBEDDINGS_DIMENSIONS),
+            embeddings_model_dims: Some(DEFAULT_MOCK_EMBEDDINGS_DIMS),
             embed_texts_fn: Arc::new(Some(Box::new(move |request| {
                 if request.len() == 1 && request[0].trim() == "Page 1 content" {
                     let embeddings = Embedding {
                         document: String::new(),
                         vec: iter::once(12f64)
-                            .chain(iter::repeat_n(0f64, EMBEDDINGS_DIMENSIONS - 1))
+                            .chain(iter::repeat_n(0f64, DEFAULT_MOCK_EMBEDDINGS_DIMS - 1))
                             .collect(),
                     };
 
@@ -192,7 +192,7 @@ pub mod tests {
                     let embeddings = Embedding {
                         document: String::new(),
                         vec: iter::once(11.9f64)
-                            .chain(iter::repeat_n(0f64, EMBEDDINGS_DIMENSIONS - 1))
+                            .chain(iter::repeat_n(0f64, DEFAULT_MOCK_EMBEDDINGS_DIMS - 1))
                             .collect(),
                     };
 

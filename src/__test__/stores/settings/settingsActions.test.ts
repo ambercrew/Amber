@@ -26,8 +26,10 @@ const getAndSetDefaultSettings = () => {
 		theme: "Dark",
 		zoomPercentage: 150,
 		enableAi: true,
-		ollamaModelName: "",
-		ollamaEmbeddingsModelName: "",
+		aiProvider: "ollama",
+		ollama: { modelName: "", embeddingsModelName: "" },
+		openai: { modelName: null, embeddingsModelName: null },
+		openaiApiKeyIsSet: false,
 	};
 	const getSettingsMock = vi.mocked(getSettings);
 	getSettingsMock.mockResolvedValue(settings);
@@ -197,6 +199,7 @@ describe("updateAndApplySettings", () => {
 
 		const cb = updateAndApplySettings({
 			...settings,
+			openaiApiKey: null,
 		});
 		await cb(dispatch);
 
@@ -233,6 +236,7 @@ describe("updateAndApplySettings", () => {
 
 		const cb = updateAndApplySettings({
 			...settings,
+			openaiApiKey: null,
 		});
 		await cb(dispatch);
 
@@ -254,6 +258,7 @@ describe("updateAndApplySettings", () => {
 
 		const cb = updateAndApplySettings({
 			...settings,
+			openaiApiKey: null,
 		});
 		await cb(dispatch);
 
@@ -274,11 +279,56 @@ describe("updateAndApplySettings", () => {
 
 		const cb = updateAndApplySettings({
 			...settings,
+			openaiApiKey: null,
 		});
 		await cb(dispatch);
 
 		// Assert
 
 		expect(document.body.classList.contains("mobile")).toBe(false);
+	});
+
+	it("Should pass openai api key to updateSettings when provided", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+		const updateSettingsSpy = vi.spyOn(settingsApi, "updateSettings");
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = updateAndApplySettings({
+			...settings,
+			openaiApiKey: "sk-test-key",
+		});
+		await cb(dispatch);
+
+		// Assert
+
+		expect(updateSettingsSpy).toHaveBeenCalledWith(
+			expect.objectContaining({ openaiApiKey: "sk-test-key" }),
+		);
+	});
+
+	it("Should pass null openai api key to updateSettings when not provided", async () => {
+		// Arrange
+
+		const settings = getAndSetDefaultSettings();
+		const updateSettingsSpy = vi.spyOn(settingsApi, "updateSettings");
+		const dispatch = vi.fn();
+
+		// Act
+
+		const cb = updateAndApplySettings({
+			...settings,
+			openaiApiKey: null,
+		});
+		await cb(dispatch);
+
+		// Assert
+
+		expect(updateSettingsSpy).toHaveBeenCalledWith(
+			expect.objectContaining({ openaiApiKey: null }),
+		);
 	});
 });

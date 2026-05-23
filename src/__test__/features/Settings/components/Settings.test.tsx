@@ -253,6 +253,100 @@ describe("Profile & Security tab", () => {
 	});
 });
 
+describe("AI tab", () => {
+	it("Should show Ollama-specific fields when provider is Ollama", async () => {
+		// Arrange
+
+		renderWithProviders(<Settings onClose={vi.fn()} />, {
+			preloadedState: {
+				settings: {
+					settings: {
+						aiProvider: "ollama",
+						ollama: { modelName: null, embeddingsModelName: null },
+						openai: { modelName: null, embeddingsModelName: null },
+					} as UpdateSettingsRequestDto,
+				} as SettingsState,
+				user: createInitialUserState({ isSignedIn: false }),
+			},
+		});
+
+		// Act
+
+		await userEvent.click(screen.getByText("AI"));
+
+		// Assert
+
+		expect(screen.queryByText("Ollama model name")).not.toBeNull();
+		expect(
+			screen.queryByText("Ollama embeddings model name"),
+		).not.toBeNull();
+		expect(screen.queryByText("OpenAI model name")).toBeNull();
+		expect(screen.queryByText("OpenAI embeddings model name")).toBeNull();
+		expect(screen.queryByText("OpenAI API key")).toBeNull();
+	});
+
+	it("Should show OpenAI-specific fields when provider is OpenAI", async () => {
+		// Arrange
+
+		renderWithProviders(<Settings onClose={vi.fn()} />, {
+			preloadedState: {
+				settings: {
+					settings: {
+						aiProvider: "openAI",
+						ollama: { modelName: null, embeddingsModelName: null },
+						openai: { modelName: null, embeddingsModelName: null },
+					} as UpdateSettingsRequestDto,
+				} as SettingsState,
+				user: createInitialUserState({ isSignedIn: false }),
+			},
+		});
+
+		// Act
+
+		await userEvent.click(screen.getByText("AI"));
+
+		// Assert
+
+		expect(screen.queryByText("OpenAI model name")).not.toBeNull();
+		expect(
+			screen.queryByText("OpenAI embeddings model name"),
+		).not.toBeNull();
+		expect(screen.queryByText("OpenAI API key")).not.toBeNull();
+		expect(screen.queryByText("Ollama model name")).toBeNull();
+		expect(screen.queryByText("Ollama embeddings model name")).toBeNull();
+	});
+
+	it("Should show OpenAI-specific fields after switching provider to OpenAI", async () => {
+		// Arrange
+
+		renderWithProviders(<Settings onClose={vi.fn()} />, {
+			preloadedState: {
+				settings: {
+					settings: {
+						aiProvider: "ollama",
+						ollama: { modelName: null, embeddingsModelName: null },
+						openai: { modelName: null, embeddingsModelName: null },
+					} as UpdateSettingsRequestDto,
+				} as SettingsState,
+				user: createInitialUserState({ isSignedIn: false }),
+			},
+		});
+
+		await userEvent.click(screen.getByText("AI"));
+
+		// Act
+
+		await userEvent.click(screen.getByTitle("Ollama"));
+		await userEvent.click(screen.getByTitle("OpenAI"));
+
+		// Assert
+
+		expect(screen.queryByText("OpenAI model name")).not.toBeNull();
+		expect(screen.queryByText("OpenAI API key")).not.toBeNull();
+		expect(screen.queryByText("Ollama model name")).toBeNull();
+	});
+});
+
 describe("Appearance & Data tab", () => {
 	it("Should apply updated settings", async () => {
 		// Arrange

@@ -14,7 +14,7 @@ import {
 } from "../../../../api/aiIntegration/api/aiApi.ts";
 import userEvent from "@testing-library/user-event";
 import Message, {
-	ToolCall,
+	ToolCallContent,
 	ToolCallStatus,
 } from "../../../../api/aiIntegration/entities/message.ts";
 import { Channel } from "@tauri-apps/api/core";
@@ -545,7 +545,7 @@ describe("ToolCallDisplay", () => {
 							displayDescriptionMarkdown: "Question",
 							status: ToolCallStatus.Pending,
 							fileId: "file-1",
-						} as ToolCall,
+						} as ToolCallContent,
 					},
 				} as Message,
 			])
@@ -560,7 +560,7 @@ describe("ToolCallDisplay", () => {
 							displayDescriptionMarkdown: "Question",
 							fileId: "file-1",
 							status: ToolCallStatus.Accepted,
-						} as ToolCall,
+						} as ToolCallContent,
 					},
 				} as Message,
 			]);
@@ -621,7 +621,7 @@ describe("ToolCallDisplay", () => {
 							displayDescriptionMarkdown: "Question",
 							status: ToolCallStatus.Pending,
 							fileId: "file-1",
-						} as ToolCall,
+						} as ToolCallContent,
 					},
 				} as Message,
 			])
@@ -636,7 +636,7 @@ describe("ToolCallDisplay", () => {
 							displayDescriptionMarkdown: "Question",
 							fileId: "file-1",
 							status: ToolCallStatus.Rejected,
-						} as ToolCall,
+						} as ToolCallContent,
 					},
 				} as Message,
 			]);
@@ -690,7 +690,7 @@ describe("ToolCallDisplay", () => {
 						displayDescriptionMarkdown: "Question",
 						status: ToolCallStatus.Pending,
 						fileId: "file-1",
-					} as ToolCall,
+					} as ToolCallContent,
 				},
 			} as Message,
 		]);

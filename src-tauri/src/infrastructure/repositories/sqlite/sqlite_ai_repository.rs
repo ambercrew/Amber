@@ -18,7 +18,7 @@ use crate::{
             chat_row::ChatRow,
             message_row::{
                 ASSISTANT_CONTENT_TYPE, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE, MessageRow,
-                TOOL_CALL_CONTENT_TYPE,
+                TOOL_CALL_CONTENT_TYPE, TOOL_RESULT_TYPE,
             },
         },
         value_objects::db_transaction::DbTransaction,
@@ -128,6 +128,10 @@ impl AiRepository for SqliteAiRepository {
             MessageContent::Document(document) => {
                 content_type = DOCUMENT_CONTENT_TYPE.to_string();
                 content = serde_json::to_string(document).unwrap();
+            }
+            MessageContent::ToolResult(tool_result) => {
+                content_type = TOOL_RESULT_TYPE.to_string();
+                content = serde_json::to_string(tool_result).unwrap();
             }
         };
 

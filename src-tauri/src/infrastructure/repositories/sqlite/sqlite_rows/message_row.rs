@@ -9,6 +9,7 @@ pub const HUMAN_CONTENT_TYPE: &str = "human";
 pub const ASSISTANT_CONTENT_TYPE: &str = "assistant";
 pub const TOOL_CALL_CONTENT_TYPE: &str = "tool_call";
 pub const DOCUMENT_CONTENT_TYPE: &str = "document";
+pub const TOOL_RESULT_TYPE: &str = "tool_result";
 
 pub struct MessageRow {
     pub id: Guid,
@@ -26,8 +27,10 @@ impl From<MessageRow> for Message {
             MessageContent::Assistant(value.content.unwrap())
         } else if value.content_type == TOOL_CALL_CONTENT_TYPE {
             MessageContent::ToolCall(serde_json::from_str(&value.content.unwrap()).unwrap())
-        } else {
+        } else if value.content_type == DOCUMENT_CONTENT_TYPE {
             MessageContent::Document(serde_json::from_str(&value.content.unwrap()).unwrap())
+        } else {
+            MessageContent::ToolResult(serde_json::from_str(&value.content.unwrap()).unwrap())
         };
 
         Message::new_unchecked(value.id, value.created_date, value.chat_id, message_content)

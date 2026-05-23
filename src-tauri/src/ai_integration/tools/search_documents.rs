@@ -103,9 +103,7 @@ pub mod tests {
     use sqlite_vec::sqlite3_vec_init;
     use tokio_rusqlite::{Connection, ffi::sqlite3_auto_extension};
 
-    use crate::ai_integration::{
-        clients::mock_client::MockClient, services::EMBEDDINGS_DIMENSIONS,
-    };
+    use crate::ai_integration::clients::mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient};
 
     use super::*;
 
@@ -119,7 +117,7 @@ pub mod tests {
             OneOrMany::one(Embedding {
                 document: String::new(),
                 vec: iter::once(first_number)
-                    .chain(iter::repeat_n(0f64, EMBEDDINGS_DIMENSIONS - 1))
+                    .chain(iter::repeat_n(0f64, DEFAULT_MOCK_EMBEDDINGS_DIMS - 1))
                     .collect(),
             }),
         )
@@ -143,7 +141,7 @@ pub mod tests {
                 }
                 unreachable!()
             }))),
-            embeddings_model_dims: Some(EMBEDDINGS_DIMENSIONS),
+            embeddings_model_dims: Some(DEFAULT_MOCK_EMBEDDINGS_DIMS),
             ..Default::default()
         });
 

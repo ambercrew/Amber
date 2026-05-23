@@ -6,17 +6,21 @@ export default interface Message {
 
 export type MessageContent =
 	| MessageContentHumanAssistant
-	| MessageContentDocument
+	| {
+			type: "document";
+			value: DocumentContent;
+	  }
 	| {
 			type: "toolCall";
-			value: ToolCall;
+			value: ToolCallContent;
+	  }
+	| {
+			type: "toolResult";
+			value: ToolResultContent;
 	  };
 
-export interface MessageContentDocument {
-	type: "document";
-	value: {
-		fileName: string;
-	};
+export interface DocumentContent {
+	fileName: string;
 }
 
 export interface MessageContentHumanAssistant {
@@ -24,12 +28,17 @@ export interface MessageContentHumanAssistant {
 	value: string | null;
 }
 
-export interface ToolCall {
+export interface ToolCallContent {
 	id: string;
 	displayName: string;
 	displayDescriptionMarkdown: string;
 	status: ToolCallStatus;
 	fileId: string | null;
+}
+
+export interface ToolResultContent {
+	id: string;
+	text: string;
 }
 
 export enum ToolCallStatus {

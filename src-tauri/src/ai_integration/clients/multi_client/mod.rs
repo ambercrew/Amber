@@ -7,6 +7,8 @@ use rig::client::{CompletionClient, EmbeddingsClient};
 
 #[cfg(not(test))]
 use rig::providers::ollama;
+#[cfg(not(test))]
+use rig::providers::openai;
 
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
@@ -18,6 +20,8 @@ use crate::ai_integration::clients::multi_client::{
 pub enum MultiClient {
     #[cfg(not(test))]
     Ollama(ollama::Client),
+    #[cfg(not(test))]
+    OpenAI(openai::CompletionsClient),
     #[cfg(test)]
     Mock(MockClient),
 }
@@ -33,7 +37,13 @@ impl EmbeddingsClient for MultiClient {
         match self {
             #[cfg(not(test))]
             MultiClient::Ollama(client) => {
-                MultiEmbeddingModel::Ollama(client.embedding_model(model))
+                // NOTE: Ollama does not retrieve the number of dimensions dynamically, so hard
+                // coding 2560!
+                MultiEmbeddingModel::Ollama(client.embedding_model_with_ndims(model, 2560))
+            }
+            #[cfg(not(test))]
+            MultiClient::OpenAI(client) => {
+                MultiEmbeddingModel::OpenAI(client.embedding_model(model))
             }
             #[cfg(test)]
             MultiClient::Mock(client) => {
@@ -54,6 +64,10 @@ impl EmbeddingsClient for MultiClient {
             #[cfg(not(test))]
             MultiClient::Ollama(client) => {
                 MultiEmbeddingModel::Ollama(client.embedding_model_with_ndims(model, ndims))
+            }
+            #[cfg(not(test))]
+            MultiClient::OpenAI(client) => {
+                MultiEmbeddingModel::OpenAI(client.embedding_model_with_ndims(model, ndims))
             }
             #[cfg(test)]
             MultiClient::Mock(client) => {

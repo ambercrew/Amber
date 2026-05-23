@@ -6,7 +6,11 @@ use tokio::fs;
 use crate::{
     Guid,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
-    infrastructure::value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
+    infrastructure::{
+        repositories::disk::disk_secrets_repository::DiskSecretsRepository,
+        value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
+    },
+    secrets::repositories::secrets_repository::SecretsRepository,
     settings::value_objects::database_location::DatabaseLocation,
 };
 
@@ -28,6 +32,9 @@ pub async fn create_test_injector() -> Injector {
     let db_pool = DbPool::new(sqlite_pool, database_location);
     injector.register_singleton(Arc::new(db_pool));
     register_scoped_tx(&mut injector);
+
+    let secrets_repository = DiskSecretsRepository::new(&app_data_directory);
+    injector.register_singleton::<dyn SecretsRepository>(Arc::new(secrets_repository));
 
     injector
 }

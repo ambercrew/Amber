@@ -6,4 +6,5 @@ export interface SettingsState {
 	localSettings: UpdateSettingsRequestDto | null;
 	userInformation: UserInformationDto | null;
 	securityTabState: SecurityTabState;
+	openaiApiKey: string | null;
 }

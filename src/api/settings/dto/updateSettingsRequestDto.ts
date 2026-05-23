@@ -1,4 +1,10 @@
 export type Theme = "FollowSystem" | "Light" | "Dark";
+export type AiProvider = "ollama" | "openAI";
+
+export interface AiProviderSettings {
+	modelName: string | null;
+	embeddingsModelName: string | null;
+}
 
 export default interface UpdateSettingsRequestDto {
 	baseDatabaseDirectory: string;
@@ -8,6 +14,8 @@ export default interface UpdateSettingsRequestDto {
 	autoSync: boolean;
 
 	enableAi: boolean;
-	ollamaModelName: string | null;
-	ollamaEmbeddingsModelName: string | null;
+	aiProvider: AiProvider;
+	ollama: AiProviderSettings;
+	openai: AiProviderSettings;
+	openaiApiKeyIsSet: boolean;
 }

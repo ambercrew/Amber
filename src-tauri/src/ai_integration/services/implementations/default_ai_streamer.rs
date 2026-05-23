@@ -22,7 +22,6 @@ use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::json_schemas::generate_title::GenerateTitle;
 use crate::ai_integration::prompts::{PREAMBLE_BASE, PREAMBLE_GENERATE_TITLE, PREAMBLE_NO_FILE};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
-use crate::ai_integration::services::EMBEDDINGS_DIMENSIONS;
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
 use crate::ai_integration::services::ai_streamer::{
     AiStreamer, AiStreamerError, OnEventCallback, StreamLlmResponseEvent,
@@ -175,9 +174,8 @@ impl DefaultAiStreamer {
         let client = self.ai_client_provider.get_client().await?;
         let completion_model_name = self.ai_client_provider.get_completion_model_name().await?;
         let embeddings_model_name = self.ai_client_provider.get_embeddings_model_name().await?;
+        let embed_model = client.embedding_model(embeddings_model_name);
 
-        let embed_model =
-            client.embedding_model_with_ndims(embeddings_model_name, EMBEDDINGS_DIMENSIONS);
         let vector_store = self
             .ai_client_provider
             .get_vector_store(&embed_model)

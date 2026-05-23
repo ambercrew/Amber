@@ -2,6 +2,8 @@ use rig::embeddings::EmbeddingModel;
 
 #[cfg(not(test))]
 use rig::providers::ollama;
+#[cfg(not(test))]
+use rig::providers::openai::{GenericEmbeddingModel, OpenAICompletionsExt};
 
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
@@ -11,6 +13,8 @@ use crate::ai_integration::clients::multi_client::MultiClient;
 pub enum MultiEmbeddingModel {
     #[cfg(not(test))]
     Ollama(ollama::EmbeddingModel),
+    #[cfg(not(test))]
+    OpenAI(GenericEmbeddingModel<OpenAICompletionsExt>),
     #[cfg(test)]
     Mock(MockClient),
 }
@@ -26,6 +30,14 @@ impl EmbeddingModel for MultiEmbeddingModel {
             MultiClient::Ollama(client) => {
                 MultiEmbeddingModel::Ollama(ollama::EmbeddingModel::make(client, model, dims))
             }
+            #[cfg(not(test))]
+            MultiClient::OpenAI(client) => {
+                MultiEmbeddingModel::OpenAI(GenericEmbeddingModel::<OpenAICompletionsExt>::new(
+                    client.clone(),
+                    model,
+                    dims.unwrap_or(0),
+                ))
+            }
             #[cfg(test)]
             MultiClient::Mock(client) => {
                 MultiEmbeddingModel::Mock(<MockClient as EmbeddingModel>::make(client, model, dims))
@@ -37,6 +49,8 @@ impl EmbeddingModel for MultiEmbeddingModel {
         match self {
             #[cfg(not(test))]
             Self::Ollama(embedding_model) => embedding_model.ndims(),
+            #[cfg(not(test))]
+            Self::OpenAI(embedding_model) => embedding_model.ndims(),
             #[cfg(test)]
             MultiEmbeddingModel::Mock(embedding_model) => embedding_model.ndims(),
         }
@@ -49,6 +63,8 @@ impl EmbeddingModel for MultiEmbeddingModel {
         match self {
             #[cfg(not(test))]
             Self::Ollama(embedding_model) => embedding_model.embed_texts(texts).await,
+            #[cfg(not(test))]
+            Self::OpenAI(embedding_model) => embedding_model.embed_texts(texts).await,
             #[cfg(test)]
             MultiEmbeddingModel::Mock(embedding_model) => embedding_model.embed_texts(texts).await,
         }

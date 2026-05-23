@@ -35,6 +35,8 @@ pub struct MockClient {
     pub embed_texts_fn: Arc<Option<Box<EmbedTextsFn>>>,
 }
 
+pub const DEFAULT_MOCK_EMBEDDINGS_DIMS: usize = 2560;
+
 impl CompletionModel for MockClient {
     type Response = MultiResponse;
 
@@ -100,7 +102,7 @@ impl EmbeddingModel for MockClient {
 
     fn ndims(&self) -> usize {
         self.embeddings_model_dims
-            .expect("Number of dimensions are not specified")
+            .unwrap_or(DEFAULT_MOCK_EMBEDDINGS_DIMS)
     }
 
     async fn embed_texts(

@@ -1,4 +1,8 @@
-import { Theme } from "../dto/updateSettingsRequestDto";
+import {
+	AiProvider,
+	AiProviderSettings,
+	Theme,
+} from "../dto/updateSettingsRequestDto";
 
 export default interface UpdateSettingsRequest {
 	baseDatabaseDirectory: string | null;
@@ -8,6 +12,8 @@ export default interface UpdateSettingsRequest {
 	autoSync: boolean | null;
 
 	enableAi: boolean | null;
-	ollamaModelName: string | null;
-	ollamaEmbeddingsModelName: string | null;
+	aiProvider: AiProvider | null;
+	ollama: AiProviderSettings | null;
+	openai: AiProviderSettings | null;
+	openaiApiKey: string | null;
 }

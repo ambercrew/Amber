@@ -18,6 +18,15 @@ pub enum AiClientProviderError {
     #[cfg(not(test))]
     #[error("Ollama embeddings model name is not set in settings!")]
     OllamaEmbeddingsModelNameIsNotFilled,
+    #[cfg(not(test))]
+    #[error("OpenAI API key is not set in settings!")]
+    OpenAIApiKeyNotSet,
+    #[cfg(not(test))]
+    #[error("OpenAI model name is not set in settings!")]
+    OpenAIModelNameIsNotFilled,
+    #[cfg(not(test))]
+    #[error("OpenAI embeddings model name is not set in settings!")]
+    OpenAIEmbeddingsModelNameIsNotFilled,
     #[error("Failed to connect to the embeddings database")]
     ConnectingToEmbeddingsDatabase(#[source] SourceError),
     #[error(transparent)]

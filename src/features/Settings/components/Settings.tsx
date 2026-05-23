@@ -66,6 +66,7 @@ export default function Settings({ onClose }: Props) {
 			showDeleteUserDialog: false,
 		},
 		userInformation,
+		openaiApiKey: null,
 	});
 
 	const isSignedIn = useAppSelector(selectIsSignedIn);
@@ -136,6 +137,7 @@ export default function Settings({ onClose }: Props) {
 				await dispatch(
 					updateAndApplySettings({
 						...state.localSettings,
+						openaiApiKey: state.openaiApiKey ?? null,
 					}),
 				);
 			}

@@ -13,7 +13,7 @@ use rig::{
 };
 
 #[cfg(not(test))]
-use rig::providers::ollama;
+use rig::providers::{ollama, openai};
 #[cfg(not(test))]
 use tokio_stream::StreamExt;
 
@@ -27,6 +27,8 @@ use crate::ai_integration::clients::multi_client::{
 pub enum MultiCompletionModel {
     #[cfg(not(test))]
     Ollama(ollama::CompletionModel),
+    #[cfg(not(test))]
+    OpenAI(openai::CompletionModel),
     #[cfg(test)]
     Mock(MockClient),
 }
@@ -43,6 +45,10 @@ impl CompletionModel for MultiCompletionModel {
             #[cfg(not(test))]
             MultiClient::Ollama(client) => {
                 MultiCompletionModel::Ollama(ollama::CompletionModel::make(client, model))
+            }
+            #[cfg(not(test))]
+            MultiClient::OpenAI(client) => {
+                MultiCompletionModel::OpenAI(openai::CompletionModel::make(client, model))
             }
             #[cfg(test)]
             MultiClient::Mock(client) => {
@@ -67,6 +73,17 @@ impl CompletionModel for MultiCompletionModel {
                     }
                 })
             }
+            #[cfg(not(test))]
+            Self::OpenAI(completion_model) => {
+                completion_model.completion(request).await.map(|val| {
+                    completion::CompletionResponse {
+                        choice: val.choice,
+                        usage: val.usage,
+                        raw_response: val.raw_response.into(),
+                        message_id: val.message_id,
+                    }
+                })
+            }
             #[cfg(test)]
             MultiCompletionModel::Mock(completion_model) => {
                 MockClient::completion(completion_model, request).await
@@ -82,6 +99,13 @@ impl CompletionModel for MultiCompletionModel {
         match self {
             #[cfg(not(test))]
             Self::Ollama(completion_model) => {
+                let stream = completion_model.stream(request).await?;
+                let mapped_stream =
+                    Box::pin(stream.map(|result| result.map(to_raw_streaming_choice)));
+                Ok(StreamingCompletionResponse::stream(mapped_stream))
+            }
+            #[cfg(not(test))]
+            Self::OpenAI(completion_model) => {
                 let stream = completion_model.stream(request).await?;
                 let mapped_stream =
                     Box::pin(stream.map(|result| result.map(to_raw_streaming_choice)));
