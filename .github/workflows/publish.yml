@@ -64,7 +64,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
-          tagName: pre-release
+          tagName: latest
           releaseName: "Brainy v__VERSION__"
           releaseDraft: true
           args: ${{ matrix.args }}
@@ -84,7 +84,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: pre-release
+          tag_name: latest
           draft: true
           files: "*.snap"
         env:
@@ -107,7 +107,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: pre-release
+          tag_name: latest
           draft: true
           files: src-tauri/target/msix/*.msixbundle
         env:
@@ -177,7 +177,7 @@ jobs:
       - name: upload Android artifacts to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: pre-release
+          tag_name: latest
           draft: true
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
