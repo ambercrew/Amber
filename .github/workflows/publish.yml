@@ -72,7 +72,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: "Brainy v__VERSION__"
           makeLatest: true
-          releaseDraft: true
+          releaseDraft: false
           args: ${{ matrix.args }}
 
       # Producing snap file
