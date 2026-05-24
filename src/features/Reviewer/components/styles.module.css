@@ -2,7 +2,7 @@
 	height: 100%;
 	max-width: 1000px;
 	margin: 0 auto;
-	padding: 0 2.4rem;
+	padding: 0 var(--spacing-5);
 
 	display: flex;
 	flex-direction: column;
@@ -46,7 +46,6 @@
 
 .count-label {
 	font-size: 1rem;
-	font-weight: 500;
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
 	color: var(--text-color-secondary);
