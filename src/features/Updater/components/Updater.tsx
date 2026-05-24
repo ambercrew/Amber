@@ -32,7 +32,7 @@ function Updater() {
 					case "Progress":
 						downloaded += event.data.chunkLength;
 						setUpdatePercentage(
-							(downloaded / contentLength).toFixed(1),
+							((100 * downloaded) / contentLength).toFixed(1),
 						);
 						break;
 					case "Finished":
