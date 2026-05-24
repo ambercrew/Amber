@@ -64,8 +64,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
-          tagName: latest
+          tagName: v__VERSION__
           releaseName: "Brainy v__VERSION__"
+          makeLatest: true
           releaseDraft: true
           args: ${{ matrix.args }}
 
@@ -84,8 +85,8 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          draft: true
+          tag_name: v__VERSION__
+          draft: false
           files: "*.snap"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -107,8 +108,8 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          draft: true
+          tag_name: v__VERSION__
+          draft: false
           files: src-tauri/target/msix/*.msixbundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -177,10 +178,45 @@ jobs:
       - name: upload Android artifacts to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          draft: true
+          tag_name: v__VERSION__
+          draft: false
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-latest-tag:
+    needs: [publish-tauri, publish-tauri-android]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Get version
+        id: version
+        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+
+      - name: Download latest.json from versioned release
+        run: |
+          gh release download v${{ steps.version.outputs.version }} \
+            --pattern "latest.json" \
+            --output latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move latest tag
+        run: |
+          git tag -f latest
+          git push origin latest --force
+
+      - name: Upload latest.json to latest tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          draft: false
+          prerelease: false
+          files: latest.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
