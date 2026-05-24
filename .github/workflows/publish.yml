@@ -59,6 +59,10 @@ jobs:
       - name: install frontend dependencies
         run: npm ci
 
+      - name: Get version
+        id: version
+        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,7 +89,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v__VERSION__
+          tag_name: v${{ steps.version.outputs.version }}
           draft: false
           files: "*.snap"
         env:
@@ -108,7 +112,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v__VERSION__
+          tag_name: v${{ steps.version.outputs.version }}
           draft: false
           files: src-tauri/target/msix/*.msixbundle
         env:
@@ -172,13 +176,17 @@ jobs:
           base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
 
+      - name: Get version
+        id: version
+        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+
       - name: build Android APK and AAB
         run: npm run tauri android build -- --apk --aab
 
       - name: upload Android artifacts to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v__VERSION__
+          tag_name: v${{ steps.version.outputs.version }}
           draft: false
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
