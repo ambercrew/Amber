@@ -31,6 +31,9 @@
 		align-items: center;
 		padding: var(--spacing-6);
 		padding-bottom: var(--sidebar-inner-vertical-padding);
+		/* This property is necessary so that the expanded and
+		 * collapsed sidebar have the same height.
+		 */
 		height: 7rem;
 
 		& h2 {
@@ -100,13 +103,7 @@
 }
 
 :global(body.mobile) .side-bar {
-	padding-top: max(env(safe-area-inset-top), var(--spacing-6));
-
-	& .header {
-		padding-top: 0;
-		height: auto;
-		padding-bottom: 0;
-	}
+	padding-top: var(--mobile-padding-top);
 }
 
 .side-bar.small-screen {

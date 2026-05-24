@@ -87,6 +87,8 @@ body {
 	--placeholder-color: #adb5bd;
 
 	--dragged-opacity: 0.75;
+
+	--mobile-padding-top: max(env(safe-area-inset-top), var(--spacing-6));
 }
 
 /* On dark theme, the roles of shade and tint colors are reversed. */
