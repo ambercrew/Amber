@@ -80,11 +80,22 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         run: sudo snap install snapcraft --classic
 
+      - name: sync snapcraft version
+        if: matrix.platform == 'ubuntu-24.04'
+        run: sed -i "s/^version: .*/version: '${{ steps.version.outputs.version }}'/" snapcraft.yaml
+
       - name: build snap
         if: matrix.platform == 'ubuntu-24.04'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: sudo -E snapcraft --destructive-mode
+
+      # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`
+      - name: publish snap to store
+        if: matrix.platform == 'ubuntu-24.04'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft upload *.snap --release=stable
 
       - name: upload snap to release
         if: matrix.platform == 'ubuntu-24.04'
