@@ -42,6 +42,7 @@ pkgs.mkShell rec {
     rustToolChain
     sqlx-cli
     vscode-extensions.vadimcn.vscode-lldb
+    jq
   ];
 
   buildInputs = with pkgs; [
