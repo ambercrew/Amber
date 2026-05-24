@@ -12,4 +12,5 @@ pub enum CellMoverError {
 #[async_trait]
 pub trait CellMover: Send + Sync {
     async fn move_cell(&self, id: Guid, new_index: u32) -> Result<(), CellMoverError>;
+    async fn move_cell_to_file(&self, cell_id: Guid, file_id: Guid) -> Result<(), CellMoverError>;
 }

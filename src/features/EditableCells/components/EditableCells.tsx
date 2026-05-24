@@ -20,8 +20,7 @@ import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../stores/sync/managers/syncEventManager";
-import DefaultDragDropProvider from "../../../components/DefaultDragDropProvider/DefaultDragDropProvider";
-import { DragDropEventHandlers } from "@dnd-kit/react";
+import { useDragDropMonitor } from "@dnd-kit/react";
 import DraggedCellData, { DRAGGED_CELL_TYPE } from "../types/draggedCellData";
 import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
@@ -62,6 +61,7 @@ function EditableCells({
 	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
+	// TODO: set new focus when cell is moved
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	/** Automatically scroll to the selected cell on the next render,
 	 * this requires something else to re-render the component for it to work.
@@ -74,6 +74,8 @@ function EditableCells({
 	const isSyncing = useAppSelector(selectIsSyncing);
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
+	const [lastValidSelectedCellIndex, setLastValidSelectedCellIndex] =
+		useState<number | null>(null);
 
 	// Ensuring that a cell is selected at start.
 	if (!selectedCellId) {
@@ -96,6 +98,25 @@ function EditableCells({
 		c => c.id === selectedCellId,
 	);
 	if (selectedCellIndex === -1) selectedCellIndex = null;
+
+	if (selectedCellId !== null && !cells.some(c => c.id === selectedCellId)) {
+		if (cells.length === 0) {
+			setSelectedCellId(null);
+		} else {
+			let newSelectedCellIdIndex =
+				Math.min(
+					lastValidSelectedCellIndex ?? cells.length,
+					cells.length,
+				) - 1;
+			newSelectedCellIdIndex = Math.max(0, newSelectedCellIdIndex);
+			setSelectedCellId(cells[newSelectedCellIdIndex].id);
+		}
+	} else if (
+		selectedCellIndex !== null &&
+		selectedCellIndex !== lastValidSelectedCellIndex
+	) {
+		setLastValidSelectedCellIndex(selectedCellIndex);
+	}
 
 	const scrollToCurrentCell = useCallback(() => {
 		if (
@@ -240,53 +261,47 @@ function EditableCells({
 		scrollToSelectedCellOnNextRender.current = true;
 		setSelectedCellId(cellId);
 		await saveChanges();
-		await onCellsUpdateSave();
 	};
 
 	const handleCellDeleteConfirm = async () => {
 		ignoreCell(selectedCellId!);
-		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await callApi(async () => await deleteCell(selectedCellId!));
 		scrollToSelectedCellOnNextRender.current = true;
-		if (cellIndex > 0) {
-			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id : null);
-		} else if (cellIndex === 0 && cells.length > 1) {
-			setSelectedCellId(cells[1].id);
-		} else {
-			setSelectedCellId(null);
-		}
 		await saveChanges();
-		await onCellsUpdateSave();
 	};
 
-	const handleDragEnd: DragDropEventHandlers["onDragEnd"] = event => {
-		if (
-			event.canceled ||
-			event.operation.target?.type !== CELL_DROP_CONTAINER_TYPE ||
-			event.operation.source?.type !== DRAGGED_CELL_TYPE
-		)
-			return;
+	useDragDropMonitor({
+		onDragEnd(event) {
+			if (
+				event.canceled ||
+				event.operation.target?.type !== CELL_DROP_CONTAINER_TYPE ||
+				event.operation.source?.type !== DRAGGED_CELL_TYPE
+			)
+				return;
 
-		const { cellId: dragCellId } = event.operation.source
-			.data as DraggedCellData;
-		const targetData = event.operation.target.data as CellDropContainerData;
+			const { cellId: dragCellId } = event.operation.source
+				.data as DraggedCellData;
+			const targetData = event.operation.target
+				.data as CellDropContainerData;
 
-		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
-		let dropIndex =
-			targetData.type === "add-cell-container"
-				? cells.length
-				: cells.findIndex(c => c.id === targetData.cellId);
+			const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
+			let dropIndex =
+				targetData.type === "add-cell-container"
+					? cells.length
+					: cells.findIndex(c => c.id === targetData.cellId);
 
-		if (dropIndex > draggedCellIndex) dropIndex--;
-		if (dropIndex === draggedCellIndex) return;
-		scrollToSelectedCellOnNextRender.current = true;
+			if (dropIndex > draggedCellIndex) dropIndex--;
+			if (dropIndex === draggedCellIndex) return;
+			scrollToSelectedCellOnNextRender.current = true;
 
-		void (async () => {
-			await callApi(async () => await moveCell(dragCellId, dropIndex));
-			await saveChanges();
-			await onCellsUpdateSave();
-		})();
-	};
+			void (async () => {
+				await callApi(
+					async () => await moveCell(dragCellId, dropIndex),
+				);
+				await saveChanges();
+			})();
+		},
+	});
 
 	return (
 		<div
@@ -295,66 +310,59 @@ function EditableCells({
 			ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
-			<DefaultDragDropProvider onDragEnd={handleDragEnd}>
-				{filteredCells.map((cell, i) => (
-					<RenderIfVisible
-						key={cell.id}
-						stayRendered={selectedCellId === cell.id}
-						root={containerRef}>
-						<CellBlock
-							key={
-								// Using isSyncing directly in key to re-force reconstruction
-								// of the editors.
-								i + cell.id + isSyncing
-							}
-							ref={
-								cell.id === selectedCellId
-									? selectedCellRef
-									: null
-							}
-							eagerLoadRichTextEditor={
-								selectedCellIndex !== null
-									? Math.abs(selectedCellIndex - i) <=
-										EAGER_LOAD_DISTANCE_FROM_SELECTED
-									: false
-							}
-							cell={cell}
-							fileMode={fileMode}
-							isSelected={selectedCellId === cell.id}
-							repetitions={cell.repetitions}
-							autoFocusEditor={
-								autoFocusEditor && selectedCellId === cell.id
-							}
-							enableFileSpecificFunctionality={
-								enableFileSpecificFunctionality
-							}
-							onFocus={() => setSelectedCellId(cell.id)}
-							onClick={() => setSelectedCellId(cell.id)}
-							callApi={callApi}
-							onChange={content =>
-								onCellContentUpdate(cell.id, content)
-							}
-							onDelete={() => void handleCellDeleteConfirm()}
-							onInsertNewCell={cellType =>
-								void insertNewCell(cellType, i + 1)
-							}
-							onResetRepetitions={() => {
-								void saveChanges();
-								void onCellsUpdateSave();
-							}}
-							onEditButtonClick={onEditButtonClick}
-						/>
-					</RenderIfVisible>
-				))}
-
-				{enableFileSpecificFunctionality && (
-					<AddCellContainer
-						onAddNewCell={cellType =>
-							void insertNewCell(cellType, cells.length)
+			{filteredCells.map((cell, i) => (
+				<RenderIfVisible
+					key={cell.id}
+					stayRendered={selectedCellId === cell.id}
+					root={containerRef}>
+					<CellBlock
+						key={
+							// Using isSyncing directly in key to re-force reconstruction
+							// of the editors.
+							i + cell.id + isSyncing
 						}
+						ref={
+							cell.id === selectedCellId ? selectedCellRef : null
+						}
+						eagerLoadRichTextEditor={
+							selectedCellIndex !== null
+								? Math.abs(selectedCellIndex - i) <=
+									EAGER_LOAD_DISTANCE_FROM_SELECTED
+								: false
+						}
+						cell={cell}
+						fileMode={fileMode}
+						isSelected={selectedCellId === cell.id}
+						repetitions={cell.repetitions}
+						autoFocusEditor={
+							autoFocusEditor && selectedCellId === cell.id
+						}
+						enableFileSpecificFunctionality={
+							enableFileSpecificFunctionality
+						}
+						onFocus={() => setSelectedCellId(cell.id)}
+						onClick={() => setSelectedCellId(cell.id)}
+						callApi={callApi}
+						onChange={content =>
+							onCellContentUpdate(cell.id, content)
+						}
+						onDelete={() => void handleCellDeleteConfirm()}
+						onInsertNewCell={cellType =>
+							void insertNewCell(cellType, i + 1)
+						}
+						onResetRepetitions={() => void saveChanges()}
+						onEditButtonClick={onEditButtonClick}
 					/>
-				)}
-			</DefaultDragDropProvider>
+				</RenderIfVisible>
+			))}
+
+			{enableFileSpecificFunctionality && (
+				<AddCellContainer
+					onAddNewCell={cellType =>
+						void insertNewCell(cellType, cells.length)
+					}
+				/>
+			)}
 		</div>
 	);
 }

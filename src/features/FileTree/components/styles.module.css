@@ -1,8 +1,14 @@
 .file-tree-container {
-	padding: 0 var(--sidebar-inner-horizontal-padding);
+	--outer-container-padding: var(--spacing-0);
+	padding: 0
+		calc(
+			var(--sidebar-inner-horizontal-padding) -
+				var(--outer-container-padding)
+		);
 }
 
 .file-item-outer-container {
+	padding: var(--outer-container-padding);
 	border: 2px solid transparent;
 	border-radius: var(--default-border-radius);
 
@@ -16,7 +22,6 @@
 	width: 100%;
 	border-radius: var(--default-border-radius);
 	position: relative;
-	margin-bottom: var(--spacing-1);
 
 	&.dragging {
 		opacity: var(--dragged-opacity);

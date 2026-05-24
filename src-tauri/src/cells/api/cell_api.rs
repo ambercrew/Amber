@@ -79,6 +79,22 @@ pub async fn move_cell(
 }
 
 #[tauri::command]
+pub async fn move_cell_to_file(
+    injector: State<'_, Arc<Injector>>,
+    cell_id: Guid,
+    file_id: Guid,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn CellMover>()
+        .await
+        .move_cell_to_file(cell_id, file_id)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn update_cells_contents(
     injector: State<'_, Arc<Injector>>,
     requests: Vec<UpdateCellRequestDto>,

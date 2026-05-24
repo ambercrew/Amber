@@ -1,14 +1,22 @@
-import { DragDropProvider, useDroppable, useDraggable } from "@dnd-kit/react";
+import {
+	DragDropProvider,
+	useDroppable,
+	useDraggable,
+	useDragDropMonitor,
+	useDragOperation,
+} from "@dnd-kit/react";
 import { DragDropProviderProps } from "../../components/DefaultDragDropProvider/DefaultDragDropProvider";
 
 type useDroppableReturnType = ReturnType<typeof useDroppable>;
 type useDraggableReturnType = ReturnType<typeof useDraggable>;
 
 export function mockDndKit() {
+	mockUseDragOperation();
 	return {
 		...mockDragDropProvider(),
 		...mockUseDraggable(),
 		...mockUseDroppable(),
+		...mockUseDragDropMonitor(),
 	};
 }
 
@@ -61,4 +69,26 @@ export function mockUseDroppable(
 	return {
 		getUseDroppableInputs: () => capturedInput,
 	};
+}
+
+export function mockUseDragDropMonitor() {
+	const capturedHandlers: Parameters<typeof useDragDropMonitor>[0][] = [];
+
+	vi.mocked(useDragDropMonitor).mockImplementation(handlers => {
+		capturedHandlers.push(handlers);
+	});
+
+	return {
+		getCapturedMonitorHandlers: () => capturedHandlers,
+	};
+}
+
+export function mockUseDragOperation(
+	returnValue: Partial<ReturnType<typeof useDragOperation>> = {},
+) {
+	vi.mocked(useDragOperation).mockReturnValue({
+		source: null,
+		target: null,
+		...returnValue,
+	} as ReturnType<typeof useDragOperation>);
 }

@@ -136,6 +136,7 @@ pub async fn run() -> Result<(), String> {
             get_cells_for_files_with_fsrs_profile_ids,
             get_file_cells_ordered_by_index,
             move_cell,
+            move_cell_to_file,
             update_cells_contents,
             // Search
             search_cells,

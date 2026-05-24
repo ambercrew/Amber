@@ -3,6 +3,7 @@ import FileTreeItem from "./FileTreeItem.tsx";
 import UiFolder from "../../../types/ui/uiFolder.ts";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
+	moveCellToFile,
 	moveFile,
 	moveFolder,
 } from "../../../stores/fileSystem/fileSystemActions.ts";
@@ -12,8 +13,10 @@ import DraggedFileItemData, {
 import FileItemDropContainerData, {
 	FILE_ITEM_DROP_CONTAINER_TYPE,
 } from "../types/fileItemDropContainerData.ts";
-import DefaultDragDropProvider from "../../../components/DefaultDragDropProvider/DefaultDragDropProvider.tsx";
-import { DragDropEventHandlers } from "@dnd-kit/react";
+import DraggedCellData, {
+	DRAGGED_CELL_TYPE,
+} from "../../EditableCells/types/draggedCellData.ts";
+import { useDragDropMonitor } from "@dnd-kit/react";
 
 interface Props {
 	folder: UiFolder;
@@ -23,38 +26,48 @@ interface Props {
 function FileTree({ folder, className }: Props) {
 	const dispatch = useAppDispatch();
 
-	const handleDragEnd: DragDropEventHandlers["onDragEnd"] = event => {
-		if (
-			event.canceled ||
-			event.operation.target?.type !== FILE_ITEM_DROP_CONTAINER_TYPE ||
-			event.operation.source?.type !== DRAGGED_FILE_ITEM_TYPE
-		)
-			return;
+	useDragDropMonitor({
+		onDragEnd(event) {
+			if (
+				event.canceled ||
+				event.operation.target?.type !== FILE_ITEM_DROP_CONTAINER_TYPE
+			)
+				return;
 
-		const { id, isFolder } = event.operation.source
-			.data as DraggedFileItemData;
-		const { folderId } = event.operation.target
-			.data as FileItemDropContainerData;
+			const { itemId, isFolder: targetIsFolder } = event.operation.target
+				.data as FileItemDropContainerData;
 
-		if (id === folderId) return;
+			if (event.operation.source?.type === DRAGGED_FILE_ITEM_TYPE) {
+				const { id, isFolder } = event.operation.source
+					.data as DraggedFileItemData;
 
-		if (isFolder) {
-			void dispatch(moveFolder(id, folderId));
-		} else {
-			void dispatch(moveFile(id, folderId));
-		}
-	};
+				if (!targetIsFolder || id === itemId) return;
+
+				if (isFolder) {
+					void dispatch(moveFolder(id, itemId));
+				} else {
+					void dispatch(moveFile(id, itemId));
+				}
+			} else if (
+				!targetIsFolder &&
+				event.operation.source?.type === DRAGGED_CELL_TYPE
+			) {
+				const { cellId } = event.operation.source
+					.data as DraggedCellData;
+
+				void dispatch(moveCellToFile(cellId, itemId));
+			}
+		},
+	});
 
 	return (
 		<div className={`${styles.fileTreeContainer} ${className}`}>
-			<DefaultDragDropProvider onDragEnd={handleDragEnd}>
-				<FileTreeItem
-					fullPath=""
-					folder={folder}
-					id={folder.id}
-					depth={0}
-				/>
-			</DefaultDragDropProvider>
+			<FileTreeItem
+				fullPath=""
+				folder={folder}
+				id={folder.id}
+				depth={0}
+			/>
 		</div>
 	);
 }

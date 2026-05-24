@@ -12,6 +12,7 @@ import {
 import * as cellApi from "../../../../api/cells/api/cellApi.ts";
 import callApiMock from "../../../test-utils/callApiMock.ts";
 import Cell from "../../../../api/cells/entities/cell.ts";
+import { CELL_MOVED_TO_FILE } from "../../../../types/events/cellMovedToFileEvent.ts";
 
 const cellId = "1";
 
@@ -68,14 +69,13 @@ describe("useAutoSave", () => {
 
 		// Act
 
-		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		const { returnValue } = renderAutoSave();
 		returnValue.result.current.onCellContentUpdate(cellId, "test");
 		returnValue.result.current.ignoreCell(cellId);
 		await vi.runAllTimersAsync();
 
 		// Assert
 
-		expect(onCellsUpdateSaveCb).not.toHaveBeenCalled();
 		expect(updateCellsContentsSpy).not.toHaveBeenCalled();
 		vi.useRealTimers();
 		vi.clearAllTimers();
@@ -201,6 +201,47 @@ describe("useAutoSave", () => {
 		// Assert
 
 		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
+	});
+
+	it("Saves on cell moved to file event", async () => {
+		// Arrange
+
+		const updateCellsContentsSpy = vi.spyOn(cellApi, "updateCellsContents");
+
+		// Act
+
+		const { returnValue, onCellsUpdateSaveCb } = renderAutoSave();
+		returnValue.result.current.onCellContentUpdate(cellId, "test");
+		act(() => {
+			fireEvent(window, new Event(CELL_MOVED_TO_FILE));
+		});
+		// Flush the async saveChanges triggered by the event.
+		await act(async () => {
+			/* Nothing */
+		});
+
+		// Assert
+
+		expect(updateCellsContentsSpy).toHaveBeenCalled();
+		expect(onCellsUpdateSaveCb).toHaveBeenCalled();
+	});
+
+	it("Removes cell moved to file listener on unmount", () => {
+		// Arrange
+
+		const removeEventListenerSpy = vi.spyOn(window, "removeEventListener");
+
+		// Act
+
+		const { returnValue } = renderAutoSave();
+		returnValue.unmount();
+
+		// Assert
+
+		expect(removeEventListenerSpy).toHaveBeenCalledWith(
+			CELL_MOVED_TO_FILE,
+			expect.any(Function),
+		);
 	});
 
 	it("Unregister useEffect dependencies on unmount", () => {

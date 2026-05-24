@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import App from "./features/App/components/App.tsx";
 import { BrowserRouter } from "react-router";
 import { setupStore } from "./stores/store.ts";
+import DefaultDragDropProvider from "./components/DefaultDragDropProvider/DefaultDragDropProvider.tsx";
 
 const store = setupStore();
 
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
 			<BrowserRouter>
-				<App />
+				<DefaultDragDropProvider>
+					<App />
+				</DefaultDragDropProvider>
 			</BrowserRouter>
 		</Provider>
 	</React.StrictMode>,

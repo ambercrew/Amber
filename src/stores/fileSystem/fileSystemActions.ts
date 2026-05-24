@@ -17,6 +17,11 @@ import {
 } from "../../api/fileSystem/api/fileSystemApi";
 import { AppDispatch, RootState } from "../store";
 import errorToString from "../../utils/errorToString";
+import { moveCellToFile as moveCellToFileApi } from "../../api/cells/api/cellApi";
+import {
+	CELL_MOVED_TO_FILE,
+	CellMovedToFilePayload,
+} from "../../types/events/cellMovedToFileEvent";
 
 export function getReviewTreeFolderForRoot() {
 	return executeRequest(() => Promise.resolve());
@@ -52,6 +57,20 @@ export function moveFile(fileId: string, destinationFolderId: string) {
 
 export function moveFolder(folderId: string, destinationFolderId: string) {
 	return executeRequest(() => moveFolderApi(folderId, destinationFolderId));
+}
+
+export function moveCellToFile(cellId: string, fileId: string) {
+	return executeRequest(async () => {
+		await moveCellToFileApi(cellId, fileId);
+
+		window.dispatchEvent(
+			new CustomEvent<CellMovedToFilePayload>(CELL_MOVED_TO_FILE, {
+				detail: {
+					cellId,
+				},
+			}),
+		);
+	});
 }
 
 function executeRequest<T>(

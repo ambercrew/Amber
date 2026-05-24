@@ -29,6 +29,13 @@ export function moveCell(id: string, newIndex: number) {
 	});
 }
 
+export function moveCellToFile(cellId: string, fileId: string) {
+	return invoke("move_cell_to_file", {
+		cellId,
+		fileId,
+	});
+}
+
 export function getCellsForFilesWithFsrsProfileIds(
 	fileIds: string[],
 ): Promise<CellWithFsrsProfileIdDto[]> {

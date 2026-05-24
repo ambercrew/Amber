@@ -44,13 +44,15 @@ import useLocalStorage from "../../../hooks/useLocalStorage.ts";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog.tsx";
 import getFolderChildById from "../../../utils/getFolderChildById.ts";
 import FsrsDialog from "./FsrsDialog.tsx";
-import { useDroppable } from "@dnd-kit/react";
+import { useDroppable, useDragOperation } from "@dnd-kit/react";
 import FileItemDropContainerData, {
 	FILE_ITEM_DROP_CONTAINER_TYPE,
 } from "../types/fileItemDropContainerData.ts";
+import { DRAGGED_CELL_TYPE } from "../../EditableCells/types/draggedCellData.ts";
 import { pointerIntersection } from "@dnd-kit/collision";
 import { isModKey } from "../../../utils/keyboardUtils";
 import { isMobile } from "../../../utils/tauriUtils.ts";
+import { DRAGGED_FILE_ITEM_TYPE } from "../types/draggedFileItemData.ts";
 
 interface Props {
 	folder: UiFolder | null;
@@ -90,13 +92,18 @@ function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 	const actions: Action[] = [];
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 
+	const { source } = useDragOperation();
 	const { ref: setDroppableNodeRef, isDropTarget } = useDroppable({
 		id,
 		type: FILE_ITEM_DROP_CONTAINER_TYPE,
-		disabled: !folder,
+		disabled:
+			// Disable when dragging an item to a file
+			(folder === null || source?.type !== DRAGGED_FILE_ITEM_TYPE) &&
+			// And when the dragged item is not a cell
+			(folder !== null || source?.type !== DRAGGED_CELL_TYPE),
 		collisionDetector: pointerIntersection,
 		collisionPriority: depth,
-		data: { folderId: id } as FileItemDropContainerData,
+		data: { itemId: id, isFolder: !!folder } as FileItemDropContainerData,
 	});
 
 	const showCreateNewFileInput = () => {

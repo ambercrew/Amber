@@ -13,6 +13,11 @@ import {
 	moveFolder,
 	renameFolder,
 } from "../../../../api/fileSystem/api/fileSystemApi.ts";
+import { moveCellToFile } from "../../../../api/cells/api/cellApi.ts";
+import DraggedCellData, {
+	DRAGGED_CELL_TYPE,
+} from "../../../../features/EditableCells/types/draggedCellData.ts";
+import { CELL_MOVED_TO_FILE } from "../../../../types/events/cellMovedToFileEvent.ts";
 import UiFile from "../../../../types/ui/uiFile.ts";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { JSON_FILE_FILTER } from "../../../../features/FileTree/config/constants.ts";
@@ -28,9 +33,10 @@ import { selectRootFolder } from "../../../../stores/fileSystem/fileSystemSelect
 import searchFolder from "../../../../features/SideBar/utils/searchFolder.ts";
 import {
 	mockDndKit,
-	mockDragDropProvider,
 	mockUseDraggable,
 	mockUseDroppable,
+	mockUseDragDropMonitor,
+	mockUseDragOperation,
 } from "../../../test-utils/dndMocks.tsx";
 import FileItemDropContainerData, {
 	FILE_ITEM_DROP_CONTAINER_TYPE,
@@ -38,13 +44,14 @@ import FileItemDropContainerData, {
 import DraggedFileItemData, {
 	DRAGGED_FILE_ITEM_TYPE,
 } from "../../../../features/FileTree/types/draggedFileItemData.ts";
-import { DragDropEventHandlers } from "@dnd-kit/react";
+import { DragDropEventHandlers, useDragOperation } from "@dnd-kit/react";
 import { pointerIntersection } from "@dnd-kit/collision";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 import { Feedback } from "@dnd-kit/dom";
 
 vi.mock(import("../../../../api/fileSystem/api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/fileSystem/api/exportImportApi.ts"));
+vi.mock(import("../../../../api/cells/api/cellApi.ts"));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/plugin-dialog"));
 vi.mock(import("@dnd-kit/react"));
@@ -125,6 +132,7 @@ describe("FileTree", () => {
 
 		const { getUseDraggableInputs } = mockUseDraggable();
 		const { getUseDroppableInputs } = mockUseDroppable();
+		mockUseDragOperation();
 
 		const root = createTestFolder("", ROOT_FOLDER_ID);
 		root.subfolders.push(createTestFolder("test", "1"));
@@ -166,24 +174,74 @@ describe("FileTree", () => {
 		expect(draggableOutputs[0]).toStrictEqual({
 			id: ROOT_FOLDER_ID,
 			type: FILE_ITEM_DROP_CONTAINER_TYPE,
-			disabled: false,
+			disabled: true,
 			collisionDetector: pointerIntersection,
 			collisionPriority: 0,
 			data: {
-				folderId: ROOT_FOLDER_ID,
+				itemId: ROOT_FOLDER_ID,
+				isFolder: true,
 			} as FileItemDropContainerData,
 		});
 
 		expect(draggableOutputs[1]).toStrictEqual({
 			id: "1",
 			type: FILE_ITEM_DROP_CONTAINER_TYPE,
-			disabled: false,
+			disabled: true,
 			collisionDetector: pointerIntersection,
 			collisionPriority: 1,
 			data: {
-				folderId: "1",
+				itemId: "1",
+				isFolder: true,
 			} as FileItemDropContainerData,
 		});
+	});
+
+	it("Should enable folders as drop targets when dragging a file item", () => {
+		// Arrange
+
+		const { getUseDroppableInputs } = mockUseDroppable();
+		mockUseDragOperation({
+			source: { type: DRAGGED_FILE_ITEM_TYPE } as unknown as ReturnType<
+				typeof useDragOperation
+			>["source"],
+		});
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.subfolders.push(createTestFolder("test", "1"));
+
+		// Act
+
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Assert
+
+		const droppableInputs = getUseDroppableInputs();
+		expect(droppableInputs[0].disabled).toBe(false); // root folder
+		expect(droppableInputs[1].disabled).toBe(false); // subfolder
+	});
+
+	it("Should enable files as drop targets when dragging a cell", () => {
+		// Arrange
+
+		const { getUseDroppableInputs } = mockUseDroppable();
+		mockUseDragOperation({
+			source: { type: DRAGGED_CELL_TYPE } as unknown as ReturnType<
+				typeof useDragOperation
+			>["source"],
+		});
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.files.push(createTestFile("test", "1"));
+
+		// Act
+
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Assert
+
+		const droppableInputs = getUseDroppableInputs();
+		expect(droppableInputs[0].disabled).toBe(true); // root folder
+		expect(droppableInputs[1].disabled).toBe(false); // file
 	});
 });
 
@@ -529,22 +587,23 @@ describe("FileTreeItem", () => {
 		const root = createTestFolder("", ROOT_FOLDER_ID);
 		root.subfolders.push(createTestFolder("test", "1"));
 
-		const { getCapturedProviderProps } = mockDragDropProvider();
+		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
 
 		const input = {
 			operation: {
 				target: {
 					type: FILE_ITEM_DROP_CONTAINER_TYPE,
 					data: {
-						folderId: "1",
-					},
+						itemId: "1",
+						isFolder: true,
+					} as FileItemDropContainerData,
 				},
 				source: {
 					type: DRAGGED_FILE_ITEM_TYPE,
 					data: {
 						id: "2",
 						isFolder: true,
-					},
+					} as DraggedFileItemData,
 				},
 			},
 		};
@@ -553,9 +612,8 @@ describe("FileTreeItem", () => {
 
 		// Act
 
-		const capturedProps = getCapturedProviderProps();
-		expect(capturedProps).toHaveLength(1);
-		capturedProps[0].onDragEnd!(
+		const handlers = getCapturedMonitorHandlers();
+		handlers[0].onDragEnd!(
 			input as unknown as Parameters<
 				DragDropEventHandlers["onDragEnd"]
 			>[0],
@@ -568,6 +626,64 @@ describe("FileTreeItem", () => {
 
 		await waitFor(() => {
 			expect(vi.mocked(moveFolder)).toHaveBeenCalledWith("2", "1");
+		});
+	});
+
+	it("Should move cell to file on drop when source is a cell and target is a file", async () => {
+		// Arrange
+
+		const root = createTestFolder("", ROOT_FOLDER_ID);
+		root.files.push(createTestFile("test", "1"));
+
+		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
+		const dispatchEventSpy = vi.spyOn(window, "dispatchEvent");
+
+		const input = {
+			operation: {
+				target: {
+					type: FILE_ITEM_DROP_CONTAINER_TYPE,
+					data: {
+						itemId: "1",
+						isFolder: false,
+					} as FileItemDropContainerData,
+				},
+				source: {
+					type: DRAGGED_CELL_TYPE,
+					data: {
+						cellId: "cell-1",
+					} as DraggedCellData,
+				},
+			},
+		};
+
+		renderWithProviders(<FileTree folder={root} />);
+
+		// Act
+
+		const handlers = getCapturedMonitorHandlers();
+		handlers[0].onDragEnd!(
+			input as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[0],
+			null as unknown as Parameters<
+				DragDropEventHandlers["onDragEnd"]
+			>[1],
+		);
+
+		// Assert
+
+		await waitFor(() => {
+			expect(vi.mocked(moveCellToFile)).toHaveBeenCalledWith(
+				"cell-1",
+				"1",
+			);
+			const cellMovedEvent = dispatchEventSpy.mock.calls
+				.map(([e]) => e)
+				.find(e => e.type === CELL_MOVED_TO_FILE) as
+				| CustomEvent
+				| undefined;
+			expect(cellMovedEvent).toBeDefined();
+			expect(cellMovedEvent!.detail).toEqual({ cellId: "cell-1" });
 		});
 	});
 

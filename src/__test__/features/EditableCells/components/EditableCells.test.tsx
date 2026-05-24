@@ -11,17 +11,15 @@ import {
 	moveCell,
 } from "../../../../api/cells/api/cellApi.ts";
 import useAutoSave from "../../../../features/EditableCells/hooks/useAutoSave";
-import { Mock } from "vitest";
-import { Procedure } from "@vitest/spy";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
 } from "../../../../stores/sync/managers/syncEventManager";
 import {
 	mockDndKit,
-	mockDragDropProvider,
 	mockUseDraggable,
 	mockUseDroppable,
+	mockUseDragDropMonitor,
 } from "../../../test-utils/dndMocks.tsx";
 import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
@@ -80,8 +78,22 @@ function renderEditableCells({
 	/** This function can return new cells after the call to onUpdateSave. */
 	onCellsUpdateSave?: () => Cell[];
 }) {
+	const saveChangesMock = vi.fn();
+
 	const Component = () => {
 		const [cells, setCells] = useState(initialCells);
+
+		saveChangesMock.mockImplementation(() => {
+			if (onCellsUpdateSave) {
+				setCells(onCellsUpdateSave());
+			}
+		});
+
+		vi.mocked(useAutoSave).mockReturnValue({
+			ignoreCell: vi.fn(),
+			onCellContentUpdate: vi.fn(),
+			saveChanges: saveChangesMock,
+		});
 
 		return (
 			<EditableCells
@@ -99,7 +111,7 @@ function renderEditableCells({
 		);
 	};
 
-	return renderWithProviders(<Component />);
+	return { ...renderWithProviders(<Component />), saveChangesMock };
 }
 
 function createDragEndEventArg(
@@ -163,12 +175,6 @@ describe("Scrolling", () => {
 			observe = vi.fn();
 			unobserve = vi.fn();
 		};
-
-		vi.mocked(useAutoSave).mockReturnValue({
-			ignoreCell: vi.fn(),
-			onCellContentUpdate: vi.fn(),
-			saveChanges: vi.fn(),
-		});
 
 		mockDndKit();
 	});
@@ -551,7 +557,7 @@ describe("Scrolling", () => {
 			},
 		});
 
-		const { getCapturedProviderProps } = mockDragDropProvider();
+		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
 		const dragEndEventArg = createDragEndEventArg(
 			{
 				cellId: "3",
@@ -580,9 +586,8 @@ describe("Scrolling", () => {
 
 		// Act
 
-		const capturedProps = getCapturedProviderProps();
-		expect(capturedProps).toHaveLength(1);
-		capturedProps[0].onDragEnd!(
+		const handlers = getCapturedMonitorHandlers();
+		handlers[0].onDragEnd!(
 			dragEndEventArg as unknown as Parameters<
 				DragDropEventHandlers["onDragEnd"]
 			>[0],
@@ -601,11 +606,7 @@ describe("Scrolling", () => {
 });
 
 describe("EditableCells logic", () => {
-	let saveChangesMock: Mock<Procedure>;
-
 	beforeEach(() => {
-		saveChangesMock = vi.fn();
-
 		Element.prototype.scrollTo = vi.fn();
 
 		// @ts-expect-error IntersectionObserver is not found by default on the testing library.
@@ -621,12 +622,6 @@ describe("EditableCells logic", () => {
 			observe = vi.fn();
 			unobserve = vi.fn();
 		};
-
-		vi.mocked(useAutoSave).mockReturnValue({
-			ignoreCell: vi.fn(),
-			onCellContentUpdate: vi.fn(),
-			saveChanges: saveChangesMock,
-		});
 
 		mockDndKit();
 	});
@@ -647,7 +642,7 @@ describe("EditableCells logic", () => {
 	it("Should call backend with correct arguments when dropping", async () => {
 		// Arrange
 
-		const { getCapturedProviderProps } = mockDragDropProvider();
+		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
 		const dragEndEventArg = createDragEndEventArg(
 			{
 				cellId: "3",
@@ -658,15 +653,14 @@ describe("EditableCells logic", () => {
 			},
 		);
 
-		renderEditableCells({
+		const { saveChangesMock } = renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 		});
 
 		// Act
 
-		const capturedProps = getCapturedProviderProps();
-		expect(capturedProps).toHaveLength(1);
-		capturedProps[0].onDragEnd!(
+		const handlers = getCapturedMonitorHandlers();
+		handlers[0].onDragEnd!(
 			dragEndEventArg as unknown as Parameters<
 				DragDropEventHandlers["onDragEnd"]
 			>[0],
@@ -686,7 +680,7 @@ describe("EditableCells logic", () => {
 	it("Should call backend with correct arguments when dropping after forward", async () => {
 		// Arrange
 
-		const { getCapturedProviderProps } = mockDragDropProvider();
+		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
 		const dragEndEventArg = createDragEndEventArg(
 			{
 				cellId: "1",
@@ -697,7 +691,7 @@ describe("EditableCells logic", () => {
 			},
 		);
 
-		renderEditableCells({
+		const { saveChangesMock } = renderEditableCells({
 			cells: [
 				createTestCell(0),
 				createTestCell(1),
@@ -709,9 +703,8 @@ describe("EditableCells logic", () => {
 
 		// Act
 
-		const capturedProps = getCapturedProviderProps();
-		expect(capturedProps).toHaveLength(1);
-		capturedProps[0].onDragEnd!(
+		const handlers = getCapturedMonitorHandlers();
+		handlers[0].onDragEnd!(
 			dragEndEventArg as unknown as Parameters<
 				DragDropEventHandlers["onDragEnd"]
 			>[0],
@@ -731,9 +724,12 @@ describe("EditableCells logic", () => {
 	it("Should call backend with correct arguments and set new selected cell when deleting a cell", async () => {
 		// Arrange
 
-		renderEditableCells({
+		const { saveChangesMock } = renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 			initialSelectedCellId: "2",
+			onCellsUpdateSave: () => {
+				return [createTestCell(1), createTestCell(3)];
+			},
 		});
 
 		// Act
@@ -753,7 +749,7 @@ describe("EditableCells logic", () => {
 	it("Should call backend with correct arguments and set new selected cell when inserting a new cell", async () => {
 		// Arrange
 
-		renderEditableCells({
+		const { saveChangesMock } = renderEditableCells({
 			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
 			onCellsUpdateSave: () => [
 				createTestCell(1),

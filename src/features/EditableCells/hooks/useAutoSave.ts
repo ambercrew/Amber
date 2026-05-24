@@ -10,6 +10,7 @@ import {
 } from "../../../stores/sync/managers/syncEventManager";
 import { defaultCloseRequestedEventManager } from "../../../managers/closeRequestedEventManager";
 import { CallApiFn } from "../../../hooks/useApi";
+import { CELL_MOVED_TO_FILE } from "../../../types/events/cellMovedToFileEvent";
 
 export const CLOSE_REQUESTED_HANDLER_NAME = "useAutoSave handler";
 
@@ -48,8 +49,6 @@ function useAutoSave({
 			autoSaveTimeoutId.current = null;
 		}
 
-		if (changedCellsIds.current.size === 0) return;
-
 		await callApi(async () => {
 			const requests: UpdateCellRequestDto[] = [];
 
@@ -62,8 +61,12 @@ function useAutoSave({
 				});
 			}
 
-			await updateCellsContents(requests);
 			changedCellsIds.current.clear();
+
+			if (requests.length > 0) {
+				await updateCellsContents(requests);
+			}
+
 			await onCellsUpdateSave();
 		});
 	}, [callApi, onCellsUpdateSave]);
@@ -83,11 +86,13 @@ function useAutoSave({
 		}, AUTO_SAVE_DELAY_IN_MILLISECONDS);
 	};
 
+	// Used for saving changes before unmounting.
 	useEffect(() => {
 		updatedCells.current = cells;
 		return () => void saveChanges();
 	}, [cells, saveChanges]);
 
+	// Used for saving changes before closing the app.
 	useEffect(() => {
 		defaultCloseRequestedEventManager.addHandler(
 			CLOSE_REQUESTED_HANDLER_NAME,
@@ -103,6 +108,7 @@ function useAutoSave({
 			);
 	}, [saveChanges]);
 
+	// Used to save changes before syncing.
 	useEffect(() => {
 		defaultGlobalSyncEventManager.addListener(
 			ListenerType.PreSyncStart,
@@ -115,6 +121,7 @@ function useAutoSave({
 			);
 	}, [saveChanges]);
 
+	// Used to get latest cells after sync.
 	useEffect(() => {
 		defaultGlobalSyncEventManager.addListener(
 			ListenerType.PreSyncComplete,
@@ -127,10 +134,22 @@ function useAutoSave({
 			);
 	}, [onCellsUpdateSave]);
 
+	// Used to save changes before unloading.
 	useBeforeUnload(e => {
-		void saveChanges();
 		if (changedCellsIds.current.size > 0) e.preventDefault();
+		void saveChanges();
 	});
+
+	// Used to save changes after moving a cell and re-fetching cells.
+	useEffect(() => {
+		const cb = () => {
+			void saveChanges();
+		};
+
+		window.addEventListener(CELL_MOVED_TO_FILE, cb);
+
+		return () => window.removeEventListener(CELL_MOVED_TO_FILE, cb);
+	}, [saveChanges]);
 
 	return {
 		saveChanges,

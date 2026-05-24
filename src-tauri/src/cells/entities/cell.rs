@@ -40,6 +40,7 @@ pub struct Cell {
     content: String,
     cell_type: CellType,
     searchable_content: String,
+    /// Indices start at zero.
     index: u32,
     pub(in crate::cells) repetitions: Vec<Repetition>,
 }
@@ -143,6 +144,14 @@ impl Cell {
         self.content = content;
         self.update_searchable_content();
         self.update_repetitions();
+    }
+
+    pub(in crate::cells) fn set_file_id(&mut self, file_id: Guid) {
+        self.file_id = file_id;
+
+        for repetition in &mut self.repetitions {
+            repetition.file_id = file_id;
+        }
     }
 
     fn create_repetition_with_content(&mut self, additional_content: Option<String>) {
