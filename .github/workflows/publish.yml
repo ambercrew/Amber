@@ -61,7 +61,8 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -178,7 +179,8 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
 
       - name: build Android APK and AAB
         run: npm run tauri android build -- --apk --aab
