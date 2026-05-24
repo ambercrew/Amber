@@ -82,7 +82,8 @@ jobs:
 
       - name: sync snapcraft version
         if: matrix.platform == 'ubuntu-24.04'
-        run: sed -i "s/^version: .*/version: '${{ steps.version.outputs.version }}'/" snapcraft.yaml
+        run: |
+          sed -i "s/^version: .*/version: '${{ steps.version.outputs.version }}'/" snapcraft.yaml
 
       - name: build snap
         if: matrix.platform == 'ubuntu-24.04'
