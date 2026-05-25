@@ -8,6 +8,7 @@ use rig::{
     agent::{Agent, MultiTurnStreamItem, StreamingError, Text},
     client::CompletionClient,
     completion::PromptError,
+    extractor::ExtractionError,
     streaming::{StreamedAssistantContent, StreamingChat},
 };
 use tokio::sync::Mutex;
@@ -105,16 +106,25 @@ impl AiStreamer for DefaultAiStreamer {
                 }
                 Err(err) => {
                     log::error!("Error happened while streaming {:?}", err);
-                    let mut should_call_callback = true;
 
-                    if let StreamingError::Prompt(ref prompt_error) = err
-                        && matches!(**prompt_error, PromptError::PromptCancelled { .. })
-                    {
-                        should_call_callback = false;
-                    }
+                    let is_cancelled = matches!(&err, StreamingError::Prompt(p) if matches!(**p, PromptError::PromptCancelled { .. }));
 
-                    if should_call_callback {
-                        on_event(StreamLlmResponseEvent::Error(err.to_string()))?;
+                    if !is_cancelled {
+                        let error_message = match err {
+                            StreamingError::Completion(completion_err) => {
+                                AiStreamerError::try_from(completion_err)
+                                    .map_or_else(|e| e.to_string(), |e| e.to_string())
+                            }
+                            StreamingError::Prompt(prompt_err) => match *prompt_err {
+                                PromptError::CompletionError(completion_err) => {
+                                    AiStreamerError::try_from(completion_err)
+                                        .map_or_else(|e| e.to_string(), |e| e.to_string())
+                                }
+                                other => other.to_string(),
+                            },
+                            other => other.to_string(),
+                        };
+                        on_event(StreamLlmResponseEvent::Error(error_message))?;
                     }
                     break;
                 }
@@ -157,6 +167,10 @@ impl DefaultAiStreamer {
             .await
         {
             Ok(response) => response,
+            Err(ExtractionError::CompletionError(completion_err)) => {
+                return Err(AiStreamerError::try_from(completion_err)
+                    .unwrap_or_else(|e| AiStreamerError::CreateChat(Box::new(e))));
+            }
             Err(err) => return Err(AiStreamerError::CreateChat(Box::new(err))),
         };
 

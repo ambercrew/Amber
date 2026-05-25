@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use rig::{completion::CompletionError, http_client::Error as HttpClientError};
 use serde::Serialize;
 use thiserror::Error;
 
@@ -36,12 +37,40 @@ pub type OnEventCallback =
 pub enum AiStreamerError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error("Failed to create the chat")]
+    #[error("Failed to create the chat: {0}")]
     CreateChat(#[source] SourceError),
+    #[error("HTTP {status}: {message}")]
+    ProviderHttpError { status: u16, message: String },
+    #[error("{0}")]
+    ProviderError(String),
     #[error(transparent)]
     AiClientProvider(#[from] AiClientProviderError),
     #[error(transparent)]
     OnEventCallback(#[from] OnEventCallbackError),
+}
+
+impl TryFrom<CompletionError> for AiStreamerError {
+    type Error = CompletionError;
+
+    fn try_from(err: CompletionError) -> Result<Self, Self::Error> {
+        match err {
+            CompletionError::HttpError(HttpClientError::InvalidStatusCodeWithMessage(
+                status,
+                body,
+            )) => {
+                let message = serde_json::from_str::<serde_json::Value>(&body)
+                    .ok()
+                    .and_then(|v| v["error"]["message"].as_str().map(String::from))
+                    .unwrap_or(body);
+                Ok(AiStreamerError::ProviderHttpError {
+                    status: status.as_u16(),
+                    message,
+                })
+            }
+            CompletionError::ProviderError(message) => Ok(AiStreamerError::ProviderError(message)),
+            other => Err(other),
+        }
+    }
 }
 
 #[async_trait]
