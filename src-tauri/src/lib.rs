@@ -60,7 +60,6 @@ pub async fn run() -> Result<(), String> {
                 .target(tauri_plugin_log::Target::new(
                     tauri_plugin_log::TargetKind::Stdout,
                 ))
-                .max_file_size(1_000_000)
                 .build(),
         )
         .plugin(tauri_plugin_http::init())
