@@ -3,7 +3,7 @@ import styles from "./styles.module.css";
 import ReviewerCell from "../../ReviewerCell/components/ReviewerCell";
 import { Icon } from "@mdi/react";
 import { mdiPencilOutline } from "@mdi/js";
-import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
+import { FSRS, generatorParameters, Grade, Rating } from "ts-fsrs";
 import createCardFromCellRepetition from "../utils/createCardFromRepetition";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import createRepetitionFromCard from "../utils/createRepetitionFromCard";
@@ -44,7 +44,9 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 		CellWithFsrsProfileIdDto[]
 	>([]);
 	const [allFsrsProfiles, setAllFsrsProfiles] = useState<FsrsProfile[]>([]);
-	const [startTime, setStartTime] = useState(new Date());
+	const [currentReviewStartTime, setCurrentReviewStartTime] = useState(
+		new Date(),
+	);
 	const studyTime = useRef(0);
 	const lastLoadTime = useRef(new Date());
 
@@ -57,7 +59,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 			);
 			setCurrentCellIndex(0);
 			setShowAnswer(false);
-			setStartTime(new Date());
+			setCurrentReviewStartTime(new Date());
 			lastLoadTime.current = new Date();
 			setIsSendingRequest(false);
 		});
@@ -87,31 +89,38 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 					}));
 				})
 				.flat()
-				.filter(r => new Date(r.repetition.due) <= startTime),
+				.filter(
+					r => new Date(r.repetition.due) <= currentReviewStartTime,
+				),
 		);
-	}, [cellsWithFsrsProfileIds, startTime]);
+	}, [cellsWithFsrsProfileIds, currentReviewStartTime]);
 
-	const recordLog: RecordLog | null = useMemo(() => {
-		if (dueToday.length === 0) return null;
-		const currentCard = createCardFromCellRepetition(
-			dueToday[currentCellIndex].repetition,
-		);
+	const getRecordLog = useCallback(
+		(now: Date) => {
+			if (dueToday.length === 0) return null;
+			const currentCard = createCardFromCellRepetition(
+				dueToday[currentCellIndex].repetition,
+			);
 
-		const profile = allFsrsProfiles.find(
-			p => p.id === dueToday[currentCellIndex].fsrsProfileId,
-		)!;
+			const profile = allFsrsProfiles.find(
+				p => p.id === dueToday[currentCellIndex].fsrsProfileId,
+			)!;
 
-		const params = generatorParameters({
-			w: profile.weights,
-			maximum_interval: profile.maximumInterval,
-			request_retention: profile.requestRetention,
-		});
-		const fsrs = new FSRS(params);
+			const params = generatorParameters({
+				w: profile.weights,
+				maximum_interval: profile.maximumInterval,
+				request_retention: profile.requestRetention,
+			});
+			const fsrs = new FSRS(params);
 
-		return fsrs.repeat(currentCard, startTime);
-	}, [dueToday, startTime, currentCellIndex, allFsrsProfiles]);
+			return fsrs.repeat(currentCard, now);
+		},
+		[dueToday, currentCellIndex, allFsrsProfiles],
+	);
 
 	const handleGradeSubmit = async (grade: Grade) => {
+		const recordLog = getRecordLog(new Date());
+
 		if (isSendingRequest || !recordLog) {
 			return;
 		}
@@ -147,7 +156,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 		if (isLastRepetition || minutesSinceLastLoad >= 1) {
 			await loadCells();
 		} else {
-			setStartTime(new Date());
+			setCurrentReviewStartTime(new Date());
 			setCurrentCellIndex(currentCellIndex + 1);
 		}
 	};
@@ -199,6 +208,8 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 		(time: number) => (studyTime.current = time),
 		[],
 	);
+
+	const buttonRowRecordLog = getRecordLog(currentReviewStartTime);
 
 	return (
 		<div className={`${styles.reviewer}`}>
@@ -288,12 +299,12 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 							</button>
 						)}
 
-						{showAnswer && recordLog && (
+						{showAnswer && buttonRowRecordLog && (
 							<ButtonRow
-								startTime={startTime}
+								startTime={currentReviewStartTime}
 								disabled={isSendingRequest}
 								onClick={grade => void handleGradeSubmit(grade)}
-								recordLog={recordLog}
+								recordLog={buttonRowRecordLog}
 							/>
 						)}
 					</div>

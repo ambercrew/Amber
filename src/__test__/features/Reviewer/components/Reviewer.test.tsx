@@ -341,6 +341,57 @@ describe("Reviewer", () => {
 		expect(await screen.findByText("Show Answer")).toBeInTheDocument();
 	});
 
+	it("Should use button press time as review time, not card shown time", async () => {
+		// Arrange
+
+		vi.useFakeTimers({ toFake: ["Date"] });
+		const cardShownTime = new Date(2024, 0, 1, 10, 0, 0);
+		vi.setSystemTime(cardShownTime);
+
+		const repetition = makeRepetition({ id: "rep-1", cellId: "cell-1" });
+
+		const cells: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+
+		vi.mocked(getCellsForFilesWithFsrsProfileIds)
+			.mockResolvedValueOnce(cells)
+			.mockResolvedValueOnce([]);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([defaultProfile]);
+
+		renderWithProviders(
+			<Reviewer
+				fileIds={[]}
+				onEditButtonClick={vi.fn()}
+				callApi={callApiMock}
+			/>,
+		);
+
+		await userEvent.click(await screen.findByText("Show Answer"));
+
+		const buttonPressTime = new Date(cardShownTime.getTime() + 30000);
+		vi.setSystemTime(buttonPressTime);
+
+		// Act
+
+		await userEvent.click(screen.getByText("Good"));
+
+		// Assert
+
+		expect(vi.mocked(registerReview)).toHaveBeenCalledWith(
+			expect.objectContaining({
+				lastReview: buttonPressTime.toISOString(),
+			}),
+			expect.anything(),
+			expect.anything(),
+		);
+
+		vi.useRealTimers();
+	});
+
 	it("Should reload cells when time since last load is at least 1 minute", async () => {
 		// Arrange
 
