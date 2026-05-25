@@ -132,7 +132,7 @@ function App() {
 
 	return (
 		<div className={`${styles.workspace}`}>
-			{!isMobile() && <Updater />}
+			{!isMobile() && <Updater callApi={callApi} />}
 
 			{errorMessage && (
 				<div className={styles.errorDialog}>

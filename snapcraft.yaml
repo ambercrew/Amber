@@ -10,6 +10,7 @@ description: |
 website: https://brainylearn.app
 issues: https://github.com/brainylearn/brainy-app/issues/new
 source-code: https://github.com/brainylearn/brainy-app
+donation: https://ko-fi.com/ramikw
 
 grade: stable
 confinement: strict

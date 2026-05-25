@@ -5,46 +5,60 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
 import Dialog from "../../../components/Dialog/Dialog";
 import Spinner from "../../../components/Spinner/Spinner";
+import { CallApiFn } from "../../../hooks/useApi";
+import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
 
-function Updater() {
+interface Props {
+	callApi: CallApiFn;
+}
+
+function Updater({ callApi }: Props) {
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [updatePercentage, setUpdatePercentage] = useState("0");
 
 	useEffect(() => {
-		void (async () => {
-			const update = await check();
-			if (!update) return;
+		void callApi(
+			async () => {
+				if (await isStoreInstalled()) return;
 
-			const confirm = await ask(
-				"Do you want to update the application to the latest version?",
-			);
-			if (!confirm) return;
+				const update = await check();
+				if (!update) return;
 
-			setIsUpdating(true);
+				const confirm = await ask(
+					"Do you want to update the application to the latest version?",
+				);
+				if (!confirm) return;
 
-			let downloaded = 0;
-			let contentLength = 0;
-			await update.downloadAndInstall(event => {
-				switch (event.event) {
-					case "Started":
-						contentLength = event.data.contentLength ?? 0;
-						break;
-					case "Progress":
-						downloaded += event.data.chunkLength;
-						setUpdatePercentage(
-							(downloaded / contentLength).toFixed(1),
-						);
-						break;
-					case "Finished":
-						console.log("Download finished");
-						break;
-				}
-			});
+				setIsUpdating(true);
 
-			alert("Restarting the application to install the update!");
-			await relaunch();
-		})();
-	}, []);
+				let downloaded = 0;
+				let contentLength = 0;
+				await update.downloadAndInstall(event => {
+					switch (event.event) {
+						case "Started":
+							contentLength = event.data.contentLength ?? 0;
+							break;
+						case "Progress":
+							downloaded += event.data.chunkLength;
+							setUpdatePercentage(
+								((100 * downloaded) / contentLength).toFixed(1),
+							);
+							break;
+						case "Finished":
+							console.log("Download finished");
+							break;
+					}
+				});
+
+				alert("Restarting the application to install the update!");
+				await relaunch();
+			},
+			() => {
+				setIsUpdating(false);
+				return Promise.resolve();
+			},
+		);
+	}, [callApi]);
 
 	return (
 		<>

@@ -71,7 +71,6 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Brainy v__VERSION__"
-          makeLatest: true
           releaseDraft: false
           args: ${{ matrix.args }}
 
@@ -89,6 +88,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          STORE_BUILD: "1"
         run: sudo -E snapcraft --destructive-mode
 
       - name: fix snapcraft permissions
@@ -96,11 +96,24 @@ jobs:
         run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
 
       # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`
-      - name: publish snap to store
+      - name: upload snap to store
         if: matrix.platform == 'ubuntu-24.04'
+        id: snap_upload
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: snapcraft upload *.snap --release=stable
+        run: |
+          output=$(snapcraft upload *.snap 2>&1)
+          echo "$output"
+          revision=$(echo "$output" | grep -oP 'Revision \K[0-9]+')
+          echo "revision=$revision" >> $GITHUB_OUTPUT
+
+      - name: release snap to stable
+        if: matrix.platform == 'ubuntu-24.04' && steps.snap_upload.outputs.revision != ''
+        # This step often fails due to the need for manual approver in the store.
+        continue-on-error: true
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: snapcraft release brainy-learn ${{ steps.snap_upload.outputs.revision }} stable
 
       - name: upload snap to release
         if: matrix.platform == 'ubuntu-24.04'

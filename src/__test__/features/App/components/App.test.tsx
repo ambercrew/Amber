@@ -221,14 +221,21 @@ describe("App", () => {
 	it("Should render updater", async () => {
 		// Arrange
 
-		vi.mocked(check).mockResolvedValue(
-			new Update({
-				version: "",
-				currentVersion: "",
-				rawJson: {},
-				rid: 1,
-			}),
-		);
+		const update = new Update({
+			version: "",
+			currentVersion: "",
+			rawJson: {},
+			rid: 1,
+		});
+
+		const downloadAndInstallMock = vi.fn();
+		update.downloadAndInstall = downloadAndInstallMock;
+		downloadAndInstallMock.mockImplementation(async () => {
+			// Adding some delays so that the dialog is hidden right away.
+			await new Promise(resolve => setTimeout(resolve, 200));
+		});
+
+		vi.mocked(check).mockResolvedValue(update);
 		vi.mocked(ask).mockResolvedValue(true);
 
 		// Act
@@ -242,6 +249,41 @@ describe("App", () => {
 				screen.queryByText("Updating the application", {
 					exact: false,
 				}),
+			).not.toBeNull();
+		});
+	});
+
+	it("Should hide updating dialog and show error when update fails", async () => {
+		// Arrange
+
+		const update = new Update({
+			version: "",
+			currentVersion: "",
+			rawJson: {},
+			rid: 1,
+		});
+
+		const downloadAndInstallMock = vi.fn();
+		update.downloadAndInstall = downloadAndInstallMock;
+		downloadAndInstallMock.mockRejectedValue(new Error("Download failed"));
+
+		vi.mocked(check).mockResolvedValue(update);
+		vi.mocked(ask).mockResolvedValue(true);
+
+		// Act
+
+		renderApp();
+
+		// Assert
+
+		await waitFor(() => {
+			expect(
+				screen.queryByText("Updating the application", {
+					exact: false,
+				}),
+			).toBeNull();
+			expect(
+				screen.queryByText("Download failed", { exact: false }),
 			).not.toBeNull();
 		});
 	});

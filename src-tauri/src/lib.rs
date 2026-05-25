@@ -1,4 +1,5 @@
 mod ai_integration;
+mod app_info;
 mod backend;
 mod backup;
 mod cells;
@@ -20,6 +21,7 @@ use std::time::Duration;
 use tauri::Manager;
 
 use ai_integration::ai_api::*;
+use app_info::app_info_api::*;
 use backend::api::auth_api::*;
 use backend::api::user_api::*;
 use cells::api::cell_api::*;
@@ -190,6 +192,8 @@ pub async fn run() -> Result<(), String> {
             set_fsrs_profile_choice_for_file,
             set_fsrs_profile_choice_for_folder,
             update_profile,
+            // App Info
+            is_store_installed,
             // AI
             accept_tool_call,
             delete_ai_chat,
