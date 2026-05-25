@@ -37,6 +37,9 @@ vi.mock(import("../../../../api/cells/api/cellApi.ts"), () => ({
 	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
 	getFileCellsOrderedByIndex: () => Promise.resolve([]),
 }));
+vi.mock(import("../../../../api/appInfo/api/appInfoApi.ts"), () => ({
+	isStoreInstalled: () => Promise.resolve(false),
+}));
 vi.mock(import("../../../../utils/tauriUtils.ts"));
 vi.mock(import("@tauri-apps/api/core"));
 vi.mock(import("@tauri-apps/plugin-updater"));
@@ -256,6 +259,12 @@ describe("App", () => {
 	it("Should hide updating dialog and show error when update fails", async () => {
 		// Arrange
 
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => {
+				/* Suppressing stderr output */
+			});
+
 		const update = new Update({
 			version: "",
 			currentVersion: "",
@@ -265,7 +274,9 @@ describe("App", () => {
 
 		const downloadAndInstallMock = vi.fn();
 		update.downloadAndInstall = downloadAndInstallMock;
-		downloadAndInstallMock.mockRejectedValue(new Error("Download failed"));
+		downloadAndInstallMock.mockRejectedValueOnce(
+			new Error("Download failed"),
+		);
 
 		vi.mocked(check).mockResolvedValue(update);
 		vi.mocked(ask).mockResolvedValue(true);
@@ -286,6 +297,8 @@ describe("App", () => {
 				screen.queryByText("Download failed", { exact: false }),
 			).not.toBeNull();
 		});
+
+		consoleError.mockRestore();
 	});
 
 	it("Should not render sidebar when it is collapsed", async () => {
