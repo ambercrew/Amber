@@ -33,6 +33,7 @@ vi.mock(import("../../../../stores/settings/settingsActions.ts"));
 vi.mock(import("../../../../stores/sync/syncActions.ts"));
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
 vi.mock(import("../../../../features/Editor/components/TitleBar.tsx"));
+vi.mock(import("../../../../features/IntroDialog/components/IntroDialog.tsx"));
 vi.mock(import("../../../../api/cells/api/cellApi.ts"), () => ({
 	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
 	getFileCellsOrderedByIndex: () => Promise.resolve([]),
