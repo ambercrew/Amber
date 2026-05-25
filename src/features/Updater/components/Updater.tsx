@@ -6,6 +6,7 @@ import { ask } from "@tauri-apps/plugin-dialog";
 import Dialog from "../../../components/Dialog/Dialog";
 import Spinner from "../../../components/Spinner/Spinner";
 import { CallApiFn } from "../../../hooks/useApi";
+import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
 
 interface Props {
 	callApi: CallApiFn;
@@ -18,6 +19,8 @@ function Updater({ callApi }: Props) {
 	useEffect(() => {
 		void callApi(
 			async () => {
+				if (await isStoreInstalled()) return;
+
 				const update = await check();
 				if (!update) return;
 

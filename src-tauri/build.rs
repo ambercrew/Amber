@@ -2,8 +2,17 @@ use std::{env, fs, path::PathBuf, process::Command};
 
 fn main() {
     setup_sqlx();
+    setup_store_flag();
     prost_build::compile_protos(&["protobuff/sync_objects.proto"], &["protobuff/"]).unwrap();
     tauri_build::build()
+}
+
+fn setup_store_flag() {
+    println!("cargo::rustc-check-cfg=cfg(store)");
+    println!("cargo:rerun-if-env-changed=STORE_BUILD");
+    if env::var("STORE_BUILD").is_ok() || cfg!(feature = "store") {
+        println!("cargo:rustc-cfg=store");
+    }
 }
 
 fn setup_sqlx() {

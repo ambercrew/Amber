@@ -88,6 +88,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          STORE_BUILD: "1"
         run: sudo -E snapcraft --destructive-mode
 
       # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`

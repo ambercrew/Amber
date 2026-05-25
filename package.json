@@ -17,7 +17,7 @@
 		"install-rust-tools": "(rustup component add rustfmt clippy && cargo install sqlx-cli) || echo '⚠️ Warning: Rust tools installation failed. Please install manually: rustfmt, clippy, and sqlx-cli'",
 		"devtools": "react-devtools",
 		"update-npm": "ncu --upgrade --cooldown 14",
-		"tauri:windows:build": "tauri-windows-bundle build"
+		"tauri:windows:build": "set STORE_BUILD=1 && tauri-windows-bundle build"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json,css,md,html}": "prettier --write",

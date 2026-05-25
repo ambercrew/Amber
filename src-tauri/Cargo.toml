@@ -66,6 +66,9 @@ tauri-plugin-single-instance = "2.4.1"
 tauri-plugin-updater = "2.10.1"
 tauri-plugin-window-state = "2.4.1"
 
+[features]
+store = []
+
 [target.'cfg(target_os = "android")'.dependencies]
 openssl = { version = "*", features = ["vendored"] }
 
