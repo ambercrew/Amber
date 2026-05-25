@@ -71,7 +71,6 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Brainy v__VERSION__"
-          makeLatest: true
           releaseDraft: false
           args: ${{ matrix.args }}
 
