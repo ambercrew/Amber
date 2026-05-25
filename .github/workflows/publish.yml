@@ -91,6 +91,10 @@ jobs:
           STORE_BUILD: "1"
         run: sudo -E snapcraft --destructive-mode
 
+      - name: fix snapcraft permissions
+        if: matrix.platform == 'ubuntu-24.04'
+        run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
+
       # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`
       - name: publish snap to store
         if: matrix.platform == 'ubuntu-24.04'
