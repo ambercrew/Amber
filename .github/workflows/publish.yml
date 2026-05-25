@@ -96,7 +96,15 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: snapcraft upload *.snap --release=stable
+        run: |
+          output=$(snapcraft upload *.snap --release=stable 2>&1) && echo "$output" || {
+            echo "$output"
+            if echo "$output" | grep -q "human review required"; then
+              echo "Snap uploaded but pending human review — release to stable will happen after manual approval."
+            else
+              exit 1
+            fi
+          }
 
       - name: upload snap to release
         if: matrix.platform == 'ubuntu-24.04'
