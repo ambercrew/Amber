@@ -6,6 +6,7 @@
 	justify-content: space-between;
 	align-items: center;
 	gap: var(--spacing-2);
+	box-shadow: var(--default-box-shadow);
 
 	& p {
 		word-break: break-all;
