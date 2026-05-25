@@ -36,7 +36,7 @@ tauri-plugin-http = "2"
 reqwest-middleware = { version = "0.4.0", features = ["json"] }
 reqwest-retry = "0.8.0"
 reqwest_cookie_store = "0.9.0"
-rig-core = { version = "0.36.0", features = ["pdf", "derive"] }
+rig-core = { version = "0.36.0", default-features = false, features = ["pdf", "derive", "native-tls"] }
 rig-sqlite = "0.2.5"
 schemars = "1.2.1"
 serde = { version = "1.0.228", features = ["derive"] }
