@@ -669,10 +669,8 @@ pub mod tests {
                 request,
                 Arc::new(move |event| {
                     if let StreamLlmResponseEvent::Error(error) = event {
-                        received_error_clone.store(
-                            error == "CompletionError: ResponseError: error from AI",
-                            Ordering::Relaxed,
-                        );
+                        received_error_clone
+                            .store(error == "ResponseError: error from AI", Ordering::Relaxed);
                     }
                     Ok(())
                 }),
