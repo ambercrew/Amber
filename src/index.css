@@ -43,7 +43,7 @@ body {
 	--secondary-color-shade-10: #6d28d9;
 
 	--text-color: #2b2d42;
-	--text-color-secondary: #6c757d;
+	--text-color-secondary: #3e4347;
 
 	--border-color: var(--surface-background-color-shade-10);
 	--hover-border-color: var(--surface-background-color-shade-20);
@@ -95,7 +95,7 @@ body {
 /* On dark theme, the roles of shade and tint colors are reversed. */
 body.dark {
 	--text-color: #f5f7fa;
-	--text-color-secondary: #b0bcc9;
+	--text-color-secondary: #bcc6d1;
 
 	--primary-color-shade-10: #306bec;
 	--primary-color-shade-20: #3b73ed;
@@ -144,6 +144,10 @@ select,
 .select,
 a {
 	color: inherit;
+}
+
+a {
+	border-radius: var(--default-border-radius);
 }
 
 textarea {

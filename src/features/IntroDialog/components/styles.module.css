@@ -1,0 +1,97 @@
+.dialog {
+	width: 46rem;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	padding: var(--spacing-4);
+	gap: var(--spacing-5);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-4);
+
+	& .appIcon {
+		width: 48px;
+		height: 48px;
+	}
+
+	& .title {
+		margin: 0;
+		font-size: 2.2rem;
+		font-weight: 400;
+	}
+}
+
+.description {
+	margin: 0;
+	color: var(--text-color-secondary);
+}
+
+.feature-list-title {
+	margin-bottom: var(--spacing-3);
+	font-weight: 600;
+}
+
+.feature-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-4);
+}
+
+.feature-item {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--spacing-5);
+}
+
+.feature-icon-badge {
+	width: 46px;
+	height: 46px;
+	border-radius: var(--default-border-radius);
+	background-color: var(--surface-background-color-tint-10);
+	border: var(--default-border-width) solid var(--border-color);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.feature-title {
+	font-weight: 600;
+}
+
+.feature-description {
+	margin: 0;
+	color: var(--text-color-secondary);
+}
+
+.ai-note {
+	color: var(--text-color-secondary);
+	border: var(--default-border-width) solid var(--border-color);
+	background-color: var(--surface-background-color-tint-10);
+	padding: var(--spacing-4);
+	border-radius: var(--default-border-radius);
+	font-size: 1.4rem;
+
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-6);
+}
+
+.actions {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-3);
+	margin-top: var(--spacing-2);
+}
+
+.primary-button {
+	width: 100%;
+}

@@ -35,6 +35,7 @@ import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { isMobile } from "../../../utils/tauriUtils.ts";
+import IntroDialog from "../../IntroDialog/components/IntroDialog.tsx";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -132,6 +133,8 @@ function App() {
 
 	return (
 		<div className={`${styles.workspace}`}>
+			<IntroDialog />
+
 			{!isMobile() && <Updater callApi={callApi} />}
 
 			{errorMessage && (

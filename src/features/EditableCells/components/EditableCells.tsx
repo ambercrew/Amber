@@ -61,7 +61,6 @@ function EditableCells({
 	onCellsUpdateSave,
 	onEditButtonClick,
 }: Props) {
-	// TODO: set new focus when cell is moved
 	const [selectedCellId, setSelectedCellId] = useState<string | null>(null);
 	/** Automatically scroll to the selected cell on the next render,
 	 * this requires something else to re-render the component for it to work.
