@@ -1,5 +1,5 @@
 import styles from "../../../../features/Reviewer/components/styles.module.css";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { getCellsForFilesWithFsrsProfileIds } from "../../../../api/cells/api/cellApi.ts";
 import Reviewer from "../../../../features/Reviewer/components/Reviewer.tsx";
 import { CellWithFsrsProfileIdDto } from "../../../../api/cells/dto/cellWithFsrsProfileIdDto.ts";
@@ -23,6 +23,35 @@ vi.mock(import("../../../../api/cells/api/reviewApi.ts"));
 function addMinutes(date: Date, minutes: number) {
 	date.setMinutes(date.getMinutes() + minutes);
 	return date;
+}
+
+const defaultProfile: FsrsProfile = {
+	id: "profile-1",
+	name: "default",
+	requestRetention: 0.9,
+	maximumInterval: 365,
+	weights: [
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.1, 1, 1, 1.1, 1, 1, 1, 1, 1, 1,
+	],
+};
+
+function makeRepetition(overrides: Partial<Repetition> = {}): Repetition {
+	return {
+		id: "rep-1",
+		state: "new",
+		due: addMinutes(new Date(), -10).toISOString(),
+		cellId: "cell-1",
+		fileId: "file-1",
+		lastReview: new Date().toISOString(),
+		reps: 0,
+		scheduledDays: 0,
+		stability: 1,
+		difficulty: 5,
+		elapsedDays: 0,
+		lapses: 0,
+		additionalContent: "",
+		...overrides,
+	};
 }
 
 describe("Reviewer", () => {
@@ -101,7 +130,7 @@ describe("Reviewer", () => {
 		).toHaveClass(styles.active);
 	});
 
-	it("Should use FSRF profile correctly when submitting and then navigate to home", async () => {
+	it("Should use FSRS profile correctly when submitting", async () => {
 		// Arrange
 
 		const repetition: Repetition = {
@@ -130,9 +159,9 @@ describe("Reviewer", () => {
 			},
 		];
 
-		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockResolvedValue(
-			cellsWithFsrsProfileIds,
-		);
+		vi.mocked(getCellsForFilesWithFsrsProfileIds)
+			.mockResolvedValueOnce(cellsWithFsrsProfileIds)
+			.mockResolvedValueOnce([]);
 
 		const fsrsProfile: FsrsProfile = {
 			id: "123",
@@ -189,7 +218,176 @@ describe("Reviewer", () => {
 			"Good",
 			expect.anything(),
 		);
+	});
+
+	it("Should navigate to home when reload returns no remaining cards", async () => {
+		// Arrange
+
+		const repetition = makeRepetition({ id: "rep-1", cellId: "cell-1" });
+
+		const cells: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+
+		vi.mocked(getCellsForFilesWithFsrsProfileIds)
+			.mockResolvedValueOnce(cells)
+			.mockResolvedValueOnce([]);
+
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([defaultProfile]);
+
+		renderWithProviders(
+			<Reviewer
+				fileIds={[]}
+				onEditButtonClick={vi.fn()}
+				callApi={callApiMock}
+			/>,
+		);
+
+		// Act
+
+		await userEvent.click(await screen.findByText("Show Answer"));
+		await userEvent.click(await screen.findByText("Good"));
+
+		// Assert
 
 		expect(await getCurrentLocation()).toBe("/home");
+	});
+
+	it("Should advance to next card when not last repetition and under 1 minute", async () => {
+		// Arrange
+
+		const repetition1 = makeRepetition({ id: "rep-1", cellId: "cell-1" });
+		const repetition2 = makeRepetition({ id: "rep-2", cellId: "cell-2" });
+
+		const cells: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition1] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+			{
+				cell: { id: "cell-2", repetitions: [repetition2] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+
+		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockResolvedValue(cells);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([defaultProfile]);
+
+		renderWithProviders(
+			<Reviewer
+				fileIds={[]}
+				onEditButtonClick={vi.fn()}
+				callApi={callApiMock}
+			/>,
+		);
+
+		// Act
+
+		await userEvent.click(await screen.findByText("Show Answer"));
+		await userEvent.click(await screen.findByText("Good"));
+
+		// Assert
+
+		expect(getCellsForFilesWithFsrsProfileIds).toHaveBeenCalledTimes(1);
+		expect(await screen.findByTestId("new-count")).toHaveTextContent("1");
+	});
+
+	it("Should reload cells when submitting last repetition while more cards remain", async () => {
+		// Arrange
+
+		const repetition = makeRepetition({ id: "rep-1", cellId: "cell-1" });
+		const repetition2 = makeRepetition({ id: "rep-2", cellId: "cell-1" });
+
+		const firstLoad: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+		const secondLoad: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition2] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+
+		vi.mocked(getCellsForFilesWithFsrsProfileIds)
+			.mockResolvedValueOnce(firstLoad)
+			.mockResolvedValueOnce(secondLoad);
+
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([defaultProfile]);
+
+		renderWithProviders(
+			<Reviewer
+				fileIds={[]}
+				onEditButtonClick={vi.fn()}
+				callApi={callApiMock}
+			/>,
+		);
+
+		// Act
+
+		await userEvent.click(await screen.findByText("Show Answer"));
+		await userEvent.click(await screen.findByText("Good"));
+
+		// Assert
+
+		await waitFor(() =>
+			expect(getCellsForFilesWithFsrsProfileIds).toHaveBeenCalledTimes(2),
+		);
+		expect(await screen.findByText("Show Answer")).toBeInTheDocument();
+	});
+
+	it("Should reload cells when time since last load is at least 1 minute", async () => {
+		// Arrange
+
+		vi.useFakeTimers({ toFake: ["Date"] });
+		const initialTime = new Date(2024, 0, 1, 10, 0, 0);
+		vi.setSystemTime(initialTime);
+
+		const repetition1 = makeRepetition({ id: "rep-1", cellId: "cell-1" });
+		const repetition2 = makeRepetition({ id: "rep-2", cellId: "cell-2" });
+
+		const cells: CellWithFsrsProfileIdDto[] = [
+			{
+				cell: { id: "cell-1", repetitions: [repetition1] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+			{
+				cell: { id: "cell-2", repetitions: [repetition2] } as Cell,
+				fsrsProfileId: "profile-1",
+			},
+		];
+
+		vi.mocked(getCellsForFilesWithFsrsProfileIds).mockResolvedValue(cells);
+		vi.mocked(getAllFsrsProfiles).mockResolvedValue([defaultProfile]);
+
+		renderWithProviders(
+			<Reviewer
+				fileIds={[]}
+				onEditButtonClick={vi.fn()}
+				callApi={callApiMock}
+			/>,
+		);
+
+		await screen.findByText("Show Answer");
+
+		vi.setSystemTime(new Date(initialTime.getTime() + 60000));
+
+		// Act
+
+		await userEvent.click(screen.getByText("Show Answer"));
+		await userEvent.click(screen.getByText("Good"));
+
+		// Assert
+
+		await waitFor(() =>
+			expect(getCellsForFilesWithFsrsProfileIds).toHaveBeenCalledTimes(2),
+		);
+
+		vi.useRealTimers();
 	});
 });

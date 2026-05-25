@@ -8,8 +8,7 @@ import createCardFromCellRepetition from "../utils/createCardFromRepetition";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import createRepetitionFromCard from "../utils/createRepetitionFromCard";
 import Timer from "./Timer";
-import { Navigate, useLocation, useNavigate } from "react-router";
-import FromRouteState from "../../../types/fromRouteState";
+import { Navigate } from "react-router";
 import { getCellsForFilesWithFsrsProfileIds } from "../../../api/cells/api/cellApi";
 import gradeToRating from "../utils/gradeToRating";
 import { registerReview } from "../../../api/cells/api/reviewApi";
@@ -47,23 +46,24 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	const [allFsrsProfiles, setAllFsrsProfiles] = useState<FsrsProfile[]>([]);
 	const [startTime, setStartTime] = useState(new Date());
 	const studyTime = useRef(0);
-	const navigate = useNavigate();
-	const location = useLocation();
+	const lastLoadTime = useRef(new Date());
+
+	const loadCells = useCallback(async () => {
+		await callApi(async () => {
+			setIsSendingRequest(true);
+			setAllFsrsProfiles(await getAllFsrsProfiles());
+			setCellsWithFsrsProfileIds(
+				await getCellsForFilesWithFsrsProfileIds(fileIds),
+			);
+			setCurrentCellIndex(0);
+			setShowAnswer(false);
+			setStartTime(new Date());
+			lastLoadTime.current = new Date();
+			setIsSendingRequest(false);
+		});
+	}, [fileIds, callApi]);
 
 	useEffect(() => {
-		const loadCells = async () => {
-			await callApi(async () => {
-				setIsSendingRequest(true);
-				setAllFsrsProfiles(await getAllFsrsProfiles());
-				setCellsWithFsrsProfileIds(
-					await getCellsForFilesWithFsrsProfileIds(fileIds),
-				);
-				setCurrentCellIndex(0);
-				setShowAnswer(false);
-				setIsSendingRequest(false);
-			});
-		};
-
 		void loadCells();
 
 		defaultGlobalSyncEventManager.addListener(
@@ -75,7 +75,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 				ListenerType.PostSyncComplete,
 				loadCells,
 			);
-	}, [fileIds, callApi]);
+	}, [loadCells]);
 
 	const dueToday = useMemo(() => {
 		return sortReviewerRepetitions(
@@ -140,15 +140,12 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 		);
 		setShowAnswer(false);
 
-		if (currentCellIndex + 1 === dueToday.length) {
-			const locationState = location.state as FromRouteState;
-			await navigate(
-				{
-					pathname: locationState?.from ?? "/home",
-					search: locationState?.fromSearch,
-				},
-				{ replace: true },
-			);
+		const isLastRepetition = currentCellIndex + 1 === dueToday.length;
+		const minutesSinceLastLoad =
+			(new Date().getTime() - lastLoadTime.current.getTime()) / 60000;
+
+		if (isLastRepetition || minutesSinceLastLoad >= 1) {
+			await loadCells();
 		} else {
 			setStartTime(new Date());
 			setCurrentCellIndex(currentCellIndex + 1);
