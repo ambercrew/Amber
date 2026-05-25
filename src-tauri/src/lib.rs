@@ -53,9 +53,16 @@ pub mod generated_code {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), String> {
-    simple_logger::init_with_level(log::Level::Info).expect("Cannot set the logger");
-
     let mut tauri_builder = tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::Stdout,
+                ))
+                .max_file_size(1_000_000)
+                .build(),
+        )
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_clipboard_manager::init());
 
