@@ -35,6 +35,7 @@ modules:
       - ar x brainy-learn.deb && tar xf data.tar.gz
       - install -Dm755 usr/bin/BrainyLearn /app/bin/BrainyLearn
       - install -Dm644 "usr/share/applications/Brainy Learn.desktop" /app/share/applications/app.brainylearn.brainy_learn.desktop
-      - install -Dm644 usr/share/icons/hicolor/32x32/apps/BrainyLearn.png /app/share/icons/hicolor/32x32/apps/BrainyLearn.png
-      - install -Dm644 usr/share/icons/hicolor/128x128/apps/BrainyLearn.png /app/share/icons/hicolor/128x128/apps/BrainyLearn.png
+      - sed -i 's|Icon=BrainyLearn|Icon=app.brainylearn.brainy_learn|g' /app/share/applications/app.brainylearn.brainy_learn.desktop
+      - install -Dm644 usr/share/icons/hicolor/32x32/apps/BrainyLearn.png /app/share/icons/hicolor/32x32/apps/app.brainylearn.brainy_learn.png
+      - install -Dm644 usr/share/icons/hicolor/128x128/apps/BrainyLearn.png /app/share/icons/hicolor/128x128/apps/app.brainylearn.brainy_learn.png
       - install -Dm644 flatpak.metainfo.xml /app/share/metainfo/app.brainylearn.brainy_learn.metainfo.xml
