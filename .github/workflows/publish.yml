@@ -53,9 +53,6 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: choco install protoc
 
-      - name: install sqlx-cli
-        run: cargo install sqlx-cli
-
       - name: install frontend dependencies
         run: npm ci
 
@@ -186,9 +183,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
-
-      - name: install sqlx-cli
-        run: cargo install sqlx-cli
 
       - name: install frontend dependencies
         run: npm ci

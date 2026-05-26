@@ -17,6 +17,8 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 prost-build = "0.14.3"
 tauri-build = { version = "2.5.6", features = [] }
+sqlx = { version = "0.8.6", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite" ] }
+tokio = { version = "1.51.0", features = ["full"] }
 
 [dependencies]
 async-stream = "0.3.6"

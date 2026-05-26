@@ -1,7 +1,16 @@
-use std::{env, fs, path::PathBuf, process::Command};
+use std::{env, fs, path::PathBuf, str::FromStr};
+
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 
 fn main() {
-    setup_sqlx();
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .unwrap()
+        .block_on(async {
+            setup_sqlx().await;
+        });
+
     setup_store_flag();
     prost_build::compile_protos(&["protobuff/sync_objects.proto"], &["protobuff/"]).unwrap();
     tauri_build::build()
@@ -15,7 +24,7 @@ fn setup_store_flag() {
     }
 }
 
-fn setup_sqlx() {
+async fn setup_sqlx() {
     println!("cargo:rerun-if-changed=migrations/");
 
     let current_directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -46,19 +55,15 @@ fn setup_sqlx() {
         println!("removed previous temp.db file");
     }
 
-    let output = Command::new("sqlx")
-        .args(["migrate", "run", "--source", "migrations"])
-        .output()
-        .expect("Could not run sqlx command, ensure that it is installed");
-
-    if output.status.success() {
-        println!("migration is applied to {}", db_path.display());
-    } else {
-        println!(
-            "Migration failed.\nStdout: {}\nStderr: {}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr),
-        );
-        std::process::exit(1);
-    }
+    let options = SqliteConnectOptions::from_str(&db_url)
+        .expect("Could not create sqlite connect options!")
+        .create_if_missing(true);
+    let pool = SqlitePoolOptions::new()
+        .connect_with(options)
+        .await
+        .expect("Cannot connect to database");
+    sqlx::migrate!("./migrations/")
+        .run(&pool)
+        .await
+        .expect("Error applying the migrations!");
 }
