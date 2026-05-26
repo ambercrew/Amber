@@ -57,9 +57,6 @@ pub async fn run() -> Result<(), String> {
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Info)
-                .target(tauri_plugin_log::Target::new(
-                    tauri_plugin_log::TargetKind::Stdout,
-                ))
                 .build(),
         )
         .plugin(tauri_plugin_http::init())
