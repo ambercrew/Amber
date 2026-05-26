@@ -1,10 +1,12 @@
+use crate::{cells::entities::cell::Cell, file_system::entities::file::File};
+
 pub(in crate::ai_integration) const PREAMBLE_GENERATE_TITLE: &str = "\
 You are a chat naming assistant for the **Brainy** app. Your task is to \
 generate a concise, creative, and descriptive title for a conversation \
 based on the user's first message. Be specific, imaginative, and avoid \
 generic titles.";
 
-pub(in crate::ai_integration) const PREAMBLE_BASE: &str = "\
+const PREAMBLE_BASE: &str = "\
 You are **Brainy's** tutor. Your job is to help users understand \
 and memorize information through active learning.
 **Responsibilities:**
@@ -34,15 +36,29 @@ to highlight the distinguishing detail.
 only create them via tools. Once a tool call is made, the card exists \
 in the user's deck; there is no need to echo it back.";
 
-pub(in crate::ai_integration) const PREAMBLE_NO_FILE: &str = "\
-You are **Brainy's** tutor. Your job is to help users understand \
-concepts through clear explanation.
+pub(in crate::ai_integration) fn preamble_with_context(
+    file: &Option<File>,
+    cell: &Option<Cell>,
+) -> String {
+    if file.is_none() && cell.is_none() {
+        return PREAMBLE_BASE.to_string();
+    }
 
-**Responsibilities:**
-1. **Explain clearly:** Answer questions and break down concepts. \
-Prioritize understanding over memorization — don't let a user \
-try to memorize something they don't yet grasp.
+    let mut context = String::from(
+        "\n\n**User's current location:**\n\
+        The user is currently viewing the following card. \
+        Unless they indicate otherwise, assume their questions and requests relate to it.",
+    );
 
-**Note:** Study material creation is only available inside a file. \
-If the user asks to create flashcards or study materials, let them know \
-they need to open a file first.";
+    if let Some(file) = file {
+        context.push_str(&format!("\n- File: {} (id: {})", file.name(), file.id()));
+    }
+
+    if let Some(cell) = cell {
+        context.push_str(&format!("\n- Card id: {}", cell.id()));
+        context.push_str(&format!("\n- Card type: {}", cell.cell_type()));
+        context.push_str(&format!("\n- Card content:\n{}", cell.content()));
+    }
+
+    format!("{PREAMBLE_BASE}{context}")
+}

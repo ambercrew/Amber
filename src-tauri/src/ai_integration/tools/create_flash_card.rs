@@ -22,10 +22,13 @@ use crate::{
         value_objects::flash_card::FlashCard,
     },
     common::repository_error::RepositoryError,
+    file_system::repositories::file_repository::FileRepository,
 };
 
 #[derive(Deserialize, Debug, Clone, Serialize, schemars::JsonSchema)]
 pub struct CreateFlashcardArgs {
+    #[schemars(description = "The file to add the flash card to")]
+    pub file_id: String,
     #[schemars(description = "The question shown to the user.'")]
     pub question: String,
     #[schemars(
@@ -42,27 +45,31 @@ pub enum CreateFlashCardError {
     Repository(#[from] RepositoryError),
     #[error(transparent)]
     OnEventCallback(#[from] OnEventCallbackError),
+    #[error("'{0}' is not a valid file id — must be a UUID")]
+    InvalidFileId(String),
+    #[error("No file found with id '{0}'")]
+    FileNotFound(String),
 }
 
 pub struct CreateFlashCard {
-    file_id: Guid,
     chat_id: Guid,
     messages_to_upsert: Arc<Mutex<Vec<Message>>>,
     on_event: Option<OnEventCallback>,
+    file_repository: Arc<dyn FileRepository>,
 }
 
 impl CreateFlashCard {
     pub fn new(
-        file_id: Guid,
         chat_id: Guid,
         messages_to_upsert: Arc<Mutex<Vec<Message>>>,
         on_event: Option<OnEventCallback>,
+        file_repository: Arc<dyn FileRepository>,
     ) -> Self {
         Self {
-            file_id,
             chat_id,
             messages_to_upsert,
             on_event,
+            file_repository,
         }
     }
 }
@@ -87,6 +94,19 @@ impl Tool for CreateFlashCard {
     }
 
     async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
+        let file_id = Guid::parse_str(&args.file_id)
+            .map_err(|_| CreateFlashCardError::InvalidFileId(args.file_id.clone()))?;
+
+        self.file_repository
+            .get_by_id(file_id)
+            .await
+            .map_err(|e| match e {
+                RepositoryError::NotFound(_) => {
+                    CreateFlashCardError::FileNotFound(args.file_id.clone())
+                }
+                other => CreateFlashCardError::Repository(other),
+            })?;
+
         let mut messages_to_upsert = self.messages_to_upsert.lock().await;
 
         let tool_call_content_id = Guid::new_v4().to_string();
@@ -108,7 +128,7 @@ impl Tool for CreateFlashCard {
                 .to_string(),
                 arguments: serde_json::to_value(&args)?,
                 status: ToolCallStatus::Pending,
-                file_id: Some(self.file_id),
+                file_id: Guid::parse_str(&args.file_id).ok(),
             }),
         );
 
@@ -196,13 +216,52 @@ impl AcceptToolCall for AcceptCreateFlashCard {
 pub mod create_flash_card_test {
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    use chrono::Utc;
+    use injector::{injector::Injector, register_scope};
+
+    use crate::{
+        ROOT_FOLDER_ID,
+        file_system::{
+            entities::file::File,
+            value_objects::{
+                file_system_item_name::FileSystemItemName, fsrs_profile_choice::FsrsProfileChoice,
+            },
+        },
+        infrastructure::repositories::sqlite::sqlite_file_repository::SqliteFileRepository,
+        test_utils::create_test_injector,
+    };
+
     use super::*;
+
+    async fn initialize_test_injector() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        injector
+    }
 
     #[tokio::test]
     pub async fn call_valid_input_added_message_and_called_on_event() {
         // Arrange
 
-        let file_id = Guid::new_v4();
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            FileSystemItemName::new_unchecked("test".to_string()),
+            FsrsProfileChoice::Inherit,
+        );
+
+        scope
+            .resolve::<dyn FileRepository>()
+            .await
+            .create(&file)
+            .await
+            .unwrap();
+
         let chat_id = Guid::new_v4();
         let messages_to_upsert = Arc::new(Mutex::new(Vec::new()));
 
@@ -210,16 +269,17 @@ pub mod create_flash_card_test {
         let received_on_event_clone = received_on_event.clone();
 
         let create_flash_card = CreateFlashCard::new(
-            file_id,
             chat_id,
             messages_to_upsert.clone(),
             Some(Arc::new(move |_| {
                 received_on_event_clone.store(true, Ordering::Relaxed);
                 Ok(())
             })),
+            scope.resolve::<dyn FileRepository>().await,
         );
 
         let args = CreateFlashcardArgs {
+            file_id: file.id().to_string(),
             question: "Question".to_string(),
             answer: "Answer".to_string(),
         };
@@ -252,7 +312,7 @@ pub mod create_flash_card_test {
             );
             assert_eq!(tool_call.arguments, serde_json::to_value(args).unwrap());
             assert_eq!(tool_call.status, ToolCallStatus::Pending);
-            assert_eq!(tool_call.file_id, Some(file_id));
+            assert_eq!(tool_call.file_id, Some(file.id()));
         } else {
             panic!("Not correct message content");
         }
@@ -262,6 +322,72 @@ pub mod create_flash_card_test {
         } else {
             panic!("Not correct message content");
         }
+    }
+
+    #[tokio::test]
+    pub async fn call_invalid_file_id_returns_invalid_file_id_error() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+
+        let create_flash_card = CreateFlashCard::new(
+            Guid::new_v4(),
+            Arc::new(Mutex::new(Vec::new())),
+            None,
+            scope.resolve::<dyn FileRepository>().await,
+        );
+
+        let args = CreateFlashcardArgs {
+            file_id: "not-a-valid-uuid".to_string(),
+            question: "Question".to_string(),
+            answer: "Answer".to_string(),
+        };
+
+        // Act
+
+        let result = create_flash_card.call(args).await;
+
+        // Assert
+
+        assert!(matches!(
+            result,
+            Err(CreateFlashCardError::InvalidFileId(id)) if id == "not-a-valid-uuid"
+        ));
+    }
+
+    #[tokio::test]
+    pub async fn call_file_not_found_returns_file_not_found_error() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+
+        let create_flash_card = CreateFlashCard::new(
+            Guid::new_v4(),
+            Arc::new(Mutex::new(Vec::new())),
+            None,
+            scope.resolve::<dyn FileRepository>().await,
+        );
+
+        let missing_id = Guid::new_v4().to_string();
+
+        let args = CreateFlashcardArgs {
+            file_id: missing_id.clone(),
+            question: "Question".to_string(),
+            answer: "Answer".to_string(),
+        };
+
+        // Act
+
+        let result = create_flash_card.call(args).await;
+
+        // Assert
+
+        assert!(matches!(
+            result,
+            Err(CreateFlashCardError::FileNotFound(id)) if id == missing_id
+        ));
     }
 }
 
@@ -351,6 +477,7 @@ pub mod accept_create_flash_card_test {
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
 
         let args = CreateFlashcardArgs {
+            file_id: file_id.to_string(),
             question: "**Question**".to_string(),
             answer: "Answer".to_string(),
         };

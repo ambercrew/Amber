@@ -21,7 +21,7 @@ use crate::ai_integration::dto::stream_ai_request_dto::StreamAiRequestDto;
 use crate::ai_integration::entities::chat::Chat;
 use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::json_schemas::generate_title::GenerateTitle;
-use crate::ai_integration::prompts::{PREAMBLE_BASE, PREAMBLE_GENERATE_TITLE, PREAMBLE_NO_FILE};
+use crate::ai_integration::prompts::{PREAMBLE_GENERATE_TITLE, preamble_with_context};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
 use crate::ai_integration::services::ai_streamer::{
@@ -30,6 +30,9 @@ use crate::ai_integration::services::ai_streamer::{
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
 use crate::ai_integration::tools::create_flash_card::CreateFlashCard;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
+use crate::cells::entities::cell::Cell;
+use crate::cells::repositories::cell_repository::CellRepository;
+use crate::file_system::repositories::file_repository::FileRepository;
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
 const DEFAULT_MAX_TURN: usize = 16;
@@ -39,6 +42,9 @@ pub struct DefaultAiStreamer {
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
     ai_client_provider: Arc<dyn AiClientProvider>,
+
+    cell_repository: Arc<dyn CellRepository>,
+    file_repository: Arc<dyn FileRepository>,
 }
 
 #[async_trait]
@@ -204,17 +210,35 @@ impl DefaultAiStreamer {
             .name("Brainy Tutor")
             .default_max_turns(DEFAULT_MAX_TURN);
 
-        if let Some(file_id) = request.file_id {
-            tools.push(Box::new(CreateFlashCard::new(
-                file_id,
-                chat_id,
-                messages_to_upsert,
-                Some(on_event),
-            )));
-            builder = builder.preamble(PREAMBLE_BASE);
+        tools.push(Box::new(CreateFlashCard::new(
+            chat_id,
+            messages_to_upsert,
+            Some(on_event),
+            self.file_repository.clone(),
+        )));
+
+        let mut file = if let Some(file_id) = request.opened_file_id {
+            Some(self.file_repository.get_by_id(file_id).await?)
         } else {
-            builder = builder.preamble(PREAMBLE_NO_FILE);
+            None
+        };
+
+        let mut cell: Option<Cell> = None;
+
+        if let Some(cell_id) = request.context_cell_id {
+            cell = Some(self.cell_repository.get_by_id(cell_id).await?);
+
+            if file.is_none() {
+                file = Some(
+                    self.file_repository
+                        .get_by_id(cell.as_ref().unwrap().file_id())
+                        .await?,
+                );
+            }
         }
+
+        let preamble = preamble_with_context(&file, &cell);
+        builder = builder.preamble(preamble.as_str());
 
         let builder = builder.tools(tools);
 
@@ -250,7 +274,11 @@ pub mod tests {
         },
         infrastructure::repositories::{
             disk::disk_settings_repository::DiskSettingsRepository,
-            sqlite::sqlite_ai_repository::SqliteAiRepository,
+            sqlite::{
+                sqlite_ai_repository::SqliteAiRepository,
+                sqlite_cell_repository::SqliteCellRepository,
+                sqlite_file_repository::SqliteFileRepository,
+            },
         },
         settings::{
             entities::settings::Settings, repositories::settings_repository::SettingsRepository,
@@ -276,6 +304,8 @@ pub mod tests {
         register_scope!(injector, dyn AiRepository, SqliteAiRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
+        register_scope!(injector, dyn CellRepository, SqliteCellRepository);
+        register_scope!(injector, dyn FileRepository, SqliteFileRepository);
 
         injector
     }
@@ -440,68 +470,6 @@ pub mod tests {
 
         let request = StreamAiRequestDto {
             prompt: "User prompt".to_string(),
-            file_id: Some(crate::Guid::new_v4()),
-            ..Default::default()
-        };
-
-        // Act
-
-        service
-            .stream(request, Arc::new(move |_| Ok(())))
-            .await
-            .unwrap();
-
-        // Assert
-
-        assert!(valid_request.load(Ordering::Relaxed));
-    }
-
-    #[tokio::test]
-    pub async fn stream_did_not_add_tools_when_no_file_id_is_given() {
-        // Arrange
-
-        let valid_request = Arc::new(AtomicBool::new(false));
-        let valid_request_clone = valid_request.clone();
-
-        let mock_client = MockClient {
-            completion_fn: Arc::new(Some(Box::new(|_| {
-                let tool_call = AssistantContent::tool_call(
-                    "id",
-                    "submit",
-                    serde_json::to_value(GenerateTitle {
-                        title: "Chat title".to_string(),
-                    })
-                    .unwrap(),
-                );
-                CompletionResponse {
-                    choice: OneOrMany::one(tool_call),
-                    raw_response: MultiResponse::Mock,
-                    usage: Usage::default(),
-                    message_id: None,
-                }
-            }))),
-            stream_fn: Arc::new(Some(Box::new(move |request| {
-                if let RigMessage::User { content } = request.chat_history.last()
-                    && let UserContent::Text(text) = content.last()
-                    && text.text() == "User prompt"
-                    // Only one tool for searching documents.
-                    && request.tools.len() == 1
-                {
-                    valid_request_clone.store(true, Ordering::Relaxed);
-                }
-
-                Ok(None)
-            }))),
-            ..Default::default()
-        };
-
-        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<dyn AiStreamer>().await;
-
-        let request = StreamAiRequestDto {
-            prompt: "User prompt".to_string(),
-            file_id: None,
             ..Default::default()
         };
 

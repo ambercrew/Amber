@@ -15,7 +15,9 @@ import { isModKey } from "../../../utils/keyboardUtils";
 import scrollUntilVisible from "../utils/scrollUntilVisible";
 import useAutoSave from "../hooks/useAutoSave";
 import useAppSelector from "../../../hooks/useAppSelector";
+import useAppDispatch from "../../../hooks/useAppDispatch";
 import { selectIsSyncing } from "../../../stores/sync/syncSelector";
+import { setFocusedCellId } from "../../../stores/ai/aiReducer";
 import {
 	defaultGlobalSyncEventManager,
 	ListenerType,
@@ -71,6 +73,7 @@ function EditableCells({
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	const containerScrollTopBeforeSync = useRef(0);
 	const isSyncing = useAppSelector(selectIsSyncing);
+	const dispatch = useAppDispatch();
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
 	const [lastValidSelectedCellIndex, setLastValidSelectedCellIndex] =
@@ -190,6 +193,14 @@ function EditableCells({
 		if (!scrollToSelectedCellOnNextRender.current) return;
 		scrollToCurrentCell();
 	});
+
+	useEffect(() => {
+		dispatch(setFocusedCellId(selectedCellId));
+
+		return () => {
+			dispatch(setFocusedCellId(null));
+		};
+	}, [dispatch, selectedCellId]);
 
 	const moveSelectedCellByNumber = async (number: number) => {
 		if (!enableFileSpecificFunctionality) return;

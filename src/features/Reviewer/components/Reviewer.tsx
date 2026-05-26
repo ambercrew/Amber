@@ -24,6 +24,8 @@ import { getAllFsrsProfiles } from "../../../api/fsrs/api/fsrsApi";
 import { CellWithFsrsProfileIdDto } from "../../../api/cells/dto/cellWithFsrsProfileIdDto";
 import Repetition from "../../../api/cells/entities/repetition";
 import { CallApiFn } from "../../../hooks/useApi";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { setFocusedCellId } from "../../../stores/ai/aiReducer";
 
 interface Props {
 	fileIds: string[];
@@ -49,6 +51,7 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	);
 	const studyTime = useRef(0);
 	const lastLoadTime = useRef(new Date());
+	const dispatch = useAppDispatch();
 
 	const loadCells = useCallback(async () => {
 		await callApi(async () => {
@@ -94,6 +97,17 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 				),
 		);
 	}, [cellsWithFsrsProfileIds, currentReviewStartTime]);
+
+	useEffect(() => {
+		if (!dueToday[currentCellIndex]) return;
+
+		const cellId = dueToday[currentCellIndex].repetition.cellId;
+
+		dispatch(setFocusedCellId(cellId));
+		return () => {
+			dispatch(setFocusedCellId(null));
+		};
+	}, [dispatch, dueToday, currentCellIndex]);
 
 	const getRecordLog = useCallback(
 		(now: Date) => {

@@ -214,7 +214,7 @@ describe("AiChatWidget", () => {
 		let capturedOnEvent: Channel<StreamLlmResponseEvent> | null = null;
 		let finishedStreaming = false;
 		vi.mocked(streamAiResponse).mockImplementation(
-			async ({ prompt, chatId, fileId }, onEvent) => {
+			async ({ prompt, chatId, openedFileId: fileId }, onEvent) => {
 				if (
 					prompt === "hello" &&
 					chatId === null &&

@@ -25,6 +25,7 @@ import Chat from "../../../api/aiIntegration/entities/chat";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
+import { selectFocusedCellId } from "../../../stores/ai/aiSelectors";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { isModKey } from "../../../utils/keyboardUtils";
 import { useSearchParams } from "react-router";
@@ -59,6 +60,7 @@ function AiChatWidgetInner() {
 	const selectedChatIdRef = useRef(selectedChatId);
 	const [searchParams] = useSearchParams();
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
+	const focusedCellId = useAppSelector(selectFocusedCellId);
 
 	useEffect(() => {
 		selectedChatIdRef.current = selectedChatId;
@@ -172,7 +174,8 @@ function AiChatWidgetInner() {
 					{
 						prompt: userPrompt,
 						chatId: selectedChatId,
-						fileId: selectedFileId,
+						openedFileId: selectedFileId,
+						focusedCellId,
 					},
 					onEvent,
 				);

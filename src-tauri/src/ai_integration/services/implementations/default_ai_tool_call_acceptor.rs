@@ -16,7 +16,6 @@ use crate::ai_integration::tools::AcceptToolCallFromJson;
 use crate::ai_integration::tools::create_flash_card::{AcceptCreateFlashCard, CreateFlashCard};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::cells::services::cell_creator::CellCreator;
-
 #[derive(ScopeInjectable)]
 pub struct DefaultAiToolCallAcceptor {
     ai_repository: Arc<dyn AiRepository>,
@@ -138,6 +137,7 @@ pub mod tests {
             .unwrap();
 
         let args = CreateFlashcardArgs {
+            file_id: file_id.to_string(),
             question: "**Question**".to_string(),
             answer: "Answer".to_string(),
         };

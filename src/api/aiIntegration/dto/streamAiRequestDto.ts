@@ -1,5 +1,7 @@
 export default interface StreamAiRequestDto {
 	prompt: string;
 	chatId: string | null;
-	fileId: string | null;
+
+	openedFileId: string | null;
+	focusedCellId: string | null;
 }

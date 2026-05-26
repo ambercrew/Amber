@@ -4,6 +4,7 @@ import userReducer from "./user/userReducer";
 import syncReducer from "./sync/syncReducer";
 import settingsReducer from "./settings/settingsReducer";
 import appReducer from "./app/appReducer.ts";
+import aiReducer from "./ai/aiReducer";
 
 const reducers = combineReducers({
 	fileSystem: fileSystemReducer,
@@ -11,6 +12,7 @@ const reducers = combineReducers({
 	sync: syncReducer,
 	settings: settingsReducer,
 	app: appReducer,
+	ai: aiReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {
