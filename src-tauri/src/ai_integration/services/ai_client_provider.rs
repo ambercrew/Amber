@@ -31,6 +31,8 @@ pub enum AiClientProviderError {
     ConnectingToEmbeddingsDatabase(#[source] SourceError),
     #[error(transparent)]
     VectorStore(#[from] VectorStoreError),
+    #[error("Failed to create vector store directory.")]
+    CreateVectorStoreDirectory(#[source] SourceError),
     #[cfg(not(test))]
     #[error("Failed to create the client")]
     CreateClient,

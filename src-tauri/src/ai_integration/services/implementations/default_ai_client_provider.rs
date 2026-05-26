@@ -8,6 +8,7 @@ use rig::embeddings::EmbeddingModel;
 #[cfg(not(test))]
 use rig::providers::{ollama, openai};
 use rig_sqlite::SqliteVectorStore;
+use tokio::fs;
 use tokio_rusqlite::Connection;
 
 #[cfg(test)]
@@ -186,10 +187,20 @@ impl AiClientProvider for DefaultAiClientProvider {
         &self,
         embed_model: &MultiEmbeddingModel,
     ) -> Result<SqliteVectorStore<MultiEmbeddingModel, Document>, AiClientProviderError> {
-        let path = self
+        let vector_store_directory = self
             .app_data_directory
             .get_path()
-            .join(format!("{VECTOR_STORE_NAME}_{}", embed_model.ndims()));
+            .join("ai")
+            .join("embeddings_vector_stores");
+
+        if let Err(err) = fs::create_dir_all(&vector_store_directory).await {
+            return Err(AiClientProviderError::CreateVectorStoreDirectory(Box::new(
+                err,
+            )));
+        }
+
+        let path =
+            vector_store_directory.join(format!("{VECTOR_STORE_NAME}_{}", embed_model.ndims()));
         let path = &*path.to_string_lossy();
         let conn = match Connection::open(path).await {
             Err(err) => {
