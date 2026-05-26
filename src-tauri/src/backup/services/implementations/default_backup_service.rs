@@ -68,8 +68,13 @@ impl DefaultBackupService {
             "{}.backup",
             Utc::now().format(DATETIME_FORMAT_IN_FILE_NAMES)
         );
-        let settings = self.settings_repository.get_settings().await;
-        let backup_path = settings.database_directory().join(backup_name);
+        let backup_dir = self.backup_directory().await;
+
+        if let Err(err) = fs::create_dir_all(&backup_dir).await {
+            return Err(BackupServiceError::CreateBackupDirectory(Box::new(err)));
+        }
+
+        let backup_path = backup_dir.join(backup_name);
 
         log::info!(
             "Creating a new backup at path {}",
@@ -95,9 +100,9 @@ impl DefaultBackupService {
 
     async fn delete_extra_backups(&self) -> Result<(), BackupServiceError> {
         let mut current_backups = Vec::new();
-        let settings = self.settings_repository.get_settings().await;
+        let backup_dir = self.backup_directory().await;
 
-        let mut entries = match fs::read_dir(&settings.database_directory()).await {
+        let mut entries = match fs::read_dir(&backup_dir).await {
             Ok(entries) => entries,
             Err(err) => {
                 return Err(BackupServiceError::CannotListEntriesInFolder(Box::new(err)));
@@ -143,6 +148,14 @@ impl DefaultBackupService {
         }
 
         Ok(())
+    }
+
+    async fn backup_directory(&self) -> std::path::PathBuf {
+        self.settings_repository
+            .get_settings()
+            .await
+            .database_directory()
+            .join("backups")
     }
 }
 
@@ -245,7 +258,9 @@ pub mod tests {
 
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
-        let mut dir_entries = fs::read_dir(settings.database_directory()).await.unwrap();
+        let mut dir_entries = fs::read_dir(settings.database_directory().join("backups"))
+            .await
+            .unwrap();
         let backup = dir_entries.next_entry().await.unwrap().unwrap();
         let backup_injector = create_injector_for_sqlite_path(&backup.path()).await;
 
@@ -280,7 +295,9 @@ pub mod tests {
 
         let settings_repository = scope.resolve::<dyn SettingsRepository>().await;
         let settings = settings_repository.get_settings().await;
-        let mut dir_entries = fs::read_dir(settings.database_directory()).await.unwrap();
+        let mut dir_entries = fs::read_dir(settings.database_directory().join("backups"))
+            .await
+            .unwrap();
         dir_entries.next_entry().await.unwrap().unwrap();
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
@@ -309,10 +326,12 @@ pub mod tests {
         let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<DefaultBackupService>().await;
 
+        let backup_dir = settings.database_directory().join("backups");
+        fs::create_dir_all(&backup_dir).await.unwrap();
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS {
-            let path = settings.database_directory().join(format!(
+            let path = backup_dir.join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()
@@ -349,10 +368,12 @@ pub mod tests {
         let settings = settings_repository.get_settings().await;
         let service = scope.resolve::<DefaultBackupService>().await;
 
+        let backup_dir = settings.database_directory().join("backups");
+        fs::create_dir_all(&backup_dir).await.unwrap();
         let mut oldest_backup_path = None;
 
         for i in 0..MAX_NUMBER_OF_BACKUPS - 1 {
-            let path = settings.database_directory().join(format!(
+            let path = backup_dir.join(format!(
                 "{}.backup",
                 Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, i as u32)
                     .unwrap()

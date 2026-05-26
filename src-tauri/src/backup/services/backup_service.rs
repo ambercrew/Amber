@@ -14,6 +14,8 @@ pub enum BackupServiceError {
     DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
     #[error("Failed to list entries in the settings folder")]
     CannotListEntriesInFolder(#[source] SourceError),
+    #[error("Failed to create backup directory.")]
+    CreateBackupDirectory(#[source] SourceError),
 }
 
 impl PartialEq for BackupServiceError {
