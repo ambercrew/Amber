@@ -30,3 +30,4 @@ db.db
 target/*
 coverage/*
 .build-secrets
+.flatpak-builder/
