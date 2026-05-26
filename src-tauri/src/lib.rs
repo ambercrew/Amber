@@ -42,6 +42,7 @@ use tokio::runtime::Handle;
 
 use crate::backup::services::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
 use crate::common::utils::create_injector::create_injector;
+use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 
 pub use common::constants::{DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID};
@@ -128,6 +129,10 @@ pub async fn run() -> Result<(), String> {
                         .await
                     {
                         log::error!("An error happened when creating a backup {:?}", err);
+                    }
+
+                    if let Err(err) = scope.save_changes().await {
+                        log::error!("An error happened when saving changes for backup {:?}", err);
                     }
                 }
             });
