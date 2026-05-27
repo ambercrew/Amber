@@ -22,12 +22,12 @@ jobs:
       - name: Create draft release
         id: create-release
         run: |
-          gh release create "v${{ steps.version.outputs.version }}" \
+          id=$(gh release create "v${{ steps.version.outputs.version }}" \
             --title "Brainy v${{ steps.version.outputs.version }}" \
             --draft \
             --notes "" \
-            --target ${{ github.sha }}
-          id=$(gh api repos/${{ github.repository }}/releases/tags/v${{ steps.version.outputs.version }} --jq '.id')
+            --target ${{ github.sha }} \
+            --json id --jq '.id')
           echo "id=$id" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
