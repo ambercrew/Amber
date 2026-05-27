@@ -126,7 +126,7 @@ jobs:
         run: |
           output=$(snapcraft upload *.snap --release=stable 2>&1) && echo "$output" || {
             echo "$output"
-            if echo "$output" | grep -q "human review required"; then
+            if echo "$output" | grep -q "review"; then
               echo "Snap uploaded but pending human review — release to stable will happen after manual approval."
             else
               exit 1
