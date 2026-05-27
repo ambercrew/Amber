@@ -22,13 +22,18 @@ jobs:
       - name: Create draft release
         id: create-release
         run: |
-          id=$(gh api repos/${{ github.repository }}/releases \
-            -f tag_name="v${{ steps.version.outputs.version }}" \
-            -f name="Brainy v${{ steps.version.outputs.version }}" \
-            -f target_commitish=release \
-            -f body="" \
-            -F draft=true \
-            --jq '.id')
+          id=$(gh api "repos/${{ github.repository }}/releases" \
+            --jq --arg tag "v${{ steps.version.outputs.version }}" \
+            '.[] | select(.tag_name == $tag) | .id')
+          if [ -z "$id" ]; then
+            id=$(gh api repos/${{ github.repository }}/releases \
+              -f tag_name="v${{ steps.version.outputs.version }}" \
+              -f name="Brainy v${{ steps.version.outputs.version }}" \
+              -f target_commitish=release \
+              -f body="" \
+              -F draft=true \
+              --jq '.id')
+          fi
           echo "id=$id" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
