@@ -217,11 +217,6 @@ jobs:
           base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
 
-      - name: Get version
-        id: version
-        shell: bash
-        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
-
       - name: build Android APK and AAB
         run: npm run tauri android build -- --apk --aab
 
@@ -237,20 +232,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   update-latest-tag:
-    needs: [publish-tauri, publish-tauri-android]
+    needs: [create-release, publish-tauri, publish-tauri-android]
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
-      - name: Get version
-        id: version
-        run: echo "version=$(cat src-tauri/tauri.conf.json | jq -r '.version')" >> $GITHUB_OUTPUT
+      - name: Publish release
+        run: gh release edit "v${{ needs.create-release.outputs.version }}" --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download latest.json from versioned release
         run: |
-          gh release download v${{ steps.version.outputs.version }} \
+          gh release download v${{ needs.create-release.outputs.version }} \
             --pattern "latest.json" \
             --output latest.json
         env:
@@ -268,11 +264,6 @@ jobs:
           draft: false
           prerelease: false
           files: latest.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish release
-        run: gh release edit "v${{ steps.version.outputs.version }}" --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
