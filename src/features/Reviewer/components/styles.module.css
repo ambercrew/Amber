@@ -147,7 +147,7 @@ button.transparent {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	font-weight: 600;
+	font-weight: 500;
 }
 
 .hard-button {
@@ -177,7 +177,7 @@ button.transparent {
 }
 
 .grade-time {
-	opacity: 0.95;
+	font-weight: 600;
 }
 
 .underline {
