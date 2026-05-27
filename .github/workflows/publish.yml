@@ -5,7 +5,35 @@ on:
     branches: ["release"]
 
 jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.id }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Get version
+        id: version
+        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
+
+      - name: Create draft release
+        id: create-release
+        run: |
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "Brainy v${{ steps.version.outputs.version }}" \
+            --draft \
+            --notes "" \
+            --target ${{ github.sha }}
+          id=$(gh api repos/${{ github.repository }}/releases/tags/v${{ steps.version.outputs.version }} --jq '.id')
+          echo "id=$id" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   publish-tauri:
+    needs: create-release
     permissions:
       contents: write
     strategy:
@@ -56,19 +84,12 @@ jobs:
       - name: install frontend dependencies
         run: npm ci
 
-      - name: Get version
-        id: version
-        shell: bash
-        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
-
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
-          tagName: v__VERSION__
-          releaseName: "Brainy v__VERSION__"
-          releaseDraft: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
 
       # Producing snap file
@@ -79,7 +100,7 @@ jobs:
       - name: sync snapcraft version
         if: matrix.platform == 'ubuntu-24.04'
         run: |
-          sed -i "s/^version: .*/version: '${{ steps.version.outputs.version }}'/" snapcraft.yaml
+          sed -i "s/^version: .*/version: '${{ needs.create-release.outputs.version }}'/" snapcraft.yaml
 
       - name: build snap
         if: matrix.platform == 'ubuntu-24.04'
@@ -111,8 +132,8 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          draft: false
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
           files: "*.snap"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -134,13 +155,14 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          draft: false
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
           files: src-tauri/target/msix/*.msixbundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-tauri-android:
+    needs: create-release
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -206,8 +228,8 @@ jobs:
       - name: upload Android artifacts to release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          draft: false
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
@@ -248,3 +270,9 @@ jobs:
           files: latest.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish release
+        run: gh release edit "v${{ steps.version.outputs.version }}" --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
