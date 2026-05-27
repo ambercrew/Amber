@@ -75,6 +75,8 @@ export default function ToolCallDisplay({
 		});
 	};
 
+	const disable_buttons = isSendingRequest || isSendingRequestToolCall;
+
 	return (
 		<div className={styles.toolCall}>
 			<div className={styles.toolCallHeader}>
@@ -111,11 +113,7 @@ export default function ToolCallDisplay({
 						<button
 							className={`transparent ${styles.reject}`}
 							type="button"
-							disabled={
-								isSendingRequest ||
-								!file ||
-								isSendingRequestToolCall
-							}
+							disabled={disable_buttons}
 							title={
 								isSendingRequest
 									? "Please wait until generation is finished"
@@ -128,11 +126,7 @@ export default function ToolCallDisplay({
 						<button
 							className={`transparent ${styles.accept}`}
 							type="button"
-							disabled={
-								isSendingRequest ||
-								!file ||
-								isSendingRequestToolCall
-							}
+							disabled={disable_buttons}
 							title={
 								isSendingRequest
 									? "Please wait until generation is finished"
