@@ -3,7 +3,7 @@ import { mdiClose, mdiCheckOutline, mdiFileDocumentOutline } from "@mdi/js";
 import { Icon } from "@mdi/react";
 import Markdown from "react-markdown";
 import Message, {
-	ToolCallContent,
+	ToolCallDisplayContent,
 	ToolCallStatus,
 } from "../../../api/aiIntegration/entities/message";
 import { useTransition } from "react";
@@ -34,7 +34,7 @@ export default function ToolCallDisplay({
 }: Props) {
 	const [isSendingRequestToolCall, startRequest] = useTransition();
 	const rootFolder = useAppSelector(selectRootFolder);
-	const toolCall = message.content.value as ToolCallContent;
+	const toolCall = message.content.value as ToolCallDisplayContent;
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 
