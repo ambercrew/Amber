@@ -1,6 +1,6 @@
 use async_trait::async_trait;
+use rig::sqlite::SqliteVectorStore;
 use rig::vector_store::VectorStoreError;
-use rig_sqlite::SqliteVectorStore;
 use thiserror::Error;
 
 use crate::SourceError;

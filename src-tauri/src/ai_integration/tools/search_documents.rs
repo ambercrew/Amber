@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use rig::sqlite::{SqliteSearchFilter, SqliteVectorIndex};
 use rig::{
     completion::ToolDefinition,
     tool::Tool,
@@ -7,7 +8,6 @@ use rig::{
         VectorSearchRequest, VectorStoreError, VectorStoreIndex, request::SearchFilter,
     },
 };
-use rig_sqlite::{SqliteSearchFilter, SqliteVectorIndex};
 use schemars::schema_for;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -98,8 +98,8 @@ impl Tool for SearchDocuments {
 pub mod tests {
     use std::iter;
 
+    use rig::sqlite::SqliteVectorStore;
     use rig::{OneOrMany, embeddings::Embedding};
-    use rig_sqlite::SqliteVectorStore;
     use sqlite_vec::sqlite3_vec_init;
     use tokio_rusqlite::{Connection, ffi::sqlite3_auto_extension};
 

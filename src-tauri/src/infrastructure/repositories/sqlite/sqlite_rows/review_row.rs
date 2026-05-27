@@ -55,7 +55,7 @@ pub mod rating_sqlite_impls {
     impl<'q> sqlx::Encode<'q, Sqlite> for Rating {
         fn encode_by_ref(
             &self,
-            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer<'q>,
+            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer,
         ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
             let val = serde_json::to_string(&self).expect("Cannot serialize Rating");
             <String as sqlx::encode::Encode<'q, Sqlite>>::encode(val, buf)

@@ -121,7 +121,7 @@ pub mod cell_type_sqlite_impls {
     impl<'q> sqlx::Encode<'q, Sqlite> for CellType {
         fn encode_by_ref(
             &self,
-            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer<'q>,
+            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer,
         ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
             let val = serde_json::to_string(&self).expect("Cannot serialize CellType");
             <String as sqlx::encode::Encode<'q, Sqlite>>::encode(val, buf)
@@ -155,7 +155,7 @@ pub mod state_sqlite_impls {
     impl<'q> sqlx::Encode<'q, Sqlite> for State {
         fn encode_by_ref(
             &self,
-            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer<'q>,
+            buf: &mut <Sqlite as sqlx::Database>::ArgumentBuffer,
         ) -> Result<sqlx::encode::IsNull, sqlx::error::BoxDynError> {
             let val = serde_json::to_string(&self).expect("Cannot serialize State");
             <String as sqlx::encode::Encode<'q, Sqlite>>::encode(val, buf)

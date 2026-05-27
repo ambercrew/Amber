@@ -1,5 +1,5 @@
 use rig::Embed;
-use rig_sqlite::{Column, ColumnValue, SqliteVectorStoreTable};
+use rig::sqlite::{Column, ColumnValue, SqliteVectorStoreTable};
 use serde::{Deserialize, Serialize};
 
 use crate::Guid;

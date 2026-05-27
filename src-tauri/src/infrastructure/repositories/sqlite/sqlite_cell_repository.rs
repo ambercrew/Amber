@@ -627,13 +627,13 @@ impl CellRepository for SqliteCellRepository {
 
         for row in rows? {
             if row.state == State::New {
-                counts.new = row.count.unwrap_or_default();
+                counts.new = row.count;
             } else if row.state == State::Learning {
-                counts.learning = row.count.unwrap_or_default();
+                counts.learning = row.count;
             } else if row.state == State::Relearning {
-                counts.relearning = row.count.unwrap_or_default();
+                counts.relearning = row.count;
             } else if row.state == State::Review {
-                counts.review = row.count.unwrap_or_default();
+                counts.review = row.count;
             }
         }
 
@@ -735,7 +735,7 @@ impl CellRepository for SqliteCellRepository {
 
         let mut review_counts: HashMap<NaiveDate, u64> = HashMap::new();
         for row in rows? {
-            review_counts.insert(row.date.unwrap(), row.count.unwrap_or(0));
+            review_counts.insert(row.date.unwrap(), row.count);
         }
 
         let rows = sqlx::query!(

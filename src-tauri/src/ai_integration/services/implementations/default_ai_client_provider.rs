@@ -7,7 +7,7 @@ use rig::client::{BearerAuth, Nothing, ProviderClient};
 use rig::embeddings::EmbeddingModel;
 #[cfg(not(test))]
 use rig::providers::{ollama, openai};
-use rig_sqlite::SqliteVectorStore;
+use rig::sqlite::SqliteVectorStore;
 use tokio::fs;
 use tokio_rusqlite::Connection;
 

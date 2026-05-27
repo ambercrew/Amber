@@ -38,7 +38,8 @@ impl SyncRepository for SqliteSyncRepository {
             deleted_date,
         } = deleted_entity;
 
-        sqlx::query(&format!("DELETE FROM {entity_name} WHERE id = $1"))
+        let delete_sql = format!("DELETE FROM {entity_name} WHERE id = $1");
+        sqlx::query(sqlx::AssertSqlSafe(delete_sql))
             .bind(entity_id)
             .execute(&mut *tx)
             .await?;
@@ -103,7 +104,8 @@ impl SyncRepository for SqliteSyncRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let result = sqlx::query(&format!("DELETE FROM {table_name} WHERE id = $1"))
+        let delete_sql = format!("DELETE FROM {table_name} WHERE id = $1");
+        let result = sqlx::query(sqlx::AssertSqlSafe(delete_sql))
             .bind(entity.entity_id)
             .execute(&mut *tx)
             .await?;
