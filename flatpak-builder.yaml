@@ -12,6 +12,8 @@ finish-args:
   - --device=dri
   - --share=ipc
   - --share=network
+  - --talk-name=app.brainylearn.SingleInstance
+  - --own-name=app.brainylearn.SingleInstance
   - --env=WEBKIT_DISABLE_COMPOSITING_MODE=1
   - --env=STORE_BUILD=1
 
