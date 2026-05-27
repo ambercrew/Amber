@@ -8,7 +8,8 @@
 
 <p align="center">
     <a href="https://github.com/brainylearn/brainy-app/releases">⬇️ Download</a> •
-    <a href="https://discord.gg/H9bEfqDb8a">💬 Join the Discord</a>
+    <a href="https://discord.gg/H9bEfqDb8a">💬 Join the Discord</a> •
+    <a href="https://www.reddit.com/r/BrainyLearn/">🤝 Reddit</a>
 </p>
 
 ---
