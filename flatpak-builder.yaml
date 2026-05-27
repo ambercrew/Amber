@@ -23,8 +23,8 @@ modules:
 
     sources:
       - type: file
-        url: https://github.com/brainylearn/brainy-app/releases/download/v1.4.0/Brainy.Learn_1.4.0_amd64.deb
-        sha256: b0d149c062ebc5d93b28372f8ec6b7c23f0134e98b485155f51b47206c7792e7
+        url: https://github.com/brainylearn/brainy-app/releases/download/v1.5.0/Brainy.Learn_1.5.0_amd64.deb
+        sha256: c071e9305e52051cbd34e57ea388b278c201754fbc4d9912d88ad31743a45bb1
         dest-filename: brainy-learn.deb
         x-checker-data:
           type: json
