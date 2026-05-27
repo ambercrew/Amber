@@ -12,6 +12,8 @@ use chrono::{DateTime, Utc};
 pub trait FolderRepository: Send + Sync {
     async fn get_by_id(&self, id: Guid) -> Result<Folder, RepositoryError>;
     async fn get_all_folders(&self) -> Result<Vec<Folder>, RepositoryError>;
+    async fn search_by_name(&self, query: &str, limit: i64)
+    -> Result<Vec<Folder>, RepositoryError>;
     async fn get_subfolders(&self, parent_folder_id: Guid) -> Result<Vec<Folder>, RepositoryError>;
     async fn get_all_modified_on_or_after(
         &self,

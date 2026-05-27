@@ -10,9 +10,7 @@ use tokio::sync::Mutex;
 use crate::{
     Guid,
     ai_integration::{
-        entities::message::{
-            Message, MessageContent, ToolCallContent, ToolCallStatus, ToolResultContent,
-        },
+        entities::message::{Message, MessageContent, ToolCallDisplayContent, ToolCallStatus},
         services::ai_streamer::{OnEventCallback, OnEventCallbackError, StreamLlmResponseEvent},
         tools::{AcceptToolCall, AcceptToolCallError},
     },
@@ -107,15 +105,14 @@ impl Tool for CreateFlashCard {
                 other => CreateFlashCardError::Repository(other),
             })?;
 
-        let mut messages_to_upsert = self.messages_to_upsert.lock().await;
-
-        let tool_call_content_id = Guid::new_v4().to_string();
+        let tool_call_id = Guid::new_v4().to_string();
         let message = Message::new(
             None,
             self.chat_id,
-            MessageContent::ToolCall(ToolCallContent {
-                id: tool_call_content_id.clone(),
+            MessageContent::ToolCallDisplay(ToolCallDisplayContent {
+                id: tool_call_id.clone(),
                 name: Self::NAME.to_string(),
+                arguments: serde_json::to_value(&args)?,
                 display_name: "📝 Create flashcard".to_string(),
                 display_description_markdown: format!(
                     "\
@@ -124,9 +121,7 @@ impl Tool for CreateFlashCard {
 \
                         **Answer**: {}",
                     args.question, args.answer
-                )
-                .to_string(),
-                arguments: serde_json::to_value(&args)?,
+                ),
                 status: ToolCallStatus::Pending,
                 file_id: Guid::parse_str(&args.file_id).ok(),
             }),
@@ -136,15 +131,7 @@ impl Tool for CreateFlashCard {
             on_event(StreamLlmResponseEvent::ToolCalled(message.clone()))?;
         }
 
-        messages_to_upsert.push(message);
-        messages_to_upsert.push(Message::new(
-            None,
-            self.chat_id,
-            MessageContent::ToolResult(ToolResultContent {
-                id: tool_call_content_id,
-                text: "Flashcard added successfully".into(),
-            }),
-        ));
+        self.messages_to_upsert.lock().await.push(message);
         Ok("Request to create the flashcard has been presented to the user, please do not repeat the flash cards.".to_string())
     }
 }
@@ -172,7 +159,7 @@ impl AcceptToolCall for AcceptCreateFlashCard {
 
     async fn accept_call(
         &self,
-        tool_call: &ToolCallContent,
+        tool_call: &ToolCallDisplayContent,
         args: Self::Args,
     ) -> Result<(), AcceptToolCallError> {
         let file_id = match tool_call.file_id {
@@ -292,17 +279,14 @@ pub mod create_flash_card_test {
 
         assert!(received_on_event.load(Ordering::Relaxed));
         let messages_to_upsert = messages_to_upsert.lock().await;
-        assert_eq!(messages_to_upsert.len(), 2);
+        assert_eq!(messages_to_upsert.len(), 1);
         assert_eq!(messages_to_upsert[0].chat_id(), chat_id);
 
-        let tool_call_id;
-
-        if let MessageContent::ToolCall(tool_call) = messages_to_upsert[0].content() {
-            tool_call_id = tool_call.id.clone();
-            assert_eq!(tool_call.name, CreateFlashCard::NAME);
-            assert_eq!(tool_call.display_name, "📝 Create flashcard".to_string());
+        if let MessageContent::ToolCallDisplay(display) = messages_to_upsert[0].content() {
+            assert_eq!(display.name, CreateFlashCard::NAME);
+            assert_eq!(display.display_name, "📝 Create flashcard".to_string());
             assert_eq!(
-                tool_call.display_description_markdown,
+                display.display_description_markdown,
                 "\
                         **Question**: Question
 
@@ -310,15 +294,9 @@ pub mod create_flash_card_test {
                         **Answer**: Answer"
                     .to_string()
             );
-            assert_eq!(tool_call.arguments, serde_json::to_value(args).unwrap());
-            assert_eq!(tool_call.status, ToolCallStatus::Pending);
-            assert_eq!(tool_call.file_id, Some(file.id()));
-        } else {
-            panic!("Not correct message content");
-        }
-
-        if let MessageContent::ToolResult(tool_result) = messages_to_upsert[1].content() {
-            assert_eq!(tool_call_id, tool_result.id);
+            assert_eq!(display.arguments, serde_json::to_value(args).unwrap());
+            assert_eq!(display.status, ToolCallStatus::Pending);
+            assert_eq!(display.file_id, Some(file.id()));
         } else {
             panic!("Not correct message content");
         }
@@ -490,12 +468,12 @@ pub mod accept_create_flash_card_test {
 
         accept_create_flash_card
             .accept_call(
-                &ToolCallContent {
+                &ToolCallDisplayContent {
                     id: "".to_string(),
                     name: "".to_string(),
+                    arguments: serde_json::Value::Null,
                     display_name: "".to_string(),
                     display_description_markdown: "".to_string(),
-                    arguments: serde_json::to_value(args.clone()).unwrap(),
                     status: ToolCallStatus::Pending,
                     file_id: Some(file_id),
                 },

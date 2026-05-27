@@ -15,6 +15,10 @@ export type MessageContent =
 			value: ToolCallContent;
 	  }
 	| {
+			type: "toolCallDisplay";
+			value: ToolCallDisplayContent;
+	  }
+	| {
 			type: "toolResult";
 			value: ToolResultContent;
 	  };
@@ -30,6 +34,14 @@ export interface MessageContentHumanAssistant {
 
 export interface ToolCallContent {
 	id: string;
+	name: string;
+	arguments: unknown;
+}
+
+export interface ToolCallDisplayContent {
+	id: string;
+	name: string;
+	arguments: unknown;
 	displayName: string;
 	displayDescriptionMarkdown: string;
 	status: ToolCallStatus;

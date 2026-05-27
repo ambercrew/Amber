@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 use rig::client::EmbeddingsClient;
+use rig::streaming::StreamedUserContent;
 use rig::tool::ToolDyn;
 use rig::{
     agent::{Agent, MultiTurnStreamItem, StreamingError, Text},
@@ -30,9 +31,11 @@ use crate::ai_integration::services::ai_streamer::{
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
 use crate::ai_integration::tools::create_flash_card::CreateFlashCard;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
+use crate::ai_integration::tools::search_file_system::SearchFileSystem;
 use crate::cells::entities::cell::Cell;
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::file_system::repositories::file_repository::FileRepository;
+use crate::file_system::repositories::folder_repository::FolderRepository;
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
 const DEFAULT_MAX_TURN: usize = 16;
@@ -45,6 +48,7 @@ pub struct DefaultAiStreamer {
 
     cell_repository: Arc<dyn CellRepository>,
     file_repository: Arc<dyn FileRepository>,
+    folder_repository: Arc<dyn FolderRepository>,
 }
 
 #[async_trait]
@@ -87,8 +91,12 @@ impl AiStreamer for DefaultAiStreamer {
                 on_event.clone(),
             )
             .await?;
+        let rig_messages: Vec<rig::message::Message> = messages
+            .into_iter()
+            .filter_map(|m| m.try_into().ok())
+            .collect();
         let mut stream = agent
-            .stream_chat(request.prompt, messages)
+            .stream_chat(request.prompt, rig_messages)
             .with_hook(StateCancellationHook::new(self.state.clone()))
             .await;
 
@@ -108,6 +116,23 @@ impl AiStreamer for DefaultAiStreamer {
                     ) = content
                     {
                         log::info!("Tool call: {:#?}", tool_call);
+
+                        messages_to_upsert.lock().await.push(Message::new(
+                            None,
+                            chat_id,
+                            MessageContent::ToolCall(tool_call.into()),
+                        ));
+                    } else if let MultiTurnStreamItem::StreamUserItem(
+                        StreamedUserContent::ToolResult { tool_result, .. },
+                    ) = content
+                    {
+                        log::info!("Tool result: {:#?}", tool_result);
+
+                        messages_to_upsert.lock().await.push(Message::new(
+                            None,
+                            chat_id,
+                            MessageContent::ToolResult(tool_result.into()),
+                        ));
                     }
                 }
                 Err(err) => {
@@ -202,7 +227,13 @@ impl DefaultAiStreamer {
             .await?;
         let index = Arc::new(vector_store.index(embed_model));
 
-        let mut tools: Vec<Box<dyn ToolDyn>> = vec![Box::new(SearchDocuments::new(index, chat_id))];
+        let mut tools: Vec<Box<dyn ToolDyn>> = vec![
+            Box::new(SearchDocuments::new(index, chat_id)),
+            Box::new(SearchFileSystem::new(
+                self.file_repository.clone(),
+                self.folder_repository.clone(),
+            )),
+        ];
 
         let mut builder = client
             .agent(&completion_model_name)
@@ -278,6 +309,7 @@ pub mod tests {
                 sqlite_ai_repository::SqliteAiRepository,
                 sqlite_cell_repository::SqliteCellRepository,
                 sqlite_file_repository::SqliteFileRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
             },
         },
         settings::{
@@ -306,6 +338,7 @@ pub mod tests {
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
         register_scope!(injector, dyn CellRepository, SqliteCellRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
 
         injector
     }
@@ -452,8 +485,8 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    // Two tools, one for searching documents and one for creating flash cards.
-                    && request.tools.len() == 2
+                    // Three tools: search documents, search file system, and create flash card.
+                    && request.tools.len() == 3
                     && request.tools.iter().any(|tool| tool.name == CreateFlashCard::NAME)
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
@@ -661,5 +694,97 @@ pub mod tests {
             .await
             .unwrap();
         assert_eq!(2, messages.len());
+    }
+
+    #[tokio::test]
+    pub async fn stream_tool_call_saves_tool_call_and_tool_result_messages() {
+        // Arrange
+
+        let call_count = Arc::new(AtomicU32::new(0));
+        let call_count_clone = call_count.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(|_| {
+                let tool_call = AssistantContent::tool_call(
+                    "id",
+                    "submit",
+                    serde_json::to_value(GenerateTitle {
+                        title: "Chat title".to_string(),
+                    })
+                    .unwrap(),
+                );
+                CompletionResponse {
+                    choice: OneOrMany::one(tool_call),
+                    raw_response: MultiResponse::Mock,
+                    usage: Usage::default(),
+                    message_id: None,
+                }
+            }))),
+            stream_fn: Arc::new(Some(Box::new(move |_| {
+                match call_count_clone.fetch_add(1, Ordering::Relaxed) {
+                    0 => Ok(Some(RawStreamingChoice::ToolCall(
+                        rig::streaming::RawStreamingToolCall::new(
+                            "tc-1".to_string(),
+                            "search_file_system".to_string(),
+                            serde_json::json!({ "query": "test" }),
+                        ),
+                    ))),
+                    2 => Ok(Some(RawStreamingChoice::Message(
+                        "Final answer".to_string(),
+                    ))),
+                    _ => Ok(None),
+                }
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let request = StreamAiRequestDto {
+            prompt: "User prompt".to_string(),
+            ..Default::default()
+        };
+
+        // Act
+
+        service
+            .stream(request, Arc::new(move |_| Ok(())))
+            .await
+            .unwrap();
+
+        // Assert
+
+        let chats = repository
+            .get_all_chats_sorted_by_date_desc()
+            .await
+            .unwrap();
+        let messages = repository
+            .get_chat_messages_ordered(chats[0].id())
+            .await
+            .unwrap();
+
+        assert_eq!(4, messages.len());
+        assert!(matches!(messages[0].content(), MessageContent::Human(_)));
+        assert!(matches!(messages[1].content(), MessageContent::ToolCall(_)));
+        assert!(matches!(
+            messages[2].content(),
+            MessageContent::ToolResult(_)
+        ));
+        assert!(matches!(
+            messages[3].content(),
+            MessageContent::Assistant(_)
+        ));
+
+        if let (MessageContent::ToolCall(tc), MessageContent::ToolResult(tr)) =
+            (messages[1].content(), messages[2].content())
+        {
+            assert_eq!(tc.id, tr.id);
+            assert_eq!(tc.name, "search_file_system");
+        } else {
+            panic!("Expected ToolCall and ToolResult messages");
+        }
     }
 }

@@ -68,6 +68,33 @@ impl FileRepository for SqliteFileRepository {
         Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
+    async fn search_by_name(&self, query: &str, limit: i64) -> Result<Vec<File>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let pattern = format!("%{query}%");
+
+        let rows = sqlx::query_as!(
+            FileRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
+                name
+            FROM files
+            WHERE name LIKE $1
+            LIMIT $2"#,
+            pattern,
+            limit,
+        )
+        .fetch_all(&mut *tx)
+        .await;
+
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
+    }
+
     async fn get_folder_files(&self, parent_folder_id: Guid) -> Result<Vec<File>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

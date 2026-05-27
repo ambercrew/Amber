@@ -4,12 +4,13 @@ use serde_json::Value;
 use thiserror::Error;
 
 use crate::{
-    ai_integration::entities::message::ToolCallContent,
+    ai_integration::entities::message::ToolCallDisplayContent,
     cells::services::cell_creator::CellCreatorError, common::repository_error::RepositoryError,
 };
 
 pub mod create_flash_card;
 pub mod search_documents;
+pub mod search_file_system;
 
 #[derive(Error, Debug)]
 pub enum AcceptToolCallError {
@@ -29,7 +30,7 @@ pub trait AcceptToolCall: Send + Sync {
 
     async fn accept_call(
         &self,
-        tool_call: &ToolCallContent,
+        tool_call: &ToolCallDisplayContent,
         args: Self::Args,
     ) -> Result<(), AcceptToolCallError>;
 }
@@ -38,7 +39,7 @@ pub trait AcceptToolCall: Send + Sync {
 pub trait AcceptToolCallFromJson: Send + Sync {
     async fn accept_call(
         &self,
-        tool_call: &ToolCallContent,
+        tool_call: &ToolCallDisplayContent,
         value: Value,
     ) -> Result<(), AcceptToolCallError>;
 }
@@ -47,7 +48,7 @@ pub trait AcceptToolCallFromJson: Send + Sync {
 impl<T: AcceptToolCall + Send + Sync> AcceptToolCallFromJson for T {
     async fn accept_call(
         &self,
-        tool_call: &ToolCallContent,
+        tool_call: &ToolCallDisplayContent,
         value: Value,
     ) -> Result<(), AcceptToolCallError> {
         let args = serde_json::from_value(value)?;

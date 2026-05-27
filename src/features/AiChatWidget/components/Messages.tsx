@@ -70,7 +70,12 @@ export default function Messages({
 			data-testid="messages-container"
 			onScroll={handleScroll}>
 			{messages
-				.filter(m => m.content.type !== "toolResult")
+				// These types are not rendered, stored mainly for the LLM.
+				.filter(
+					m =>
+						m.content.type !== "toolResult" &&
+						m.content.type !== "toolCall",
+				)
 				.map((message, i) => (
 					<div key={i} className={styles.messageWrapper}>
 						<div
@@ -84,7 +89,7 @@ export default function Messages({
 								message.content.type == "assistant") && (
 								<Markdown>{message.content.value}</Markdown>
 							)}
-							{message.content.type === "toolCall" && (
+							{message.content.type === "toolCallDisplay" && (
 								<ToolCallDisplay
 									isSendingRequest={isSendingRequest}
 									message={message}

@@ -68,6 +68,37 @@ impl FolderRepository for SqliteFolderRepository {
         Ok(rows?.into_iter().map(|row| row.into()).collect())
     }
 
+    async fn search_by_name(
+        &self,
+        query: &str,
+        limit: i64,
+    ) -> Result<Vec<Folder>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let pattern = format!("%{query}%");
+
+        let rows = sqlx::query_as!(
+            FolderRow,
+            r#"SELECT
+                id as "id: _",
+                created_date as "created_date: _",
+                modified_date as "modified_date: _",
+                parent_id as "parent_id: _",
+                fsrs_profile_id as "fsrs_profile_id: _",
+                name
+            FROM folders
+            WHERE name LIKE $1
+            LIMIT $2"#,
+            pattern,
+            limit,
+        )
+        .fetch_all(&mut *tx)
+        .await;
+
+        Ok(rows?.into_iter().map(|row| row.into()).collect())
+    }
+
     async fn get_subfolders(&self, parent_folder_id: Guid) -> Result<Vec<Folder>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

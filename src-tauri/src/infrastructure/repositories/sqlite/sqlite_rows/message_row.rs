@@ -8,6 +8,7 @@ use crate::{
 pub const HUMAN_CONTENT_TYPE: &str = "human";
 pub const ASSISTANT_CONTENT_TYPE: &str = "assistant";
 pub const TOOL_CALL_CONTENT_TYPE: &str = "tool_call";
+pub const TOOL_CALL_DISPLAY_CONTENT_TYPE: &str = "tool_call_display";
 pub const DOCUMENT_CONTENT_TYPE: &str = "document";
 pub const TOOL_RESULT_TYPE: &str = "tool_result";
 
@@ -27,6 +28,8 @@ impl From<MessageRow> for Message {
             MessageContent::Assistant(value.content.unwrap())
         } else if value.content_type == TOOL_CALL_CONTENT_TYPE {
             MessageContent::ToolCall(serde_json::from_str(&value.content.unwrap()).unwrap())
+        } else if value.content_type == TOOL_CALL_DISPLAY_CONTENT_TYPE {
+            MessageContent::ToolCallDisplay(serde_json::from_str(&value.content.unwrap()).unwrap())
         } else if value.content_type == DOCUMENT_CONTENT_TYPE {
             MessageContent::Document(serde_json::from_str(&value.content.unwrap()).unwrap())
         } else {

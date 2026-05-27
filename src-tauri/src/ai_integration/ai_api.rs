@@ -61,7 +61,7 @@ pub async fn reject_tool_call(
 
     let mut message = ai_repository.get_message_by_id(message_id).await?;
 
-    if let MessageContent::ToolCall(tool_call) = message.content_mut() {
+    if let MessageContent::ToolCallDisplay(tool_call) = message.content_mut() {
         log::info!("Reject message with id {message_id}");
         tool_call.status = ToolCallStatus::Rejected;
         ai_repository.upsert_message(&message).await?;

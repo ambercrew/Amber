@@ -14,7 +14,6 @@ import {
 } from "../../../../api/aiIntegration/api/aiApi.ts";
 import userEvent from "@testing-library/user-event";
 import Message, {
-	ToolCallContent,
 	ToolCallStatus,
 } from "../../../../api/aiIntegration/entities/message.ts";
 import { Channel } from "@tauri-apps/api/core";
@@ -272,11 +271,13 @@ describe("AiChatWidget", () => {
 				id: "",
 				chatId: "",
 				content: {
-					type: "toolCall",
+					type: "toolCallDisplay",
 					value: {
 						id: "",
 						displayDescriptionMarkdown: "**Question**",
 						displayName: "Create FlashCard",
+						name: "",
+						arguments: {},
 						fileId: "",
 						status: ToolCallStatus.Accepted,
 					},
@@ -539,13 +540,15 @@ describe("ToolCallDisplay", () => {
 					id: "message-1",
 					chatId: "chat-1",
 					content: {
-						type: "toolCall",
+						type: "toolCallDisplay",
 						value: {
 							displayName: "Create FlashCard",
 							displayDescriptionMarkdown: "Question",
 							status: ToolCallStatus.Pending,
 							fileId: "file-1",
-						} as ToolCallContent,
+							name: "",
+							arguments: {},
+						},
 					},
 				} as Message,
 			])
@@ -554,13 +557,15 @@ describe("ToolCallDisplay", () => {
 					id: "message-1",
 					chatId: "chat-1",
 					content: {
-						type: "toolCall",
+						type: "toolCallDisplay",
 						value: {
 							displayName: "Create FlashCard",
 							displayDescriptionMarkdown: "Question",
 							fileId: "file-1",
 							status: ToolCallStatus.Accepted,
-						} as ToolCallContent,
+							name: "",
+							arguments: {},
+						},
 					},
 				} as Message,
 			]);
@@ -615,13 +620,15 @@ describe("ToolCallDisplay", () => {
 					id: "message-1",
 					chatId: "chat-1",
 					content: {
-						type: "toolCall",
+						type: "toolCallDisplay",
 						value: {
 							displayName: "Create FlashCard",
 							displayDescriptionMarkdown: "Question",
 							status: ToolCallStatus.Pending,
 							fileId: "file-1",
-						} as ToolCallContent,
+							name: "",
+							arguments: {},
+						},
 					},
 				} as Message,
 			])
@@ -630,13 +637,15 @@ describe("ToolCallDisplay", () => {
 					id: "message-1",
 					chatId: "chat-1",
 					content: {
-						type: "toolCall",
+						type: "toolCallDisplay",
 						value: {
 							displayName: "Create FlashCard",
 							displayDescriptionMarkdown: "Question",
 							fileId: "file-1",
 							status: ToolCallStatus.Rejected,
-						} as ToolCallContent,
+							name: "",
+							arguments: {},
+						},
 					},
 				} as Message,
 			]);
@@ -684,13 +693,15 @@ describe("ToolCallDisplay", () => {
 				id: "message-1",
 				chatId: "chat-1",
 				content: {
-					type: "toolCall",
+					type: "toolCallDisplay",
 					value: {
 						displayName: "Create FlashCard",
 						displayDescriptionMarkdown: "Question",
 						status: ToolCallStatus.Pending,
 						fileId: "file-1",
-					} as ToolCallContent,
+						name: "",
+						arguments: {},
+					},
 				},
 			} as Message,
 		]);

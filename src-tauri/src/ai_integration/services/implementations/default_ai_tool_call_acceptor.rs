@@ -28,7 +28,7 @@ impl AiToolCallAcceptor for DefaultAiToolCallAcceptor {
     async fn accept_tool_call(&self, message_id: Guid) -> Result<(), AiToolCallAcceptorError> {
         let mut message = self.ai_repository.get_message_by_id(message_id).await?;
         let tool_call = match message.content_mut() {
-            MessageContent::ToolCall(tool_call) => tool_call,
+            MessageContent::ToolCallDisplay(tool_call) => tool_call,
             _ => return Err(AiToolCallAcceptorError::CanOnlyAcceptToolCalls),
         };
 
@@ -63,7 +63,7 @@ pub mod tests {
         ai_integration::{
             entities::{
                 chat::Chat,
-                message::{Message, MessageContent, ToolCallContent, ToolCallStatus},
+                message::{Message, MessageContent, ToolCallDisplayContent, ToolCallStatus},
             },
             repositories::ai_repository::AiRepository,
             services::ai_tool_call_acceptor::AiToolCallAcceptor,
@@ -147,12 +147,12 @@ pub mod tests {
             .upsert_message(&Message::new(
                 Some(message_id),
                 chat_id,
-                MessageContent::ToolCall(ToolCallContent {
+                MessageContent::ToolCallDisplay(ToolCallDisplayContent {
                     id: "".to_string(),
                     name: CreateFlashCard::NAME.to_string(),
+                    arguments: serde_json::to_value(args.clone()).unwrap(),
                     display_name: "".to_string(),
                     display_description_markdown: "".to_string(),
-                    arguments: serde_json::to_value(args.clone()).unwrap(),
                     status: ToolCallStatus::Pending,
                     file_id: Some(file_id),
                 }),
@@ -181,7 +181,7 @@ pub mod tests {
             .await
             .unwrap();
 
-        if let MessageContent::ToolCall(tool_call) = actual_message.content() {
+        if let MessageContent::ToolCallDisplay(tool_call) = actual_message.content() {
             assert_eq!(ToolCallStatus::Accepted, tool_call.status);
         } else {
             panic!();

@@ -70,6 +70,7 @@ pub enum MessageContent {
     Document(DocumentContent),
     Assistant(String),
     ToolCall(ToolCallContent),
+    ToolCallDisplay(ToolCallDisplayContent),
     ToolResult(ToolResultContent),
 }
 
@@ -84,9 +85,17 @@ pub struct DocumentContent {
 pub struct ToolCallContent {
     pub(in crate::ai_integration) id: String,
     pub(in crate::ai_integration) name: String,
+    pub(in crate::ai_integration) arguments: Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolCallDisplayContent {
+    pub(in crate::ai_integration) id: String,
+    pub(in crate::ai_integration) name: String,
+    pub(in crate::ai_integration) arguments: Value,
     pub(in crate::ai_integration) display_name: String,
     pub(in crate::ai_integration) display_description_markdown: String,
-    pub(in crate::ai_integration) arguments: Value,
     pub(in crate::ai_integration) status: ToolCallStatus,
     pub(in crate::ai_integration) file_id: Option<Guid>,
 }
@@ -107,29 +116,64 @@ pub struct ToolResultContent {
     pub(in crate::ai_integration) text: String,
 }
 
-impl From<Message> for rig::message::Message {
-    fn from(value: Message) -> Self {
+impl From<rig::message::ToolCall> for ToolCallContent {
+    fn from(tool_call: rig::message::ToolCall) -> Self {
+        Self {
+            id: tool_call.id,
+            name: tool_call.function.name,
+            arguments: tool_call.function.arguments,
+        }
+    }
+}
+
+impl From<rig::message::ToolResult> for ToolResultContent {
+    fn from(tool_result: rig::message::ToolResult) -> Self {
+        let text = tool_result
+            .content
+            .into_iter()
+            .find_map(|c| {
+                if let rig::message::ToolResultContent::Text(t) = c {
+                    Some(t.text)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| "Tool called successfully".to_string());
+
+        Self {
+            id: tool_result.id,
+            text,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct UnsupportedMessageContent;
+
+impl TryFrom<Message> for rig::message::Message {
+    type Error = UnsupportedMessageContent;
+
+    fn try_from(value: Message) -> Result<Self, Self::Error> {
         match value.content {
-            MessageContent::Human(content) => rig::message::Message::User {
+            MessageContent::Human(content) => Ok(rig::message::Message::User {
                 content: OneOrMany::one(UserContent::text(content)),
-            },
+            }),
             MessageContent::Document(DocumentContent { file_name }) => {
-                rig::message::Message::User {
+                Ok(rig::message::Message::User {
                     content: OneOrMany::one(UserContent::text(format!(
                         "I have uploaded the following file: {file_name}"
                     ))),
-                }
+                })
             }
-            MessageContent::Assistant(content) => rig::message::Message::Assistant {
+            MessageContent::Assistant(content) => Ok(rig::message::Message::Assistant {
                 id: None,
                 content: OneOrMany::one(AssistantContent::Text(Text { text: content })),
-            },
+            }),
             MessageContent::ToolCall(ToolCallContent {
                 id,
                 name,
                 arguments,
-                ..
-            }) => rig::message::Message::Assistant {
+            }) => Ok(rig::message::Message::Assistant {
                 id: None,
                 content: OneOrMany::one(AssistantContent::ToolCall(rig::message::ToolCall {
                     id,
@@ -138,15 +182,16 @@ impl From<Message> for rig::message::Message {
                     signature: None,
                     additional_params: None,
                 })),
-            },
+            }),
+            MessageContent::ToolCallDisplay(_) => Err(UnsupportedMessageContent),
             MessageContent::ToolResult(ToolResultContent { id, text }) => {
-                rig::message::Message::User {
+                Ok(rig::message::Message::User {
                     content: OneOrMany::one(UserContent::ToolResult(rig::message::ToolResult {
                         id,
                         call_id: None,
                         content: OneOrMany::one(rig::message::ToolResultContent::text(text)),
                     })),
-                }
+                })
             }
         }
     }
