@@ -29,7 +29,7 @@ async fn setup_sqlx() {
 
     let current_directory = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let db_path = current_directory.join("temp.db");
-    let db_url = format!("sqlite:///{}?mode=rwc", db_path.display());
+    let db_url = format!("sqlite:///{}?mode=rwc", db_path.display()).replace("\\", "\\\\");
 
     let env_file = current_directory.join(".env");
     println!(".env file path is {}", env_file.display());
