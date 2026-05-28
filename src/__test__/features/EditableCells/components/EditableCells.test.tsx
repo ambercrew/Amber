@@ -84,9 +84,12 @@ function renderEditableCells({
 		const [cells, setCells] = useState(initialCells);
 
 		saveChangesMock.mockImplementation(() => {
-			if (onCellsUpdateSave) {
-				setCells(onCellsUpdateSave());
-			}
+			// Wrapping in a promise to make it act like a real promise.
+			void Promise.resolve().then(() => {
+				if (onCellsUpdateSave) {
+					setCells(onCellsUpdateSave());
+				}
+			});
 		});
 
 		vi.mocked(useAutoSave).mockReturnValue({
@@ -432,7 +435,7 @@ describe("Scrolling", () => {
 		vi.mocked(createCell).mockResolvedValue("4");
 
 		const cells = [createTestCell(1), createTestCell(2), createTestCell(3)];
-		renderEditableCells({
+		const { store } = renderEditableCells({
 			cells,
 			onCellsUpdateSave: () => [...cells, createTestCell(4)],
 			initialSelectedCellId: "2",
@@ -451,6 +454,7 @@ describe("Scrolling", () => {
 			top: 0,
 		});
 		expect(elementsScrolledTo).toHaveLength(1);
+		expect(store.getState().ai.focusedCellId).toBe("4");
 	});
 
 	it("Should scroll when deleting Cell", async () => {

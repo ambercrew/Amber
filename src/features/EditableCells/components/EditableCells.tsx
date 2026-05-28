@@ -268,9 +268,9 @@ function EditableCells({
 		const request = createCreateCellRequest(cellType, fileId!, index);
 		const cellId = await callApi(async () => await createCell(request));
 		if (!cellId) return;
+		await saveChanges();
 		scrollToSelectedCellOnNextRender.current = true;
 		setSelectedCellId(cellId);
-		await saveChanges();
 	};
 
 	const handleCellDeleteConfirm = async () => {
