@@ -13,9 +13,7 @@ use rig::tool::Tool;
 
 use crate::ai_integration::entities::message::ToolCallStatus;
 use crate::ai_integration::tools::AcceptToolCallFromJson;
-use crate::ai_integration::tools::create_file::{AcceptCreateFile, CreateFile};
 use crate::ai_integration::tools::create_flash_card::{AcceptCreateFlashCard, CreateFlashCard};
-use crate::ai_integration::tools::create_folder::{AcceptCreateFolder, CreateFolder};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::cells::services::cell_creator::CellCreator;
 use crate::file_system::services::item_creator::{FileCreator, FolderCreator};
@@ -44,13 +42,6 @@ impl AiToolCallAcceptor for DefaultAiToolCallAcceptor {
         if tool_call.name == CreateFlashCard::NAME {
             tool = Box::new(AcceptCreateFlashCard::new(
                 self.cell_repository.clone(),
-                self.cell_creator.clone(),
-            ));
-        } else if tool_call.name == CreateFolder::NAME {
-            tool = Box::new(AcceptCreateFolder::new(self.folder_creator.clone()));
-        } else if tool_call.name == CreateFile::NAME {
-            tool = Box::new(AcceptCreateFile::new(
-                self.file_creator.clone(),
                 self.cell_creator.clone(),
             ));
         } else {

@@ -5,14 +5,10 @@ use thiserror::Error;
 
 use crate::{
     ai_integration::entities::message::ToolCallDisplayContent,
-    cells::services::cell_creator::CellCreatorError,
-    common::repository_error::RepositoryError,
-    file_system::services::item_creator::{FileCreatorError, FolderCreatorError},
+    cells::services::cell_creator::CellCreatorError, common::repository_error::RepositoryError,
 };
 
-pub mod create_file;
 pub mod create_flash_card;
-pub mod create_folder;
 pub mod search_documents;
 pub mod search_file_system;
 
@@ -22,10 +18,6 @@ pub enum AcceptToolCallError {
     Repository(#[from] RepositoryError),
     #[error(transparent)]
     CellCreator(#[from] CellCreatorError),
-    #[error(transparent)]
-    FileCreator(#[from] FileCreatorError),
-    #[error(transparent)]
-    FolderCreator(#[from] FolderCreatorError),
     #[error(transparent)]
     Parsing(#[from] serde_json::Error),
     #[error("{0}")]

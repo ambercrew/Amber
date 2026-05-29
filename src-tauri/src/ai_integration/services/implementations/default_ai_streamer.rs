@@ -29,9 +29,7 @@ use crate::ai_integration::services::ai_streamer::{
     AiStreamer, AiStreamerError, OnEventCallback, StreamLlmResponseEvent,
 };
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
-use crate::ai_integration::tools::create_file::CreateFile;
 use crate::ai_integration::tools::create_flash_card::CreateFlashCard;
-use crate::ai_integration::tools::create_folder::CreateFolder;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::search_file_system::SearchFileSystem;
 use crate::cells::entities::cell::Cell;
@@ -248,20 +246,6 @@ impl DefaultAiStreamer {
             messages_to_upsert.clone(),
             Some(on_event.clone()),
             self.file_repository.clone(),
-        )));
-
-        tools.push(Box::new(CreateFolder::new(
-            chat_id,
-            messages_to_upsert.clone(),
-            Some(on_event.clone()),
-            self.folder_repository.clone(),
-        )));
-
-        tools.push(Box::new(CreateFile::new(
-            chat_id,
-            messages_to_upsert,
-            Some(on_event),
-            self.folder_repository.clone(),
         )));
 
         let mut file = if let Some(file_id) = request.opened_file_id {
