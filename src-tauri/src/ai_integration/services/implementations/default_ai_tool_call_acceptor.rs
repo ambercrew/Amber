@@ -16,15 +16,12 @@ use crate::ai_integration::tools::AcceptToolCallFromJson;
 use crate::ai_integration::tools::create_flash_card::{AcceptCreateFlashCard, CreateFlashCard};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::cells::services::cell_creator::CellCreator;
-use crate::file_system::services::item_creator::{FileCreator, FolderCreator};
 
 #[derive(ScopeInjectable)]
 pub struct DefaultAiToolCallAcceptor {
     ai_repository: Arc<dyn AiRepository>,
     cell_repository: Arc<dyn CellRepository>,
     cell_creator: Arc<dyn CellCreator>,
-    file_creator: Arc<dyn FileCreator>,
-    folder_creator: Arc<dyn FolderCreator>,
 }
 
 #[async_trait]
