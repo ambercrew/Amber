@@ -485,8 +485,8 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    // Five tools: search documents, search file system, create flash card, create folder, create file.
-                    && request.tools.len() == 5
+                    // Five tools: search documents, search file system, create flash card.
+                    && request.tools.len() == 3
                     && request.tools.iter().any(|tool| tool.name == CreateFlashCard::NAME)
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
