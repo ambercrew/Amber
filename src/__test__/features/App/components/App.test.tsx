@@ -19,6 +19,7 @@ import editorStyles from "../../../../features/Editor/components/styles.module.c
 import reviewerStyles from "../../../../features/Reviewer/components/styles.module.css";
 import searcherStyles from "../../../../features/Searcher/components/styles.module.css";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../../config/constants.ts";
+import { TOOL_CALL_ACCEPTED_EVENT } from "../../../../types/events/toolCallAcceptedEvent.ts";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 import { MemoryRouterProps } from "react-router";
 import { RootState } from "../../../../stores/store.ts";
@@ -204,6 +205,38 @@ describe("App", () => {
 				c => c[0] === expectedReviewTreeCb,
 			).length;
 			// Two times since it should get on the initial render.
+			expect(times).toBe(beforeTimes + 1);
+		});
+	});
+
+	it("Should get new file tree when tool call is accepted", async () => {
+		// Arrange
+
+		const expectedReviewTreeCb = vi.fn();
+		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
+			expectedReviewTreeCb,
+		);
+		renderApp();
+		await act(async () => {
+			/* Nothing */
+		});
+		const beforeTimes = dispatchMock.mock.calls.filter(
+			c => c[0] === expectedReviewTreeCb,
+		).length;
+
+		// Act
+
+		await act(() => {
+			window.dispatchEvent(new Event(TOOL_CALL_ACCEPTED_EVENT));
+			return Promise.resolve();
+		});
+
+		// Assert
+
+		await waitFor(() => {
+			const times = dispatchMock.mock.calls.filter(
+				c => c[0] === expectedReviewTreeCb,
+			).length;
 			expect(times).toBe(beforeTimes + 1);
 		});
 	});

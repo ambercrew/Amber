@@ -36,6 +36,7 @@ import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelect
 import useApi from "../../../hooks/useApi.ts";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 import IntroDialog from "../../IntroDialog/components/IntroDialog.tsx";
+import { TOOL_CALL_ACCEPTED_EVENT } from "../../../types/events/toolCallAcceptedEvent.ts";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -101,6 +102,15 @@ function App() {
 				ListenerType.PostSyncComplete,
 				cb,
 			);
+	}, [dispatch]);
+
+	useEffect(() => {
+		const cb = () => {
+			void dispatch(getReviewTreeFolderForRoot());
+		};
+
+		window.addEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
+		return () => window.removeEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
 	}, [dispatch]);
 
 	useGlobalKey(e => {
