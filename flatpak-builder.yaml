@@ -61,7 +61,7 @@ modules:
 
     build-commands:
       - mkdir -p src-tauri/.cargo && echo -e '[source.crates-io]\nreplace-with = "vendored-sources"\n\n[source.vendored-sources]\ndirectory = "/run/build/brainy-learn/cargo/vendor"' > src-tauri/.cargo/config.toml
-      - npm install --offline --cache /run/build/brainy-learn/flatpak-node/npm-cache
+      - npm install --offline
       - npm run tauri build -- --bundles deb --config '{"identifier":"app.brainylearn.BrainyLearn","bundle":{"createUpdaterArtifacts":false}}' -- --features store
       - cd src-tauri/target/release/bundle/deb/ && ar x *.deb && tar xf data.tar.gz
       - install -Dm755 src-tauri/target/release/bundle/deb/usr/bin/BrainyLearn /app/bin/BrainyLearn
