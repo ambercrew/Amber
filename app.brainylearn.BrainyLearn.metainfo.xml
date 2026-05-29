@@ -1,18 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>app.brainylearn.brainy_learn</id>
+  <id>app.brainylearn.BrainyLearn</id>
   
   <name>Brainy Learn</name>
   <summary>Free, Open-source, AI-integrated learning app built around spaced repetition</summary>
   
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>AGPL-3.0-only</project_license>
+
+  <content_rating type="oars-1.1" />
+
+  <url type="homepage">https://brainylearn.app/</url>
+  <url type="bugtracker">https://github.com/brainylearn/brainy-app/issues</url>
+  <url type="donation">https://ko-fi.com/ramikw</url>
+  <url type="vcs-browser">https://github.com/brainylearn/brainy-app</url>
+
+  <developer id="app.brainylearn">
+    <name>Rami Mohannad Al Kawadri</name>
+  </developer>
   
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
     <control>touch</control>
   </supports>
+
+  <releases>
+    <release version="1.6.0" date="2026-05-28">
+      <url type="details">https://github.com/brainylearn/brainy-app/releases/tag/v1.6.0</url>
+    </release>
+  </releases>
   
   <description>
     <p>
