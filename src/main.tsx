@@ -14,10 +14,16 @@ function forwardConsole(
 	logger: (message: string) => Promise<void>,
 ) {
 	const original = console[fnName];
-	console[fnName] = message => {
-		original(message);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-floating-promises
-		logger(message);
+	console[fnName] = (...data: unknown[]) => {
+		original(...data);
+		const message = data
+			.map(arg =>
+				typeof arg === "string"
+					? arg
+					: (JSON.stringify(arg) ?? String(arg)),
+			)
+			.join(" ");
+		void logger(message);
 	};
 }
 
