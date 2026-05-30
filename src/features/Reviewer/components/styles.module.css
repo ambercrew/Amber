@@ -71,8 +71,8 @@
 }
 
 .study-content {
-	--content-horizontal-pad: var(--spacing-7);
-	--content-vertical-pad: var(--spacing-7);
+	--content-horizontal-pad: var(--spacing-5);
+	--content-vertical-pad: var(--spacing-6);
 	--content-pad: var(--content-vertical-pad) var(--content-horizontal-pad);
 
 	flex: 1;
