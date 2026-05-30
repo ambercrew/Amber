@@ -9,5 +9,5 @@ pub struct StreamAiRequestDto {
     pub chat_id: Option<Guid>,
 
     pub opened_file_id: Option<Guid>,
-    pub context_cell_id: Option<Guid>,
+    pub focused_cell_id: Option<Guid>,
 }
