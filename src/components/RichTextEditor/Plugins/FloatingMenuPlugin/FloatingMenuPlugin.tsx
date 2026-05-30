@@ -26,12 +26,18 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 
 	const calculatePosition = useCallback(() => {
 		const domSelection = getSelection();
-		const domRange =
-			domSelection?.rangeCount !== 0
-				? domSelection?.getRangeAt(0)?.cloneRange()
-				: null;
+		const originalRange =
+			domSelection?.rangeCount !== 0 ? domSelection?.getRangeAt(0) : null;
+		const domRange = originalRange?.cloneRange();
 		domRange?.collapse(domSelection?.direction === "backward");
-		const domRangeRect = domRange?.getBoundingClientRect();
+		let domRangeRect = domRange?.getBoundingClientRect();
+
+		// A collapsed range at an element node boundary
+		// returns an empty rect. Fall back to the full selection rect so the menu
+		// still appears for right-to-left and select-all selections.
+		if (domRangeRect?.width === 0 && domRangeRect?.height === 0) {
+			domRangeRect = originalRange?.getBoundingClientRect();
+		}
 		const editorRootElementRect = editor
 			.getRootElement()
 			?.getBoundingClientRect();
