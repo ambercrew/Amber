@@ -9,10 +9,6 @@ import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
 import EditableCells from "../../EditableCells/components/EditableCells";
-import {
-	TOOL_CALL_ACCEPTED_EVENT,
-	ToolCallAcceptedPayload,
-} from "../../../types/events/toolCallAcceptedEvent";
 import { CallApiFn } from "../../../hooks/useApi";
 
 interface Props {
@@ -56,18 +52,6 @@ function Editor({ initialSelectedCellId, callApi, onStudyStart }: Props) {
 			setCells(fetchedCells);
 		});
 	}, [callApi, selectedFileId]);
-
-	useEffect(() => {
-		const cb = (e: CustomEvent<ToolCallAcceptedPayload>) => {
-			if (e.detail.fileId !== selectedFileId) return;
-
-			void retrieveSelectedFileCells();
-			void retrieveRepetitionCounts();
-		};
-
-		window.addEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
-		return () => window.removeEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
-	}, [retrieveRepetitionCounts, retrieveSelectedFileCells, selectedFileId]);
 
 	useEffect(() => {
 		const intervalId = setInterval(

@@ -28,6 +28,7 @@ import CellDropContainerData, {
 	CELL_DROP_CONTAINER_TYPE,
 } from "../types/cellDropContainerData";
 import { CallApiFn } from "../../../hooks/useApi";
+import { TOOL_CALL_ACCEPTED_EVENT } from "../../../types/events/toolCallAcceptedEvent";
 
 /** Used to say how many cells are always eagerly loaded from the current
  * selected cell.
@@ -78,6 +79,7 @@ function EditableCells({
 		fileMode === "single" && !searchText;
 	const [lastValidSelectedCellIndex, setLastValidSelectedCellIndex] =
 		useState<number | null>(null);
+	const [toolCallRevision, setToolCallRevision] = useState(0);
 
 	// Ensuring that a cell is selected at start.
 	if (!selectedCellId) {
@@ -201,6 +203,18 @@ function EditableCells({
 			dispatch(setFocusedCellId(null));
 		};
 	}, [dispatch, selectedCellId]);
+
+	useEffect(() => {
+		const cb = () => {
+			void (async () => {
+				await saveChanges();
+				setToolCallRevision(v => v + 1);
+			})();
+		};
+
+		window.addEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
+		return () => window.removeEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
+	}, [saveChanges]);
 
 	const moveSelectedCellByNumber = async (number: number) => {
 		if (!enableFileSpecificFunctionality) return;
@@ -327,9 +341,9 @@ function EditableCells({
 					root={containerRef}>
 					<CellBlock
 						key={
-							// Using isSyncing directly in key to re-force reconstruction
-							// of the editors.
-							i + cell.id + isSyncing
+							// Using isSyncing and toolCallRevision to force reconstruction
+							// of the editors when external content changes occur.
+							i + cell.id + isSyncing + toolCallRevision
 						}
 						ref={
 							cell.id === selectedCellId ? selectedCellRef : null
