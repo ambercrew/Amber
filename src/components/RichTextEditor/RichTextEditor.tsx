@@ -17,7 +17,10 @@ import {
 	EditorState,
 	LexicalNode,
 	Klass,
-	$insertNodes,
+	$isElementNode,
+	$isDecoratorNode,
+	$createParagraphNode,
+	$getRoot,
 } from "lexical";
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
@@ -119,7 +122,23 @@ function Editor({
 			const parser = new DOMParser();
 			const dom = parser.parseFromString(content, "text/html");
 			const nodes = $generateNodesFromDOM(editor, dom);
-			$insertNodes(nodes);
+
+			const root = $getRoot();
+
+			// Used to avoid the following error:
+			// Only element or decorator nodes can be inserted in to the root node.
+			nodes.forEach(node => {
+				if ($isElementNode(node) || $isDecoratorNode(node)) {
+					root.append(node);
+				} else {
+					const textContent = node.getTextContent().trim();
+					if (textContent !== "") {
+						const paragraph = $createParagraphNode();
+						paragraph.append(node);
+						root.append(paragraph);
+					}
+				}
+			});
 		},
 	};
 
