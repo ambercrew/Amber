@@ -131,7 +131,13 @@ function CellBlock(
 
 	return (
 		<div
-			ref={mergeRefs(setDragRef, setDroppableNodeRef, ref)}
+			ref={
+				enableFileSpecificFunctionality
+					? // eslint-disable-next-line react-hooks/refs
+						mergeRefs(setDragRef, setDroppableNodeRef, ref)
+					: // eslint-disable-next-line react-hooks/refs
+						mergeRefs(setDroppableNodeRef, ref)
+			}
 			onFocus={onFocus}
 			onClick={handleClick}
 			data-testid={`CellBlock-${cell.id}`}
