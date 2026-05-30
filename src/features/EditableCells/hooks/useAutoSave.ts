@@ -86,11 +86,15 @@ function useAutoSave({
 		}, AUTO_SAVE_DELAY_IN_MILLISECONDS);
 	};
 
-	// Used for saving changes before unmounting.
+	// Keeping the ref updated.
 	useEffect(() => {
 		updatedCells.current = cells;
+	}, [cells]);
+
+	// Used for saving changes before unmounting.
+	useEffect(() => {
 		return () => void saveChanges();
-	}, [cells, saveChanges]);
+	}, [saveChanges]);
 
 	// Used for saving changes before closing the app.
 	useEffect(() => {
