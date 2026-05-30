@@ -9,6 +9,7 @@ use crate::{
 };
 
 pub mod create_flash_card;
+pub mod edit_cell_content;
 pub mod search_documents;
 pub mod search_file_system;
 

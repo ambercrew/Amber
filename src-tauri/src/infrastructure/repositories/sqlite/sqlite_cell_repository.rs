@@ -75,9 +75,11 @@ impl CellRepository for SqliteCellRepository {
         .await;
 
         let rows = rows?;
-        // Should be a single cell in list.
-        let cell = convert_rows_to_cells(rows).remove(0);
-        Ok(cell)
+        convert_rows_to_cells(rows)
+            .into_iter()
+            .next()
+            .ok_or_else(|| RepositoryError::NotFound(format!("Cell not found: {id}").into()))
+            .map(Ok)?
     }
 
     async fn get_number_of_cells_in_file_with_index(

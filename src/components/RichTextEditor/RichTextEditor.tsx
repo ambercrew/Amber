@@ -14,10 +14,10 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import FocusBlurPlugin from "./Plugins/FocusBlurPlugin";
 import {
 	LexicalEditor,
-	$getRoot,
 	EditorState,
 	LexicalNode,
 	Klass,
+	$insertNodes,
 } from "lexical";
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
@@ -119,7 +119,7 @@ function Editor({
 			const parser = new DOMParser();
 			const dom = parser.parseFromString(content, "text/html");
 			const nodes = $generateNodesFromDOM(editor, dom);
-			$getRoot().append(...nodes);
+			$insertNodes(nodes);
 		},
 	};
 

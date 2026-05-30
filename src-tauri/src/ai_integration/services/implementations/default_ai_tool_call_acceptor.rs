@@ -14,6 +14,10 @@ use rig::tool::Tool;
 use crate::ai_integration::entities::message::ToolCallStatus;
 use crate::ai_integration::tools::AcceptToolCallFromJson;
 use crate::ai_integration::tools::create_flash_card::{AcceptCreateFlashCard, CreateFlashCard};
+use crate::ai_integration::tools::edit_cell_content::{
+    AcceptEditClozeContent, AcceptEditFlashCardContent, AcceptEditTrueFalseContent,
+    EditClozeContent, EditFlashCardContent, EditTrueFalseContent,
+};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::cells::services::cell_creator::CellCreator;
 
@@ -41,6 +45,16 @@ impl AiToolCallAcceptor for DefaultAiToolCallAcceptor {
                 self.cell_repository.clone(),
                 self.cell_creator.clone(),
             ));
+        } else if tool_call.name == EditFlashCardContent::NAME {
+            tool = Box::new(AcceptEditFlashCardContent::new(
+                self.cell_repository.clone(),
+            ));
+        } else if tool_call.name == EditTrueFalseContent::NAME {
+            tool = Box::new(AcceptEditTrueFalseContent::new(
+                self.cell_repository.clone(),
+            ));
+        } else if tool_call.name == EditClozeContent::NAME {
+            tool = Box::new(AcceptEditClozeContent::new(self.cell_repository.clone()));
         } else {
             return Err(AiToolCallAcceptorError::UnknownToolName);
         }

@@ -30,9 +30,12 @@ use crate::ai_integration::services::ai_streamer::{
 };
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
 use crate::ai_integration::tools::create_flash_card::CreateFlashCard;
+use crate::ai_integration::tools::edit_cell_content::{
+    EditClozeContent, EditFlashCardContent, EditTrueFalseContent,
+};
 use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::ai_integration::tools::search_file_system::SearchFileSystem;
-use crate::cells::entities::cell::Cell;
+use crate::cells::entities::cell::{Cell, CellType};
 use crate::cells::repositories::cell_repository::CellRepository;
 use crate::file_system::repositories::file_repository::FileRepository;
 use crate::file_system::repositories::folder_repository::FolderRepository;
@@ -256,7 +259,7 @@ impl DefaultAiStreamer {
 
         let mut cell: Option<Cell> = None;
 
-        if let Some(cell_id) = request.context_cell_id {
+        if let Some(cell_id) = request.focused_cell_id {
             cell = Some(self.cell_repository.get_by_id(cell_id).await?);
 
             if file.is_none() {
@@ -265,6 +268,36 @@ impl DefaultAiStreamer {
                         .get_by_id(cell.as_ref().unwrap().file_id())
                         .await?,
                 );
+            }
+        }
+
+        if let Some(c) = &cell {
+            match c.cell_type() {
+                CellType::FlashCard => {
+                    tools.push(Box::new(EditFlashCardContent::new(
+                        chat_id,
+                        messages_to_upsert.clone(),
+                        Some(on_event.clone()),
+                        self.cell_repository.clone(),
+                    )));
+                }
+                CellType::TrueFalse => {
+                    tools.push(Box::new(EditTrueFalseContent::new(
+                        chat_id,
+                        messages_to_upsert.clone(),
+                        Some(on_event.clone()),
+                        self.cell_repository.clone(),
+                    )));
+                }
+                CellType::Cloze => {
+                    tools.push(Box::new(EditClozeContent::new(
+                        chat_id,
+                        messages_to_upsert.clone(),
+                        Some(on_event.clone()),
+                        self.cell_repository.clone(),
+                    )));
+                }
+                CellType::Note => {}
             }
         }
 
@@ -485,7 +518,8 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    // Five tools: search documents, search file system, create flash card.
+                    // Tools: search documents, search file system, create flash card.
+                    // No edit tool added when there is no focused cell.
                     && request.tools.len() == 3
                     && request.tools.iter().any(|tool| tool.name == CreateFlashCard::NAME)
                 {
