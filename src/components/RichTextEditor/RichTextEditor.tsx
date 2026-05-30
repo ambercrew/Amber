@@ -27,6 +27,8 @@ import ListCommandsPluginHandler from "./Plugins/ListCommandsPluginHandler/ListC
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import { ImagePlugin } from "./Plugins/ImagePlugin/ImagePlugin";
 import ImageNode from "./Plugins/ImagePlugin/ImageNode";
+import EquationPlugin from "./Plugins/EquationPlugin/EquationPlugin";
+import { EquationNode } from "./Plugins/EquationPlugin/EquationNode";
 
 interface Props {
 	content: string;
@@ -98,7 +100,13 @@ function Editor({
 	const initialConfig: InitialConfigType = {
 		namespace: "BrainyEditor",
 		onError: console.error,
-		nodes: [ListNode, ListItemNode, ImageNode, ...(extraNodes ?? [])],
+		nodes: [
+			ListNode,
+			ListItemNode,
+			ImageNode,
+			EquationNode,
+			...(extraNodes ?? []),
+		],
 		theme: {
 			text: {
 				// Global class names in index.css.
@@ -147,6 +155,7 @@ function Editor({
 			<ListPlugin />
 			<ListCommandsPluginHandler />
 			<ImagePlugin />
+			<EquationPlugin />
 			<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
 			<DefaultShortcutPlugin />
 			{plugins}
