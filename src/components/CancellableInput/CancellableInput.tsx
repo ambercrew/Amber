@@ -7,6 +7,7 @@ interface Props extends React.DetailedHTMLProps<
 
 function CancellableInput({ onCancel, ...props }: Props) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
+		e.stopPropagation();
 		if (e.key === "Escape") {
 			onCancel();
 		}
