@@ -86,6 +86,7 @@ function CellBlock(
 		id: `droppable-${cell.id}`,
 		type: CELL_DROP_CONTAINER_TYPE,
 		data: { type: "cell", cellId: cell.id } as CellDropContainerData,
+		disabled: isDragging,
 	});
 
 	useGlobalKey(
