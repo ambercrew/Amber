@@ -8,19 +8,11 @@ interface Props {
 	folder?: ReviewTreeFolderDto;
 	file?: ReviewTreeFileDto;
 	name?: string;
-	indentationLevel: number;
 	onFileClick: (file: ReviewTreeFileDto) => void;
 	onFolderClick: (folder: ReviewTreeFolderDto) => void;
 }
 
-function ReviewTree({
-	name,
-	folder,
-	file,
-	indentationLevel,
-	onFileClick,
-	onFolderClick,
-}: Props) {
+function ReviewTree({ name, folder, file, onFileClick, onFolderClick }: Props) {
 	const [isExpanded, setIsExpanded] = useLocalStorage(
 		`is-review-tree-expanded-${file?.id ?? folder?.id}`,
 		!name,
@@ -42,7 +34,7 @@ function ReviewTree({
 				<Row
 					expandable={folder !== undefined}
 					isExapnded={isExpanded}
-					indentationLevel={indentationLevel}
+					isFolder={folder !== undefined}
 					name={name}
 					newCount={newCount}
 					learningCount={learningCount}
@@ -54,29 +46,29 @@ function ReviewTree({
 				/>
 			)}
 
-			{isExpanded &&
-				folder?.subfolders.map(f => (
-					<ReviewTree
-						key={f.id}
-						name={f.name}
-						indentationLevel={indentationLevel + 1}
-						folder={f}
-						onFileClick={onFileClick}
-						onFolderClick={onFolderClick}
-					/>
-				))}
+			<div className={styles.treeChildren}>
+				{isExpanded &&
+					folder?.subfolders.map(f => (
+						<ReviewTree
+							key={f.id}
+							name={f.name}
+							folder={f}
+							onFileClick={onFileClick}
+							onFolderClick={onFolderClick}
+						/>
+					))}
 
-			{isExpanded &&
-				folder?.files.map(f => (
-					<ReviewTree
-						key={f.id}
-						name={f.name}
-						indentationLevel={indentationLevel + 1}
-						file={f}
-						onFileClick={onFileClick}
-						onFolderClick={onFolderClick}
-					/>
-				))}
+				{isExpanded &&
+					folder?.files.map(f => (
+						<ReviewTree
+							key={f.id}
+							name={f.name}
+							file={f}
+							onFileClick={onFileClick}
+							onFolderClick={onFolderClick}
+						/>
+					))}
+			</div>
 		</div>
 	);
 }

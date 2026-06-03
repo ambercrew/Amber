@@ -86,13 +86,8 @@ function Home({ onStudyClick, callApi }: Props) {
 			<div className={styles.box}>
 				<div className={styles.row + " " + styles.header}>
 					<div className={styles.buttons}>
-						<span>{/* Empty to fill the first column */}</span>
+						<p>#</p>
 						<p>Files</p>
-					</div>
-					<div className={styles.columns}>
-						<p>New</p>
-						<p>Learn</p>
-						<p>Review</p>
 					</div>
 				</div>
 				{rootFolder &&
@@ -106,7 +101,6 @@ function Home({ onStudyClick, callApi }: Props) {
 				{rootFolder && (
 					<ReviewTree
 						folder={rootFolder}
-						indentationLevel={-1}
 						onFileClick={file => handleStudyClick([file.id], file)}
 						onFolderClick={handleFolderClick}
 					/>

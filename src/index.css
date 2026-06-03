@@ -65,6 +65,9 @@ body {
 	--review-color: var(--green-color);
 	--hard-color: #f97316;
 
+	--folder-icon-color: var(--hard-color);
+	--file-icon-color: var(--primary-color-shade-20);
+
 	--default-border-radius: 8px;
 
 	--spacing-0: 2px;
@@ -98,7 +101,7 @@ body.dark {
 	--text-color-secondary: #bcc6d1;
 
 	--primary-color-shade-10: #306bec;
-	--primary-color-shade-20: #3b73ed;
+	--primary-color-shade-20: #5182ef;
 
 	--secondary-color-shade-10: #9b69f1;
 	--secondary-color-tint-10: #6d28d9;
@@ -376,6 +379,14 @@ h1 {
 
 .review-color {
 	color: var(--review-color);
+}
+
+.folder-icon {
+	color: var(--folder-icon-color);
+}
+
+.file-icon {
+	color: var(--file-icon-color);
 }
 
 /* Global classes for the Lexical editor */

@@ -1,12 +1,8 @@
 import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
-import {
-	mdiDotsHorizontal,
-	mdiFileDocumentOutline,
-	mdiFileTreeOutline,
-	mdiFolderOpenOutline,
-	mdiFolderOutline,
-} from "@mdi/js";
+import { mdiDotsHorizontal } from "@mdi/js";
+import getFileTreeIconPath from "../utils/getFileTreeIconPath";
+import getFileIconClass from "../../../utils/getFileIconClass";
 import ActionsMenu from "./ActionsMenu";
 import { Action } from "../types/action";
 import getFileName from "../utils/getFileName";
@@ -137,13 +133,8 @@ export default function FileTreeItemRow({
 		[],
 	);
 
-	const iconPath = isRoot
-		? mdiFileTreeOutline
-		: isFolder
-			? isExpanded
-				? mdiFolderOpenOutline
-				: mdiFolderOutline
-			: mdiFileDocumentOutline;
+	const iconPath = getFileTreeIconPath({ isRoot, isFolder, isExpanded });
+	const iconColorClass = getFileIconClass(isRoot, isFolder);
 
 	return (
 		<>
@@ -158,7 +149,11 @@ export default function FileTreeItemRow({
                             ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
 							onClick={onClick}
 							ref={mergeRefs(buttonRef, setHandleDragRef)}>
-							<Icon path={iconPath} size={1} />
+							<Icon
+								path={iconPath}
+								size={1}
+								className={iconColorClass}
+							/>
 							<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
 						</button>
 						<button
@@ -177,7 +172,11 @@ export default function FileTreeItemRow({
 					<form
 						onSubmit={e => void handleRenameSubmit(e)}
 						className={`${styles.fileTreeRow} ${styles.withForm}`}>
-						<Icon path={iconPath} size={1} />
+						<Icon
+							path={iconPath}
+							size={1}
+							className={iconColorClass}
+						/>
 
 						<CancellableInput
 							onCancel={() => {
