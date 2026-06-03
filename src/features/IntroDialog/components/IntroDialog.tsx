@@ -43,7 +43,10 @@ export default function IntroDialog() {
 	if (!showDialog) return;
 
 	return (
-		<Dialog focusTrap={true} className={styles.dialog}>
+		<Dialog
+			focusTrap={true}
+			className={styles.dialog}
+			fullScreenOnSmallDevices>
 			<div className={styles.content}>
 				<div className={styles.header}>
 					<img

@@ -7,6 +7,7 @@ interface Props {
 	focusTrap: boolean;
 	className?: string;
 	children: React.ReactNode;
+	fullScreenOnSmallDevices?: boolean;
 	onHide?: () => void;
 }
 
@@ -18,6 +19,7 @@ export default function Dialog({
 	className,
 	children,
 	focusTrap,
+	fullScreenOnSmallDevices,
 	onHide,
 }: Props) {
 	const focusedElementBeforeView = useRef<HTMLElement | null>(
@@ -61,7 +63,7 @@ export default function Dialog({
 				onKeyUp={handleKeyUp}
 				tabIndex={-1}>
 				<div
-					className={`${styles.box} ${className}`}
+					className={`${styles.box} ${fullScreenOnSmallDevices && styles.fullScreenOnSmallDevices} ${className}`}
 					onClick={e => e.stopPropagation()}>
 					{children}
 				</div>
