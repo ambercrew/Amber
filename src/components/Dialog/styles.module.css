@@ -31,4 +31,8 @@
 		height: 100vh;
 		border-radius: 0;
 	}
+
+	:global(body.mobile) .box.full-screen-on-small-devices {
+		padding-top: calc(var(--spacing-5) + var(--mobile-padding-top));
+	}
 }
