@@ -43,7 +43,8 @@ function Row({
 				)}
 				<button
 					className={styles.fileNameButton}
-					onClick={() => void onClick()}>
+					onClick={() => void onClick()}
+					title={name}>
 					{name}
 				</button>
 			</div>
