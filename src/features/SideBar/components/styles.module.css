@@ -45,11 +45,11 @@
 			margin-right: var(--spacing-4);
 			width: 3.2rem;
 		}
+	}
 
-		& .toggle-button {
-			transition: 0s transform;
-			transition: 0s width;
-		}
+	& .toggle-button {
+		padding-right: var(--sidebar-inner-horizontal-padding);
+		padding-left: var(--sidebar-inner-horizontal-padding);
 	}
 
 	& .title-row {
@@ -60,7 +60,8 @@
 
 	&.closed {
 		/* Important so that it overrides the small screen class. */
-		width: 62px !important;
+		--sidebar-inner-horizontal-padding: var(--spacing-2);
+		width: 50px !important;
 		overflow: hidden;
 
 		& .side-bar-top-container > * {
@@ -76,19 +77,14 @@
 			& .title-row {
 				display: none;
 			}
-
-			& .toggle-button {
-				transform: rotate(180deg);
-			}
 		}
 
 		& .rows {
 			display: flex;
-			padding-right: var(--spacing-4);
-			padding-left: var(--spacing-4);
 
 			& .row {
 				justify-content: center;
+				padding: var(--spacing-4) var(--spacing-3);
 
 				& p {
 					display: none;
@@ -140,7 +136,7 @@
 }
 
 .rows {
-	padding: var(--spacing-5);
+	padding: var(--spacing-5) var(--sidebar-inner-horizontal-padding);
 	border-bottom: var(--border-separator);
 	display: flex;
 	flex-direction: column;
@@ -191,7 +187,7 @@
 	border-radius: 0;
 	border-top: var(--default-border-width) solid var(--border-color);
 
-	padding: var(--spacing-5);
+	padding: var(--spacing-5) var(--sidebar-inner-horizontal-padding);
 	/* Necessary so that the button has the same height when the sidebar is closed. */
 	height: calc(
 		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *

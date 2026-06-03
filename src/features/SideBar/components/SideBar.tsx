@@ -16,7 +16,8 @@ import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
 	mdiAlertCircleOutline,
-	mdiChevronLeft,
+	mdiChevronDoubleLeft,
+	mdiChevronDoubleRight,
 	mdiCogOutline,
 	mdiFileSearchOutline,
 	mdiHelpCircleOutline,
@@ -112,7 +113,14 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 						className={`transparent center ${styles.toggleButton}`}
 						onClick={() => handleToggleExpand()}
 						title="Expand/Collapse sidebar (Ctrl + \)">
-						<Icon path={mdiChevronLeft} size={1} />
+						<Icon
+							path={
+								isExpanded
+									? mdiChevronDoubleLeft
+									: mdiChevronDoubleRight
+							}
+							size={1}
+						/>
 					</button>
 				</div>
 
