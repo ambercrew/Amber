@@ -197,8 +197,14 @@ export default function FsrsDialog({ id, isFolder, name, onClose }: Props) {
 
 	return (
 		<>
-			<Dialog onHide={onClose} focusTrap className={styles.fsrsDialog}>
-				<Form onSubmit={e => void handleSubmit(e)}>
+			<Dialog
+				onHide={onClose}
+				focusTrap
+				className={styles.fsrsDialog}
+				fullScreenOnSmallDevices>
+				<Form
+					className={styles.form}
+					onSubmit={e => void handleSubmit(e)}>
 					<FormHeader
 						icon={mdiTuneVariant}
 						title={`FSRS profile for ${name}`}

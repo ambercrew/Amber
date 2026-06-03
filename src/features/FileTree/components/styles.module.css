@@ -158,6 +158,10 @@
 	}
 }
 
+.form {
+	height: 100%;
+}
+
 .fsrs-dialog {
 	width: 52rem;
 	display: flex;
