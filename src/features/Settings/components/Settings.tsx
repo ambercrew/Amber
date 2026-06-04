@@ -174,8 +174,7 @@ export default function Settings({ onClose }: Props) {
 		<Dialog
 			className={`${styles.box} ${isSmallScreen && styles.smallScreen}`}
 			onHide={onClose}
-			focusTrap={true}
-			fullScreenOnSmallDevices>
+			focusTrap={true}>
 			<SideBar
 				selectedTab={selectedTab}
 				onTabChange={handleTabChange}
