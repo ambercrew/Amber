@@ -942,7 +942,6 @@ describe("EditableCells logic", () => {
 		expect(draggableOutputs[2]).toStrictEqual({
 			id: "add-cell-container",
 			type: CELL_DROP_CONTAINER_TYPE,
-			disabled: false,
 			data: {
 				type: "add-cell-container",
 			} as CellDropContainerData,
