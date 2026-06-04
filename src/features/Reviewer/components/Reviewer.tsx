@@ -8,7 +8,7 @@ import createCardFromCellRepetition from "../utils/createCardFromRepetition";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import createRepetitionFromCard from "../utils/createRepetitionFromCard";
 import Timer from "./Timer";
-import { Navigate } from "react-router";
+import { useNavigate } from "react-router";
 import { getCellsForFilesWithFsrsProfileIds } from "../../../api/cells/api/cellApi";
 import gradeToRating from "../utils/gradeToRating";
 import { registerReview } from "../../../api/cells/api/reviewApi";
@@ -39,6 +39,7 @@ export interface RepetitionWithFsrsProfileId {
 }
 
 function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
+	const navigate = useNavigate();
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(true);
@@ -219,12 +220,10 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	const buttonRowRecordLog =
 		fsrs && fsrsCard ? fsrs.repeat(fsrsCard, currentReviewStartTime) : null;
 
+	if (!dueToday[currentCellIndex] && !isSendingRequest) void navigate(-1);
+
 	return (
 		<div className={`${styles.reviewer}`}>
-			{!dueToday[currentCellIndex] && !isSendingRequest && (
-				<Navigate replace to="/home" />
-			)}
-
 			<div className={styles.countRow}>
 				<div
 					className={`${styles.countBox} ${isCurrentCellNew ? styles.active : ""}`}>
