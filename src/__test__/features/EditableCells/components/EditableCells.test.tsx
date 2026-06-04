@@ -932,6 +932,7 @@ describe("EditableCells logic", () => {
 		expect(draggableOutputs[0]).toStrictEqual({
 			id: "droppable-1",
 			type: CELL_DROP_CONTAINER_TYPE,
+			disabled: false,
 			data: {
 				type: "cell",
 				cellId: "1",
@@ -941,6 +942,7 @@ describe("EditableCells logic", () => {
 		expect(draggableOutputs[2]).toStrictEqual({
 			id: "add-cell-container",
 			type: CELL_DROP_CONTAINER_TYPE,
+			disabled: false,
 			data: {
 				type: "add-cell-container",
 			} as CellDropContainerData,
