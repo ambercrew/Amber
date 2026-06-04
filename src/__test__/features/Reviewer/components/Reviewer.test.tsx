@@ -220,7 +220,7 @@ describe("Reviewer", () => {
 		);
 	});
 
-	it("Should navigate to home when reload returns no remaining cards", async () => {
+	it("Should navigate back when reload returns no remaining cards", async () => {
 		// Arrange
 
 		const repetition = makeRepetition({ id: "rep-1", cellId: "cell-1" });
@@ -244,6 +244,11 @@ describe("Reviewer", () => {
 				onEditButtonClick={vi.fn()}
 				callApi={callApiMock}
 			/>,
+			{
+				memoryRouterProps: {
+					initialEntries: ["/first", "/reviewer"],
+				},
+			},
 		);
 
 		// Act
@@ -253,7 +258,7 @@ describe("Reviewer", () => {
 
 		// Assert
 
-		expect(await getCurrentLocation()).toBe("/home");
+		expect(await getCurrentLocation()).toBe("/first");
 	});
 
 	it("Should advance to next card when not last repetition and under 1 minute", async () => {
