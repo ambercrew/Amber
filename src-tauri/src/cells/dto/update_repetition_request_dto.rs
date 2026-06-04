@@ -15,7 +15,7 @@ pub struct UpdateRepetitionRequestDto {
     pub due: DateTime<Utc>,
     pub stability: f64,
     pub difficulty: f64,
-    pub elapsed_days: i64,
+    pub learning_steps: i64,
     pub scheduled_days: i64,
     pub reps: i64,
     pub lapses: i64,
@@ -32,7 +32,7 @@ impl UpdateRepetitionRequestDto {
         repetition.due = self.due;
         repetition.stability = self.stability;
         repetition.difficulty = self.difficulty;
-        repetition.elapsed_days = self.elapsed_days;
+        repetition.learning_steps = self.learning_steps;
         repetition.scheduled_days = self.scheduled_days;
         repetition.reps = self.reps;
         repetition.lapses = self.lapses;

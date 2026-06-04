@@ -34,7 +34,7 @@ function RepetitionsInfo({ repetitions, cellType }: Props) {
 					<p>Due: {repetitionsInfoFormatDate(repetition.due)}</p>
 					<p>Stability: {repetition.stability.toFixed(1)}</p>
 					<p>Difficulty: {repetition.difficulty.toFixed(1)}</p>
-					<p>Elapsed days: {repetition.elapsedDays}</p>
+					<p>Learning steps: {repetition.learningSteps}</p>
 					<p>Scheduled days: {repetition.scheduledDays}</p>
 					<p>Reps: {repetition.reps}</p>
 					<p>Lapses: {repetition.lapses}</p>

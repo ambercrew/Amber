@@ -47,7 +47,7 @@ function makeRepetition(overrides: Partial<Repetition> = {}): Repetition {
 		scheduledDays: 0,
 		stability: 1,
 		difficulty: 5,
-		elapsedDays: 0,
+		learningSteps: 0,
 		lapses: 0,
 		additionalContent: "",
 		...overrides,
@@ -144,7 +144,7 @@ describe("Reviewer", () => {
 			cellId: "cell-1",
 			fileId: "file-1",
 			difficulty: 4,
-			elapsedDays: 8,
+			learningSteps: 8,
 			lapses: 8,
 			additionalContent: "",
 		};

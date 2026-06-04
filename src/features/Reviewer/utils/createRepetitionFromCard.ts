@@ -37,7 +37,7 @@ function createRepetitionFromCard(
 		stability: card.stability,
 		difficulty: card.difficulty,
 		lastReview: card.last_review?.toISOString() ?? null,
-		elapsedDays: card.elapsed_days,
+		learningSteps: card.learning_steps,
 		scheduledDays: card.scheduled_days,
 		additionalContent: additionalContent,
 	};

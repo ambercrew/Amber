@@ -24,7 +24,7 @@ pub struct Repetition {
     pub(in crate::cells) due: DateTime<Utc>,
     pub(in crate::cells) stability: f64,
     pub(in crate::cells) difficulty: f64,
-    pub(in crate::cells) elapsed_days: i64,
+    pub(in crate::cells) learning_steps: i64,
     pub(in crate::cells) scheduled_days: i64,
     pub(in crate::cells) reps: i64,
     pub(in crate::cells) lapses: i64,
@@ -44,7 +44,7 @@ impl Repetition {
         due: DateTime<Utc>,
         stability: f64,
         difficulty: f64,
-        elapsed_days: i64,
+        learning_steps: i64,
         scheduled_days: i64,
         reps: i64,
         lapses: i64,
@@ -61,7 +61,7 @@ impl Repetition {
             due,
             stability,
             difficulty,
-            elapsed_days,
+            learning_steps,
             scheduled_days,
             reps,
             lapses,
@@ -103,8 +103,8 @@ impl Repetition {
         self.difficulty
     }
 
-    pub fn elapsed_days(&self) -> i64 {
-        self.elapsed_days
+    pub fn learning_steps(&self) -> i64 {
+        self.learning_steps
     }
 
     pub fn scheduled_days(&self) -> i64 {
@@ -143,7 +143,7 @@ impl Default for Repetition {
             due: Utc::now().to_utc(),
             stability: Default::default(),
             difficulty: Default::default(),
-            elapsed_days: Default::default(),
+            learning_steps: Default::default(),
             scheduled_days: Default::default(),
             reps: Default::default(),
             lapses: Default::default(),

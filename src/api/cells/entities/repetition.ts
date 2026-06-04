@@ -7,7 +7,7 @@ export default interface Repetition {
 	due: string;
 	stability: number;
 	difficulty: number;
-	elapsedDays: number;
+	learningSteps: number;
 	scheduledDays: number;
 	reps: number;
 	lapses: number;

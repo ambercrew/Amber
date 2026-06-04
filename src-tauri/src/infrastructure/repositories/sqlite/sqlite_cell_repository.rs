@@ -58,7 +58,7 @@ impl CellRepository for SqliteCellRepository {
                 repetition.due as "repetition_due: _",
                 repetition.stability as "repetition_stability: _",
                 repetition.difficulty as "repetition_difficulty: _",
-                repetition.elapsed_days as "repetition_elapsed_days: _",
+                repetition.learning_steps as "repetition_learning_steps: _",
                 repetition.scheduled_days as "repetition_scheduled_days",
                 repetition.reps as "repetition_reps: _",
                 repetition.lapses as "repetition_lapses: _",
@@ -139,7 +139,7 @@ impl CellRepository for SqliteCellRepository {
                 repetition.due as "repetition_due: _",
                 repetition.stability as "repetition_stability: _",
                 repetition.difficulty as "repetition_difficulty: _",
-                repetition.elapsed_days as "repetition_elapsed_days: _",
+                repetition.learning_steps as "repetition_learning_steps: _",
                 repetition.scheduled_days as "repetition_scheduled_days",
                 repetition.reps as "repetition_reps: _",
                 repetition.lapses as "repetition_lapses: _",
@@ -188,7 +188,7 @@ impl CellRepository for SqliteCellRepository {
                 repetition.due as "repetition_due: _",
                 repetition.stability as "repetition_stability: _",
                 repetition.difficulty as "repetition_difficulty: _",
-                repetition.elapsed_days as "repetition_elapsed_days: _",
+                repetition.learning_steps as "repetition_learning_steps: _",
                 repetition.scheduled_days as "repetition_scheduled_days",
                 repetition.reps as "repetition_reps: _",
                 repetition.lapses as "repetition_lapses: _",
@@ -226,7 +226,7 @@ impl CellRepository for SqliteCellRepository {
                 due as "due: _",
                 stability as "stability: _",
                 difficulty as "difficulty: _",
-                elapsed_days as "elapsed_days: _",
+                learning_steps as "learning_steps: _",
                 scheduled_days as "scheduled_days",
                 reps as "reps: _",
                 lapses as "lapses: _",
@@ -406,7 +406,7 @@ impl CellRepository for SqliteCellRepository {
         let due = repetition.due();
         let stability = repetition.stability();
         let difficulty = repetition.difficulty();
-        let elapsed_days = repetition.elapsed_days();
+        let learning_steps = repetition.learning_steps();
         let scheduled_days = repetition.scheduled_days();
         let reps = repetition.reps();
         let lapses = repetition.lapses();
@@ -423,7 +423,7 @@ impl CellRepository for SqliteCellRepository {
                 due,
                 stability,
                 difficulty,
-                elapsed_days,
+                learning_steps,
                 scheduled_days,
                 reps,
                 lapses,
@@ -439,7 +439,7 @@ impl CellRepository for SqliteCellRepository {
                 due = $4,
                 stability = $5,
                 difficulty = $6,
-                elapsed_days = $7,
+                learning_steps = $7,
                 scheduled_days = $8,
                 reps = $9,
                 lapses = $10,
@@ -456,7 +456,7 @@ impl CellRepository for SqliteCellRepository {
             due,
             stability,
             difficulty,
-            elapsed_days,
+            learning_steps,
             scheduled_days,
             reps,
             lapses,
@@ -545,7 +545,7 @@ impl CellRepository for SqliteCellRepository {
                     repetition.due as "repetition_due: _",
                     repetition.stability as "repetition_stability: _",
                     repetition.difficulty as "repetition_difficulty: _",
-                    repetition.elapsed_days as "repetition_elapsed_days: _",
+                    repetition.learning_steps as "repetition_learning_steps: _",
                     repetition.scheduled_days as "repetition_scheduled_days",
                     repetition.reps as "repetition_reps: _",
                     repetition.lapses as "repetition_lapses: _",
@@ -582,7 +582,7 @@ impl CellRepository for SqliteCellRepository {
                     repetition.due as "repetition_due: _",
                     repetition.stability as "repetition_stability: _",
                     repetition.difficulty as "repetition_difficulty: _",
-                    repetition.elapsed_days as "repetition_elapsed_days: _",
+                    repetition.learning_steps as "repetition_learning_steps: _",
                     repetition.scheduled_days as "repetition_scheduled_days",
                     repetition.reps as "repetition_reps: _",
                     repetition.lapses as "repetition_lapses: _",
@@ -779,7 +779,7 @@ async fn upsert_repetitions(
         let due = repetition.due();
         let stability = repetition.stability();
         let difficulty = repetition.difficulty();
-        let elapsed_days = repetition.elapsed_days();
+        let learning_steps = repetition.learning_steps();
         let scheduled_days = repetition.scheduled_days();
         let reps = repetition.reps();
         let lapses = repetition.lapses();
@@ -798,7 +798,7 @@ async fn upsert_repetitions(
                 due,
                 stability,
                 difficulty,
-                elapsed_days,
+                learning_steps,
                 scheduled_days,
                 reps,
                 lapses,
@@ -814,7 +814,7 @@ async fn upsert_repetitions(
                 due = $6,
                 stability = $7,
                 difficulty = $8,
-                elapsed_days = $9,
+                learning_steps = $9,
                 scheduled_days = $10,
                 reps = $11,
                 lapses = $12,
@@ -830,7 +830,7 @@ async fn upsert_repetitions(
             due,
             stability,
             difficulty,
-            elapsed_days,
+            learning_steps,
             scheduled_days,
             reps,
             lapses,

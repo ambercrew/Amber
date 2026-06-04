@@ -42,7 +42,7 @@ message Repetition {
   google.protobuf.Timestamp due = 4;
   double stability = 5;
   double difficulty = 6;
-  int64 elapsed_days = 7;
+  int64 learning_steps = 7;
   int64 scheduled_days = 8;
   int64 reps = 9;
   int64 lapses = 10;

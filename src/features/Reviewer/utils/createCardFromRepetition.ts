@@ -7,7 +7,7 @@ function createCardFromRepetition(repetition: Repetition): Card {
 	card.reps = repetition.reps;
 	card.lapses = repetition.lapses;
 	card.difficulty = repetition.difficulty;
-	card.elapsed_days = repetition.elapsedDays;
+	card.learning_steps = repetition.learningSteps;
 	card.last_review = repetition.lastReview
 		? new Date(repetition.lastReview)
 		: undefined;
