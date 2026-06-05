@@ -3,7 +3,6 @@
 }
 
 .question-section {
-	background-color: var(--surface-background-color);
 	border-bottom: var(--default-border-width) solid var(--border-color);
 }
 
