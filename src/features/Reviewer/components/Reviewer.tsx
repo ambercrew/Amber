@@ -255,6 +255,18 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 			</div>
 
 			<div className={styles.studyBox}>
+				<button
+					className={`row transparent ${styles.editButton}`}
+					onClick={() =>
+						onEditButtonClick(
+							dueToday[currentCellIndex].repetition.fileId,
+							dueToday[currentCellIndex].repetition.cellId,
+						)
+					}
+					title="Edit cell (e)">
+					<Icon path={mdiPencilOutline} size={1.2} />
+				</button>
+
 				<div className={styles.studyContent}>
 					{dueToday[currentCellIndex] && (
 						<ReviewerCell
@@ -279,21 +291,6 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 							key={dueToday[currentCellIndex]?.repetition.id ?? 0}
 							onTimeUpdate={handleTimeUpdate}
 						/>
-
-						<button
-							className={`row transparent ${styles.transparent}`}
-							onClick={() =>
-								onEditButtonClick(
-									dueToday[currentCellIndex].repetition
-										.fileId,
-									dueToday[currentCellIndex].repetition
-										.cellId,
-								)
-							}
-							title="(e)">
-							<Icon path={mdiPencilOutline} size={1} />
-							<span>Edit</span>
-						</button>
 					</div>
 
 					<div className={styles.footerRight}>

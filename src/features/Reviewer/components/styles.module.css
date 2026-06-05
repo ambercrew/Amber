@@ -14,7 +14,6 @@
 
 .count-row {
 	display: flex;
-	margin-bottom: var(--spacing-4);
 }
 
 .count-box {
@@ -25,17 +24,16 @@
 	padding: var(--spacing-4);
 	background-color: var(--surface-background-color-tint-10);
 	border: var(--default-border-width) solid var(--border-color);
+	border-bottom: none;
 	text-align: center;
 
 	&:first-child {
 		border-top-left-radius: var(--default-border-radius);
-		border-bottom-left-radius: var(--default-border-radius);
 		border-right: none;
 	}
 
 	&:last-child {
 		border-top-right-radius: var(--default-border-radius);
-		border-bottom-right-radius: var(--default-border-radius);
 		border-left: none;
 	}
 
@@ -64,7 +62,7 @@
 	background-color: var(--surface-background-color-tint-10);
 	height: 52rem;
 	max-height: 80vh;
-	border-radius: var(--default-border-radius);
+	border-radius: 0 0 var(--default-border-radius) var(--default-border-radius);
 	border: var(--default-border-width) solid var(--border-color);
 	overflow: hidden;
 	position: relative;
@@ -112,14 +110,20 @@
 	}
 }
 
+.edit-button {
+	position: absolute;
+	top: var(--spacing-3);
+	right: var(--spacing-3);
+	z-index: 1;
+	gap: var(--spacing-2);
+	padding: var(--spacing-3);
+	border: var(--default-border-width) solid var(--border-color);
+	background-color: var(--surface-background-color-tint-10);
+}
+
 .footer-left {
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-5);
-
-	& button {
-		gap: var(--spacing-3);
-	}
 
 	& .timer-container {
 		& * {
@@ -196,9 +200,10 @@ button.transparent {
 	}
 
 	.study-footer {
-		flex-direction: column;
+		flex-direction: column-reverse;
 		padding: var(--spacing-3) var(--spacing-5);
 		align-items: stretch;
+		gap: var(--spacing-3);
 	}
 
 	.footer-left {
