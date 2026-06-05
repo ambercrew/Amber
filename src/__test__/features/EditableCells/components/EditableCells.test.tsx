@@ -486,7 +486,8 @@ describe("Scrolling", () => {
 
 		// Act
 
-		await userEvent.click(screen.getByTitle("Delete cell (Alt + Del)"));
+		await userEvent.click(screen.getByTitle("Actions"));
+		await userEvent.click(screen.getByText("Delete cell"));
 		await userEvent.click(screen.getByText("Yes"));
 
 		// Assert
@@ -738,7 +739,8 @@ describe("EditableCells logic", () => {
 
 		// Act
 
-		await userEvent.click(screen.getByTitle("Delete cell (Alt + Del)"));
+		await userEvent.click(screen.getByTitle("Actions"));
+		await userEvent.click(screen.getByText("Delete cell"));
 		await userEvent.click(screen.getByText("Yes"));
 
 		// Assert
@@ -767,9 +769,8 @@ describe("EditableCells logic", () => {
 
 		// Act
 
-		await userEvent.click(
-			screen.getByTitle("Insert Cell (Ctrl + Shift + Enter)"),
-		);
+		await userEvent.click(screen.getByTitle("Actions"));
+		await userEvent.click(screen.getByText("Insert cell below"));
 		await userEvent.click(screen.getByText("True/False"));
 
 		// Assert

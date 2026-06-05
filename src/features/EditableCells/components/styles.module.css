@@ -6,7 +6,7 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.5rem;
+	gap: var(--spacing-3);
 	width: 100%;
 
 	&.syncing {
@@ -65,29 +65,41 @@
 }
 
 .cell-block {
-	padding: var(--spacing-4);
 	border-radius: var(--default-border-radius);
-	border: var(--default-border-width) solid transparent;
+	border: var(--default-border-width) solid var(--border-color);
 	position: relative;
 	width: 100%;
 	background-color: var(--default-background-color);
 
 	&:hover {
-		border-color: var(--border-color);
+		border-color: var(--hover-border-color);
+	}
+
+	.header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-1) var(--spacing-4);
+		/* Important so that header always have the same height. */
+		height: 4.5rem;
+
+		gap: var(--spacing-2);
+		border-bottom: var(--default-border-width) solid var(--border-color);
+
+		border-top-left-radius: var(--default-border-radius);
+		border-top-right-radius: var(--default-border-radius);
+	}
+
+	.main-content {
+		padding: var(--spacing-3);
 	}
 
 	& .focus-tools {
-		position: absolute;
+		position: relative;
+		display: flex;
 		align-items: center;
 		justify-content: center;
-		background-color: var(--surface-background-color-tint-10);
-		z-index: 2;
-		right: 1.2rem;
-		top: 0;
-		border-radius: var(--default-border-radius);
-		box-shadow: var(--default-box-shadow);
-		transform: translateY(-20%);
-		display: flex;
+		gap: var(--spacing-1);
 	}
 
 	& .delete * {
@@ -96,18 +108,6 @@
 
 	& .drag {
 		cursor: grab;
-	}
-
-	& .drag:hover {
-		background-color: var(--surface-background-color);
-	}
-
-	& .insert-cell-popup {
-		position: absolute;
-		top: 42px;
-		right: 1.2rem;
-		z-index: 3;
-		max-width: 24rem;
 	}
 
 	&.selected-cell {
@@ -120,20 +120,56 @@
 	}
 
 	& .cell-title {
-		font-size: 1.2rem;
 		text-transform: capitalize;
-		padding: var(--spacing-4);
 		border-radius: var(--default-border-radius);
-		background-color: var(--primary-color);
-		display: inline-flex;
-		gap: 4px;
+		display: flex;
 		align-items: center;
-		margin-bottom: var(--spacing-4);
+		justify-content: center;
+		gap: var(--spacing-2);
 
 		& * {
-			color: #fff;
 			font-weight: 400;
 		}
+
+		& .icon {
+			color: var(--primary-color);
+		}
+	}
+
+	& .focus-tools-actions-menu {
+		right: 0;
+	}
+
+	& .focus-tools-actions-menu,
+	& .insert-cell-popup,
+	& .repetitions-info-container {
+		width: 28rem;
+		max-width: 70vw;
+	}
+
+	& .repetitions-info-container {
+		cursor: auto;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		align-items: start;
+		border-radius: var(--default-border-radius);
+		text-align: left;
+
+		padding: var(--spacing-4);
+		background-color: var(--default-background-color);
+		box-shadow: var(--default-box-shadow);
+		font-size: 1.4rem;
+		line-height: 1.5;
+		padding: var(--spacing-5);
+	}
+
+	& .repetitions-info-container,
+	& .insert-cell-popup {
+		position: absolute;
+		top: calc(100% + 4px);
+		right: 0;
+		z-index: 4;
 	}
 }
 
@@ -146,27 +182,4 @@
 	& * {
 		pointer-events: none;
 	}
-}
-
-.repetitions-info-container {
-	position: absolute;
-	cursor: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	align-items: start;
-	width: 26rem;
-	border-radius: var(--default-border-radius);
-	text-align: left;
-
-	padding: var(--spacing-4);
-	background-color: var(--default-background-color);
-	box-shadow: var(--default-box-shadow);
-	font-size: 1.4rem;
-	line-height: 1.5;
-
-	top: calc(100% + 4px);
-	right: 0;
-	z-index: 1;
-	padding: var(--spacing-5);
 }

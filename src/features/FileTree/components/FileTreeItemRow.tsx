@@ -3,8 +3,9 @@ import styles from "./styles.module.css";
 import { mdiDotsHorizontal } from "@mdi/js";
 import getFileTreeIconPath from "../utils/getFileTreeIconPath";
 import getFileIconClass from "../../../utils/getFileIconClass";
-import ActionsMenu from "./ActionsMenu";
-import { Action } from "../types/action";
+import ActionsMenu, {
+	Action,
+} from "../../../components/ActionsMenu/ActionsMenu";
 import getFileName from "../utils/getFileName";
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
 import {
@@ -196,7 +197,8 @@ export default function FileTreeItemRow({
 			{showActions && (
 				<ActionsMenu
 					actions={actions}
-					fileTreeItemRowContainer={containerRef}
+					containerRef={containerRef}
+					className={styles.fileTreeActionsMenu}
 				/>
 			)}
 		</>

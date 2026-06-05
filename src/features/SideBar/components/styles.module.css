@@ -47,11 +47,6 @@
 		}
 	}
 
-	& .toggle-button {
-		padding-right: var(--sidebar-inner-horizontal-padding);
-		padding-left: var(--sidebar-inner-horizontal-padding);
-	}
-
 	& .title-row {
 		display: flex;
 		align-items: center;
@@ -84,12 +79,16 @@
 
 			& .row {
 				justify-content: center;
-				padding: var(--spacing-4) var(--spacing-3);
 
 				& p {
 					display: none;
 				}
 			}
+		}
+
+		.toggle-button,
+		.row {
+			padding: var(--spacing-4) var(--spacing-3);
 		}
 
 		& .bottom-button p {

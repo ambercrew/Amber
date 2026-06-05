@@ -13,7 +13,7 @@ import {
 	mdiTuneVariant,
 } from "@mdi/js";
 import React, { useEffect, useImperativeHandle, useRef, useState } from "react";
-import { Action } from "../types/action.ts";
+import { Action } from "../../../components/ActionsMenu/ActionsMenu";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
 import {
 	deleteFile,

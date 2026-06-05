@@ -1,0 +1,28 @@
+.actions-menu {
+	position: absolute;
+	padding: var(--spacing-4);
+	border-radius: var(--default-border-radius);
+	background-color: var(--default-background-color);
+	box-shadow: var(--default-box-shadow);
+	display: grid;
+	flex-direction: column;
+	z-index: 1;
+	gap: var(--spacing-1);
+	overflow-x: auto;
+
+	& button {
+		text-align: left;
+		display: grid;
+		grid-template-columns: 1.2rem 2fr 1fr;
+		gap: var(--spacing-5);
+		align-items: center;
+		justify-content: center;
+
+		& * {
+			text-overflow: ellipsis;
+			overflow: hidden;
+			white-space: nowrap;
+			font-size: 1.4rem;
+		}
+	}
+}

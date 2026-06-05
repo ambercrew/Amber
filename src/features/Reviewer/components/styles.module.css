@@ -187,7 +187,6 @@ button.transparent {
 @media (max-width: 62rem) {
 	.reviewer {
 		height: 100%;
-		padding: var(--spacing-5);
 
 		& .study-box {
 			flex: 1;

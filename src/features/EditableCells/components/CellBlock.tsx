@@ -1,5 +1,5 @@
 import styles from "./styles.module.css";
-import { ForwardedRef, forwardRef, useEffect, useRef, useState } from "react";
+import { ForwardedRef, forwardRef, useRef, useState } from "react";
 import Cell, {
 	CellType,
 	cellTypesDisplayNames,
@@ -9,7 +9,6 @@ import getCellIcon from "../../../utils/getCellIcon";
 import { Icon } from "@mdi/react";
 import FocusTools from "./FocusTools";
 import Repetition from "../../../api/cells/entities/repetition";
-import NewCellTypeSelector from "./NewCellTypeSelector";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { isModKey } from "../../../utils/keyboardUtils";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -23,6 +22,7 @@ import CellDropContainerData, {
 import mergeRefs from "../../../utils/mergeRefs";
 import { Feedback } from "@dnd-kit/dom";
 import { CallApiFn } from "../../../hooks/useApi";
+import { mdiDrag } from "@mdi/js";
 
 interface Props {
 	cell: Cell;
@@ -62,7 +62,6 @@ function CellBlock(
 	}: Props,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
-	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	const [previousIsSelected, setPreviousIsSelected] = useState<
 		boolean | null
 	>(null);
@@ -91,12 +90,7 @@ function CellBlock(
 
 	useGlobalKey(
 		e => {
-			if (isModKey(e) && e.shiftKey && e.key === "Enter") {
-				if (isSelected) {
-					e.stopPropagation();
-					setShowInsertNewCell(!showInsertNewCell);
-				}
-			} else if (isModKey(e) && e.key === " ") {
+			if (isModKey(e) && e.key === " ") {
 				if (isSelected) editorRef.current?.focus();
 			}
 		},
@@ -106,28 +100,13 @@ function CellBlock(
 
 	if (previousIsSelected !== isSelected) {
 		setPreviousIsSelected(isSelected);
-		setShowInsertNewCell(false);
 	}
-
-	useEffect(() => {
-		if (!showInsertNewCell && editorRef.current) editorRef.current.focus();
-	}, [showInsertNewCell]);
-
-	const handleFocusToolsInsertNewCellClick = () => {
-		setShowInsertNewCell(!showInsertNewCell);
-		if (showInsertNewCell) editorRef.current?.focus();
-	};
 
 	const handleClick = () => {
 		if (isSelected && editorRef.current) {
 			editorRef.current.focus();
 		}
 		onClick(cell.id);
-	};
-
-	const handleInsertNewCell = (cellType: CellType) => {
-		setShowInsertNewCell(false);
-		onInsertNewCell(cellType);
 	};
 
 	return (
@@ -146,46 +125,50 @@ function CellBlock(
                 ${isSelected ? styles.selectedCell : ""}
                 ${isDropTarget ? styles.dragOver : ""}
                 ${isDragging ? styles.dragging : ""}`}>
-			{isSelected && (
-				<FocusTools
-					onInsertClick={handleFocusToolsInsertNewCellClick}
-					cell={cell}
-					repetitions={repetitions}
-					onShowRepetitionsInfo={() => setShowInsertNewCell(false)}
-					onResetRepetitions={onResetRepetitions}
-					callApi={callApi}
-					onCellDeleteConfirm={onDelete}
-					fileMode={fileMode}
-					setHandleDragRef={setHandleDragRef}
-					enableFileSpecificFunctionality={
-						enableFileSpecificFunctionality
-					}
-					onEditButtonClick={onEditButtonClick}
-				/>
-			)}
+			<div className={styles.header}>
+				<div className={styles.cellTitle}>
+					{enableFileSpecificFunctionality && (
+						<button
+							ref={setHandleDragRef}
+							className={`transparent ${styles.drag}`}>
+							<Icon path={mdiDrag} size={1} />
+						</button>
+					)}
 
-			{showInsertNewCell &&
-				enableFileSpecificFunctionality &&
-				isSelected && (
-					<NewCellTypeSelector
-						className={styles.insertCellPopup}
-						onClick={handleInsertNewCell}
-						onHide={() => setShowInsertNewCell(false)}
+					<Icon
+						className={styles.icon}
+						path={getCellIcon(cell.cellType)}
+						size={1}
+					/>
+					<span>{cellTypesDisplayNames[cell.cellType]}</span>
+				</div>
+
+				{isSelected && (
+					<FocusTools
+						cell={cell}
+						repetitions={repetitions}
+						onResetRepetitions={onResetRepetitions}
+						callApi={callApi}
+						onCellDeleteConfirm={onDelete}
+						fileMode={fileMode}
+						enableFileSpecificFunctionality={
+							enableFileSpecificFunctionality
+						}
+						onEditButtonClick={onEditButtonClick}
+						onInsertNewCell={onInsertNewCell}
 					/>
 				)}
-
-			<div className={styles.cellTitle}>
-				<Icon path={getCellIcon(cell.cellType)} size={1} />
-				<span>{cellTypesDisplayNames[cell.cellType]}</span>
 			</div>
 
-			<EditableCell
-				cell={cell}
-				autofocus={(autoFocusEditor ?? false) && !isSyncing}
-				onChange={onChange}
-				onFocus={editor => (editorRef.current = editor)}
-				eagerLoadRichTextEditor={eagerLoadRichTextEditor}
-			/>
+			<div className={styles.mainContent}>
+				<EditableCell
+					cell={cell}
+					autofocus={(autoFocusEditor ?? false) && !isSyncing}
+					onChange={onChange}
+					onFocus={editor => (editorRef.current = editor)}
+					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
+				/>
+			</div>
 		</div>
 	);
 }

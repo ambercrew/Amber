@@ -6,11 +6,11 @@
 }
 
 .editor {
-	padding: var(--spacing-5);
+	padding: var(--spacing-4);
 }
 
 .title-bar {
-	padding: var(--spacing-4) var(--spacing-6);
+	padding: var(--spacing-3) var(--spacing-5);
 	background-color: var(--default-background-color);
 	position: sticky;
 	top: 0;

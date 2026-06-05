@@ -1,6 +1,6 @@
 import {
 	mdiDeleteOutline,
-	mdiDrag,
+	mdiDotsVertical,
 	mdiInformationOutline,
 	mdiPencilOutline,
 	mdiPlus,
@@ -9,7 +9,7 @@ import {
 import styles from "./styles.module.css";
 import { Icon } from "@mdi/react";
 import Repetition from "../../../api/cells/entities/repetition";
-import Cell from "../../../api/cells/entities/cell";
+import Cell, { CellType } from "../../../api/cells/entities/cell";
 import { useRef, useState } from "react";
 import useOutsideClick from "../../../hooks/useOutsideClick";
 import ConfirmationDialog from "../../../components/ConfirmationDialog/ConfirmationDialog";
@@ -17,6 +17,11 @@ import { resetRepetitionsForCell } from "../../../api/cells/api/repetitionApi";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import RepetitionsInfo from "./RepetitionsInfo";
 import { CallApiFn } from "../../../hooks/useApi";
+import ActionsMenu, {
+	Action,
+} from "../../../components/ActionsMenu/ActionsMenu";
+import { isModKey } from "../../../utils/keyboardUtils";
+import NewCellTypeSelector from "./NewCellTypeSelector";
 
 interface Props {
 	repetitions: Repetition[];
@@ -24,11 +29,9 @@ interface Props {
 	enableFileSpecificFunctionality: boolean;
 	fileMode: "single" | "global search";
 	callApi: CallApiFn;
-	setHandleDragRef: (element: Element | null) => void;
-	onInsertClick: (e: React.MouseEvent) => void;
-	onShowRepetitionsInfo: () => void;
 	onResetRepetitions: () => void;
 	onCellDeleteConfirm: () => void;
+	onInsertNewCell: (cellType: CellType) => void;
 	onEditButtonClick?: (fileId: string, cellId: string) => void;
 }
 
@@ -38,33 +41,36 @@ function FocusTools({
 	enableFileSpecificFunctionality,
 	fileMode,
 	callApi,
-	setHandleDragRef,
-	onInsertClick,
-	onShowRepetitionsInfo,
 	onResetRepetitions,
 	onCellDeleteConfirm,
+	onInsertNewCell,
 	onEditButtonClick,
 }: Props) {
+	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	const [showRepetitionsInfo, setShowRepetitionsInfo] = useState(false);
 	const [showResetRepetitionsDialog, setShowResetRepetitionsDialog] =
 		useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-	const repetitionsInfoRef = useRef<HTMLButtonElement>(null);
+	const [showActionsMenu, setShowActionsMenu] = useState(false);
+	const focusToolsRef = useRef<HTMLDivElement>(null);
 
-	useOutsideClick(repetitionsInfoRef as React.RefObject<HTMLElement>, () =>
-		setShowRepetitionsInfo(false),
-	);
-
-	const hideDeleteDialog = () => {
-		setShowDeleteDialog(false);
+	const hideAllPopups = () => {
+		setShowRepetitionsInfo(false);
+		setShowActionsMenu(false);
+		setShowResetRepetitionsDialog(false);
+		setShowInsertNewCell(false);
 	};
 
+	useOutsideClick(focusToolsRef as React.RefObject<HTMLElement>, () => {
+		hideAllPopups();
+	});
+
+	const hideDeleteDialog = () => setShowDeleteDialog(false);
+	const closeMenu = () => setShowActionsMenu(false);
+
 	const handleShowRepetitionsInfoClick = () => {
-		setShowRepetitionsInfo(value => !value);
-		if (!showRepetitionsInfo) {
-			hideDeleteDialog();
-			onShowRepetitionsInfo();
-		}
+		hideAllPopups();
+		setShowRepetitionsInfo(true);
 	};
 
 	const handleResetRepetitionsConfirm = async () => {
@@ -84,12 +90,76 @@ function FocusTools({
 		if (e.altKey && e.key === "Delete") {
 			setShowDeleteDialog(true);
 		} else if (e.key === "Escape") {
-			setShowRepetitionsInfo(false);
+			hideAllPopups();
+		} else if (isModKey(e) && e.shiftKey && e.key === "Enter") {
+			e.stopPropagation();
+			setShowInsertNewCell(!showInsertNewCell);
 		}
 	});
 
-	const handleEditInFileClick = () => {
-		if (onEditButtonClick) onEditButtonClick(cell.fileId, cell.id);
+	const actions: Action[] = [];
+
+	if (fileMode === "global search") {
+		actions.push({
+			iconName: mdiPencilOutline,
+			text: "Edit in file",
+			onClick: () => {
+				if (onEditButtonClick) onEditButtonClick(cell.fileId, cell.id);
+				closeMenu();
+			},
+		});
+	}
+
+	if (enableFileSpecificFunctionality) {
+		actions.push({
+			iconName: mdiPlus,
+			text: "Insert cell below",
+			shortcut: "Ctrl + Shift + Enter",
+			onClick: () => {
+				setShowInsertNewCell(true);
+				setShowRepetitionsInfo(false);
+				closeMenu();
+			},
+		});
+	}
+
+	if (cell.cellType !== "Note") {
+		actions.push({
+			iconName: mdiRestore,
+			text: "Reset repetitions",
+			onClick: () => {
+				setShowResetRepetitionsDialog(true);
+				closeMenu();
+			},
+		});
+
+		if (repetitions.length > 0) {
+			actions.push({
+				iconName: mdiInformationOutline,
+				text: "Show repetitions info",
+				onClick: handleShowRepetitionsInfoClick,
+			});
+		}
+	}
+
+	actions.push({
+		iconName: mdiDeleteOutline,
+		text: "Delete cell",
+		shortcut: "Alt + Del",
+		onClick: () => {
+			setShowDeleteDialog(true);
+			closeMenu();
+		},
+	});
+
+	const handleToggleFocusTools = () => {
+		hideAllPopups();
+		setShowActionsMenu(!showActionsMenu);
+	};
+
+	const handleInsertNewCell = (cellType: CellType) => {
+		hideAllPopups();
+		onInsertNewCell(cellType);
 	};
 
 	return (
@@ -116,78 +186,35 @@ function FocusTools({
 
 			<div
 				className={styles.focusTools}
+				ref={focusToolsRef}
 				onClick={e => e.stopPropagation()}>
-				{fileMode === "global search" && (
-					<button
-						className="transparent"
-						title="Edit in file"
-						onClick={handleEditInFileClick}>
-						<Icon path={mdiPencilOutline} size={1} />
-					</button>
-				)}
-
-				{enableFileSpecificFunctionality && (
-					<button
-						className="transparent"
-						title="Insert Cell (Ctrl + Shift + Enter)"
-						onClick={e => {
-							onInsertClick(e);
-							setShowRepetitionsInfo(false);
-						}}
-						onMouseDown={e => e.stopPropagation()}>
-						<Icon path={mdiPlus} size={1} />
-					</button>
-				)}
-
-				{cell.cellType !== "Note" && (
-					<>
-						<button
-							className="transparent"
-							title="Reset all repetitions for this cells"
-							onClick={() => setShowResetRepetitionsDialog(true)}>
-							<Icon path={mdiRestore} size={1} />
-						</button>
-
-						{repetitions.length > 0 && (
-							<>
-								<button
-									className={`transparent`}
-									title="Show repetitions info"
-									ref={repetitionsInfoRef}
-									onClick={() =>
-										handleShowRepetitionsInfoClick()
-									}>
-									<Icon
-										path={mdiInformationOutline}
-										size={1}
-									/>
-								</button>
-								{showRepetitionsInfo && (
-									<RepetitionsInfo
-										repetitions={repetitions}
-										cellType={cell.cellType}
-									/>
-								)}
-							</>
-						)}
-					</>
-				)}
-
 				<button
-					className={`transparent ${styles.delete}`}
-					title="Delete cell (Alt + Del)"
-					onClick={() => setShowDeleteDialog(true)}>
-					<Icon path={mdiDeleteOutline} size={1} />
+					className="transparent"
+					title="Actions"
+					onClick={handleToggleFocusTools}>
+					<Icon path={mdiDotsVertical} size={1} />
 				</button>
 
-				{enableFileSpecificFunctionality && (
-					<button
-						tabIndex={-1}
-						className={styles.drag}
-						title="Drag cell"
-						ref={setHandleDragRef}>
-						<Icon path={mdiDrag} size={1} />
-					</button>
+				{showInsertNewCell && enableFileSpecificFunctionality && (
+					<NewCellTypeSelector
+						className={styles.insertCellPopup}
+						onClick={handleInsertNewCell}
+						onHide={() => setShowInsertNewCell(false)}
+					/>
+				)}
+
+				{showRepetitionsInfo && (
+					<RepetitionsInfo
+						repetitions={repetitions}
+						cellType={cell.cellType}
+					/>
+				)}
+				{showActionsMenu && (
+					<ActionsMenu
+						actions={actions}
+						containerRef={focusToolsRef}
+						className={styles.focusToolsActionsMenu}
+					/>
 				)}
 			</div>
 		</>
