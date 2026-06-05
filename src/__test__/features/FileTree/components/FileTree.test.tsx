@@ -176,7 +176,7 @@ describe("FileTree", () => {
 			type: FILE_ITEM_DROP_CONTAINER_TYPE,
 			disabled: true,
 			collisionDetector: pointerIntersection,
-			collisionPriority: 0,
+			collisionPriority: 1,
 			data: {
 				itemId: ROOT_FOLDER_ID,
 				isFolder: true,
@@ -188,7 +188,7 @@ describe("FileTree", () => {
 			type: FILE_ITEM_DROP_CONTAINER_TYPE,
 			disabled: true,
 			collisionDetector: pointerIntersection,
-			collisionPriority: 1,
+			collisionPriority: 2,
 			data: {
 				itemId: "1",
 				isFolder: true,
