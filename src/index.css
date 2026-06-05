@@ -49,7 +49,7 @@ body {
 	--hover-border-color: var(--surface-background-color-shade-20);
 
 	--surface-background-color-tint-10: rgb(250, 250, 250);
-	--surface-background-color: #e6e9ec;
+	--surface-background-color: rgb(235, 235, 235);
 	--surface-background-color-shade-10: #c9d0d6;
 	--surface-background-color-shade-20: #acb6c0;
 	--surface-background-color-shade-30: #8f9caa;
