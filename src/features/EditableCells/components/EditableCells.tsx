@@ -105,8 +105,6 @@ function EditableCells({
 	);
 	if (selectedCellIndex === -1) selectedCellIndex = null;
 
-	// TODO: drag and drop between files not working properly
-
 	const scrollToCurrentCell = useCallback(() => {
 		if (
 			!selectedCellRef.current ||

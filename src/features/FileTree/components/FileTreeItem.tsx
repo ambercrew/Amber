@@ -102,7 +102,8 @@ function FileTreeItem({ folder, fullPath, id, ref, depth, onDelete }: Props) {
 			// And when the dragged item is not a cell
 			(folder !== null || source?.type !== DRAGGED_CELL_TYPE),
 		collisionDetector: pointerIntersection,
-		collisionPriority: depth,
+		// +1 to outrank the default cell droppables.
+		collisionPriority: depth + 1,
 		data: { itemId: id, isFolder: !!folder } as FileItemDropContainerData,
 	});
 
