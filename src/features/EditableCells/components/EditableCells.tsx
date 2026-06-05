@@ -368,9 +368,10 @@ function EditableCells({
 						onFocus={() => setSelectedCellId(cell.id)}
 						onClick={() => setSelectedCellId(cell.id)}
 						callApi={callApi}
-						onChange={content =>
-							onCellContentUpdate(cell.id, content)
-						}
+						onChange={content => {
+							onCellContentUpdate(cell.id, content);
+							scrollToCurrentCell();
+						}}
 						onDelete={() => void handleCellDeleteConfirm()}
 						onInsertNewCell={cellType =>
 							void insertNewCell(cellType, i + 1)
