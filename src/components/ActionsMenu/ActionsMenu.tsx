@@ -1,6 +1,6 @@
 import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
-import React, { act, RefObject, useLayoutEffect, useRef } from "react";
+import React, { RefObject, useLayoutEffect, useRef } from "react";
 
 export interface Action {
 	iconName: string;
