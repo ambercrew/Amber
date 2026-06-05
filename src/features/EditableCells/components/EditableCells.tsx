@@ -29,6 +29,10 @@ import CellDropContainerData, {
 } from "../types/cellDropContainerData";
 import { CallApiFn } from "../../../hooks/useApi";
 import { TOOL_CALL_ACCEPTED_EVENT } from "../../../types/events/toolCallAcceptedEvent";
+import {
+	CELL_MOVED_TO_FILE,
+	CellMovedToFilePayload,
+} from "../../../types/events/cellMovedToFileEvent";
 
 /** Used to say how many cells are always eagerly loaded from the current
  * selected cell.
@@ -77,8 +81,6 @@ function EditableCells({
 	const dispatch = useAppDispatch();
 	const enableFileSpecificFunctionality =
 		fileMode === "single" && !searchText;
-	const [lastValidSelectedCellIndex, setLastValidSelectedCellIndex] =
-		useState<number | null>(null);
 	const [toolCallRevision, setToolCallRevision] = useState(0);
 
 	// Ensuring that a cell is selected at start.
@@ -103,24 +105,7 @@ function EditableCells({
 	);
 	if (selectedCellIndex === -1) selectedCellIndex = null;
 
-	if (selectedCellId !== null && !cells.some(c => c.id === selectedCellId)) {
-		if (cells.length === 0) {
-			setSelectedCellId(null);
-		} else {
-			let newSelectedCellIdIndex =
-				Math.min(
-					lastValidSelectedCellIndex ?? cells.length,
-					cells.length,
-				) - 1;
-			newSelectedCellIdIndex = Math.max(0, newSelectedCellIdIndex);
-			setSelectedCellId(cells[newSelectedCellIdIndex].id);
-		}
-	} else if (
-		selectedCellIndex !== null &&
-		selectedCellIndex !== lastValidSelectedCellIndex
-	) {
-		setLastValidSelectedCellIndex(selectedCellIndex);
-	}
+	// TODO: drag and drop between files not working properly
 
 	const scrollToCurrentCell = useCallback(() => {
 		if (
@@ -287,11 +272,29 @@ function EditableCells({
 		setSelectedCellId(cellId);
 	};
 
+	const selectPreviousCell = useCallback(() => {
+		scrollToSelectedCellOnNextRender.current = true;
+		const currentIndex = cells.findIndex(c => c.id === selectedCellId);
+		const newSelectedId =
+			currentIndex > 0 ? cells[currentIndex - 1].id : null;
+		if (newSelectedId) setSelectedCellId(newSelectedId);
+	}, [cells, selectedCellId]);
+
+	useEffect(() => {
+		const cb = (e: CustomEvent<CellMovedToFilePayload>) => {
+			const { cellId } = e.detail;
+			if (cellId !== selectedCellId) return;
+			selectPreviousCell();
+		};
+		window.addEventListener(CELL_MOVED_TO_FILE, cb);
+		return () => window.removeEventListener(CELL_MOVED_TO_FILE, cb);
+	}, [selectedCellId, selectPreviousCell]);
+
 	const handleCellDeleteConfirm = async () => {
 		ignoreCell(selectedCellId!);
 		await callApi(async () => await deleteCell(selectedCellId!));
-		scrollToSelectedCellOnNextRender.current = true;
 		await saveChanges();
+		selectPreviousCell();
 	};
 
 	useDragDropMonitor({

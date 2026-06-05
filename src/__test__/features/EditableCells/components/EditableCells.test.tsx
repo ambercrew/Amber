@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import EditableCells from "../../../../features/EditableCells/components/EditableCells";
 import createDefaultCellDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto.ts";
 import Cell from "../../../../api/cells/entities/cell.ts";
@@ -30,6 +30,10 @@ import DraggedCellData, {
 import { DragDropEventHandlers } from "@dnd-kit/react";
 import { Feedback } from "@dnd-kit/dom";
 import callApiMock from "../../../test-utils/callApiMock.ts";
+import {
+	CELL_MOVED_TO_FILE,
+	CellMovedToFilePayload,
+} from "../../../../types/events/cellMovedToFileEvent.ts";
 
 vi.mock(import("../../../../managers/closeRequestedEventManager"));
 vi.mock(import("../../../../api/cells/api/cellApi.ts"));
@@ -947,5 +951,58 @@ describe("EditableCells logic", () => {
 				type: "add-cell-container",
 			} as CellDropContainerData,
 		});
+	});
+
+	it("Should select previous cell when selected cell is moved to another file", async () => {
+		// Arrange
+
+		const { saveChangesMock } = renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "2",
+			onCellsUpdateSave: () => [createTestCell(1), createTestCell(3)],
+		});
+
+		// Act
+
+		fireEvent(
+			window,
+			new CustomEvent<CellMovedToFilePayload>(CELL_MOVED_TO_FILE, {
+				detail: { cellId: "2" },
+			}),
+		);
+		saveChangesMock();
+
+		// Assert
+
+		await waitFor(() => {
+			expect(screen.getByTestId("CellBlock-1").classList.value).toContain(
+				"selected-cell",
+			);
+		});
+	});
+
+	it("Should not change selection when a different cell is moved to another file", async () => {
+		// Arrange
+
+		renderEditableCells({
+			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			initialSelectedCellId: "2",
+			onCellsUpdateSave: () => [createTestCell(1), createTestCell(2)],
+		});
+
+		// Act
+
+		fireEvent(
+			window,
+			new CustomEvent<CellMovedToFilePayload>(CELL_MOVED_TO_FILE, {
+				detail: { cellId: "3" },
+			}),
+		);
+
+		// Assert
+
+		expect(screen.getByTestId("CellBlock-2").classList.value).toContain(
+			"selected-cell",
+		);
 	});
 });
