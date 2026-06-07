@@ -50,6 +50,8 @@ pub async fn get_file_fsrs_profile(
         .await
         .get_for_item(file.fsrs_profile_choice(), file.parent_id())
         .await?;
+    scope.save_changes().await?;
+
     Ok(result)
 }
 
@@ -70,6 +72,8 @@ pub async fn get_folder_fsrs_profile(
         .await
         .get_for_item(folder.fsrs_profile_choice(), folder.parent_id())
         .await?;
+    scope.save_changes().await?;
+
     Ok(result)
 }
 
@@ -113,11 +117,14 @@ pub async fn get_parent_fsrs_profile_for_folder(
     let parent = folder_repository
         .get_by_id(folder.parent_id().unwrap())
         .await?;
+
     let result = scope
         .resolve::<dyn FsrsProfileResolver>()
         .await
         .get_for_item(parent.fsrs_profile_choice(), parent.parent_id())
         .await?;
+    scope.save_changes().await?;
+
     Ok(result)
 }
 
@@ -137,11 +144,14 @@ pub async fn get_parent_fsrs_profile_for_file(
         .await
         .get_by_id(file.parent_id().unwrap())
         .await?;
+
     let result = scope
         .resolve::<dyn FsrsProfileResolver>()
         .await
         .get_for_item(parent.fsrs_profile_choice(), parent.parent_id())
         .await?;
+    scope.save_changes().await?;
+
     Ok(result)
 }
 

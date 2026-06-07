@@ -15,6 +15,12 @@ pub enum FsrsProfileResolverError {
 
 #[async_trait]
 pub trait FsrsProfileResolver: Send + Sync {
+    /// Resolves the effective [`FsrsProfile`] for an item.
+    ///
+    /// When `fsrs_profile_choice` is [`FsrsProfileChoice::Inherit`], the resolver
+    /// walks up the folder hierarchy via `parent_id` until it finds an ancestor
+    /// with an explicit profile. If the root is reached without finding one, a
+    /// default profile is created and assigned to the root folder automatically.
     async fn get_for_item(
         &self,
         fsrs_profile_choice: FsrsProfileChoice,

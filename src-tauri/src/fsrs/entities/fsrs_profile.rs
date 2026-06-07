@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::Guid;
+use crate::{DEFAULT_FSRS_PROFILE_ID, Guid};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -112,5 +112,42 @@ impl FsrsProfile {
 
     pub fn set_weights(&mut self, weights: Vec<f64>) {
         self.weights = weights;
+    }
+}
+
+impl Default for FsrsProfile {
+    fn default() -> Self {
+        Self::new(
+            Some(DEFAULT_FSRS_PROFILE_ID),
+            "Default".to_string(),
+            0.9,
+            36500.0,
+            vec![
+                0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722, 0.1666,
+                0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425, 0.0912, 0.0658,
+                0.1542,
+            ],
+        )
+        .unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_created_profile_with_correct_values() {
+        // Act
+
+        let actual = FsrsProfile::default();
+
+        // Assert
+
+        assert_eq!(DEFAULT_FSRS_PROFILE_ID, actual.id());
+        assert_eq!("Default", actual.name());
+        assert_eq!(0.9, actual.request_retention());
+        assert_eq!(36500.0, actual.maximum_interval());
+        assert_eq!(21, actual.weights().len());
     }
 }

@@ -4,7 +4,8 @@ use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
 use crate::{
-    Guid,
+    DEFAULT_FSRS_PROFILE_ID, Guid, ROOT_FOLDER_ID,
+    common::repository_error::RepositoryError,
     file_system::{
         repositories::folder_repository::FolderRepository,
         value_objects::fsrs_profile_choice::FsrsProfileChoice,
@@ -30,6 +31,10 @@ impl FsrsProfileResolver for DefaultFsrsProfileResolver {
         mut parent_id: Option<Guid>,
     ) -> Result<FsrsProfile, FsrsProfileResolverError> {
         while FsrsProfileChoice::Inherit == fsrs_profile_choice {
+            if parent_id.is_none() {
+                return self.create_and_set_default_profile_for_root().await;
+            }
+
             let parent = self.folder_repository.get_by_id(parent_id.unwrap()).await?;
             fsrs_profile_choice = parent.fsrs_profile_choice();
             parent_id = parent.parent_id();
@@ -41,6 +46,32 @@ impl FsrsProfileResolver for DefaultFsrsProfileResolver {
         }
 
         unreachable!()
+    }
+}
+
+impl DefaultFsrsProfileResolver {
+    async fn create_and_set_default_profile_for_root(
+        &self,
+    ) -> Result<FsrsProfile, FsrsProfileResolverError> {
+        let default_profile = match self
+            .fsrs_repository
+            .get_by_id(DEFAULT_FSRS_PROFILE_ID)
+            .await
+        {
+            Ok(profile) => profile,
+            Err(RepositoryError::NotFound(_)) => {
+                let profile = FsrsProfile::default();
+                self.fsrs_repository.create(&profile).await?;
+                profile
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        let mut root_folder = self.folder_repository.get_by_id(ROOT_FOLDER_ID).await?;
+        root_folder.set_fsrs_profile_choice(FsrsProfileChoice::Id(DEFAULT_FSRS_PROFILE_ID));
+        self.folder_repository.update(&root_folder).await?;
+
+        Ok(default_profile)
     }
 }
 
@@ -167,5 +198,48 @@ mod tests {
         // Assert
 
         assert_eq!(result.id(), profile.id());
+    }
+
+    #[tokio::test]
+    pub async fn get_for_item_root_folder_has_no_profile_creates_and_assigns_default_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let file_repository = scope.resolve::<dyn FileRepository>().await;
+        let folder_repository = scope.resolve::<dyn FolderRepository>().await;
+
+        let mut root_folder = folder_repository.get_by_id(ROOT_FOLDER_ID).await.unwrap();
+        root_folder.set_fsrs_profile_choice(FsrsProfileChoice::Inherit);
+        folder_repository.update(&root_folder).await.unwrap();
+
+        let file = File::new_unchecked(
+            Guid::new_v4(),
+            Utc::now(),
+            Utc::now(),
+            Some(ROOT_FOLDER_ID),
+            "test".try_into().unwrap(),
+            FsrsProfileChoice::Inherit,
+        );
+        file_repository.create(&file).await.unwrap();
+
+        // Act
+
+        let result = scope
+            .resolve::<dyn FsrsProfileResolver>()
+            .await
+            .get_for_item(file.fsrs_profile_choice(), file.parent_id())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(result.id(), DEFAULT_FSRS_PROFILE_ID);
+
+        let updated_root = folder_repository.get_by_id(ROOT_FOLDER_ID).await.unwrap();
+        assert_eq!(
+            updated_root.fsrs_profile_choice(),
+            FsrsProfileChoice::Id(DEFAULT_FSRS_PROFILE_ID)
+        );
     }
 }
