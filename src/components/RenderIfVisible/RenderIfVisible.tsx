@@ -35,7 +35,7 @@ export default function RenderIfVisible({
 					window.requestIdleCallback(
 						() => setIsVisible(entries[0].isIntersecting),
 						{
-							timeout: 200,
+							timeout: 130,
 						},
 					);
 				} else {
