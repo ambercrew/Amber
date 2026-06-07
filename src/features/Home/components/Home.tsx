@@ -49,6 +49,13 @@ function Home({ onStudyClick, callApi }: Props) {
 			);
 	}, [fetchHomeStatistics, dispatch]);
 
+	useEffect(() => {
+		// Reloading the state.
+		const id = setInterval(() => void fetchHomeStatistics(), 60 * 1000);
+
+		return () => clearInterval(id);
+	}, [fetchHomeStatistics, dispatch]);
+
 	const handleStudyClick = (
 		fileIds: string[],
 		item: ReviewTreeFolderDto | ReviewTreeFileDto,

@@ -105,6 +105,15 @@ function App() {
 	}, [dispatch]);
 
 	useEffect(() => {
+		// Reloading the state.
+		const id = setInterval(() => {
+			void dispatch(getReviewTreeFolderForRoot());
+		}, 60 * 1000);
+
+		return () => clearInterval(id);
+	}, [dispatch]);
+
+	useEffect(() => {
 		const cb = () => {
 			void dispatch(getReviewTreeFolderForRoot());
 		};
