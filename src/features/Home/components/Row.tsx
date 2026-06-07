@@ -49,8 +49,8 @@ function Row({
 					className={styles.fileNameButton}
 					onClick={() => void onClick()}
 					title={name}>
-					<Icon path={iconPath} size={1} />
-					{name}
+					<Icon className={styles.icon} path={iconPath} size={1} />
+					<p>{name}</p>
 				</button>
 			</div>
 			<div className={styles.columns}>

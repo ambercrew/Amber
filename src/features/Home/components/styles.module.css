@@ -56,7 +56,15 @@
 		gap: 0.6rem;
 		text-align: left;
 		padding: 0.4rem;
-		overflow: hidden;
+
+		.icon {
+			flex-shrink: 0;
+		}
+
+		p {
+			min-width: 0;
+			word-break: break-word;
+		}
 	}
 
 	& .columns {
