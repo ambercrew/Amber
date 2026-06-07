@@ -18,12 +18,19 @@ export type FloatingMenuCoordinates = { x: number; y: number } | null;
 interface Props {
 	editor: ReturnType<typeof useLexicalComposerContext>[0];
 	coordinates: FloatingMenuCoordinates;
+	positionBelow?: boolean;
 	additionalFloatingMenuButtons?: FloatingMenuButtonProps[];
 	onKeyDown: (e: React.KeyboardEvent) => void;
 }
 
 function FloatingMenu(
-	{ editor, coordinates, additionalFloatingMenuButtons, onKeyDown }: Props,
+	{
+		editor,
+		coordinates,
+		positionBelow,
+		additionalFloatingMenuButtons,
+		onKeyDown,
+	}: Props,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
 	const [activeState, setActiveState] = useState<Record<string, boolean>>({});
@@ -99,6 +106,9 @@ function FloatingMenu(
 			style={{
 				top: `${coordinates?.y}px`,
 				left: `${coordinates?.x}px`,
+				transform: positionBelow
+					? "translateY(0)"
+					: "translateY(-100%)",
 				visibility: shouldShow ? "visible" : "hidden",
 				opacity: shouldShow ? 1 : 0,
 			}}

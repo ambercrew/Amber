@@ -11,6 +11,7 @@ import FloatingMenu, {
 } from "./FloatingMenu";
 import { usePointerInteractions } from "./hooks/usePointerInteractions";
 import { FloatingMenuButtonProps } from "./FloatingMenuButton";
+import { isMobile } from "../../../../utils/tauriUtils";
 
 interface Props {
 	additionalFloatingMenuButtons?: FloatingMenuButtonProps[];
@@ -21,6 +22,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 	const [coordinates, setCoordinates] =
 		useState<FloatingMenuCoordinates>(null);
 	const ref = useRef<HTMLDivElement>(null);
+	const mobile = isMobile();
 
 	const { isPointerDown, isPointerReleased } = usePointerInteractions();
 
@@ -65,10 +67,12 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 		}
 		const newCoordinates = {
 			x,
-			y: domRangeRect.top - editorRootElementRect.top - 10,
+			y: mobile
+				? domRangeRect.bottom - editorRootElementRect.top + 10
+				: domRangeRect.top - editorRootElementRect.top - 10,
 		};
 		setCoordinates(newCoordinates);
-	}, [editor, isPointerDown]);
+	}, [editor, isPointerDown, mobile]);
 
 	const $handleSelectionChange = useCallback(() => {
 		if (
@@ -139,6 +143,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 			ref={ref}
 			editor={editor}
 			coordinates={coordinates}
+			positionBelow={mobile}
 			additionalFloatingMenuButtons={additionalFloatingMenuButtons}
 			onKeyDown={handleKeyDownFloatingMenu}
 		/>
