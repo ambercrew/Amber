@@ -111,7 +111,9 @@
 
 		& ol,
 		& ul {
-			margin: 0 var(--spacing-8);
+			margin: 0 var(--spacing-7);
+			/* Don't hide list points */
+			overflow-x: visible !important;
 		}
 
 		& .human {
