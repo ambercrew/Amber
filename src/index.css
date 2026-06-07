@@ -385,15 +385,15 @@ h1 {
 }
 
 .new-color {
-	color: var(--red-color);
+	color: var(--easy-color);
 }
 
 .learning-color {
-	color: var(--review-color);
+	color: var(--red-color);
 }
 
 .review-color {
-	color: var(--easy-color);
+	color: var(--review-color);
 }
 
 /* Global classes for the Lexical editor */
