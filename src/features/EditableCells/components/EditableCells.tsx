@@ -204,13 +204,15 @@ function EditableCells({
 
 		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
 		if (
-			(selectedCellIndex !== 0 || number > 0) &&
-			(selectedCellIndex !== cells.length - 1 || number < 0)
+			selectedCellIndex + number >= 0 &&
+			selectedCellIndex + number < cells.length
 		) {
-			const selectedCell = cells.find(c => c.id === selectedCellId)!;
 			await saveChanges();
 			await callApi(async () => {
-				await moveCell(selectedCell.id, selectedCell.index + number);
+				await moveCell(
+					selectedCellId!,
+					cells[selectedCellIndex + number].index,
+				);
 			});
 			scrollToSelectedCellOnNextRender.current = true;
 			await onCellsUpdateSave();
