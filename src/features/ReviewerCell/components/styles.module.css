@@ -7,13 +7,18 @@
 	background-color: var(--surface-pane);
 }
 
-.cloze {
+.cloze,
+.cloze-hidden {
 	background-color: var(--primary-color);
 	color: var(--primary-color-fg);
-	font-weight: 600;
-	display: inline-block;
 	border-radius: var(--border-radius);
-	padding: var(--spacing-2);
+	padding: var(--spacing-1);
+
+	display: inline;
+	line-height: 2;
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
+	margin: 0 2px;
 }
 
 .cloze-hidden {

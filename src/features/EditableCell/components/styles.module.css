@@ -29,11 +29,15 @@
  * and the class name might change if we do not have it as global
  */
 :global(.cloze-node) {
-	display: inline-block;
 	padding: var(--spacing-1);
 	border-radius: var(--border-radius);
 	border: var(--border-width) solid var(--text-primary);
-	margin: 1px 2px;
+
+	display: inline;
+	margin: 0 2px;
+	line-height: 2;
+	box-decoration-break: clone;
+	-webkit-box-decoration-break: clone;
 
 	&:before {
 		content: attr(index);
