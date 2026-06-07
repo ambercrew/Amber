@@ -1,4 +1,6 @@
+import { listen, TauriEvent } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { isMobile } from "../utils/tauriUtils";
 
 interface Handler {
 	cb: () => Promise<void>;
@@ -18,6 +20,14 @@ export class CloseRequestedEventManager {
 			void getCurrentWindow().onCloseRequested(
 				this.callHandlers.bind(this),
 			);
+			if (isMobile()) {
+				void listen(TauriEvent.WINDOW_SUSPENDED, () => {
+					void navigator.locks.request("suspend-handlers", () =>
+						this.callHandlers(),
+					);
+				});
+			}
+
 			this.isEventAdded = true;
 		}
 
