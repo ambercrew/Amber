@@ -18,6 +18,7 @@ import {
 	useSearchParams,
 } from "react-router";
 import {
+	EDITOR_CELL_ID,
 	FILE_ID_QUERY_PARAMETER,
 	SMALL_SCREEN_MAX_WIDTH_IN_PX,
 } from "../../../config/constants";
@@ -43,9 +44,6 @@ function App() {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const [searchParams] = useSearchParams();
 	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
-	const [editorInitialSelectedCellId, setInitialSelectedCellId] = useState<
-		string | null
-	>(null);
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
 	const location = useLocation();
 	const [previousLocation, setPreviousLocation] = useState(location);
@@ -139,8 +137,8 @@ function App() {
 	}, "keydown");
 
 	const handleEditButtonClick = (fileId: string, cellId: string) => {
-		setInitialSelectedCellId(cellId);
 		searchParams.set(FILE_ID_QUERY_PARAMETER, fileId);
+		searchParams.set(EDITOR_CELL_ID, cellId);
 		void navigate({
 			pathname: "editor",
 			search: searchParams.toString(),
@@ -190,9 +188,9 @@ function App() {
 						path="/editor"
 						element={
 							<Editor
-								initialSelectedCellId={
-									editorInitialSelectedCellId
-								}
+								initialSelectedCellId={searchParams.get(
+									EDITOR_CELL_ID,
+								)}
 								callApi={callApi}
 								onStudyStart={() => handleEditorStudyClick()}
 								key={selectedFileId}
