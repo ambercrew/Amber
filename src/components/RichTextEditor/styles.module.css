@@ -38,7 +38,7 @@
 .floating-menu {
 	position: absolute;
 	transform: translateY(-100%);
-	background-color: var(--surface-pane);
+	background-color: var(--surface-page);
 	padding: var(--spacing-4);
 	display: flex;
 	flex-direction: row;
@@ -56,11 +56,11 @@
 		align-items: center;
 		justify-items: center;
 		background-color: inherit;
-	}
-}
 
-.active-button {
-	filter: brightness(85%);
+		&.active-button {
+			background-color: var(--surface-control);
+		}
+	}
 }
 
 .vertical-border {
