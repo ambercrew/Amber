@@ -49,6 +49,7 @@ function createTestCell(index: number): Cell {
 		...request,
 		id: index + "",
 		searchableContent: "",
+		index,
 		repetitions: [],
 	};
 	return cell;
@@ -654,16 +655,16 @@ describe("EditableCells logic", () => {
 		const { getCapturedMonitorHandlers } = mockUseDragDropMonitor();
 		const dragEndEventArg = createDragEndEventArg(
 			{
-				cellId: "3",
+				cellId: "2",
 			},
 			{
 				type: "cell",
-				cellId: "2",
+				cellId: "1",
 			},
 		);
 
 		const { saveChangesMock } = renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
+			cells: [createTestCell(0), createTestCell(1), createTestCell(2)],
 		});
 
 		// Act
@@ -682,7 +683,7 @@ describe("EditableCells logic", () => {
 
 		await waitFor(() => {
 			expect(saveChangesMock).toHaveBeenCalled();
-			expect(vi.mocked(moveCell)).toHaveBeenCalledWith("3", 1);
+			expect(vi.mocked(moveCell)).toHaveBeenCalledWith("2", 1);
 		});
 	});
 
@@ -818,8 +819,8 @@ describe("EditableCells logic", () => {
 		// Arrange
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
-			initialSelectedCellId: "3",
+			cells: [createTestCell(0), createTestCell(1), createTestCell(2)],
+			initialSelectedCellId: "2",
 		});
 
 		// Act
@@ -829,15 +830,15 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		// Indexing start from zero.
-		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("3", 1);
+		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("2", 1);
 	});
 
 	it("Should called backend with correct arguments when moving selected cell using ctrl + alt + arrow down", async () => {
 		// Arrange
 
 		renderEditableCells({
-			cells: [createTestCell(1), createTestCell(2), createTestCell(3)],
-			initialSelectedCellId: "2",
+			cells: [createTestCell(0), createTestCell(1), createTestCell(2)],
+			initialSelectedCellId: "1",
 		});
 
 		// Act
@@ -847,7 +848,7 @@ describe("EditableCells logic", () => {
 		// Assert
 
 		// Indexing start from zero.
-		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("2", 2);
+		expect(vi.mocked(moveCell)).toHaveBeenCalledWith("1", 2);
 	});
 
 	it("Should not call the backend when moving to invalid place using shortcuts (ctrl + alt + arrow down)", async () => {
