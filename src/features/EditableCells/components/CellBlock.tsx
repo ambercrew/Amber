@@ -103,8 +103,14 @@ function CellBlock(
 	}
 
 	const handleClick = () => {
+		// Without this, moving cursor on mobile does not work!
 		if (isSelected && editorRef.current) {
-			editorRef.current.focus();
+			const root = editorRef.current.getRootElement();
+			const editorAlreadyFocused =
+				root !== null &&
+				(document.activeElement === root ||
+					root.contains(document.activeElement));
+			if (!editorAlreadyFocused) editorRef.current.focus();
 		}
 		onClick(cell.id);
 	};
