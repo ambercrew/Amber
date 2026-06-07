@@ -204,15 +204,13 @@ function EditableCells({
 
 		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
 		if (
-			0 <= selectedCellIndex + number &&
-			selectedCellIndex + number < cells.length
+			(selectedCellIndex !== 0 || number > 0) &&
+			(selectedCellIndex !== cells.length - 1 || number < 0)
 		) {
+			const selectedCell = cells.find(c => c.id === selectedCellId)!;
 			await saveChanges();
 			await callApi(async () => {
-				await moveCell(
-					cells[selectedCellIndex].id,
-					selectedCellIndex + number,
-				);
+				await moveCell(selectedCell.id, selectedCell.index + number);
 			});
 			scrollToSelectedCellOnNextRender.current = true;
 			await onCellsUpdateSave();
@@ -312,17 +310,16 @@ function EditableCells({
 			const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 			let dropIndex =
 				targetData.type === "add-cell-container"
-					? cells.length
-					: cells.findIndex(c => c.id === targetData.cellId);
+					? cells[cells.length - 1].index + 1
+					: cells.find(c => c.id === targetData.cellId)!.index;
 
 			if (dropIndex > draggedCellIndex) dropIndex--;
-			if (dropIndex === draggedCellIndex) return;
-			scrollToSelectedCellOnNextRender.current = true;
 
 			void (async () => {
 				await callApi(
 					async () => await moveCell(dragCellId, dropIndex),
 				);
+				scrollToSelectedCellOnNextRender.current = true;
 				await saveChanges();
 			})();
 		},
