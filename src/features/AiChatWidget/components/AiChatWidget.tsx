@@ -311,7 +311,7 @@ function AiChatWidgetInner() {
 
 			<div className={styles.container}>
 				{isOpen && (
-					<div className={styles.chatPanel}>
+					<div className={`pop-over ${styles.chatPanel}`}>
 						<Header
 							selectedChatId={selectedChatId}
 							chats={chats}

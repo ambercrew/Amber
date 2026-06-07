@@ -1,9 +1,7 @@
 .actions-menu {
 	position: absolute;
 	padding: var(--spacing-4);
-	border-radius: var(--default-border-radius);
-	background-color: var(--default-background-color);
-	box-shadow: var(--default-box-shadow);
+	background-color: var(--surface-page);
 	display: grid;
 	flex-direction: column;
 	z-index: 1;
@@ -24,5 +22,9 @@
 			white-space: nowrap;
 			font-size: 1.4rem;
 		}
+	}
+
+	&.hide-shortcuts button {
+		grid-template-columns: 1.2rem 1fr;
 	}
 }

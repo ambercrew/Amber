@@ -56,8 +56,12 @@ function ReviewHeatmapColumn({
 			} else {
 				color = getColorAtRatio(
 					reviewCounts / reviewsDivisor,
-					colors.reviewFromColor,
-					colors.reviewToColor,
+					isDarkTheme
+						? colors.reviewFromColorDarkTheme
+						: colors.reviewFromColorLightTheme,
+					isDarkTheme
+						? colors.reviewToColorDarkTheme
+						: colors.reviewToColorLightTheme,
 				);
 				text = `${reviewCounts} reviews on ${formattedDate}`;
 			}

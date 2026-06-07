@@ -7,7 +7,6 @@ import {
 	mdiRefresh,
 } from "@mdi/js";
 import styles from "./styles.module.css";
-import appIcon from "../../../../public/icon.svg";
 import useLocalStorage from "../../../hooks/useLocalStorage";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
@@ -50,7 +49,7 @@ export default function IntroDialog() {
 			<div className={styles.content}>
 				<div className={styles.header}>
 					<img
-						src={appIcon}
+						src={"/icon.svg"}
 						className={styles.appIcon}
 						alt="Brainy"
 					/>

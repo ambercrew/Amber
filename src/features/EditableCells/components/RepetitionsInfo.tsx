@@ -21,7 +21,7 @@ function RepetitionsInfo({ repetitions, cellType }: Props) {
 
 	return (
 		<div
-			className={styles.repetitionsInfoContainer}
+			className={`pop-over ${styles.repetitionsInfoContainer}`}
 			onClick={e => e.stopPropagation()}>
 			{sortedRepetitions.map(repetition => (
 				<div key={repetition.id}>

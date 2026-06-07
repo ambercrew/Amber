@@ -7,7 +7,7 @@
 }
 
 .spinner {
-	border: 4px solid var(--surface-background-color);
+	border: 4px solid var(--surface-pane);
 	border-bottom-color: var(--primary-color);
 	border-radius: 50%;
 	display: inline-block;

@@ -32,11 +32,11 @@
 	transform: translateY(100%);
 	bottom: 0;
 
-	border: var(--default-border-width) solid var(--hover-border-color);
+	border: var(--border-width) solid var(--border-strong);
 
 	width: 100%;
-	background-color: var(--default-background-color);
-	border-radius: var(--default-border-radius);
+	background-color: var(--surface-page);
+	border-radius: var(--border-radius);
 
 	display: flex;
 	flex-direction: column;
@@ -45,7 +45,7 @@
 	max-height: 24rem;
 	overflow-y: auto;
 	overflow-x: hidden;
-	box-shadow: var(--default-box-shadow);
+	box-shadow: var(--shadow-md);
 
 	& > button {
 		flex-shrink: 0;

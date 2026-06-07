@@ -1,1 +1,1 @@
-export const reviewsDivisor = 200;
+export const reviewsDivisor = 100;

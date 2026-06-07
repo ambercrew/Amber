@@ -15,17 +15,11 @@
 		gap: 4px;
 
 		& button {
-			border: var(--default-border-width) solid var(--border-color);
-			transition: all var(--default-transition-time);
+			border: var(--border-width) solid var(--border-default);
+			transition: all var(--transition-time);
 
 			&:focus {
-				box-shadow: var(--default-box-shadow);
-			}
-
-			&.checked {
-				border-color: var(--primary-color);
-				background-color: var(--primary-color);
-				color: #fff;
+				box-shadow: var(--shadow-sm);
 			}
 		}
 	}
@@ -37,15 +31,15 @@
 :global(.cloze-node) {
 	display: inline-block;
 	padding: var(--spacing-1);
-	border-radius: var(--default-border-radius);
-	border: var(--default-border-width) solid var(--text-color);
+	border-radius: var(--border-radius);
+	border: var(--border-width) solid var(--text-primary);
 	margin: 1px 2px;
 
 	&:before {
 		content: attr(index);
 		padding-right: 2px;
 		margin-right: 2px;
-		border-right: var(--default-border-width) solid var(--text-color);
+		border-right: var(--border-width) solid var(--text-primary);
 		font-weight: normal;
 		font-style: normal;
 	}

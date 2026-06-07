@@ -1,19 +1,19 @@
 .container {
 	max-width: fit-content;
 	position: relative;
-	background-color: var(--surface-background-color-shade-20);
+	background-color: var(--surface-control);
 	position: relative;
 	border-radius: 20px;
 	padding: var(--spacing-5);
 	min-width: 5rem;
-	transition: all var(--default-transition-time);
+	transition: all var(--transition-time);
 
 	&:has(input:checked) {
 		background-color: var(--primary-color);
 	}
 
 	&:focus-within {
-		outline-color: var(--surface-background-color-shade-20);
+		outline-color: var(--surface-control);
 	}
 
 	&:has(input:checked):focus-within {
@@ -51,13 +51,14 @@
 		width: var(--spacing-6);
 		border-radius: 50%;
 		position: absolute;
-		transition: all var(--default-transition-time);
-		background-color: #fff;
+		transition: all var(--transition-time);
+		background-color: var(--surface-thumb);
 		pointer-events: none;
 	}
 
 	& input:checked + .circle {
 		left: 100%;
 		transform: translateX(calc(-100% + -4px));
+		background-color: var(--primary-color-fg);
 	}
 }

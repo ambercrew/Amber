@@ -197,7 +197,8 @@ describe("AiChatWidget", () => {
 		await userEvent.click(await screen.findByText("+ New chat"));
 
 		await userEvent.click(await screen.findByText("chat 1"));
-		await userEvent.click(await screen.findByTitle("Delete chat"));
+		await userEvent.click(await screen.findByTitle("Actions"));
+		await userEvent.click(await screen.findByText("Delete chat"));
 		await userEvent.click(await screen.findByText("Yes"));
 
 		await userEvent.click(await screen.findByText("+ New chat"));
@@ -512,7 +513,8 @@ describe("AiChatWidget", () => {
 		await openChat();
 		await userEvent.click(await screen.findByText("+ New chat"));
 		await userEvent.click(await screen.findByText("chat 1"));
-		await userEvent.click(await screen.findByTitle("Rename chat"));
+		await userEvent.click(await screen.findByTitle("Actions"));
+		await userEvent.click(await screen.findByText("Rename chat"));
 		await userEvent.keyboard("{Backspace>100}New name{Enter}");
 
 		// Assert

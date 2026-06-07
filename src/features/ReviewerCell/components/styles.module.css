@@ -3,15 +3,16 @@
 }
 
 .question-section {
-	border-bottom: var(--default-border-width) solid var(--border-color);
+	border-bottom: var(--border-width) solid var(--border-strong);
+	background-color: var(--surface-pane);
 }
 
 .cloze {
 	background-color: var(--primary-color);
-	color: #fff;
+	color: var(--primary-color-fg);
 	font-weight: 600;
 	display: inline-block;
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	padding: var(--spacing-2);
 }
 
@@ -29,34 +30,23 @@
 	gap: var(--spacing-4);
 
 	& button {
-		border: var(--default-border-width) solid var(--border-color);
-		transition: var(--default-transition-time) all;
+		border: var(--border-width) solid var(--border-default);
+		transition: var(--transition-time) all;
 		max-width: 50%;
 		padding-left: var(--spacing-7);
 		padding-right: var(--spacing-7);
 		flex: 1;
 
 		&:hover {
-			border-color: var(--hover-border-color);
+			border-color: var(--border-strong);
 		}
 
 		&:focus {
-			box-shadow: var(--default-box-shadow);
+			box-shadow: var(--shadow-sm);
 		}
 
 		&.checked {
 			border-color: var(--primary-color);
-		}
-
-		&.correct:not(disabled) {
-			border-color: var(--primary-color);
-			background-color: var(--primary-color);
-			color: #fff;
-
-			&:hover,
-			&:active {
-				background-color: var(--primary-color);
-			}
 		}
 	}
 }

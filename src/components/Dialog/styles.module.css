@@ -6,7 +6,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: var(--overlay-color);
 	z-index: 9999;
 	display: flex;
 	align-items: center;
@@ -15,12 +15,13 @@
 
 .box {
 	padding: var(--spacing-5);
-	background: var(--default-background-color);
-	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
+	background: var(--surface-page);
+	border-radius: var(--border-radius);
+	box-shadow: var(--shadow-lg);
 	max-height: 90vh;
 	margin: var(--spacing-5);
 	overflow-y: auto;
+	border: var(--border-width) solid var(--border-default);
 }
 
 @media (max-width: 42rem) {

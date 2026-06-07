@@ -94,7 +94,7 @@ function FloatingMenu(
 	return (
 		<div
 			ref={ref}
-			className={styles.floatingMenu}
+			className={`pop-over ${styles.floatingMenu}`}
 			aria-hidden={!shouldShow}
 			style={{
 				top: `${coordinates?.y}px`,

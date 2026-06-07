@@ -26,6 +26,8 @@ import Repetition from "../../../api/cells/entities/repetition";
 import { CallApiFn } from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { setFocusedCellId } from "../../../stores/ai/aiReducer";
+import { cellTypesDisplayNames } from "../../../api/cells/entities/cell";
+import getCellIcon from "../../../utils/getCellIcon";
 
 interface Props {
 	fileIds: string[];
@@ -220,99 +222,108 @@ function Reviewer({ fileIds, onEditButtonClick, callApi }: Props) {
 	const buttonRowRecordLog =
 		fsrs && fsrsCard ? fsrs.repeat(fsrsCard, currentReviewStartTime) : null;
 
-	if (!dueToday[currentCellIndex] && !isSendingRequest) void navigate(-1);
+	useEffect(() => {
+		if (!dueToday[currentCellIndex] && !isSendingRequest) void navigate(-1);
+	}, [dueToday, currentCellIndex, isSendingRequest, navigate]);
+
+	const currentCell = dueToday[currentCellIndex]
+		? cellsWithFsrsProfileIds.find(
+				c => c.cell.id === dueToday[currentCellIndex].repetition.cellId,
+			)
+		: null;
 
 	return (
-		<div className={`${styles.reviewer}`}>
-			<div className={styles.countRow}>
-				<div
-					className={`${styles.countBox} ${isCurrentCellNew ? styles.active : ""}`}>
-					<span className={styles.countLabel}>New</span>
+		<div className={styles.reviewer}>
+			<div className={styles.topBar}>
+				<div className={styles.topBarLeft}>
 					<span
-						className={`new-color ${styles.countValue}`}
+						className={`${styles.countBadge} ${isCurrentCellNew ? styles.countBadgeActive : ""}`}
+						title="New count"
 						data-testid="new-count">
-						{repetitionsCounts.new}
+						<span className="new-color">
+							{repetitionsCounts.new}
+						</span>
 					</span>
-				</div>
-				<div
-					className={`${styles.countBox} ${isCurrentCellLearning ? styles.active : ""}`}>
-					<span className={styles.countLabel}>Learning</span>
 					<span
-						className={`learning-color ${styles.countValue}`}
+						className={`${styles.countBadge} ${isCurrentCellLearning ? styles.countBadgeActive : ""}`}
+						title="Learning count"
 						data-testid="learning-count">
-						{repetitionsCounts.learning}
+						<span className="learning-color">
+							{repetitionsCounts.learning}
+						</span>
+					</span>
+					<span
+						className={`${styles.countBadge} ${isCurrentCellReview ? styles.countBadgeActive : ""}`}
+						data-testid="review-count">
+						<span className="review-color" title="Review count">
+							{repetitionsCounts.review}
+						</span>
 					</span>
 				</div>
-				<div
-					className={`${styles.countBox} ${isCurrentCellReview ? styles.active : ""}`}>
-					<span className={styles.countLabel}>To Review</span>
-					<span
-						className={`review-color ${styles.countValue}`}
-						data-testid="review-count">
-						{repetitionsCounts.review}
-					</span>
+				<div className={styles.topBarRight}>
+					<Timer
+						key={dueToday[currentCellIndex]?.repetition.id ?? 0}
+						onTimeUpdate={handleTimeUpdate}
+					/>
+					<button
+						className={`row transparent ${styles.editButton}`}
+						onClick={() =>
+							onEditButtonClick(
+								dueToday[currentCellIndex].repetition.fileId,
+								dueToday[currentCellIndex].repetition.cellId,
+							)
+						}
+						title="Edit card (e)">
+						<Icon path={mdiPencilOutline} size={1} />
+					</button>
 				</div>
 			</div>
 
 			<div className={styles.studyBox}>
-				<button
-					className={`row transparent ${styles.editButton}`}
-					onClick={() =>
-						onEditButtonClick(
-							dueToday[currentCellIndex].repetition.fileId,
-							dueToday[currentCellIndex].repetition.cellId,
-						)
-					}
-					title="Edit cell (e)">
-					<Icon path={mdiPencilOutline} size={1.2} />
-				</button>
+				<div className={styles.cardTypeLabel}>
+					{currentCell ? (
+						<>
+							<Icon
+								path={getCellIcon(currentCell.cell.cellType)}
+								size={1}
+							/>
+							{cellTypesDisplayNames[currentCell.cell.cellType]}
+						</>
+					) : (
+						""
+					)}
+				</div>
 
 				<div className={styles.studyContent}>
-					{dueToday[currentCellIndex] && (
+					{dueToday[currentCellIndex] && currentCell && (
 						<ReviewerCell
-							cell={
-								cellsWithFsrsProfileIds.find(
-									c =>
-										c.cell.id ===
-										dueToday[currentCellIndex].repetition
-											.cellId,
-								)!.cell
-							}
+							cell={currentCell.cell}
 							repetition={dueToday[currentCellIndex].repetition}
 							showAnswer={showAnswer}
 							key={currentCellIndex}
 						/>
 					)}
 				</div>
+			</div>
 
-				<div className={styles.studyFooter}>
-					<div className={styles.footerLeft}>
-						<Timer
-							key={dueToday[currentCellIndex]?.repetition.id ?? 0}
-							onTimeUpdate={handleTimeUpdate}
-						/>
-					</div>
+			<div className={styles.gradeArea}>
+				{!showAnswer && (
+					<button
+						className={`transparent ${styles.showAnswerButton}`}
+						onClick={() => setShowAnswer(true)}
+						title="(Space)">
+						Show Answer
+					</button>
+				)}
 
-					<div className={styles.footerRight}>
-						{!showAnswer && (
-							<button
-								className={`transparent ${styles.transparent}`}
-								onClick={() => setShowAnswer(true)}
-								title="(Space)">
-								Show Answer
-							</button>
-						)}
-
-						{showAnswer && buttonRowRecordLog && (
-							<ButtonRow
-								startTime={currentReviewStartTime}
-								disabled={isSendingRequest}
-								onClick={grade => void handleGradeSubmit(grade)}
-								recordLog={buttonRowRecordLog}
-							/>
-						)}
-					</div>
-				</div>
+				{showAnswer && buttonRowRecordLog && (
+					<ButtonRow
+						startTime={currentReviewStartTime}
+						disabled={isSendingRequest}
+						onClick={grade => void handleGradeSubmit(grade)}
+						recordLog={buttonRowRecordLog}
+					/>
+				)}
 			</div>
 		</div>
 	);

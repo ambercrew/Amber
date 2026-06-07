@@ -2,11 +2,11 @@
 	overflow-y: auto;
 	overflow-x: hidden;
 	height: 100%;
-	background-color: var(--default-background-color);
+	background-color: var(--surface-page);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: var(--spacing-3);
+	gap: var(--spacing-4);
 	width: 100%;
 
 	&.syncing {
@@ -17,7 +17,7 @@
 		width: 100%;
 		display: flex;
 		justify-content: center;
-		border: var(--default-border-width) solid transparent;
+		border: var(--border-width) solid transparent;
 		padding-top: var(--spacing-4);
 
 		& .add-button {
@@ -38,10 +38,9 @@
 .new-cell-selector {
 	display: flex;
 	flex-direction: column;
-	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
+	border-radius: var(--border-radius);
 	padding: var(--spacing-5) var(--spacing-4);
-	background: var(--default-background-color);
+	background: var(--surface-page);
 	gap: var(--spacing-4);
 
 	& * {
@@ -65,29 +64,30 @@
 }
 
 .cell-block {
-	border-radius: var(--default-border-radius);
-	border: var(--default-border-width) solid var(--border-color);
+	border-radius: var(--border-radius);
+	border: var(--border-width) solid var(--border-default);
 	position: relative;
 	width: 100%;
-	background-color: var(--default-background-color);
+	background-color: var(--surface-card);
 
 	&:hover {
-		border-color: var(--hover-border-color);
+		border-color: var(--border-strong);
 	}
 
 	.header {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-1) var(--spacing-4);
+		padding: var(--spacing-1) var(--spacing-4) 0;
 		/* Important so that header always have the same height. */
 		height: 4.5rem;
 
 		gap: var(--spacing-2);
-		border-bottom: var(--default-border-width) solid var(--border-color);
 
-		border-top-left-radius: var(--default-border-radius);
-		border-top-right-radius: var(--default-border-radius);
+		border-bottom: var(--border-width) solid var(--border-default);
+
+		border-top-left-radius: var(--border-radius);
+		border-top-right-radius: var(--border-radius);
 	}
 
 	.main-content {
@@ -112,7 +112,7 @@
 
 	&.selected-cell {
 		border-color: var(--primary-color);
-		box-shadow: var(--default-box-shadow);
+		box-shadow: var(--shadow-sm);
 	}
 
 	&.dragging {
@@ -121,7 +121,7 @@
 
 	& .cell-title {
 		text-transform: capitalize;
-		border-radius: var(--default-border-radius);
+		border-radius: var(--border-radius);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -132,7 +132,7 @@
 		}
 
 		& .icon {
-			color: var(--primary-color-shade-20);
+			color: var(--primary-color);
 		}
 	}
 
@@ -153,12 +153,11 @@
 		flex-direction: column;
 		gap: 2px;
 		align-items: start;
-		border-radius: var(--default-border-radius);
+		border-radius: var(--border-radius);
 		text-align: left;
 
 		padding: var(--spacing-4);
-		background-color: var(--default-background-color);
-		box-shadow: var(--default-box-shadow);
+		background-color: var(--surface-page);
 		font-size: 1.4rem;
 		line-height: 1.5;
 		padding: var(--spacing-5);
@@ -173,11 +172,15 @@
 	}
 }
 
+.cell-block,
+.add-button-container {
+	transition: var(--transition-time) margin-top;
+}
+
 .cell-block.drag-over,
 .add-button-container.drag-over {
-	border-top-color: var(--primary-color);
-	box-shadow: 0 -2px 0 var(--primary-color);
-	border-radius: 0;
+	margin-top: 3rem;
+	z-index: 1;
 
 	& * {
 		pointer-events: none;

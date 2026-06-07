@@ -56,7 +56,7 @@ function TrueFalseCell({
 			/>
 			<div className={styles.buttonsRow}>
 				<button
-					className={`transparent ${isTrue && styles.checked}`}
+					className={`${!isTrue && "transparent"} ${isTrue && "primary"}`}
 					onClick={e => {
 						e.stopPropagation();
 						handleTrueFalseChange(true);
@@ -64,7 +64,7 @@ function TrueFalseCell({
 					True
 				</button>
 				<button
-					className={`transparent ${!isTrue && styles.checked}`}
+					className={`${isTrue && "transparent"} ${!isTrue && "primary"}`}
 					onClick={e => {
 						e.stopPropagation();
 						handleTrueFalseChange(false);

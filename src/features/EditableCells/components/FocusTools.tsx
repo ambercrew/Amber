@@ -197,7 +197,7 @@ function FocusTools({
 
 				{showInsertNewCell && enableFileSpecificFunctionality && (
 					<NewCellTypeSelector
-						className={styles.insertCellPopup}
+						className={`pop-over ${styles.insertCellPopup}`}
 						onClick={handleInsertNewCell}
 						onHide={() => setShowInsertNewCell(false)}
 					/>

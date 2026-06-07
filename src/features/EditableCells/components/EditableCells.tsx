@@ -374,7 +374,7 @@ function EditableCells({
 						}}
 						onDelete={() => void handleCellDeleteConfirm()}
 						onInsertNewCell={cellType =>
-							void insertNewCell(cellType, i + 1)
+							void insertNewCell(cellType, cell.index + 1)
 						}
 						onResetRepetitions={() => void saveChanges()}
 						onEditButtonClick={onEditButtonClick}
@@ -385,7 +385,12 @@ function EditableCells({
 			{enableFileSpecificFunctionality && (
 				<AddCellContainer
 					onAddNewCell={cellType =>
-						void insertNewCell(cellType, cells.length)
+						void insertNewCell(
+							cellType,
+							cells.length === 0
+								? 0
+								: cells[cells.length - 1].index + 1,
+						)
 					}
 				/>
 			)}

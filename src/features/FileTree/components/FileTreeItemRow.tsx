@@ -2,7 +2,6 @@ import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiDotsHorizontal } from "@mdi/js";
 import getFileTreeIconPath from "../utils/getFileTreeIconPath";
-import getFileIconClass from "../../../utils/getFileIconClass";
 import ActionsMenu, {
 	Action,
 } from "../../../components/ActionsMenu/ActionsMenu";
@@ -135,7 +134,6 @@ export default function FileTreeItemRow({
 	);
 
 	const iconPath = getFileTreeIconPath({ isRoot, isFolder, isExpanded });
-	const iconColorClass = getFileIconClass(isRoot, isFolder);
 
 	return (
 		<>
@@ -150,11 +148,7 @@ export default function FileTreeItemRow({
                             ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
 							onClick={onClick}
 							ref={mergeRefs(buttonRef, setHandleDragRef)}>
-							<Icon
-								path={iconPath}
-								size={1}
-								className={iconColorClass}
-							/>
+							<Icon path={iconPath} size={1} />
 							<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
 						</button>
 						<button
@@ -173,11 +167,7 @@ export default function FileTreeItemRow({
 					<form
 						onSubmit={e => void handleRenameSubmit(e)}
 						className={`${styles.fileTreeRow} ${styles.withForm}`}>
-						<Icon
-							path={iconPath}
-							size={1}
-							className={iconColorClass}
-						/>
+						<Icon path={iconPath} size={1} />
 
 						<CancellableInput
 							onCancel={() => {

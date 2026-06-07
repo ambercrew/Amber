@@ -125,9 +125,9 @@ describe("Reviewer", () => {
 			"0",
 		);
 
-		expect(
-			(await screen.findByTestId("learning-count")).parentNode,
-		).toHaveClass(styles.active);
+		expect(await screen.findByTestId("learning-count")).toHaveClass(
+			styles.countBadgeActive,
+		);
 	});
 
 	it("Should use FSRS profile correctly when submitting", async () => {

@@ -2,11 +2,10 @@ import { mdiMinus, mdiPlus } from "@mdi/js";
 import styles from "./styles.module.css";
 import { Icon } from "@mdi/react";
 import getFileTreeIconPath from "../../FileTree/utils/getFileTreeIconPath";
-import getFileIconClass from "../../../utils/getFileIconClass";
 
 interface Props {
 	expandable: boolean;
-	isExapnded: boolean;
+	isExpanded: boolean;
 	isFolder: boolean;
 	name: string;
 	newCount: number;
@@ -18,7 +17,7 @@ interface Props {
 
 function Row({
 	expandable,
-	isExapnded,
+	isExpanded,
 	isFolder,
 	name,
 	newCount,
@@ -30,7 +29,7 @@ function Row({
 	const iconPath = getFileTreeIconPath({
 		isRoot: false,
 		isFolder,
-		isExpanded: isExapnded,
+		isExpanded,
 	});
 	return (
 		<div className={styles.row + " " + styles.treeRow}>
@@ -43,29 +42,25 @@ function Row({
 					<button
 						onClick={onExpandClick}
 						className={styles.expandButton}>
-						<Icon path={isExapnded ? mdiMinus : mdiPlus} size={1} />
+						<Icon path={isExpanded ? mdiMinus : mdiPlus} size={1} />
 					</button>
 				)}
 				<button
 					className={styles.fileNameButton}
 					onClick={() => void onClick()}
 					title={name}>
-					<Icon
-						path={iconPath}
-						size={1}
-						className={getFileIconClass(false, isFolder)}
-					/>
+					<Icon path={iconPath} size={1} />
 					{name}
 				</button>
 			</div>
 			<div className={styles.columns}>
-				<p className={`${styles.new}`} title="New count">
+				<p className="new-color" title="New count">
 					{newCount}
 				</p>
-				<p className={`${styles.learning}`} title="Learn count">
+				<p className="learning-color" title="Learn count">
 					{learningCount}
 				</p>
-				<p className={`${styles.review}`} title="Review count">
+				<p className="review-color" title="Review count">
 					{reviewCount}
 				</p>
 			</div>

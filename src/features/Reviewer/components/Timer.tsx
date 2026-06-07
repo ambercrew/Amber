@@ -24,28 +24,23 @@ function Timer({ onTimeUpdate }: Props) {
 
 	return (
 		<div className={styles.timerContainer}>
-			<div className="row">
-				<Icon path={mdiClockOutline} size={1} />
-				<p>
-					{time >= 60 * 60 &&
-						Math.floor(time / (60 * 60)).toLocaleString("en-US", {
-							minimumIntegerDigits: 2,
-							useGrouping: false,
-						}) + ":"}
-					{Math.floor((time % (60 * 60)) / 60).toLocaleString(
-						"en-US",
-						{
-							minimumIntegerDigits: 2,
-							useGrouping: false,
-						},
-					)}
-					:
-					{(time % 60).toLocaleString("en-US", {
+			<Icon path={mdiClockOutline} size={1} />
+			<p>
+				{time >= 60 * 60 &&
+					Math.floor(time / (60 * 60)).toLocaleString("en-US", {
 						minimumIntegerDigits: 2,
 						useGrouping: false,
-					})}
-				</p>
-			</div>
+					}) + ":"}
+				{Math.floor((time % (60 * 60)) / 60).toLocaleString("en-US", {
+					minimumIntegerDigits: 2,
+					useGrouping: false,
+				})}
+				:
+				{(time % 60).toLocaleString("en-US", {
+					minimumIntegerDigits: 2,
+					useGrouping: false,
+				})}
+			</p>
 		</div>
 	);
 }

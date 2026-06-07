@@ -35,8 +35,12 @@ function ActionsMenu({ containerRef, actions, className }: Props) {
 		menuRef.current.style.top = topPosition + "px";
 	}, [containerRef]);
 
+	const hideShortcut = actions.every(a => !a.shortcut);
+
 	return (
-		<div className={`${styles.actionsMenu} ${className}`} ref={menuRef}>
+		<div
+			className={`pop-over ${styles.actionsMenu} ${hideShortcut && styles.hideShortcuts} ${className}`}
+			ref={menuRef}>
 			{actions.length > 0 &&
 				actions.map((action, i) => (
 					<button
@@ -46,9 +50,11 @@ function ActionsMenu({ containerRef, actions, className }: Props) {
 						autoFocus={i === 0}>
 						<Icon path={action.iconName} size={1} />
 						<span title={action.shortcut}>{action.text}</span>
-						<p className="dimmed" title={action.shortcut}>
-							{action.shortcut}
-						</p>
+						{!hideShortcut && (
+							<p className="dimmed" title={action.shortcut}>
+								{action.shortcut}
+							</p>
+						)}
 					</button>
 				))}
 			{actions.length === 0 && (

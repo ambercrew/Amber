@@ -1,15 +1,17 @@
 .side-bar {
-	--sidebar-inner-horizontal-padding: var(--spacing-5);
+	--sidebar-inner-horizontal-padding: var(--spacing-4);
 	--sidebar-inner-vertical-padding: var(--spacing-4);
 	--sidebar-inner-padding: var(--sidebar-inner-vertical-padding)
 		var(--sidebar-inner-horizontal-padding);
-	--border-separator: var(--default-border-width) solid var(--border-color);
+	--border-separator: var(--border-width) solid var(--border-default);
+
+	--button-row-padding: var(--spacing-3) var(--spacing-4);
 
 	flex-shrink: 0;
 	border-right: var(--border-separator);
-	background-color: var(--side-bar-background-color);
+	background-color: var(--surface-pane);
 	width: 28rem;
-	transition: var(--default-transition-time) all;
+	transition: var(--transition-time) all;
 	max-width: 100%;
 	position: relative;
 	font-size: 1.6rem;
@@ -18,6 +20,7 @@
 	justify-content: space-between;
 	height: 100vh;
 	z-index: 6;
+	color: var(--text-secondary);
 
 	& .side-bar-top-container {
 		overflow-y: auto;
@@ -34,7 +37,7 @@
 		/* This property is necessary so that the expanded and
 		 * collapsed sidebar have the same height.
 		 */
-		height: 7rem;
+		height: 5rem;
 
 		& h2 {
 			font-size: 2rem;
@@ -45,12 +48,6 @@
 			margin-right: var(--spacing-4);
 			width: 3.2rem;
 		}
-	}
-
-	& .title-row {
-		display: flex;
-		align-items: center;
-		gap: 4px;
 	}
 
 	&.closed {
@@ -69,7 +66,7 @@
 			padding-left: 0;
 			justify-content: center;
 
-			& .title-row {
+			& .title {
 				display: none;
 			}
 		}
@@ -87,7 +84,8 @@
 		}
 
 		.toggle-button,
-		.row {
+		.row,
+		.bottom-button {
 			padding: var(--spacing-4) var(--spacing-3);
 		}
 
@@ -117,12 +115,14 @@
 }
 
 .alert {
-	margin: var(--spacing-2) var(--sidebar-inner-horizontal-padding) 0;
+	margin: var(--sidebar-inner-vertical-padding)
+		var(--sidebar-inner-horizontal-padding) 0;
 }
 
 .verify-button {
-	margin: var(--sidebar-inner-vertical-padding) var(--spacing-5) 0;
-	width: calc(100% - var(--spacing-5) * 2);
+	margin: var(--sidebar-inner-vertical-padding)
+		var(--sidebar-inner-horizontal-padding) 0;
+	width: calc(100% - 2 * var(--sidebar-inner-horizontal-padding));
 
 	display: flex;
 	align-items: center;
@@ -148,12 +148,12 @@
 	align-items: center;
 	gap: var(--spacing-4);
 	width: 100%;
-	padding: var(--spacing-4);
+	padding: var(--button-row-padding);
 
 	/* Necessary so that the button has the same height when the sidebar is closed. */
 	height: calc(
 		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-			var(--spacing-4) /* Height of padding */
+			var(--spacing-3) /* Height of padding */
 	);
 }
 
@@ -163,35 +163,33 @@
 
 	.search-input {
 		width: 100%;
-		background-color: inherit;
+		background-color: var(--surface-page);
 		font-size: 1.6rem;
-
-		&:hover {
-			background-color: var(--default-background-color);
-		}
 
 		&:focus,
 		&:not(:placeholder-shown) {
-			background-color: var(--default-background-color);
+			background-color: var(--surface-card);
 			border-color: var(--primary-color);
 		}
 	}
 }
 
-.bottom-button {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: var(--spacing-4);
-	border-radius: 0;
-	border-top: var(--default-border-width) solid var(--border-color);
+.bottom-button-container {
+	padding: var(--spacing-2) var(--sidebar-inner-horizontal-padding);
+	width: 100%;
+	border-top: var(--border-width) solid var(--border-default);
 
-	padding: var(--spacing-5) var(--sidebar-inner-horizontal-padding);
-	/* Necessary so that the button has the same height when the sidebar is closed. */
-	height: calc(
-		1.5 * 1.6rem /* Line height multiplied by font size. */ + 2 *
-			var(--spacing-5) /* Height of padding */
-	);
+	.bottom-button {
+		/* Important to have teh same height in closed */
+		height: 3.625rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: var(--spacing-2);
+		width: 100%;
+		padding: var(--button-row-padding);
+		font-size: 1.6rem;
+	}
 }
 
 .sync-box {

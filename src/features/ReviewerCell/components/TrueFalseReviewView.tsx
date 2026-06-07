@@ -26,18 +26,18 @@ function TrueFalseReviewView({ cell, showAnswer }: Props) {
 			/>
 			<div className={`${styles.cardSection} ${styles.trueFalseRow}`}>
 				<button
-					className={`transparent
+					className={`
                         ${chosenAnswer === true && !showAnswer && styles.checked}
-                        ${showAnswer && trueFalse.isTrue && styles.correct}`}
+                        ${showAnswer && trueFalse.isTrue ? "primary" : "transparent"}`}
 					disabled={showAnswer && !trueFalse.isTrue}
 					onKeyUp={handleKeyUp}
 					onClick={() => setChosenAnswer(true)}>
 					True
 				</button>
 				<button
-					className={`transparent
+					className={`
                         ${chosenAnswer === false && !showAnswer && styles.checked}
-                        ${showAnswer && !trueFalse.isTrue && styles.correct}`}
+                        ${showAnswer && !trueFalse.isTrue ? "primary" : "transparent"}`}
 					disabled={showAnswer && trueFalse.isTrue}
 					onKeyUp={handleKeyUp}
 					onClick={() => setChosenAnswer(false)}>

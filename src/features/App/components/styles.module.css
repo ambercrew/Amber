@@ -9,6 +9,7 @@
 }
 
 .workarea {
+	background-color: var(--surface-page);
 	flex-shrink: 1;
 	min-width: 0;
 	width: 100%;

@@ -1,5 +1,5 @@
 .floating-button {
-	box-shadow: var(--default-box-shadow);
+	box-shadow: var(--shadow-md);
 }
 
 .container {
@@ -15,29 +15,39 @@
 }
 
 .chat-panel {
-	box-shadow: var(--default-box-shadow);
 	width: 32rem;
 	max-width: 75vw;
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
+	--sections-padding: var(--spacing-2) var(--spacing-3);
 
 	& .header {
-		background-color: var(--default-background-color);
+		position: relative;
+		background-color: var(--surface-pane);
 		display: flex;
-		gap: var(--spacing-4);
+		gap: var(--spacing-2);
 		align-items: center;
 		justify-content: space-between;
-		padding: var(--spacing-2) var(--spacing-4);
+		padding: var(--sections-padding);
 
-		border: var(--default-border-width) solid var(--border-color);
+		border: var(--border-width) solid var(--border-default);
 
-		border-radius: var(--default-border-radius);
+		border-radius: var(--border-radius);
 		border-bottom-right-radius: 0;
 		border-bottom-left-radius: 0;
+
+		& .select {
+			background-color: var(--surface-page);
+		}
+
+		& .actions-menu {
+			right: 0;
+			width: 60%;
+		}
 	}
 
 	& .messages {
-		background-color: var(--surface-background-color-tint-10);
-		padding: var(--spacing-4);
+		background-color: var(--surface-page);
+		padding: var(--sections-padding);
 		height: 32rem;
 		max-height: 50vh;
 		display: flex;
@@ -45,8 +55,8 @@
 		gap: var(--spacing-4);
 		overflow-y: auto;
 
-		border-right: var(--default-border-width) solid var(--border-color);
-		border-left: var(--default-border-width) solid var(--border-color);
+		border-right: var(--border-width) solid var(--border-default);
+		border-left: var(--border-width) solid var(--border-default);
 
 		& .message-wrapper {
 			display: flex;
@@ -58,7 +68,6 @@
 				align-items: center;
 				gap: var(--spacing-1);
 				font-size: 1.2rem;
-				color: var(--surface-background-color-shade-20);
 				padding: 0 var(--spacing-1);
 				opacity: 0;
 				transition: opacity 0.15s;
@@ -73,12 +82,12 @@
 		}
 
 		& .message {
-			background-color: var(--default-background-color);
+			background-color: var(--surface-card);
 			max-width: 92%;
 			padding: var(--spacing-2);
-			border-radius: var(--default-border-radius);
-			border: var(--default-border-width) solid var(--border-color);
-			word-break: break-all;
+			border-radius: var(--border-radius);
+			border: var(--border-width) solid var(--border-default);
+			word-break: break-word;
 			overflow-wrap: break-word;
 
 			& > * {
@@ -93,7 +102,7 @@
 		}
 
 		& .human .spinner::after {
-			color: #fff;
+			color: var(--primary-color-fg);
 		}
 
 		&.human .spinner {
@@ -108,8 +117,8 @@
 		& .human {
 			align-self: flex-end;
 			background-color: var(--primary-color);
-			color: #fff;
-			border-color: var(--primary-color);
+			color: var(--primary-color-fg);
+			border-color: var(--border-default);
 		}
 
 		& .document {
@@ -124,22 +133,22 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				background-color: var(--primary-color-shade-20);
+				background-color: var(--primary-color);
 				border-radius: 50%;
 			}
 		}
 	}
 
 	& form {
-		background-color: var(--default-background-color);
-		border: var(--default-border-width) solid var(--border-color);
-		padding: var(--spacing-2) var(--spacing-4);
+		background-color: var(--surface-pane);
+		border: var(--border-width) solid var(--border-default);
+		padding: var(--sections-padding);
 		display: flex;
 		gap: var(--spacing-3);
 		align-items: center;
 
-		border-bottom-right-radius: var(--default-border-radius);
-		border-bottom-left-radius: var(--default-border-radius);
+		border-bottom-right-radius: var(--border-radius);
+		border-bottom-left-radius: var(--border-radius);
 
 		& textarea {
 			width: 100%;
@@ -204,7 +213,7 @@
 		gap: var(--spacing-1);
 
 		text-transform: capitalize;
-		border-bottom: var(--default-border-width) solid var(--border-color);
+		border-bottom: var(--border-width) solid var(--border-default);
 		padding-bottom: var(--spacing-2);
 		font-weight: 600;
 
@@ -221,7 +230,7 @@
 	& .footer {
 		display: flex;
 		padding-top: var(--spacing-2);
-		border-top: var(--default-border-width) solid var(--border-color);
+		border-top: var(--border-width) solid var(--border-default);
 
 		& > * {
 			display: flex;
@@ -233,7 +242,7 @@
 			padding-bottom: var(--spacing-3);
 
 			&.accept {
-				color: var(--green-color);
+				color: var(--review-color);
 			}
 
 			&.reject {

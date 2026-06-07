@@ -29,7 +29,7 @@
 
 .description {
 	margin: 0;
-	color: var(--text-color-secondary);
+	color: var(--text-secondary);
 }
 
 .feature-list-title {
@@ -55,9 +55,9 @@
 .feature-icon-badge {
 	width: 46px;
 	height: 46px;
-	border-radius: var(--default-border-radius);
-	background-color: var(--surface-background-color-tint-10);
-	border: var(--default-border-width) solid var(--border-color);
+	border-radius: var(--border-radius);
+	background-color: var(--surface-pane);
+	border: var(--border-width) solid var(--border-default);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -70,15 +70,15 @@
 
 .feature-description {
 	margin: 0;
-	color: var(--text-color-secondary);
+	color: var(--text-secondary);
 }
 
 .ai-note {
-	color: var(--text-color-secondary);
-	border: var(--default-border-width) solid var(--border-color);
-	background-color: var(--surface-background-color-tint-10);
+	color: var(--text-secondary);
+	border: var(--border-width) solid var(--border-default);
+	background-color: var(--surface-pane);
 	padding: var(--spacing-4);
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	font-size: 1.4rem;
 	margin-bottom: var(--spacing-2);
 

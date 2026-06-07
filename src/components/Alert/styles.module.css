@@ -1,16 +1,16 @@
 .alert {
 	color: #fff;
 	padding: var(--spacing-4) var(--spacing-5);
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	gap: var(--spacing-2);
-	box-shadow: var(--default-box-shadow);
+	box-shadow: var(--shadow-sm);
 	word-break: break-word;
 
 	& p {
-		word-break: break-all;
+		word-break: break-word;
 	}
 
 	&[role="button"] {
@@ -19,15 +19,11 @@
 
 	&.error {
 		background-color: var(--red-color);
+		color: var(--semantic-color-fg);
 	}
 	&.primary {
 		background-color: var(--primary-color);
-	}
-	&.secondary {
-		background-color: var(--secondary-color);
-	}
-	&.success {
-		background-color: var(--green-color);
+		color: var(--primary-color-fg);
 	}
 
 	& button {

@@ -13,11 +13,11 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 	return (
 		<div className={styles.buttonRow}>
 			<button
-				className={`red ${styles.gradeButton}`}
+				className={`${styles.againButton} ${styles.gradeButton}`}
 				onClick={() => onClick(Rating.Again)}
 				disabled={disabled}
 				title="(1)">
-				Again
+				<span className={styles.gradeName}>Again</span>
 				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
@@ -30,7 +30,7 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 				onClick={() => onClick(Rating.Hard)}
 				disabled={disabled}
 				title="(2)">
-				Hard
+				<span className={styles.gradeName}>Hard</span>
 				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
@@ -43,7 +43,7 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 				onClick={() => onClick(Rating.Good)}
 				disabled={disabled}
 				title="(3)">
-				Good
+				<span className={styles.gradeName}>Good</span>
 				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,
@@ -52,11 +52,11 @@ function ButtonRow({ startTime, disabled, recordLog, onClick }: Props) {
 				</span>
 			</button>
 			<button
-				className={`primary ${styles.gradeButton}`}
+				className={`${styles.easyButton} ${styles.gradeButton}`}
 				onClick={() => onClick(Rating.Easy)}
 				disabled={disabled}
 				title="(4)">
-				Easy
+				<span className={styles.gradeName}>Easy</span>
 				<span className={styles.gradeTime}>
 					{durationToString(
 						startTime,

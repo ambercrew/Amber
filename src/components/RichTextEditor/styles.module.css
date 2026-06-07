@@ -1,13 +1,13 @@
 .container {
 	position: relative;
-	border: var(--default-border-width) solid var(--border-color);
-	border-radius: var(--default-border-radius);
-	transition: all var(--default-transition-time);
+	border: var(--border-width) solid var(--border-default);
+	border-radius: var(--border-radius);
+	transition: all var(--transition-time);
 	word-wrap: break-word;
 	word-break: break-word;
 
 	&:hover {
-		border-color: var(--hover-border-color);
+		border-color: var(--border-strong);
 	}
 
 	&:focus-within {
@@ -38,9 +38,7 @@
 .floating-menu {
 	position: absolute;
 	transform: translateY(-100%);
-	background-color: var(--surface-background-color-tint-10);
-	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
+	background-color: var(--surface-pane);
 	padding: var(--spacing-4);
 	display: flex;
 	flex-direction: row;
@@ -53,25 +51,21 @@
 	z-index: 3;
 
 	& > button {
-		color: var(--text-color);
+		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-items: center;
+		background-color: inherit;
 	}
 }
 
 .active-button {
-	/* Adding important so that hover, or focus does not change background color. */
-	background-color: var(--surface-background-color-shade-10) !important;
-}
-
-.active-button:hover {
-	opacity: 0.8;
+	filter: brightness(85%);
 }
 
 .vertical-border {
 	height: 1.6rem;
-	border-right: var(--default-border-width) solid var(--text-color);
+	border-right: var(--border-width) solid var(--text-primary);
 	margin: 0 4px;
 }
 
@@ -80,7 +74,7 @@
 	display: inline-block;
 
 	&.selected {
-		outline: var(--default-outline-width) dashed var(--text-color);
+		outline: var(--outline-width) dashed var(--text-primary);
 	}
 
 	--resize-circle-size: 12px;
@@ -90,9 +84,9 @@
 		position: absolute;
 		width: var(--resize-circle-size);
 		height: var(--resize-circle-size);
-		background-color: var(--text-color);
-		border: var(--default-border-width) solid var(--border-color);
-		border-radius: var(--default-border-radius);
+		background-color: var(--text-primary);
+		border: var(--border-width) solid var(--border-default);
+		border-radius: var(--border-radius);
 	}
 
 	& .bottom-right {

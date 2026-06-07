@@ -104,10 +104,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 			className={`${styles.sideBar} ${!isExpanded && styles.closed} ${isSmallScreen && styles.smallScreen}`}>
 			<div className={styles.sideBarTopContainer}>
 				<div className={styles.header}>
-					<div className={styles.titleRow}>
-						<img src="icon.svg" alt="logo" />
-						<h2>Brainy</h2>
-					</div>
+					<h2 className={styles.title}>Brainy</h2>
 
 					<button
 						className={`transparent center ${styles.toggleButton}`}
@@ -201,7 +198,7 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 
 				{isSignedIn && !userInformation?.isEmailVerified && (
 					<button
-						className={`secondary ${styles.verifyButton}`}
+						className={`primary ${styles.verifyButton}`}
 						onClick={() => setShowVerifyEmailDialog(true)}>
 						<Icon path={mdiAlertCircleOutline} size={1} />
 						<p>Verify your email!</p>
@@ -212,11 +209,14 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 			</div>
 
 			{!isSignedIn && (
-				<button
-					className={`transparent ${styles.bottomButton}`}
-					onClick={() => setShowUserDialog(true)}>
-					<Icon path={mdiLoginVariant} size={1} /> <p>Sign-in/up</p>
-				</button>
+				<div className={styles.bottomButtonContainer}>
+					<button
+						className={`transparent ${styles.bottomButton}`}
+						onClick={() => setShowUserDialog(true)}>
+						<Icon path={mdiLoginVariant} size={1} />{" "}
+						<p>Sign-in/up</p>
+					</button>
+				</div>
 			)}
 
 			{showUserDialog && (

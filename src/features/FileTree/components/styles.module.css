@@ -10,7 +10,7 @@
 .file-item-outer-container {
 	padding: var(--outer-container-padding);
 	border: 2px solid transparent;
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 
 	/* If none of the children has drag-over class, then add border color */
 	&:not(:has(.drag-over)).drag-over {
@@ -20,7 +20,7 @@
 
 .file-tree-row-container {
 	width: 100%;
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	position: relative;
 
 	&.dragging {
@@ -40,20 +40,20 @@
 
 .file-tree-row {
 	width: 100%;
-	padding: 10px;
+	padding: var(--button-row-padding);
 	width: 100%;
 	display: flex;
 	align-items: center;
-	gap: 0.4rem;
+	gap: var(--spacing-1);
 
 	&.with-form {
 		padding: 0 var(--spacing-4);
 		/* Added to make the forms have the same border as the buttons. */
-		border: var(--default-border-width) solid transparent;
+		border: var(--border-width) solid transparent;
 	}
 
 	& .file-tree-row-input {
-		border-width: var(--default-border-width);
+		border-width: var(--border-width);
 		width: 100%;
 		font-size: inherit;
 	}
@@ -80,46 +80,41 @@
 	right: var(--spacing-1);
 	top: 50%;
 	transform: translateY(-50%);
-	border: var(--default-border-width) solid transparent;
-	border-radius: var(--default-border-radius);
+	border: var(--border-width) solid transparent;
+	border-radius: var(--border-radius);
 	height: 80%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 
 	&:hover {
-		background-color: var(--surface-background-color);
+		background-color: var(--surface-pane);
 	}
 }
 
 .file-tree-dots-selected {
-	color: #fff;
+	color: var(--primary-color-fg);
 	outline-color: transparent;
 
 	&:hover {
-		background-color: var(--primary-color-shade-10);
-		color: #fff;
+		background-color: var(--primary-color);
+		color: var(--primary-color-fg);
 	}
 
 	&:active {
-		background-color: var(--primary-color-shade-20);
+		background-color: var(--primary-color);
 	}
 
 	&:active,
 	&:focus {
-		color: #fff;
-		outline-color: #fff;
+		color: var(--primary-color-fg);
+		outline-color: var(--primary-color-fg);
 	}
 }
 
 .file-tree-item-children {
-	padding-left: var(--spacing-4);
-	transition: all var(--default-transition-time);
-	border-left: var(--default-border-width) solid var(--border-color);
-
-	&:hover {
-		border-left-color: var(--hover-border-color);
-	}
+	padding-left: var(--spacing-3);
+	transition: all var(--transition-time);
 }
 
 .file-tree-item-children.root {

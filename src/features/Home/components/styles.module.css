@@ -12,19 +12,24 @@
 
 .box {
 	width: 100%;
-	background: var(--surface-background-color-tint-10);
+	background: var(--surface-card);
 	margin: 0 auto;
-	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
-	padding: var(--spacing-4);
+	border-radius: var(--border-radius);
+	box-shadow: var(--shadow-sm);
 	overflow-x: auto;
+	border: var(--border-width) solid var(--border-default);
 }
 
 .header {
-	border-bottom: var(--default-border-width) solid var(--border-color);
-	margin: var(--spacing-4) 0;
+	border-bottom: var(--border-width) solid var(--border-default);
 	font-weight: 400;
 	min-width: fit-content;
+	background-color: var(--surface-pane);
+	padding: var(--spacing-4) var(--spacing-5);
+}
+
+.main-content {
+	padding: var(--spacing-4);
 }
 
 .row {
@@ -66,18 +71,6 @@
 			justify-content: center;
 			align-items: center;
 		}
-
-		& .new {
-			color: var(--new-color);
-		}
-
-		& .learning {
-			color: var(--learning-color);
-		}
-
-		& .review {
-			color: var(--review-color);
-		}
 	}
 
 	& button {
@@ -88,23 +81,18 @@
 .tree {
 	.tree-children {
 		padding-left: var(--spacing-4);
-		border-left: var(--default-border-width) solid var(--border-color);
-		transition: all var(--default-transition-time);
-
-		&:hover {
-			border-left-color: var(--hover-border-color);
-		}
+		transition: all var(--transition-time);
 	}
 
 	& .tree-row {
-		border-radius: var(--default-border-radius);
-		transition: all var(--default-transition-time);
+		border-radius: var(--border-radius);
+		transition: all var(--transition-time);
 		cursor: pointer;
 
 		&:focus,
 		&:focus-within,
 		&:hover {
-			background-color: var(--surface-background-color);
+			background-color: var(--surface-pane);
 		}
 	}
 }
@@ -134,12 +122,12 @@
 
 		.heatmap-box {
 			padding: 4px;
-			border: var(--default-border-width) solid transparent;
-			background-color: var(--surface-background-color);
+			border: var(--border-width) solid transparent;
+			background-color: var(--surface-pane);
 			position: relative;
 
 			&:hover {
-				border-color: var(--text-color);
+				border-color: var(--text-primary);
 			}
 
 			&.hidden {

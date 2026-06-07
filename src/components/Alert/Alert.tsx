@@ -6,7 +6,7 @@ interface Props extends React.DetailedHTMLProps<
 	React.InputHTMLAttributes<HTMLInputElement>,
 	HTMLInputElement
 > {
-	type: "error" | "primary" | "secondary" | "success";
+	type: "error" | "primary";
 	children: React.ReactNode;
 	onClose?: () => void;
 }
@@ -17,8 +17,6 @@ function Alert({ className, type, children, onClose, ...props }: Props) {
 			className={`${styles.alert}
                 ${type === "error" && styles.error}
                 ${type === "primary" && styles.primary}
-                ${type === "secondary" && styles.secondary}
-                ${type === "success" && styles.success}
                 ${className}`}
 			{...props}>
 			{children}

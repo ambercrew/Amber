@@ -33,7 +33,7 @@ function ReviewTree({ name, folder, file, onFileClick, onFolderClick }: Props) {
 			{name && (
 				<Row
 					expandable={folder !== undefined}
-					isExapnded={isExpanded}
+					isExpanded={isExpanded}
 					isFolder={folder !== undefined}
 					name={name}
 					newCount={newCount}

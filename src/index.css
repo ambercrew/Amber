@@ -3,7 +3,7 @@
 	padding: 0;
 	box-sizing: border-box;
 	outline: var(--default-outline);
-	outline-offset: var(--default-outline-offset);
+	outline-offset: var(--outline-offset);
 }
 
 *:focus,
@@ -27,48 +27,19 @@ body {
 	font-variation-settings: "wdth" 100;
 	font-weight: 400;
 	font-style: normal;
-	background-color: var(--default-background-color);
-	color: var(--text-color);
+	background-color: var(--surface-page);
+	color: var(--text-primary);
 
-	--default-outline-width: 2px;
-	--default-outline: var(--default-outline-width) solid transparent;
-	--default-outline-offset: 1px;
+	--outline-width: 2px;
+	--outline-offset: 1px;
+	--default-outline: var(--outline-width) solid transparent;
 
-	--primary-color: #2563eb;
-	--primary-color-shade-10: #1554e0;
-	--primary-color-shade-20: #124bc7;
+	--border-radius: 10px;
+	--border-width: 1px;
 
-	--secondary-color-tint-10: #9b69f1;
-	--secondary-color: #7c3aed;
-	--secondary-color-shade-10: #6d28d9;
+	--transition-time: 0.2s;
 
-	--text-color: #2b2d42;
-	--text-color-secondary: #3e4347;
-
-	--border-color: var(--surface-background-color-shade-10);
-	--hover-border-color: var(--surface-background-color-shade-20);
-
-	--surface-background-color-tint-10: rgb(250, 250, 250);
-	--surface-background-color: rgb(235, 235, 235);
-	--surface-background-color-shade-10: #c9d0d6;
-	--surface-background-color-shade-20: #acb6c0;
-	--surface-background-color-shade-30: #8f9caa;
-
-	--default-background-color: #ffffff;
-	--side-bar-background-color: var(--surface-background-color-tint-10);
-
-	--red-color: #e71d36;
-	--green-color: #0faa77;
-
-	--new-color: var(--primary-color-shade-20);
-	--learning-color: var(--red-color);
-	--review-color: var(--green-color);
-	--hard-color: #f97316;
-
-	--folder-icon-color: var(--hard-color);
-	--file-icon-color: var(--primary-color-shade-20);
-
-	--default-border-radius: 8px;
+	--dragged-opacity: 0.75;
 
 	--spacing-0: 2px;
 	--spacing-1: 4px;
@@ -80,46 +51,112 @@ body {
 	--spacing-7: 34px;
 	--spacing-8: 42px;
 
-	--default-border-width: 1px;
-
-	--default-transition-time: 0.2s;
-
-	--default-box-shadow:
-		inset 0 0 0.5px 1px hsla(0, 0%, 100%, 0.075),
-		0 0 4px 1px rgba(0, 0, 0, 0.2);
-
-	--placeholder-color: #adb5bd;
-
-	--dragged-opacity: 0.75;
-
 	--mobile-padding-top: max(env(safe-area-inset-top), var(--spacing-6));
+
+	/* Primary */
+	--primary-color: #7c3d2a;
+	--primary-color-fg: #faf2ee;
+
+	/* Text */
+	--text-primary: #2b2d42; /* High contrast, main body/headings */
+	--text-secondary: #4a4d60; /* Medium-high contrast, subtext/labels */
+	--text-muted: #737688; /* Medium contrast, captions/meta text */
+	--text-disabled: #9fa2b0; /* Low contrast, placeholders/inactive icons */
+
+	/* Surfaces */
+	--surface-page: #fafaf8; /* The main site background */
+	--surface-pane: #eeece8; /* Sidebars, wells, and panels (for controls use --surface-page when they are on surface pane) */
+	--surface-card: #ffffff; /* Elevated content cards */
+	--surface-control: #d9d6d0; /* Checkboxes, toggles, ghost buttons */
+	--surface-thumb: #a8a39b; /* Toggle thumbs, checkbox borders, control-on-control content */
+	--overlay-color: rgba(20, 14, 10, 0.5);
+
+	/* Borders & Dividers */
+	--border-default: #d9d6d0; /* Standard thin borders */
+	--border-strong: #c2beb7; /* Interactive/dashed borders */
+	--border-muted: #a8a39b; /* Non-interactive minor borders */
+
+	/* Semantic colors */
+	--semantic-color-fg: #fff;
+	--red-color: #b91c2e;
+	--hard-color: #c2560a;
+	--review-color: #0a8a5f;
+	--easy-color: #1d65d8;
+
+	/* Box shadows */
+	--shadow-color: 43, 30, 22;
+
+	/* hover cards, raised inputs */
+	--shadow-sm:
+		0 1px 3px rgba(var(--shadow-color), 0.08),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.04);
+
+	/* dropdowns, tooltips, pop-overs */
+	--shadow-md:
+		0 4px 12px rgba(var(--shadow-color), 0.1),
+		0 1px 3px rgba(var(--shadow-color), 0.06),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.04);
+
+	/* modals, command palette, dialogs */
+	--shadow-lg:
+		0 8px 24px rgba(var(--shadow-color), 0.12),
+		0 2px 6px rgba(var(--shadow-color), 0.06),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.04);
 }
 
-/* On dark theme, the roles of shade and tint colors are reversed. */
 body.dark {
-	--text-color: #f5f7fa;
-	--text-color-secondary: #bcc6d1;
+	/* Primary */
+	--primary-color: #c4755a;
+	--primary-color-fg: #f7eee9;
 
-	--primary-color-shade-10: #306bec;
-	--primary-color-shade-20: #5182ef;
+	/* Text */
+	--text-primary: #e8e4de;
+	--text-secondary: #c8c3bc;
+	--text-muted: #a8a49e;
+	--text-disabled: #6b6560;
 
-	--secondary-color-shade-10: #9b69f1;
-	--secondary-color-tint-10: #6d28d9;
+	/* Surfaces */
+	--surface-page: #1c1a18;
+	--surface-pane: #252320;
+	--surface-card: #2e2b28;
+	--surface-control: #3a3630;
+	--surface-thumb: #6b6560;
+	--overlay-color: rgba(14, 10, 8, 0.6);
 
-	--border-color: #44464a;
-	--hover-border-color: #56585c;
+	/* Borders & Dividers */
+	--border-default: #444040;
+	--border-strong: #6b6560;
+	--border-muted: #3a3630;
 
-	--default-background-color: #242426;
+	/* Semantic */
+	--semantic-color-fg: #fff;
+	--red-color: #e05060;
+	--hard-color: #d4883a;
+	--review-color: #28b870;
+	--easy-color: #4090e0;
 
-	--surface-background-color-tint-10: #2d2d2f;
-	--surface-background-color: #323234;
-	--surface-background-color-shade-10: #4b4b4e;
-	--surface-background-color-shade-20: #646468;
-	--surface-background-color-shade-30: #7d7d82;
+	/* Shadows */
+	--shadow-color: 20, 14, 10;
 
-	--red-color: #eb1616;
+	--shadow-sm:
+		0 1px 3px rgba(var(--shadow-color), 0.3),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.2);
 
-	--placeholder-color: #b8bec7;
+	--shadow-md:
+		0 4px 12px rgba(var(--shadow-color), 0.5),
+		0 1px 3px rgba(var(--shadow-color), 0.35),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.25);
+
+	--shadow-lg:
+		0 8px 24px rgba(var(--shadow-color), 0.6),
+		0 2px 6px rgba(var(--shadow-color), 0.4),
+		0 0 0 0.5px rgba(var(--shadow-color), 0.3);
+}
+
+.pop-over {
+	box-shadow: var(--shadow-md);
+	border: var(--border-width) solid var(--border-default);
+	border-radius: var(--border-radius);
 }
 
 /* Used to disable transitions, e.g. when changing theme or when loading the app. */
@@ -136,7 +173,7 @@ body.no-transition * {
 input::placeholder,
 textarea::placeholder,
 button:disabled {
-	color: var(--placeholder-color);
+	color: var(--surface-thumb);
 }
 
 button,
@@ -150,7 +187,7 @@ a {
 }
 
 a {
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 }
 
 textarea {
@@ -168,29 +205,29 @@ a,
 a:visited,
 button.link {
 	color: var(--primary-color);
-	transition: var(--default-transition-time);
+	transition: var(--transition-time);
 	padding: 0;
 }
 
 body.dark a,
 body.dark a:visited,
 body.dark button.link {
-	color: var(--primary-color-shade-10);
+	color: var(--primary-color);
 }
 
 body.dark a:hover,
 body.dark button.link:hover {
-	color: var(--primary-color-shade-20);
+	color: var(--primary-color);
 }
 
 a:hover,
 button.link:hover {
-	color: var(--primary-color-shade-10);
+	color: var(--primary-color);
 }
 
 a:active,
 button.link:active {
-	color: var(--primary-color-shade-20);
+	color: var(--primary-color);
 }
 
 .input,
@@ -198,13 +235,13 @@ input,
 textarea,
 select,
 .select {
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	outline: none;
 	padding: var(--spacing-3) var(--spacing-4);
-	border: var(--default-border-width) solid var(--border-color);
-	transition: var(--default-transition-time);
-	background-color: var(--default-background-color);
-	color: var(--text-color);
+	border: var(--border-width) solid var(--border-default);
+	transition: var(--transition-time);
+	color: var(--text-primary);
+	background-color: var(--surface-page);
 	appearance: none;
 	-webkit-appearance: none;
 }
@@ -218,7 +255,7 @@ input:hover,
 textarea:hover,
 select:hover,
 .select:hover {
-	border-color: var(--hover-border-color);
+	border-color: var(--border-strong);
 }
 
 .input:focus,
@@ -259,13 +296,13 @@ input[type="checkbox"]:checked::after {
 
 button {
 	font-size: 1.6rem;
-	border-radius: var(--default-border-radius);
-	padding: var(--spacing-3) var(--spacing-4);
+	border-radius: var(--border-radius);
+	padding: var(--spacing-3);
 	cursor: pointer;
-	transition: var(--default-transition-time);
+	transition: var(--transition-time);
 	font-weight: 400;
 	background-color: transparent;
-	border: var(--default-border-width) solid transparent;
+	border: var(--border-width) solid transparent;
 }
 
 button:disabled {
@@ -282,62 +319,40 @@ button:not(:disabled):active {
 }
 
 button.primary {
-	color: #fff;
+	color: var(--primary-color-fg);
 	background-color: var(--primary-color);
 	border-color: var(--primary-color);
 }
 
 button.primary * {
-	color: #fff;
+	color: var(--primary-color-fg);
 }
 
-button.primary:not(:disabled):focus {
-	box-shadow: var(--default-box-shadow);
-}
-
-button.secondary {
-	color: #fff;
-	background-color: var(--secondary-color);
-	border-color: var(--secondary-color);
-}
-
-button.secondary * {
-	color: #fff;
-}
-
-button.secondary:not(:disabled):focus {
-	box-shadow: var(--default-box-shadow);
-}
-
-button.secondary:focus {
-	outline-color: var(--secondary-color-shade-10);
-}
-
-button.transparent {
-	color: var(--text-color);
-}
-
-button.transparent:not(:disabled):hover {
-	background-color: var(--surface-background-color);
+.transparent:not(:disabled):hover {
+	background-color: rgba(0, 0, 0, 0.07);
 	filter: none;
 }
 
-button.transparent:not(:disabled):active {
-	background-color: var(--surface-background-color-shade-10);
+.transparent:not(:disabled):active {
+	background-color: rgba(0, 0, 0, 0.12);
 	filter: none;
+}
+
+body.dark .transparent:not(:disabled):hover {
+	background-color: rgba(255, 255, 255, 0.09);
+}
+
+body.dark .transparent:not(:disabled):active {
+	background-color: rgba(255, 255, 255, 0.12);
 }
 
 button.grey-button {
-	background-color: var(--surface-background-color);
-}
-
-button.grey-button:focus {
-	outline-color: var(--surface-background-color-shade-30);
+	background-color: var(--surface-control);
 }
 
 button.red {
 	background-color: var(--red-color);
-	color: #fff;
+	color: var(--semantic-color-fg);
 }
 
 button.red:focus {
@@ -370,23 +385,15 @@ h1 {
 }
 
 .new-color {
-	color: var(--new-color);
+	color: var(--red-color);
 }
 
 .learning-color {
-	color: var(--learning-color);
-}
-
-.review-color {
 	color: var(--review-color);
 }
 
-.folder-icon {
-	color: var(--folder-icon-color);
-}
-
-.file-icon {
-	color: var(--file-icon-color);
+.review-color {
+	color: var(--easy-color);
 }
 
 /* Global classes for the Lexical editor */
@@ -414,20 +421,20 @@ h1 {
 }
 
 ::-webkit-scrollbar-thumb {
-	background: var(--surface-background-color-shade-20);
-	border-radius: var(--default-border-radius);
+	background: var(--border-strong);
+	border-radius: var(--border-radius);
 	transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--primary-color);
+	background: var(--border-muted);
 }
 
 ::-webkit-scrollbar-thumb:active {
-	background: var(--primary-color-shade-10);
+	background: var(--primary-color);
 }
 
 ::selection {
 	background-color: var(--primary-color);
-	color: #fff;
+	color: var(--primary-color-fg);
 }

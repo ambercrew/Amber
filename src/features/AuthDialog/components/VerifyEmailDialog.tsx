@@ -119,7 +119,7 @@ export default function VerifyEmailDialog({ onClose }: Props) {
 				)}
 
 				{showVerificationCodeSentSuccessMessage && (
-					<Alert type="success" className={styles.alert}>
+					<Alert type="primary" className={styles.alert}>
 						<p>Verification code has been resent to your email!</p>
 					</Alert>
 				)}

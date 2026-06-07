@@ -22,6 +22,7 @@ interface Props extends React.DetailedHTMLProps<
 export default function Select({
 	options,
 	currentValue,
+	className,
 	onChangeValue,
 	...props
 }: Props) {
@@ -79,7 +80,7 @@ export default function Select({
 				{...props}
 				onClick={() => setIsOpen(!isOpen)}
 				ref={dropDownRef}
-				className={`select transparent ${styles.dropDownButton}`}
+				className={`select transparent ${styles.dropDownButton} ${className}`}
 				type="button"
 				title={selectedLabel}>
 				<p>{selectedLabel}</p>

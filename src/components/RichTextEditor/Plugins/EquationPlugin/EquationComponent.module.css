@@ -1,7 +1,7 @@
 .equation {
 	cursor: pointer;
 	outline: var(--default-outline);
-	border-radius: var(--default-border-radius);
+	border-radius: var(--border-radius);
 	padding: var(--spacing-0);
 	margin: var(--spacing-0);
 	display: inline-block;
