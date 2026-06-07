@@ -134,6 +134,7 @@ export default function FileTreeItemRow({
 	);
 
 	const iconPath = getFileTreeIconPath({ isRoot, isFolder, isExpanded });
+	const itemName = isRoot ? "Files" : getFileName(fullPath);
 
 	return (
 		<>
@@ -147,9 +148,10 @@ export default function FileTreeItemRow({
 							className={`${styles.fileTreeRow}
                             ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}
 							onClick={onClick}
+							title={itemName}
 							ref={mergeRefs(buttonRef, setHandleDragRef)}>
 							<Icon path={iconPath} size={1} />
-							<p>{isRoot ? "Files" : getFileName(fullPath)}</p>
+							<p>{itemName}</p>
 						</button>
 						<button
 							title="Actions"
