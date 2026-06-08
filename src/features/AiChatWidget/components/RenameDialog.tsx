@@ -37,6 +37,7 @@ export default function RenameDialog({
 									id="new-name"
 									value={newTitle}
 									onChange={e => setNewTitle(e.target.value)}
+									onFocus={e => e.target.select()}
 									required
 									autoFocus
 								/>
