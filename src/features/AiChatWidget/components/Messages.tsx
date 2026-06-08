@@ -84,7 +84,7 @@ export default function Messages({
 								message.content.type === "document"
 									? styles.human
 									: styles.assistant
-							}`}>
+							} ${message.content.type === "human" && "primary-background"}`}>
 							{(message.content.type === "human" ||
 								message.content.type == "assistant") && (
 								<Markdown>{message.content.value}</Markdown>

@@ -437,3 +437,14 @@ h1 {
 	background-color: var(--primary-color);
 	color: var(--primary-color-fg);
 }
+
+/* Use this class when you want primary background color */
+.primary-background {
+	background-color: var(--primary-color);
+	color: var(--primary-color-fg);
+}
+
+.primary-background ::selection {
+	background-color: var(--primary-color-fg);
+	color: var(--primary-color);
+}

@@ -82,7 +82,6 @@
 		}
 
 		& .message {
-			background-color: var(--surface-card);
 			max-width: 92%;
 			padding: var(--spacing-2);
 			border-radius: var(--border-radius);
@@ -93,6 +92,10 @@
 			& > * {
 				overflow-x: auto;
 			}
+		}
+
+		& .assistant {
+			background-color: var(--surface-card);
 		}
 
 		.spinner::after {
@@ -118,8 +121,6 @@
 
 		& .human {
 			align-self: flex-end;
-			background-color: var(--primary-color);
-			color: var(--primary-color-fg);
 			border-color: var(--border-default);
 		}
 
