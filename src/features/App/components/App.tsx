@@ -22,7 +22,6 @@ import {
 	FILE_ID_QUERY_PARAMETER,
 	SMALL_SCREEN_MAX_WIDTH_IN_PX,
 } from "../../../config/constants";
-import FromRouteState from "../../../types/fromRouteState";
 import Searcher from "../../Searcher/components/Searcher";
 import Updater from "../../Updater/components/Updater";
 import {
@@ -61,12 +60,7 @@ function App() {
 
 	const handleEditorStudyClick = () => {
 		setStudyFileIds([selectedFileId!]);
-		void navigate("/reviewer", {
-			state: {
-				from: location.pathname,
-				fromSearch: location.search,
-			} as FromRouteState,
-		});
+		void navigate("/reviewer");
 	};
 
 	const handleHomeStudyClick = (fileIds: string[]) => {
