@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
 import Cell from "../../../api/cells/entities/cell";
@@ -8,7 +8,9 @@ import { getStudyRepetitionCounts } from "../../../api/cells/api/repetitionApi";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { FILE_ID_QUERY_PARAMETER } from "../../../config/constants";
-import EditableCells from "../../EditableCells/components/EditableCells";
+import EditableCells, {
+	EditableCellsHandle,
+} from "../../EditableCells/components/EditableCells";
 import { CallApiFn } from "../../../hooks/useApi";
 
 interface Props {
@@ -30,10 +32,16 @@ function Editor({ initialSelectedCellId, callApi, onStudyStart }: Props) {
 	const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
 	const [searchParams] = useSearchParams();
 	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER)!;
+	const editableCellsRef = useRef<EditableCellsHandle>(null);
+
+	const handleStudyStart = useCallback(async () => {
+		await editableCellsRef.current?.saveChanges();
+		onStudyStart();
+	}, [onStudyStart]);
 
 	useGlobalKey(e => {
 		if (e.key === "F5") {
-			onStudyStart();
+			void handleStudyStart();
 		}
 	}, "keydown");
 
@@ -80,12 +88,13 @@ function Editor({ initialSelectedCellId, callApi, onStudyStart }: Props) {
 				repetitionCounts={repetitionCounts}
 				searchText={searchText}
 				onSearchTextChange={setSearchText}
-				onStudyButtonClick={onStudyStart}
+				onStudyButtonClick={() => void handleStudyStart()}
 				onSearchInputFocus={() => setIsSearchInputFocused(true)}
 				onSearchInputBlur={() => setIsSearchInputFocused(false)}
 			/>
 
 			<EditableCells
+				ref={editableCellsRef}
 				cells={cells}
 				searchText={searchText}
 				callApi={callApi}
