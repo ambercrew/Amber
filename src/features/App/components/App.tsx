@@ -211,13 +211,13 @@ function App() {
 						}
 					/>
 				</Routes>
+
+				<AiChatWidget />
 			</div>
 
 			{showSettings && (
 				<Settings onClose={() => setShowSettings(false)} />
 			)}
-
-			<AiChatWidget />
 		</div>
 	);
 }
