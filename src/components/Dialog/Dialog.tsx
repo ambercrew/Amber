@@ -57,7 +57,6 @@ export default function Dialog({
 				className={styles.overlay}
 				onClick={e => {
 					e.stopPropagation();
-					if (onHide) onHide();
 				}}
 				onKeyDown={e => e.stopPropagation()}
 				onKeyUp={handleKeyUp}
