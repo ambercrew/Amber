@@ -163,7 +163,6 @@
 
 	.search-input {
 		width: 100%;
-		background-color: var(--surface-page);
 		font-size: 1.6rem;
 
 		&:focus,
