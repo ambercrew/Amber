@@ -54,6 +54,9 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 			return setCoordinates(null);
 		}
 
+		// Do not move the floating menu if it is already shown.
+		if (coordinates) return;
+
 		let x = Math.max(
 			0,
 			// Centering the x position relevant to the selection position,
@@ -72,7 +75,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 				: domRangeRect.top - editorRootElementRect.top - 10,
 		};
 		setCoordinates(newCoordinates);
-	}, [editor, isPointerDown, mobile]);
+	}, [editor, isPointerDown, mobile, coordinates]);
 
 	const $handleSelectionChange = useCallback(() => {
 		if (
