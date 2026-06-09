@@ -105,6 +105,20 @@ The `useApi` hook standardizes async calls.
 
 The editor uses **Lexical**. Cell content is stored and transferred as Lexical JSON.
 
+### CSS Naming Conventions
+
+CSS Modules are used throughout the frontend. Class names use kebab-case in `.module.css` files and camelCase when referenced in TypeScript/TSX:
+
+```css
+/* styles.module.css */
+.my-class-name { ... }
+```
+
+```tsx
+// Component.tsx
+<div className={styles.myClassName} />
+```
+
 ## Testing Conventions
 
 These conventions apply to both Rust (`src-tauri/`) and TypeScript (`src/`) tests.
