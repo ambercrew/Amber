@@ -11,10 +11,10 @@ function useOutsideClick(ref: React.RefObject<HTMLElement>, cb: () => void) {
 				cb();
 			}
 		}
-		document.addEventListener("click", handleClickOutside, true);
+		document.addEventListener("click", handleClickOutside);
 
 		return () => {
-			document.removeEventListener("click", handleClickOutside, true);
+			document.removeEventListener("click", handleClickOutside);
 		};
 	}, [ref, cb]);
 }

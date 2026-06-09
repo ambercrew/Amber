@@ -55,15 +55,11 @@ export default function Dialog({
 			}}>
 			<div
 				className={styles.overlay}
-				onClick={e => {
-					e.stopPropagation();
-				}}
 				onKeyDown={e => e.stopPropagation()}
 				onKeyUp={handleKeyUp}
 				tabIndex={-1}>
 				<div
-					className={`${styles.box} ${fullScreenOnSmallDevices && styles.fullScreenOnSmallDevices} ${className}`}
-					onClick={e => e.stopPropagation()}>
+					className={`${styles.box} ${fullScreenOnSmallDevices && styles.fullScreenOnSmallDevices} ${className}`}>
 					{children}
 				</div>
 			</div>
