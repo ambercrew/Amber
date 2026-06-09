@@ -10,7 +10,19 @@ import Cell from "../../../../api/cells/entities/cell";
 import callApiMock from "../../../test-utils/callApiMock";
 import createCreateCellRequestDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto";
 
-vi.mock(import("../../../../features/EditableCells/components/EditableCells"));
+vi.mock(
+	import("../../../../features/EditableCells/components/EditableCells"),
+	async () => {
+		const { forwardRef } = await import("react");
+		const spy = vi.fn();
+		const component = forwardRef(function EditableCells(props, ref) {
+			spy({ ...props, ref });
+			return null;
+		});
+		Object.defineProperty(component, "mock", { get: () => spy.mock });
+		return { default: component };
+	},
+);
 vi.mock(import("../../../../api/cells/api/repetitionApi"));
 vi.mock(import("../../../../api/cells/api/cellApi"));
 

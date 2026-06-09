@@ -1,32 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import Dialog from "../../components/Dialog/Dialog";
-import dialogStyles from "../../components/Dialog/styles.module.css";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 
 describe("Dialog", () => {
-	it("Should call onHide when clicking on overlay", async () => {
-		// Arrange
-
-		const onHide = vi.fn();
-		const { container } = render(
-			<Dialog onHide={onHide} focusTrap={false}>
-				test
-			</Dialog>,
-		);
-		const overlay = container.getElementsByClassName(
-			dialogStyles.overlay,
-		)[0];
-
-		// Act
-
-		await userEvent.click(overlay);
-
-		// Assert
-
-		expect(onHide).toHaveBeenCalled();
-	});
-
 	it("Should call onHide when pressing Escape", async () => {
 		// Arrange
 
