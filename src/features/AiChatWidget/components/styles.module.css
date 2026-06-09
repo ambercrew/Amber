@@ -35,10 +35,6 @@
 		border-bottom-right-radius: 0;
 		border-bottom-left-radius: 0;
 
-		& .select {
-			background-color: var(--surface-page);
-		}
-
 		& .actions-menu {
 			right: 0;
 			width: 60%;

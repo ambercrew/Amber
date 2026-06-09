@@ -240,7 +240,7 @@ select,
 	border: var(--border-width) solid var(--border-default);
 	transition: var(--transition-time);
 	color: var(--text-primary);
-	background-color: var(--surface-page);
+	background-color: inherit;
 	appearance: none;
 	-webkit-appearance: none;
 }
@@ -369,7 +369,7 @@ h1 {
 }
 
 .dimmed {
-	color: dimgray;
+	color: var(--text-muted);
 }
 
 .center {
