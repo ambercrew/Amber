@@ -3,13 +3,15 @@ import { CellType } from "../../../api/cells/entities/cell";
 import Repetition from "../../../api/cells/entities/repetition";
 import styles from "./styles.module.css";
 import repetitionsInfoFormatDate from "../utils/repetitionsInfoFormatDate";
+import Popover from "../../../components/Popover/Popover";
 
 interface Props {
 	repetitions: Repetition[];
 	cellType: CellType;
+	onHide: () => void;
 }
 
-function RepetitionsInfo({ repetitions, cellType }: Props) {
+function RepetitionsInfo({ repetitions, cellType, onHide }: Props) {
 	const sortedRepetitions = useMemo(() => {
 		if (cellType !== "Cloze") return repetitions;
 		return repetitions.sort(
@@ -20,8 +22,9 @@ function RepetitionsInfo({ repetitions, cellType }: Props) {
 	}, [repetitions, cellType]);
 
 	return (
-		<div
-			className={`pop-over ${styles.repetitionsInfoContainer}`}
+		<Popover
+			className={styles.repetitionsInfoContainer}
+			onHide={onHide}
 			onClick={e => e.stopPropagation()}>
 			{sortedRepetitions.map(repetition => (
 				<div key={repetition.id}>
@@ -47,7 +50,7 @@ function RepetitionsInfo({ repetitions, cellType }: Props) {
 					</p>
 				</div>
 			))}
-		</div>
+		</Popover>
 	);
 }
 

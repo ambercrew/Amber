@@ -1,6 +1,7 @@
 import { Icon } from "@mdi/react";
 import styles from "./styles.module.css";
 import React, { RefObject, useLayoutEffect, useRef } from "react";
+import Popover from "../Popover/Popover";
 
 export interface Action {
 	iconName: string;
@@ -13,9 +14,10 @@ interface Props {
 	actions: Action[];
 	containerRef: RefObject<HTMLDivElement | null>;
 	className?: string;
+	onHide: () => void;
 }
 
-function ActionsMenu({ containerRef, actions, className }: Props) {
+function ActionsMenu({ containerRef, actions, className, onHide }: Props) {
 	const menuRef = useRef<HTMLDivElement>(null);
 
 	useLayoutEffect(() => {
@@ -38,9 +40,10 @@ function ActionsMenu({ containerRef, actions, className }: Props) {
 	const hideShortcut = actions.every(a => !a.shortcut);
 
 	return (
-		<div
-			className={`pop-over ${styles.actionsMenu} ${hideShortcut && styles.hideShortcuts} ${className}`}
-			ref={menuRef}>
+		<Popover
+			className={`${styles.actionsMenu} ${hideShortcut && styles.hideShortcuts} ${className}`}
+			ref={menuRef}
+			onHide={onHide}>
 			{actions.length > 0 &&
 				actions.map((action, i) => (
 					<button
@@ -60,7 +63,7 @@ function ActionsMenu({ containerRef, actions, className }: Props) {
 			{actions.length === 0 && (
 				<p className="dimmed">No available actions!</p>
 			)}
-		</div>
+		</Popover>
 	);
 }
 

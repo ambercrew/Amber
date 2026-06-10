@@ -188,6 +188,7 @@ export default function FileTreeItemRow({
 			</div>
 			{showActions && (
 				<ActionsMenu
+					onHide={onHideActions}
 					actions={actions}
 					containerRef={containerRef}
 					className={styles.fileTreeActionsMenu}

@@ -10,6 +10,7 @@ import {
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import { mdiMagnify } from "@mdi/js";
 import useOutsideClick from "../../../hooks/useOutsideClick";
+import Popover from "../../../components/Popover/Popover";
 
 interface Props {
 	className?: string;
@@ -44,9 +45,7 @@ function NewCellTypeSelector({ className, onClick, onHide }: Props) {
 	}
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Escape") {
-			onHide();
-		} else if (e.key === "ArrowUp" || (e.shiftKey && e.key === "Tab")) {
+		if (e.key === "ArrowUp" || (e.shiftKey && e.key === "Tab")) {
 			e.preventDefault();
 			if (filteredCellTypes.length > 0) {
 				const currentIndex = getCurrentFocusedCellTypeIndex();
@@ -71,9 +70,10 @@ function NewCellTypeSelector({ className, onClick, onHide }: Props) {
 	};
 
 	return (
-		<div
-			className={`${className} ${styles.newCellSelector}`}
+		<Popover
+			className={`${className ?? ""} ${styles.newCellSelector}`}
 			ref={containerRef}
+			onHide={onHide}
 			onClick={e => e.stopPropagation()}
 			onKeyDown={handleKeyDown}>
 			<label htmlFor="search-type">Insert New Cell</label>
@@ -101,7 +101,7 @@ function NewCellTypeSelector({ className, onClick, onHide }: Props) {
 					<span>{cellTypesDisplayNames[cellType]}</span>
 				</button>
 			))}
-		</div>
+		</Popover>
 	);
 }
 

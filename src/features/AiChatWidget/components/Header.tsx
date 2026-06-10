@@ -104,6 +104,7 @@ export default function Header({
 						actions={actions}
 						containerRef={actionsContainerRef}
 						className={styles.actionsMenu}
+						onHide={() => setShowActionsMenu(false)}
 					/>
 				)}
 				<button

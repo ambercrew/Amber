@@ -35,6 +35,7 @@ import RenameDialog from "./RenameDialog";
 import Messages from "./Messages";
 import PromptForm from "./PromptForm";
 import useApiWithCustomError from "../../../hooks/useApiWithCustomError";
+import Popover from "../../../components/Popover/Popover";
 
 export default function AiChatWidget() {
 	const settings = useAppSelector(selectSettings);
@@ -311,7 +312,9 @@ function AiChatWidgetInner() {
 
 			<div className={styles.container}>
 				{isOpen && (
-					<div className={`pop-over ${styles.chatPanel}`}>
+					<Popover
+						className={styles.chatPanel}
+						onHide={() => setIsOpen(false)}>
 						<Header
 							selectedChatId={selectedChatId}
 							chats={chats}
@@ -342,7 +345,7 @@ function AiChatWidgetInner() {
 							onStopGeneration={stopAiGeneration}
 							onTextAreaKeyDown={handleTextAreaKeyDown}
 						/>
-					</div>
+					</Popover>
 				)}
 
 				{!isOpen && (

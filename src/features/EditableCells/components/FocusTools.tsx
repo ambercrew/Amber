@@ -197,7 +197,7 @@ function FocusTools({
 
 				{showInsertNewCell && enableFileSpecificFunctionality && (
 					<NewCellTypeSelector
-						className={`pop-over ${styles.insertCellPopup}`}
+						className={styles.insertCellPopup}
 						onClick={handleInsertNewCell}
 						onHide={() => setShowInsertNewCell(false)}
 					/>
@@ -207,6 +207,7 @@ function FocusTools({
 					<RepetitionsInfo
 						repetitions={repetitions}
 						cellType={cell.cellType}
+						onHide={() => setShowRepetitionsInfo(false)}
 					/>
 				)}
 				{showActionsMenu && (
@@ -214,6 +215,7 @@ function FocusTools({
 						actions={actions}
 						containerRef={focusToolsRef}
 						className={styles.focusToolsActionsMenu}
+						onHide={closeMenu}
 					/>
 				)}
 			</div>
