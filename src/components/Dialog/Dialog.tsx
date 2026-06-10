@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./styles.module.css";
 import { FocusTrap } from "focus-trap-react";
+import useBackButtonPress from "../../hooks/useBackButtonPress";
 
 interface Props {
 	/** Should be true only when a dialog has a tabbable component.*/
@@ -12,8 +13,8 @@ interface Props {
 }
 
 /** Shows a dialog with an overlay that handles the hide logic such as hiding
- * on overlay click, pressing Escape. Additionally it moves the focus to the
- * element that had the focus before the dialog was shown.
+ * on overlay click, pressing Escape, or Android back button. Additionally it
+ * moves the focus to the element that had the focus before the dialog was shown.
  */
 export default function Dialog({
 	className,
@@ -43,6 +44,13 @@ export default function Dialog({
 				focusedElement.current?.focus();
 		};
 	}, []);
+
+	useBackButtonPress(
+		onHide ??
+			(() => {
+				/* Empty */
+			}),
+	);
 
 	return (
 		<FocusTrap
