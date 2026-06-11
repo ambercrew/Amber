@@ -9,7 +9,6 @@ import {
 } from "../../../api/cells/entities/cell";
 import InputWithIcon from "../../../components/InputWithIcon/InputWithIcon";
 import { mdiMagnify } from "@mdi/js";
-import useOutsideClick from "../../../hooks/useOutsideClick";
 import Popover from "../../../components/Popover/Popover";
 
 interface Props {
@@ -25,8 +24,6 @@ function NewCellTypeSelector({ className, onClick, onHide }: Props) {
 	);
 	const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 	const containerRef = useRef<HTMLDivElement>(null);
-
-	useOutsideClick(containerRef as React.RefObject<HTMLElement>, onHide);
 
 	const filteredCellTypes = allCellTypes.filter(key =>
 		cellTypesDisplayNames[key]
