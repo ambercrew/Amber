@@ -5,6 +5,9 @@ import { screen } from "@testing-library/react";
 import { deleteUser } from "../../../../api/backend/api/userApi.ts";
 
 vi.mock(import("../../../../api/backend/api/userApi.ts"));
+vi.mock(import("../../../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 describe("DeleteUserDialog", () => {
 	it("Show show an error if the input field is not filled correctly", async () => {

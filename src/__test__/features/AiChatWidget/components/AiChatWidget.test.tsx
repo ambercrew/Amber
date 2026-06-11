@@ -40,6 +40,10 @@ vi.mock("@tauri-apps/api/core", () => {
 
 vi.mock("@tauri-apps/plugin-dialog");
 
+vi.mock(import("../../../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
+
 function renderComponent({
 	enableAi = true,
 	memoryRouterProps = {} as MemoryRouterProps,

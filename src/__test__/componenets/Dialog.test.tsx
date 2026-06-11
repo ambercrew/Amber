@@ -5,6 +5,9 @@ import { onBackButtonPress } from "@tauri-apps/api/app";
 import { PluginListener } from "@tauri-apps/api/core";
 
 vi.mock(import("@tauri-apps/api/app"));
+vi.mock(import("../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 describe("Dialog", () => {
 	beforeEach(() => {

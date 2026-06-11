@@ -3,6 +3,10 @@ import NewCellTypeSelector from "../../../../features/EditableCells/components/N
 import userEvent from "@testing-library/user-event";
 import { CellType } from "../../../../api/cells/entities/cell";
 
+vi.mock(import("../../../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
+
 describe("NewCellTypeSelector", () => {
 	it("Should be able to navigate with arrow down", async () => {
 		// Arrange

@@ -15,6 +15,9 @@ import { screen } from "@testing-library/react";
 import { FsrsProfileChoice } from "../../../../api/fileSystem/valueObjects/fsrsProfileChoice.ts";
 
 vi.mock(import("../../../../api/fsrs/api/fsrsApi.ts"));
+vi.mock(import("../../../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 describe("FsrsDialog", () => {
 	const ITEM_ID = "test_item";

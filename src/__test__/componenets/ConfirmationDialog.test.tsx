@@ -2,6 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ConfirmationDialog from "../../components/ConfirmationDialog/ConfirmationDialog";
 
+vi.mock(import("../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
+
 describe("ConfirmationDialog", () => {
 	it("Should calls onCancel when clicking on No", async () => {
 		// Arrange

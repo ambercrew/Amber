@@ -11,6 +11,9 @@ import { screen } from "@testing-library/react";
 
 vi.mock(import("../../../../api/backend/api/authApi.ts"));
 vi.mock(import("../../../../api/backend/api/userApi.ts"));
+vi.mock(import("../../../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 describe("VerifyEmailDialog", () => {
 	test("Should call backend, update user information, and close on successful submit", async () => {

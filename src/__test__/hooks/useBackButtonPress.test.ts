@@ -4,6 +4,9 @@ import { PluginListener } from "@tauri-apps/api/core";
 import useBackButtonPress from "../../hooks/useBackButtonPress";
 
 vi.mock(import("@tauri-apps/api/app"));
+vi.mock(import("../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 function makeListener(unregister = vi.fn()): PluginListener {
 	return { unregister } as unknown as PluginListener;

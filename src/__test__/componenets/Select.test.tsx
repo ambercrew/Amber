@@ -3,6 +3,10 @@ import Select from "../../components/Select/Select";
 import { renderWithProviders } from "../test-utils/renderWithProviders";
 import userEvent from "@testing-library/user-event";
 
+vi.mock(import("../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
+
 it("Should be able to change selection", async () => {
 	// Arrange
 

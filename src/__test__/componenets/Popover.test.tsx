@@ -5,6 +5,9 @@ import { PluginListener } from "@tauri-apps/api/core";
 import Popover from "../../components/Popover/Popover";
 
 vi.mock(import("@tauri-apps/api/app"));
+vi.mock(import("../../utils/tauriUtils.ts"), () => ({
+	isAndroid: vi.fn(() => true),
+}));
 
 describe("Popover", () => {
 	beforeEach(() => {
