@@ -21,6 +21,7 @@ const Popover = forwardRef<HTMLDivElement, Props>(function Popover(
 	const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		if (e.key === "Escape" && onHide) {
 			e.stopPropagation();
+			onHide();
 		}
 		onKeyUp?.(e);
 	};

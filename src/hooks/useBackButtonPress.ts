@@ -1,9 +1,12 @@
 import { PluginListener } from "@tauri-apps/api/core";
 import { onBackButtonPress } from "@tauri-apps/api/app";
 import { useEffect } from "react";
+import { isAndroid } from "../utils/tauriUtils";
 
 export default function useBackButtonPress(cb: () => void) {
 	useEffect(() => {
+		if (!isAndroid()) return;
+
 		let cancelled = false;
 		let listener: PluginListener | null = null;
 

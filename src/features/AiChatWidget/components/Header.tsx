@@ -13,7 +13,6 @@ import ActionsMenu, {
 	Action,
 } from "../../../components/ActionsMenu/ActionsMenu";
 import useOutsideClick from "../../../hooks/useOutsideClick";
-import useGlobalKey from "../../../hooks/useGlobalKey";
 
 interface Props {
 	selectedChatId: string | null;
@@ -39,10 +38,6 @@ export default function Header({
 
 	useOutsideClick(actionsContainerRef as React.RefObject<HTMLElement>, () => {
 		setShowActionsMenu(false);
-	});
-
-	useGlobalKey(e => {
-		if (e.key === "Escape") setShowActionsMenu(false);
 	});
 
 	const handleSelectChangeValue = (newValue: string) => {
