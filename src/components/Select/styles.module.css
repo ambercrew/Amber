@@ -31,12 +31,7 @@
 	position: absolute;
 	transform: translateY(100%);
 	bottom: 0;
-
-	border: var(--border-width) solid var(--border-strong);
-
 	width: 100%;
-	background-color: var(--surface-page);
-	border-radius: var(--border-radius);
 
 	display: flex;
 	flex-direction: column;

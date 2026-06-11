@@ -157,6 +157,7 @@ body.dark {
 	box-shadow: var(--shadow-md);
 	border: var(--border-width) solid var(--border-default);
 	border-radius: var(--border-radius);
+	background-color: var(--surface-page);
 }
 
 /* Used to disable transitions, e.g. when changing theme or when loading the app. */

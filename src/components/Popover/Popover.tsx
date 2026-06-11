@@ -19,7 +19,9 @@ const Popover = forwardRef<HTMLDivElement, Props>(function Popover(
 	useBackButtonPress(onHide ?? noop);
 
 	const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-		if (e.key === "Escape") onHide?.();
+		if (e.key === "Escape" && onHide) {
+			e.stopPropagation();
+		}
 		onKeyUp?.(e);
 	};
 

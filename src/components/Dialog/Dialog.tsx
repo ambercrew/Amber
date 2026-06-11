@@ -28,8 +28,8 @@ export default function Dialog({
 
 	const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		e.stopPropagation();
-		if (e.key === "Escape") {
-			if (onHide) onHide();
+		if (e.key === "Escape" && onHide) {
+			onHide();
 		}
 	};
 
