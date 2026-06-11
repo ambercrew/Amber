@@ -69,15 +69,15 @@ body {
 	--surface-card: #ffffff; /* Elevated content cards */
 	--surface-control: #d9d6d0; /* Checkboxes, toggles, ghost buttons */
 	--surface-thumb: #a8a39b; /* Toggle thumbs, checkbox borders, control-on-control content */
-	--overlay-color: rgba(20, 14, 10, 0.5);
+	--overlay-color: rgba(43, 30, 22, 0.55);
 
 	/* Borders & Dividers */
-	--border-default: #d9d6d0; /* Standard thin borders */
+	--border-default: #c8c4be; /* Standard thin borders */
 	--border-strong: #c2beb7; /* Interactive/dashed borders */
-	--border-muted: #a8a39b; /* Non-interactive minor borders */
+	--border-muted: #b8b4ae; /* Non-interactive minor borders */
 
 	/* Semantic colors */
-	--semantic-color-fg: #fff;
+	--semantic-color-fg: #faf8f5;
 	--red-color: #b91c2e;
 	--hard-color: #c2560a;
 	--review-color: #0a8a5f;
@@ -107,7 +107,7 @@ body {
 body.dark {
 	/* Primary */
 	--primary-color: #c4755a;
-	--primary-color-fg: #f7eee9;
+	--primary-color-fg: #1c1a18;
 
 	/* Text */
 	--text-primary: #e8e4de;
@@ -121,19 +121,19 @@ body.dark {
 	--surface-card: #2e2b28;
 	--surface-control: #3a3630;
 	--surface-thumb: #6b6560;
-	--overlay-color: rgba(14, 10, 8, 0.6);
+	--overlay-color: rgba(14, 10, 8, 0.82);
 
 	/* Borders & Dividers */
 	--border-default: #444040;
-	--border-strong: #6b6560;
+	--border-strong: #5a5652;
 	--border-muted: #3a3630;
 
 	/* Semantic */
-	--semantic-color-fg: #fff;
+	--semantic-color-fg: #f5f0eb;
 	--red-color: #e05060;
 	--hard-color: #d4883a;
 	--review-color: #28b870;
-	--easy-color: #4090e0;
+	--easy-color: #5898e0;
 
 	/* Shadows */
 	--shadow-color: 20, 14, 10;
@@ -427,7 +427,7 @@ h1 {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background: var(--border-muted);
+	background: var(--surface-thumb);
 }
 
 ::-webkit-scrollbar-thumb:active {
