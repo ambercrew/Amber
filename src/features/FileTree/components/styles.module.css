@@ -45,6 +45,7 @@
 	align-items: center;
 
 	&.with-form {
+		gap: var(--spacing-1);
 		padding: 0 var(--spacing-1);
 		/* Added to make the forms have the same border as the buttons. */
 		border: var(--border-width) solid transparent;
