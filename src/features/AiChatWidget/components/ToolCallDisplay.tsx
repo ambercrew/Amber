@@ -84,9 +84,13 @@ export default function ToolCallDisplay({
 				{file && (
 					<button
 						className="transparent"
-						title="Navigate to file"
+						title={`Navigate to file: ${file.name}`}
 						onClick={handleNavigateToFileClick}>
-						<Icon path={mdiFileDocumentOutline} size={1} />
+						<Icon
+							path={mdiFileDocumentOutline}
+							size={1}
+							className={styles.icon}
+						/>
 						<p>{file.name}</p>
 					</button>
 				)}

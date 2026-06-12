@@ -221,9 +221,22 @@
 			align-self: flex-start;
 			display: flex;
 			align-items: center;
+			width: 100%;
+			text-align: left;
 			justify-content: center;
 			gap: var(--spacing-1);
 			padding: var(--spacing-1);
+
+			& p {
+				min-width: 0;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+
+			& .icon {
+				flex-shrink: 0;
+			}
 		}
 	}
 
