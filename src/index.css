@@ -72,7 +72,7 @@ body {
 	--overlay-color: rgba(43, 30, 22, 0.55);
 
 	/* Borders & Dividers */
-	--border-default: #c8c4be; /* Standard thin borders */
+	--border-default: #d2cec8; /* Standard thin borders */
 	--border-strong: #c2beb7; /* Interactive/dashed borders */
 	--border-muted: #b8b4ae; /* Non-interactive minor borders */
 
