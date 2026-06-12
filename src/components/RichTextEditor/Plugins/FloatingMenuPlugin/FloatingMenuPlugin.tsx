@@ -25,6 +25,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 	const mobile = isMobile();
 
 	const { isPointerDown, isPointerReleased } = usePointerInteractions();
+	const escapedRef = useRef(false);
 
 	const calculatePosition = useCallback(() => {
 		const domSelection = getSelection();
@@ -92,8 +93,11 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 			$isRangeSelection(selection) &&
 			!selection.anchor.is(selection.focus)
 		) {
-			calculatePosition();
+			if (!escapedRef.current) {
+				calculatePosition();
+			}
 		} else {
+			escapedRef.current = false;
 			setCoordinates(null);
 		}
 	}, [editor, calculatePosition]);
@@ -123,6 +127,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 			e => {
 				// Only hide floating menu on escape press without losing focus.
 				if (e.key === "Escape" && show) {
+					escapedRef.current = true;
 					setCoordinates(null);
 					return true;
 				}
