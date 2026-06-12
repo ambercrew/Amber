@@ -39,15 +39,13 @@
 }
 
 .file-tree-row {
-	width: 100%;
 	padding: var(--button-row-padding);
 	width: 100%;
 	display: flex;
 	align-items: center;
-	gap: var(--spacing-1);
 
 	&.with-form {
-		padding: 0 var(--spacing-4);
+		padding: 0 var(--spacing-1);
 		/* Added to make the forms have the same border as the buttons. */
 		border: var(--border-width) solid transparent;
 	}
@@ -59,7 +57,7 @@
 	}
 
 	& p {
-		width: 80%;
+		width: 85%;
 		text-align: left;
 		text-overflow: ellipsis;
 		overflow: hidden;
@@ -68,8 +66,8 @@
 
 	& .file-tree-row-input,
 	& p {
-		padding-right: var(--spacing-4);
-		padding-left: var(--spacing-4);
+		padding-right: var(--spacing-1);
+		padding-left: var(--spacing-1);
 	}
 }
 

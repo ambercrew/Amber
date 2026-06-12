@@ -1,8 +1,6 @@
 .side-bar {
-	--sidebar-inner-horizontal-padding: var(--spacing-4);
+	--sidebar-inner-horizontal-padding: var(--spacing-3);
 	--sidebar-inner-vertical-padding: var(--spacing-4);
-	--sidebar-inner-padding: var(--sidebar-inner-vertical-padding)
-		var(--sidebar-inner-horizontal-padding);
 	--border-separator: var(--border-width) solid var(--border-default);
 
 	--button-row-padding: var(--spacing-3) var(--spacing-4);
@@ -32,12 +30,11 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		padding: var(--spacing-6);
-		padding-bottom: var(--sidebar-inner-vertical-padding);
+		padding: var(--spacing-5);
 		/* This property is necessary so that the expanded and
 		 * collapsed sidebar have the same height.
 		 */
-		height: 5rem;
+		height: 5.6rem;
 
 		& h2 {
 			font-size: 2rem;
@@ -135,7 +132,8 @@
 }
 
 .rows {
-	padding: var(--spacing-5) var(--sidebar-inner-horizontal-padding);
+	padding: var(--sidebar-inner-vertical-padding)
+		var(--sidebar-inner-horizontal-padding);
 	border-bottom: var(--border-separator);
 	display: flex;
 	flex-direction: column;
@@ -158,7 +156,7 @@
 }
 
 .search-input-container {
-	padding: var(--sidebar-inner-padding);
+	padding: var(--sidebar-inner-horizontal-padding);
 	border-bottom: var(--border-separator);
 
 	.search-input {
