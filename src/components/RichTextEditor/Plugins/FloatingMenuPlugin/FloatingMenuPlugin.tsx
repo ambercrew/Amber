@@ -127,6 +127,7 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 			e => {
 				// Only hide floating menu on escape press without losing focus.
 				if (e.key === "Escape" && show) {
+					e.stopPropagation();
 					escapedRef.current = true;
 					setCoordinates(null);
 					return true;
