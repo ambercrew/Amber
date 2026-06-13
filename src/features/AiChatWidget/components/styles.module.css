@@ -119,6 +119,8 @@
 		& .human {
 			align-self: flex-end;
 			border-color: var(--border-default);
+			background-color: var(--primary-color);
+			color: var(--primary-color-fg);
 		}
 
 		& .document {
