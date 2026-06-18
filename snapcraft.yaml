@@ -84,31 +84,6 @@ parts:
 
       set -eu
       npm install
-      npm run tauri build -- --bundles deb
+      npm run tauri build -- --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}' -- --features store
       dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
       sed -i -e "s|Icon=BrainyLearn|Icon=/usr/share/icons/hicolor/128x128/apps/BrainyLearn.png|g" "$SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy Learn.desktop"
-
-  # Necessary otherwise the following error shows: libEGL fatal: did not find extension DRI_Mesa version 1
-  cleanup:
-    after: [build-app]
-    plugin: nil
-    build-snaps:
-      - core24
-      - gtk-common-themes
-      - gnome-46-2404
-    override-prime: |
-      set -eux
-      for snap in "core24" "gtk-common-themes" "gnome-46-2404"; do
-        cd "/snap/$snap/current" && find . -type f,l -name "*.so*" | while read -r sofile; do
-          if [ -f "${SNAPCRAFT_PRIME}/${sofile#./}" ]; then
-            echo "Removing duplicate: ${sofile#./}"
-            rm -f "${SNAPCRAFT_PRIME}/${sofile#./}"
-          fi
-        done
-      done
-      # Explicitly remove any leftover Mesa files that conflict with the content snap
-      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libEGL_mesa.so.0
-      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libEGL_mesa.so.0.0.0
-      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libGLX_mesa.so.0
-      rm -f ${SNAPCRAFT_PRIME}/usr/lib/${CRAFT_ARCH_TRIPLET}/libGLX_mesa.so.0.0.0
-      rm -f ${SNAPCRAFT_PRIME}/usr/share/glvnd/egl_vendor.d/50_mesa.json
