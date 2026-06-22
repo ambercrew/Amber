@@ -47,7 +47,9 @@
 	}
 
 	code {
-		background-color: var(--surface-control);
+		padding: var(--spacing-0) var(--spacing-1);
+		border-radius: var(--border-radius);
+		background-color: var(--surface-pane);
 	}
 
 	blockquote {
