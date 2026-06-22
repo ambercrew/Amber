@@ -36,6 +36,7 @@ import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { LinkNode, AutoLinkNode } from "@lexical/link";
 import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
 import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 
 interface Props {
 	content: string;
@@ -112,6 +113,8 @@ function Editor({
 		namespace: "BrainyEditor",
 		onError: console.error,
 		nodes: [
+			HeadingNode,
+			QuoteNode,
 			ListNode,
 			ListItemNode,
 			ImageNode,
