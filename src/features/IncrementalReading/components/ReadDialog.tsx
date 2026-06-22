@@ -111,7 +111,7 @@ export default function ReadDialog({
 						additionalFloatingMenuButtons={[
 							{
 								name: "Toggle highlight",
-								title: `Toggle highlight (${getModKeyLabel()}+Shift+${HIGHLIGHT_SHORTCUT_KEY.toUpperCase()})`,
+								title: `Toggle highlight (${getModKeyLabel()} + Shift + ${HIGHLIGHT_SHORTCUT_KEY.toUpperCase()})`,
 								icon: mdiMarker,
 								onClick: editor =>
 									editor.dispatchCommand(
