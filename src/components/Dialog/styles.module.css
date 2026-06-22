@@ -32,9 +32,10 @@
 		height: 100vh;
 		border-radius: 0;
 		margin: 0;
+		padding: var(--spacing-3) var(--spacing-5);
 	}
 
 	:global(body.mobile) .box.full-screen-on-small-devices {
-		padding-top: calc(var(--spacing-5) + var(--mobile-padding-top));
+		padding-top: calc(var(--spacing-3) + var(--mobile-padding-top));
 	}
 }

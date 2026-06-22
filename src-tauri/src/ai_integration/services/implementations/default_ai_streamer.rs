@@ -297,7 +297,7 @@ impl DefaultAiStreamer {
                         self.cell_repository.clone(),
                     )));
                 }
-                CellType::Note => {}
+                _ => {}
             }
         }
 

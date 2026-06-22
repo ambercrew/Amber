@@ -1,4 +1,5 @@
 import {
+	mdiBookOpenBlankVariantOutline,
 	mdiCardMultipleOutline,
 	mdiCheckCircleOutline,
 	mdiDotsHorizontalCircleOutline,
@@ -16,6 +17,8 @@ function getCellIcon(cellType: CellType): string {
 			return mdiDotsHorizontalCircleOutline;
 		case "TrueFalse":
 			return mdiCheckCircleOutline;
+		case "IncrementalReading":
+			return mdiBookOpenBlankVariantOutline;
 	}
 }
 

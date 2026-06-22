@@ -7,6 +7,7 @@ mod common;
 mod database;
 mod file_system;
 mod fsrs;
+mod incremental_reading;
 mod infrastructure;
 mod local_configurations;
 mod secrets;
@@ -30,6 +31,7 @@ use cells::api::review_api::*;
 use cells::api::search_api::*;
 use file_system::api::file_system_api::*;
 use fsrs::fsrs_api::*;
+use incremental_reading::api::incremental_reading_api::*;
 use settings::settings_api::*;
 
 pub use sync::sync_api::sync;
@@ -143,6 +145,7 @@ pub async fn run() -> Result<(), String> {
             // Cells
             create_cell,
             delete_cell,
+            get_cell_by_id,
             get_cells_for_files_with_fsrs_profile_ids,
             get_file_cells_ordered_by_index,
             move_cell,
@@ -200,6 +203,15 @@ pub async fn run() -> Result<(), String> {
             set_fsrs_profile_choice_for_file,
             set_fsrs_profile_choice_for_folder,
             update_profile,
+            // Incremental Reading
+            get_due_incremental_readings,
+            get_cells_with_pending_extracts,
+            get_incremental_reading_schedule,
+            get_pending_extracts_count,
+            get_pending_extracts_with_content,
+            update_extract_status,
+            create_cloze_from_extract,
+            schedule_incremental_reading_later,
             // App Info
             is_store_installed,
             // AI
@@ -211,6 +223,7 @@ pub async fn run() -> Result<(), String> {
             rename_ai_chat,
             stop_ai_generation,
             stream_ai_response,
+            suggest_cloze_content,
             upload_document,
         ])
         .run(tauri::generate_context!())

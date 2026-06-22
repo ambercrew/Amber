@@ -142,5 +142,7 @@ fn get_entity_table_name(entity_type: EntityType) -> &'static str {
         EntityType::Repetition => "repetitions",
         EntityType::Review => "reviews",
         EntityType::DeletedEntity => "deleted_entities",
+        EntityType::IncrementalReadingSchedule => "incremental_reading_schedules",
+        EntityType::Extract => "extracts",
     }
 }

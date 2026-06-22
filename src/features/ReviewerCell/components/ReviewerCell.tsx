@@ -26,6 +26,8 @@ function ReviewerCell({ cell, showAnswer, repetition }: Props) {
 			return <TrueFalseReviewView cell={cell} showAnswer={showAnswer} />;
 		case "Note":
 			return null;
+		case "IncrementalReading":
+			return null;
 	}
 }
 

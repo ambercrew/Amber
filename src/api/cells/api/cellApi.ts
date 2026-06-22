@@ -10,6 +10,10 @@ export function getFileCellsOrderedByIndex(fileId: string): Promise<Cell[]> {
 	});
 }
 
+export function getCellById(id: string): Promise<Cell> {
+	return invoke("get_cell_by_id", { id });
+}
+
 export function updateCellsContents(requests: UpdateCellRequestDto[]) {
 	return invoke("update_cells_contents", { requests });
 }

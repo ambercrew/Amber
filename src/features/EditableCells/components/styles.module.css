@@ -18,7 +18,7 @@
 		display: flex;
 		justify-content: center;
 		border: var(--border-width) solid transparent;
-		padding-top: var(--spacing-4);
+		padding-top: var(--spacing-1);
 
 		& .add-button {
 			display: flex;
@@ -126,6 +126,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: var(--spacing-2);
+		min-width: 0;
 
 		& * {
 			font-weight: 400;
@@ -133,6 +134,14 @@
 
 		& .icon {
 			color: var(--primary-color);
+			flex-shrink: 0;
+		}
+
+		.cell-type {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			min-width: 0;
 		}
 	}
 

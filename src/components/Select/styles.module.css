@@ -30,7 +30,7 @@
 .options {
 	position: absolute;
 	transform: translateY(100%);
-	bottom: 0;
+	bottom: calc(-1 * var(--spacing-1));
 	width: 100%;
 
 	display: flex;

@@ -1,9 +1,10 @@
 import { DOMExportOutput, LexicalNode, NodeKey, RangeSelection } from "lexical";
 import { MarkNode } from "@lexical/mark";
+import { $isSelectionInsideNode } from "../../../components/RichTextEditor/Plugins/utils/selectionWrapUtils";
 
 const CLOZE_CSS_CLASS_NAME = "cloze-node";
 const CLOZE_INDEX_ATTRIBUTE_NAME = "index";
-const CLOZE_TAG_NAME = "cloze";
+export const CLOZE_TAG_NAME = "cloze";
 
 export class ClozeNode extends MarkNode {
 	index: number;
@@ -84,16 +85,5 @@ export function $isClozeNode(
 }
 
 export function $isSelectionInsideCloze(selection: RangeSelection): boolean {
-	let allCloze = true;
-	for (const node of selection.getNodes()) {
-		let anyCloze = false;
-		let current = node.getParent();
-		while (current !== null) {
-			anyCloze = anyCloze || $isClozeNode(current);
-			current = current.getParent();
-		}
-		allCloze = allCloze && anyCloze;
-	}
-
-	return allCloze;
+	return $isSelectionInsideNode(selection, $isClozeNode);
 }

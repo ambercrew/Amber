@@ -432,6 +432,8 @@ describe("App", () => {
 		// Act
 
 		const { container } = renderApp();
+		// Sidebar is collapsed by default on small screen.
+		await userEvent.keyboard("{Control>}\\");
 
 		// Assert
 
@@ -464,11 +466,11 @@ describe("App", () => {
 		// Arrange
 
 		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX;
-		const { container } = renderApp();
 
 		// Act
 
-		await userEvent.keyboard("{Control>}\\");
+		// Sidebar is collapsed by default on small screen.
+		const { container } = renderApp();
 
 		// Assert
 

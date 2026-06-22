@@ -13,6 +13,10 @@ use crate::{
     file_system::entities::{file::File, folder::Folder},
     fsrs::entities::fsrs_profile::FsrsProfile,
     generated_code::{self},
+    incremental_reading::{
+        extracts::entities::extract::Extract,
+        scheduling::entities::incremental_reading_schedule::IncrementalReadingSchedule,
+    },
     local_configurations::{
         entities::local_configuration::LocalConfiguration,
         repositories::local_configuration_repository::LocalConfigurationRepository,
@@ -47,6 +51,14 @@ pub struct DefaultSyncer {
     review_strategy: Arc<dyn SyncEntityStrategy<Input = generated_code::Review, Entity = Review>>,
     deleted_entity_strategy:
         Arc<dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>>,
+    incremental_reading_schedule_strategy: Arc<
+        dyn SyncEntityStrategy<
+                Input = generated_code::IncrementalReadingSchedule,
+                Entity = IncrementalReadingSchedule,
+            >,
+    >,
+    extract_strategy:
+        Arc<dyn SyncEntityStrategy<Input = generated_code::Extract, Entity = Extract>>,
 }
 
 #[async_trait]
@@ -217,6 +229,22 @@ impl DefaultSyncer {
                     )
                     .await?
                 }
+                EntityType::IncrementalReadingSchedule => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.incremental_reading_schedule_strategy),
+                    )
+                    .await?
+                }
+                EntityType::Extract => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.extract_strategy),
+                    )
+                    .await?
+                }
             };
 
             if rows_affected > 0 {
@@ -349,6 +377,16 @@ impl DefaultSyncer {
                 .await?,
         );
         synced_entities.extend(
+            self.incremental_reading_schedule_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.extract_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
             self.deleted_entity_strategy
                 .get_sync_dtos_modified_since(last_sync_date)
                 .await?,
@@ -398,13 +436,19 @@ mod tests {
             },
         },
         fsrs::repositories::fsrs_repository::FsrsRepository,
+        incremental_reading::{
+            extracts::repositories::extract_repository::ExtractRepository,
+            scheduling::repositories::incremental_reading_schedule_repository::IncrementalReadingScheduleRepository,
+        },
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
             repositories::sqlite::{
                 sqlite_cell_repository::SqliteCellRepository,
+                sqlite_extract_repository::SqliteExtractRepository,
                 sqlite_file_repository::SqliteFileRepository,
                 sqlite_folder_repository::SqliteFolderRepository,
                 sqlite_fsrs_repository::SqliteFsrsRepository,
+                sqlite_incremental_reading_schedule_repository::SqliteIncrementalReadingScheduleRepository,
                 sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
                 sqlite_review_repository::SqliteReviewRepository,
                 sqlite_sync_repository::SqliteSyncRepository,
@@ -417,8 +461,10 @@ mod tests {
                 implementations::{
                     cell_strategy::DefaultCellStrategy,
                     deleted_entity_strategy::DefaultDeletedEntityStrategy,
-                    file_strategy::DefaultFileStrategy, folder_strategy::DefaultFolderStrategy,
+                    extract_strategy::DefaultExtractStrategy, file_strategy::DefaultFileStrategy,
+                    folder_strategy::DefaultFolderStrategy,
                     fsrs_profile_strategy::DefaultFsrsProfileStrategy,
+                    incremental_reading_schedule_strategy::DefaultIncrementalReadingScheduleStrategy,
                     repetition_strategy::DefaultRepetitionStrategy,
                     review_strategy::DefaultReviewStrategy,
                 },
@@ -438,6 +484,12 @@ mod tests {
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
         register_scope!(injector, dyn CellRepository, SqliteCellRepository);
         register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+        register_scope!(
+            injector,
+            dyn IncrementalReadingScheduleRepository,
+            SqliteIncrementalReadingScheduleRepository
+        );
         register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
         register_scope!(
             injector,
@@ -484,6 +536,19 @@ mod tests {
             injector,
             dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,
             DefaultDeletedEntityStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<
+                    Input = generated_code::IncrementalReadingSchedule,
+                    Entity = IncrementalReadingSchedule,
+                >,
+            DefaultIncrementalReadingScheduleStrategy
+        );
+        register_scope!(
+            injector,
+            dyn SyncEntityStrategy<Input = generated_code::Extract, Entity = Extract>,
+            DefaultExtractStrategy
         );
         register_scope!(injector, DefaultSyncer);
         injector

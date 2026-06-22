@@ -14,6 +14,7 @@ use crate::{
         services::{
             ai_streamer::{AiStreamer, StreamLlmResponseEvent},
             ai_tool_call_acceptor::AiToolCallAcceptor,
+            cloze_suggester::ClozeSuggester,
             document_uploader::DocumentUploader,
         },
     },
@@ -92,6 +93,20 @@ pub async fn stop_ai_generation(injector: State<'_, Arc<Injector>>) -> Result<()
     let state = scope.resolve::<AiState>().await;
     state.cancel_generation();
     Ok(())
+}
+
+#[tauri::command]
+pub async fn suggest_cloze_content(
+    injector: State<'_, Arc<Injector>>,
+    content: String,
+) -> Result<String, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ClozeSuggester>()
+        .await
+        .suggest(content)
+        .await;
+    result.map_err(|err| ApiError::new(err.to_string()))
 }
 
 #[tauri::command]

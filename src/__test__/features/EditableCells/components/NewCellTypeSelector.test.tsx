@@ -39,7 +39,7 @@ describe("NewCellTypeSelector", () => {
 
 		// Assert
 
-		expect(onClick).toHaveBeenCalledWith("TrueFalse" as CellType);
+		expect(onClick).toHaveBeenCalledWith("IncrementalReading" as CellType);
 	});
 
 	it("Should be able to retain search choice", async () => {

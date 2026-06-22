@@ -1,25 +1,29 @@
+import { CSSProperties, useMemo } from "react";
 import styles from "./styles.module.css";
-import { Tooltip } from "react-tooltip";
-import React, { useMemo } from "react";
 import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
-import { colors } from "../config/colors";
-import { reviewsDivisor } from "../config/constants";
+import { heatmapTooltipId, reviewsDivisor } from "../config/constants";
 import { formatDateHeatmapTooltip } from "../utils/formatDateHeatmapTooltip";
-import { getColorAtRatio } from "../utils/getColorAtRatio";
 
 interface Props {
 	date: Date;
 	currentYear: number;
 	homeStatistics: HomeStatistics;
-	isDarkTheme: boolean;
 }
 
-function ReviewHeatmapColumn({
-	date,
-	currentYear,
-	homeStatistics,
-	isDarkTheme,
-}: Props) {
+// Counts are heavily skewed towards small numbers, so a linear ratio makes
+// low-but-nonzero counts barely visible. Use a sqrt curve with a floor to
+// keep them visible while still maxing out at 1.
+const minVisibleRatio = 0.25;
+
+function countToRatio(count: number) {
+	if (count <= 0) return 0;
+	return Math.max(
+		Math.sqrt(Math.min(count / reviewsDivisor, 1)),
+		minVisibleRatio,
+	);
+}
+
+function ReviewHeatmapColumn({ date, currentYear, homeStatistics }: Props) {
 	const dates = useMemo(() => {
 		const days = [...Array(7).keys()];
 		return days.map(day => {
@@ -34,64 +38,47 @@ function ReviewHeatmapColumn({
 			const newDateOnlyDate = new Date(newDate);
 			newDateOnlyDate.setHours(0, 0, 0, 0);
 
-			let color: string | null, text: string;
+			let kind: "due" | "review" | null, ratio: number, text: string;
 			if (
 				todayDate < newDateOnlyDate ||
 				(todayDate.getTime() === newDateOnlyDate.getTime() &&
 					reviewCounts === 0)
 			) {
-				color =
-					dueCounts === 0
-						? null
-						: getColorAtRatio(
-								dueCounts / reviewsDivisor,
-								isDarkTheme
-									? colors.dueFromColorDarkTheme
-									: colors.dueFromColorLightTheme,
-								isDarkTheme
-									? colors.dueToColorDarkTheme
-									: colors.dueToColorLightTheme,
-							);
+				kind = dueCounts === 0 ? null : "due";
+				ratio = countToRatio(dueCounts);
 				text = `${dueCounts} due on ${formattedDate}`;
 			} else {
-				color = getColorAtRatio(
-					reviewCounts / reviewsDivisor,
-					isDarkTheme
-						? colors.reviewFromColorDarkTheme
-						: colors.reviewFromColorLightTheme,
-					isDarkTheme
-						? colors.reviewToColorDarkTheme
-						: colors.reviewToColorLightTheme,
-				);
+				kind = reviewCounts === 0 ? null : "review";
+				ratio = countToRatio(reviewCounts);
 				text = `${reviewCounts} reviews on ${formattedDate}`;
 			}
 
 			return {
 				date: newDate,
 				formattedDate,
-				color,
+				kind,
+				ratio,
 				text,
 			};
 		});
-	}, [date, homeStatistics, isDarkTheme]);
+	}, [date, homeStatistics]);
 
 	return (
 		<div className={styles.reviewHeatmapColumn}>
 			{dates.map((obj, i) => (
-				<React.Fragment key={i}>
-					<span
-						style={{
-							backgroundColor: obj.color ?? undefined,
-						}}
-						className={`${styles.heatmapBox}
-                ${obj.date.getFullYear() !== currentYear || obj.date.getFullYear() > currentYear ? styles.hidden : ""}`}
-						data-tooltip-id={obj.formattedDate}
-						data-tooltip-content={obj.text}></span>
-					<Tooltip
-						id={obj.formattedDate}
-						className={styles.tooltip}
-					/>
-				</React.Fragment>
+				<span
+					key={i}
+					style={
+						obj.kind
+							? ({
+									"--ratio": obj.ratio,
+								} as CSSProperties)
+							: undefined
+					}
+					className={`${styles.heatmapBox} ${obj.kind ? styles[obj.kind] : ""}
+                ${obj.date.getFullYear() !== currentYear ? styles.hidden : ""}`}
+					data-tooltip-id={heatmapTooltipId}
+					data-tooltip-content={obj.text}></span>
 			))}
 		</div>
 	);

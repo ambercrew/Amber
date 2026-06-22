@@ -5,7 +5,10 @@ use thiserror::Error;
 
 use crate::{
     ai_integration::entities::message::ToolCallDisplayContent,
-    cells::services::cell_creator::CellCreatorError, common::repository_error::RepositoryError,
+    cells::services::{
+        cell_content_updater::CellContentUpdaterError, cell_creator::CellCreatorError,
+    },
+    common::repository_error::RepositoryError,
 };
 
 pub mod create_flash_card;
@@ -19,6 +22,8 @@ pub enum AcceptToolCallError {
     Repository(#[from] RepositoryError),
     #[error(transparent)]
     CellCreator(#[from] CellCreatorError),
+    #[error(transparent)]
+    CellContentUpdater(#[from] CellContentUpdaterError),
     #[error(transparent)]
     Parsing(#[from] serde_json::Error),
     #[error("{0}")]

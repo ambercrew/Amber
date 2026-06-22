@@ -27,6 +27,14 @@
                     "url": "https://github.com/brainylearn/brainy-app/issues/new*"
                 }
             ]
+        },
+        {
+            "identifier": "http:default",
+            "allow": [
+                {
+                    "url": "https://*"
+                }
+            ]
         }
     ]
 }

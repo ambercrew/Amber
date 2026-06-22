@@ -34,6 +34,7 @@ markdown = "1.0.0"
 prost = "0.14.3"
 prost-types = "0.14.3"
 regex = "1.12.3"
+scraper = "0.23"
 tauri-plugin-http = "2.5.9"
 reqwest-middleware = { version = "0.4.0", features = ["json"] }
 reqwest-retry = "0.8.0"

@@ -6,6 +6,24 @@ generate a concise, creative, and descriptive title for a conversation \
 based on the user's first message. Be specific, imaginative, and avoid \
 generic titles.";
 
+pub(in crate::ai_integration) const CLOZE_SUGGESTION_PREAMBLE: &str = "\
+You are a cloze deletion assistant for the **Brainy** app. You are given the \
+content of a single cloze card. Rewrite it so only the most important facts \
+worth memorizing are wrapped in cloze tags for spaced-repetition study.
+**Rules:**
+- Wrap each cloze group in `<cloze index=\"N\">...</cloze>` tags, where N is the \
+group number starting at 1.
+- Be selective. Hide only the key terms that are genuinely worth remembering — \
+the core concept, name, number, or term the card is testing.
+- Do NOT hide obvious, trivial, or easily-inferred words, common knowledge, or \
+filler. When in doubt, leave it visible.
+- Prefer fewer, high-value clozes over many. It is better to hide one essential \
+term than to hide several minor ones. Most cards need only one or two clozes.
+- One atomic fact per cloze group. Use distinct, increasing indices for \
+independent facts; reuse the same index only for items that should be hidden together.
+- Output only the resulting content. Do not include explanations, commentary, or \
+code fences.";
+
 const PREAMBLE_BASE: &str = "\
 You are **Brainy's** tutor. Your job is to help users understand \
 and memorize information through active learning.

@@ -1021,7 +1021,7 @@ pub mod tests {
         scope.save_changes().await.unwrap();
 
         let old_repetitions = cell.repetitions().clone();
-        cell.set_content(
+        cell.set_content_for_tests(
             r#"
                 <cloze index="1">test<cloze>
                 <cloze index="3">test<cloze>

@@ -1,13 +1,13 @@
 .flash-card {
 	display: flex;
 	flex-direction: column;
-	gap: var(--spacing-4);
+	gap: var(--spacing-2);
 }
 
 .true-false {
 	display: flex;
 	flex-direction: column;
-	gap: var(--spacing-4);
+	gap: var(--spacing-2);
 
 	& .buttons-row {
 		display: grid;
@@ -29,22 +29,35 @@
  * and the class name might change if we do not have it as global
  */
 :global(.cloze-node) {
-	padding: var(--spacing-1);
+	padding: var(--spacing-1) 0;
 	border-radius: var(--border-radius);
-	border: var(--border-width) solid var(--text-primary);
+	border: var(--border-width) solid var(--primary-color);
 
 	display: inline;
 	margin: 0 2px;
 	line-height: 2;
-	box-decoration-break: clone;
-	-webkit-box-decoration-break: clone;
+	box-decoration-break: slice;
+	-webkit-box-decoration-break: slice;
 
 	&:before {
 		content: attr(index);
-		padding-right: 2px;
-		margin-right: 2px;
-		border-right: var(--border-width) solid var(--text-primary);
-		font-weight: normal;
+		font-weight: 500;
 		font-style: normal;
+		background-color: var(--primary-color);
+		color: var(--primary-color-fg);
+		border-radius: 999px;
+		width: 1.8rem;
+		height: 1.8rem;
+		font-size: 1.4rem;
+		text-align: center;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		margin: 0 var(--spacing-2);
+	}
+
+	&:after {
+		content: "";
+		margin: 0 var(--spacing-2);
 	}
 }

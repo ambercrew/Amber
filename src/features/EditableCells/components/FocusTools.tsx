@@ -86,16 +86,20 @@ function FocusTools({
 		onCellDeleteConfirm();
 	};
 
-	useGlobalKey(e => {
-		if (e.altKey && e.key === "Delete") {
-			setShowDeleteDialog(true);
-		} else if (e.key === "Escape") {
-			hideAllPopups();
-		} else if (isModKey(e) && e.shiftKey && e.key === "Enter") {
-			e.stopPropagation();
-			setShowInsertNewCell(!showInsertNewCell);
-		}
-	});
+	useGlobalKey(
+		e => {
+			if (e.altKey && e.key === "Delete") {
+				setShowDeleteDialog(true);
+			} else if (e.key === "Escape") {
+				hideAllPopups();
+			} else if (isModKey(e) && e.shiftKey && e.key === "Enter") {
+				e.stopPropagation();
+				setShowInsertNewCell(!showInsertNewCell);
+			}
+		},
+		"keydown",
+		true,
+	);
 
 	const actions: Action[] = [];
 
@@ -123,7 +127,7 @@ function FocusTools({
 		});
 	}
 
-	if (cell.cellType !== "Note") {
+	if (cell.cellType !== "Note" && cell.cellType !== "IncrementalReading") {
 		actions.push({
 			iconName: mdiRestore,
 			text: "Reset repetitions",

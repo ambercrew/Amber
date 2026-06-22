@@ -12,7 +12,7 @@ import {
 	setErrorMessage,
 	setSuccessMessage,
 } from "../../../stores/fileSystem/fileSystemReducers";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import searchFolder from "../utils/searchFolder";
 import {
 	mdiAlertCircleOutline,
@@ -67,6 +67,10 @@ function SideBar({ isExpanded, onExpand, onCollapse, onSettingsClick }: Props) {
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
+
+	useEffect(() => {
+		if (isSmallScreen) onCollapse();
+	}, [isSmallScreen, onCollapse]);
 
 	if (previousIsSignedIn !== isSignedIn) {
 		setPreviousIsSignedIn(isSignedIn);

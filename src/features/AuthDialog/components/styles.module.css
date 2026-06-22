@@ -9,7 +9,7 @@
 .button-link {
 	font-size: 1.6rem;
 	text-align: left;
-	margin-top: var(--spacing-5);
+	margin-top: var(--spacing-4);
 }
 
 .spinner {

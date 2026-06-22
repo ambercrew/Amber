@@ -32,6 +32,10 @@ import { ImagePlugin } from "./Plugins/ImagePlugin/ImagePlugin";
 import ImageNode from "./Plugins/ImagePlugin/ImageNode";
 import EquationPlugin from "./Plugins/EquationPlugin/EquationPlugin";
 import { EquationNode } from "./Plugins/EquationPlugin/EquationNode";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+import { LinkNode, AutoLinkNode } from "@lexical/link";
+import { TablePlugin } from "@lexical/react/LexicalTablePlugin";
+import { TableNode, TableCellNode, TableRowNode } from "@lexical/table";
 
 interface Props {
 	content: string;
@@ -45,12 +49,16 @@ interface Props {
 	 * the editor is focused or this property is true.
 	 */
 	eagerLoadRichTextEditor: boolean;
+	containerClassName?: string;
 	onChange: (html: string) => void;
 	onFocus?: (editor: LexicalEditor) => void;
 	onBlur?: () => void;
 }
 
-export default function RichTextEditor({ ...props }: Props) {
+export default function RichTextEditor({
+	containerClassName,
+	...props
+}: Props) {
 	const [showEditor, setShowEditor] = useState(props.eagerLoadRichTextEditor);
 	const [
 		previousEagerLoadRichTextEditor,
@@ -68,7 +76,7 @@ export default function RichTextEditor({ ...props }: Props) {
 	return (
 		<>
 			{props.title && <p className={styles.title}>{props.title}</p>}
-			<div className={styles.container}>
+			<div className={`${styles.container} ${containerClassName}`}>
 				{showEditor && <Editor {...props} />}
 				{!showEditor && (
 					<div className={`${styles.editor}`}>
@@ -108,6 +116,11 @@ function Editor({
 			ListItemNode,
 			ImageNode,
 			EquationNode,
+			LinkNode,
+			AutoLinkNode,
+			TableNode,
+			TableCellNode,
+			TableRowNode,
 			...(extraNodes ?? []),
 		],
 		theme: {
@@ -121,6 +134,39 @@ function Editor({
 		editorState: editor => {
 			const parser = new DOMParser();
 			const dom = parser.parseFromString(content, "text/html");
+
+			// If the content has no block-level elements, wrap everything in a
+			// single <p> so Lexical doesn't create a separate paragraph per
+			// inline node (spans, links, etc.).
+			const blockTags = new Set([
+				"P",
+				"DIV",
+				"H1",
+				"H2",
+				"H3",
+				"H4",
+				"H5",
+				"H6",
+				"UL",
+				"OL",
+				"LI",
+				"BLOCKQUOTE",
+				"TABLE",
+				"TR",
+				"TD",
+				"TH",
+				"PRE",
+				"FIGURE",
+			]);
+			const hasBlock = Array.from(dom.body.children).some(el =>
+				blockTags.has(el.tagName),
+			);
+			if (!hasBlock && dom.body.childNodes.length > 0) {
+				const p = dom.createElement("p");
+				while (dom.body.firstChild) p.appendChild(dom.body.firstChild);
+				dom.body.appendChild(p);
+			}
+
 			const nodes = $generateNodesFromDOM(editor, dom);
 
 			const root = $getRoot();
@@ -175,6 +221,8 @@ function Editor({
 			<ListCommandsPluginHandler />
 			<ImagePlugin />
 			<EquationPlugin />
+			<LinkPlugin />
+			<TablePlugin />
 			<FocusBlurPlugin onFocus={onFocus} onBlur={onBlur} />
 			<DefaultShortcutPlugin />
 			{plugins}

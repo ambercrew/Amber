@@ -11,7 +11,7 @@ import RenderIfVisible from "../../../components/RenderIfVisible/RenderIfVisible
 import AddCellContainer from "./AddCellContainer";
 import styles from "./styles.module.css";
 import CellBlock from "./CellBlock";
-import createCreateCellRequest from "../utils/createCreateCellRequestDto";
+import buildDefaultCreateCellRequest from "../utils/buildDefaultCreateCellRequest";
 import {
 	createCell,
 	deleteCell,
@@ -290,7 +290,11 @@ const EditableCells = forwardRef<EditableCellsHandle, Props>(
 		}, "keydown");
 
 		const insertNewCell = async (cellType: CellType, index: number) => {
-			const request = createCreateCellRequest(cellType, fileId!, index);
+			const request = buildDefaultCreateCellRequest(
+				cellType,
+				fileId!,
+				index,
+			);
 			const cellId = await callApi(async () => await createCell(request));
 			if (!cellId) return;
 			await saveChanges();
@@ -396,6 +400,7 @@ const EditableCells = forwardRef<EditableCellsHandle, Props>(
 							enableFileSpecificFunctionality={
 								enableFileSpecificFunctionality
 							}
+							saveChanges={saveChanges}
 							onFocus={() => setSelectedCellId(cell.id)}
 							onClick={() => setSelectedCellId(cell.id)}
 							callApi={callApi}

@@ -3,7 +3,7 @@ import useAutoSave, {
 	CLOSE_REQUESTED_HANDLER_NAME,
 } from "../../../../features/EditableCells/hooks/useAutoSave";
 import { act } from "react";
-import createDefaultCellDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto.ts";
+import buildDefaultCreateCellRequest from "../../../../features/EditableCells/utils/buildDefaultCreateCellRequest";
 import { defaultCloseRequestedEventManager } from "../../../../managers/closeRequestedEventManager";
 import {
 	defaultGlobalSyncEventManager,
@@ -21,7 +21,7 @@ vi.mock(import("../../../../stores/sync/managers/syncEventManager"));
 vi.mock(import("../../../../api/cells/api/cellApi.ts"));
 
 const renderAutoSave = () => {
-	const cell = createDefaultCellDto("FlashCard", "0", 0) as Cell;
+	const cell = buildDefaultCreateCellRequest("FlashCard", "0", 0) as Cell;
 	cell.id = cellId;
 
 	const onCellsUpdateSaveCb = vi.fn();

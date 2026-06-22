@@ -24,8 +24,29 @@
 	border-bottom: var(--border-width) solid var(--border-default);
 	font-weight: 400;
 	min-width: fit-content;
-	background-color: var(--surface-pane);
+	background-color: var(--surface-card);
 	padding: var(--spacing-4) var(--spacing-5);
+
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: var(--spacing-3);
+
+	.icon {
+		flex-shrink: 0;
+	}
+}
+
+.header-title {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-2);
+}
+
+.header-button {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-2);
 }
 
 .main-content {
@@ -105,6 +126,48 @@
 	}
 }
 
+.reading-row {
+	width: 100%;
+	gap: var(--spacing-3);
+	cursor: pointer;
+	text-align: left;
+
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+
+	.reading-info {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-3);
+		min-width: 0;
+	}
+
+	.reading-title {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.reading-file {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-1);
+		font-size: 1.2rem;
+		color: var(--text-muted);
+
+		.icon {
+			flex-shrink: 0;
+		}
+
+		& span {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+}
+
 .reviews-overview {
 	text-align: center;
 	margin: var(--spacing-4);
@@ -116,6 +179,11 @@
 	gap: 2px;
 	margin: 0 auto;
 
+	& .tooltip {
+		z-index: 2;
+		font-size: 1.4rem;
+	}
+
 	& .review-heatmap-column {
 		display: flex;
 		flex-direction: column;
@@ -123,16 +191,27 @@
 		gap: 2px;
 		margin: 4px 0;
 
-		& .tooltip {
-			z-index: 2;
-			font-size: 1.4rem;
-		}
-
 		.heatmap-box {
 			padding: 4px;
 			border: var(--border-width) solid transparent;
 			background-color: var(--surface-pane);
 			position: relative;
+
+			&.due {
+				background-color: color-mix(
+					in srgb,
+					var(--text-secondary) calc(var(--ratio) * 100%),
+					var(--surface-control)
+				);
+			}
+
+			&.review {
+				background-color: color-mix(
+					in srgb,
+					var(--primary-color) calc(var(--ratio) * 100%),
+					var(--primary-color-fg)
+				);
+			}
 
 			&:hover {
 				border-color: var(--text-primary);

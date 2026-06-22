@@ -41,14 +41,16 @@ export interface FormRowsProps {
 		label?: string;
 		labelHtmlFor?: string;
 		children: React.ReactNode;
+		className?: string;
 	}[];
+	className?: string;
 }
 
-export function FormRows({ rows }: FormRowsProps) {
+export function FormRows({ rows, className }: FormRowsProps) {
 	return (
-		<div className={styles.rows}>
+		<div className={`${styles.rows} ${className}`}>
 			{rows.map((row, i) => (
-				<div key={i} className={styles.row}>
+				<div key={i} className={`${styles.row} ${row.className}`}>
 					{row.label && (
 						<label htmlFor={row.labelHtmlFor}>{row.label}</label>
 					)}

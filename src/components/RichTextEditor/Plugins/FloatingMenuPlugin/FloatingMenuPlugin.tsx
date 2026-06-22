@@ -44,38 +44,44 @@ export function FloatingMenuPlugin({ additionalFloatingMenuButtons }: Props) {
 		const editorRootElementRect = editor
 			.getRootElement()
 			?.getBoundingClientRect();
-		const refRect = ref.current?.getBoundingClientRect();
 
-		if (
-			!domRangeRect ||
-			!refRect ||
-			isPointerDown ||
-			!editorRootElementRect
-		) {
+		if (!domRangeRect || isPointerDown || !editorRootElementRect) {
 			return setCoordinates(null);
 		}
 
 		// Do not move the floating menu if it is already shown.
 		if (coordinates) return;
 
-		let x = Math.max(
-			0,
-			// Centering the x position relevant to the selection position,
-			// and ensuring it does not overflow the left side.
-			domRangeRect.left - editorRootElementRect.left - refRect.width / 2,
-		);
+		// Defer measuring the menu's width to the next animation frame.
+		// The menu's button visibility (and therefore its width) is
+		// recalculated by FloatingMenu's own update listener in this same
+		// editor update, so the DOM hasn't been re-rendered with the final
+		// set of buttons yet — measuring refRect synchronously here would
+		// pick up a stale width.
+		requestAnimationFrame(() => {
+			const refRect = ref.current?.getBoundingClientRect();
+			if (!refRect) return;
 
-		// Ensuring that the floating menu does not overflow the right side.
-		if (x + refRect.width > editorRootElementRect.width) {
-			x = editorRootElementRect.width - refRect.width;
-		}
-		const newCoordinates = {
-			x,
-			y: mobile
-				? domRangeRect.bottom - editorRootElementRect.top + 10
-				: domRangeRect.top - editorRootElementRect.top - 10,
-		};
-		setCoordinates(newCoordinates);
+			let x = Math.max(
+				0,
+				// Centering the x position relevant to the selection position,
+				// and ensuring it does not overflow the left side.
+				domRangeRect.left -
+					editorRootElementRect.left -
+					refRect.width / 2,
+			);
+
+			// Ensuring that the floating menu does not overflow the right side.
+			if (x + refRect.width > editorRootElementRect.width) {
+				x = editorRootElementRect.width - refRect.width;
+			}
+			setCoordinates({
+				x,
+				y: mobile
+					? domRangeRect.bottom - editorRootElementRect.top + 10
+					: domRangeRect.top - editorRootElementRect.top - 10,
+			});
+		});
 	}, [editor, isPointerDown, mobile, coordinates]);
 
 	const $handleSelectionChange = useCallback(() => {

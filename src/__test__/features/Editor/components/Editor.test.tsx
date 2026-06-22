@@ -8,7 +8,7 @@ import { getStudyRepetitionCounts } from "../../../../api/cells/api/repetitionAp
 import { getFileCellsOrderedByIndex } from "../../../../api/cells/api/cellApi";
 import Cell from "../../../../api/cells/entities/cell";
 import callApiMock from "../../../test-utils/callApiMock";
-import createCreateCellRequestDto from "../../../../features/EditableCells/utils/createCreateCellRequestDto";
+import buildDefaultCreateCellRequest from "../../../../features/EditableCells/utils/buildDefaultCreateCellRequest";
 
 vi.mock(
 	import("../../../../features/EditableCells/components/EditableCells"),
@@ -182,7 +182,7 @@ describe("Editor", () => {
 			review: 0,
 		});
 		const cells: Cell[] = [
-			createCreateCellRequestDto("Note", "123", 1) as Cell,
+			buildDefaultCreateCellRequest("Note", "123", 1) as Cell,
 		];
 		vi.mocked(getFileCellsOrderedByIndex).mockResolvedValue(cells);
 

@@ -16,7 +16,7 @@
 }
 
 .title {
-	padding-left: var(--spacing-4);
+	padding-left: var(--spacing-2);
 }
 
 .editor {
@@ -27,11 +27,27 @@
 
 	ul,
 	ol {
-		margin-left: var(--spacing-7);
+		list-style-position: inside;
 	}
 
 	a {
 		cursor: pointer;
+	}
+
+	table {
+		border-collapse: collapse;
+		width: 100%;
+	}
+
+	td,
+	th {
+		border: var(--border-width) solid var(--border-default);
+		padding: var(--spacing-1);
+		background-color: var(--surface-pane) !important;
+	}
+
+	code {
+		background-color: var(--surface-control);
 	}
 }
 
@@ -44,21 +60,15 @@
 	flex-wrap: wrap;
 	align-items: center;
 	justify-items: center;
-	gap: 2px;
+	gap: var(--spacing-0);
 	width: fit-content;
 	max-width: 100%;
 	z-index: 3;
 
 	& > button {
-		color: var(--text-primary);
 		display: flex;
 		align-items: center;
 		justify-items: center;
-		background-color: inherit;
-
-		&.active-button {
-			background-color: var(--surface-control);
-		}
 	}
 }
 

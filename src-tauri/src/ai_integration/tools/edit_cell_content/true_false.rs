@@ -13,7 +13,10 @@ use crate::{
         services::ai_streamer::OnEventCallback,
         tools::{AcceptToolCall, AcceptToolCallError},
     },
-    cells::{repositories::cell_repository::CellRepository, value_objects::true_false::TrueFalse},
+    cells::{
+        repositories::cell_repository::CellRepository,
+        services::cell_content_updater::CellContentUpdater, value_objects::true_false::TrueFalse,
+    },
 };
 
 use super::{EditCellContentError, EditToolState, emit_tool_called, fetch_cell, parse_cell_id};
@@ -97,12 +100,14 @@ impl Tool for EditTrueFalseContent {
 }
 
 pub struct AcceptEditTrueFalseContent {
-    cell_repository: Arc<dyn CellRepository>,
+    cell_content_updater: Arc<dyn CellContentUpdater>,
 }
 
 impl AcceptEditTrueFalseContent {
-    pub fn new(cell_repository: Arc<dyn CellRepository>) -> Self {
-        Self { cell_repository }
+    pub fn new(cell_content_updater: Arc<dyn CellContentUpdater>) -> Self {
+        Self {
+            cell_content_updater,
+        }
     }
 }
 
@@ -118,13 +123,13 @@ impl AcceptToolCall for AcceptEditTrueFalseContent {
         let cell_id = Guid::parse_str(&args.cell_id).map_err(|_| {
             AcceptToolCallError::MissingArguments(format!("Invalid cell id: {}", args.cell_id))
         })?;
-        let mut cell = self.cell_repository.get_by_id(cell_id).await?;
         let new_content = serde_json::to_string(&TrueFalse {
             question: markdown::to_html(&args.question),
             is_true: args.is_true,
         })?;
-        cell.set_content(new_content);
-        self.cell_repository.update(&cell).await?;
+        self.cell_content_updater
+            .update_cell_content(cell_id, new_content)
+            .await?;
         Ok(())
     }
 }
@@ -142,8 +147,12 @@ mod tests {
             entities::cell::CellType,
             repositories::{cell_repository::CellRepository, review_repository::ReviewRepository},
             services::{
+                cell_content_updater::CellContentUpdater,
                 cell_creator::CellCreator,
-                implementations::default_cell_creator::DefaultCellCreator,
+                implementations::{
+                    default_cell_content_updater::DefaultCellContentUpdater,
+                    default_cell_creator::DefaultCellCreator,
+                },
             },
         },
         file_system::{
@@ -154,10 +163,16 @@ mod tests {
             },
             value_objects::file_system_item_name::FileSystemItemName,
         },
+        incremental_reading::{
+            extracts::repositories::extract_repository::ExtractRepository,
+            scheduling::repositories::incremental_reading_schedule_repository::IncrementalReadingScheduleRepository,
+        },
         infrastructure::repositories::sqlite::{
             sqlite_cell_repository::SqliteCellRepository,
+            sqlite_extract_repository::SqliteExtractRepository,
             sqlite_file_repository::SqliteFileRepository,
             sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_incremental_reading_schedule_repository::SqliteIncrementalReadingScheduleRepository,
             sqlite_review_repository::SqliteReviewRepository,
         },
         test_utils::create_test_injector,
@@ -171,7 +186,14 @@ mod tests {
         register_scope!(injector, dyn ReviewRepository, SqliteReviewRepository);
         register_scope!(injector, dyn FileRepository, SqliteFileRepository);
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+        register_scope!(
+            injector,
+            dyn IncrementalReadingScheduleRepository,
+            SqliteIncrementalReadingScheduleRepository
+        );
         register_scope!(injector, dyn CellCreator, DefaultCellCreator);
+        register_scope!(injector, dyn CellContentUpdater, DefaultCellContentUpdater);
         register_scope!(injector, dyn FolderCreator, DefaultItemCreator);
         register_scope!(injector, dyn FileCreator, DefaultItemCreator);
         injector
@@ -223,7 +245,8 @@ mod tests {
             .unwrap();
 
         let cell_repository = scope.resolve::<dyn CellRepository>().await;
-        let acceptor = AcceptEditTrueFalseContent::new(cell_repository.clone());
+        let cell_content_updater = scope.resolve::<dyn CellContentUpdater>().await;
+        let acceptor = AcceptEditTrueFalseContent::new(cell_content_updater);
 
         // Act
 

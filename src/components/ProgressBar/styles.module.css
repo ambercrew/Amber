@@ -1,0 +1,13 @@
+.progress-track {
+	height: 4px;
+	border-radius: var(--border-radius);
+	background-color: var(--surface-control);
+	overflow: hidden;
+}
+
+.progress-fill {
+	height: 100%;
+	border-radius: var(--border-radius);
+	background-color: var(--primary-color);
+	transition: width var(--transition-time) ease;
+}

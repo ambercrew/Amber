@@ -18,6 +18,10 @@ export function stopAiGeneration(): Promise<void> {
 	return invoke("stop_ai_generation");
 }
 
+export function suggestClozeContent(content: string): Promise<string> {
+	return invoke("suggest_cloze_content", { content });
+}
+
 export function getAllAiChatsSortedByDateDesc(): Promise<Chat[]> {
 	return invoke("get_all_ai_chats_sorted_by_date_desc");
 }

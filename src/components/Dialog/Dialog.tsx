@@ -1,3 +1,4 @@
+import { Options as FocusTrapOptions } from "focus-trap";
 import React from "react";
 import styles from "./styles.module.css";
 import { FocusTrap } from "focus-trap-react";
@@ -10,6 +11,7 @@ interface Props {
 	className?: string;
 	children: React.ReactNode;
 	fullScreenOnSmallDevices?: boolean;
+	focusTrapOptions?: FocusTrapOptions;
 	onHide?: () => void;
 }
 
@@ -22,6 +24,7 @@ export default function Dialog({
 	children,
 	focusTrap,
 	fullScreenOnSmallDevices,
+	focusTrapOptions,
 	onHide,
 }: Props) {
 	useFocusRestore();
@@ -48,6 +51,7 @@ export default function Dialog({
 					displayCheck:
 						import.meta.env.MODE === "test" ? "none" : undefined,
 				},
+				...focusTrapOptions,
 			}}>
 			<div
 				className={styles.overlay}

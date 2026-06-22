@@ -1,3 +1,4 @@
+pub mod default_cell_content_updater;
 pub mod default_cell_creator;
 pub mod default_cell_deleter;
 pub mod default_cell_fsrs_provider;

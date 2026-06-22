@@ -423,6 +423,24 @@ describe("AiChatWidget", () => {
 		expect(screen.queryByRole("textbox")).toBeNull();
 	});
 
+	it("Should hide the chat when shortcut is pressed while the input is focused", async () => {
+		// Arrange
+
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
+
+		renderComponent({});
+
+		// Act
+
+		await openChat();
+		await userEvent.click(await screen.findByRole("textbox"));
+		await userEvent.keyboard("{Control>}j{/Control}");
+
+		// Assert
+
+		expect(screen.queryByRole("textbox")).toBeNull();
+	});
+
 	it("Should hide the chat when Escape is pressed", async () => {
 		// Arrange
 

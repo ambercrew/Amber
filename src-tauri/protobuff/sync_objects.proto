@@ -63,3 +63,19 @@ message DeletedEntity {
   string entity_name = 1;
   google.protobuf.Timestamp deleted_date = 2;
 }
+
+message IncrementalReadingSchedule {
+  google.protobuf.Timestamp modified_date = 1;
+  string cell_id = 2;
+  string priority = 3;
+  string title = 4;
+  google.protobuf.Timestamp next_reading_date = 5;
+  bool completed = 6;
+  bool has_extracts = 7;
+}
+
+message Extract {
+  google.protobuf.Timestamp modified_date = 1;
+  string cell_id = 2;
+  string status = 3;
+}

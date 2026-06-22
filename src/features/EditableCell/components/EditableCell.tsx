@@ -2,6 +2,7 @@ import Cell from "../../../api/cells/entities/cell";
 import RichTextEditor from "../../../components/RichTextEditor/RichTextEditor";
 import ClozeCell from "./ClozeCell";
 import FlashCardCell from "./FlashCardCell";
+import IncrementalReading from "./IncrementalReading/IncrementalReading";
 import TrueFalseCell from "./TrueFalseCell";
 import { LexicalEditor } from "lexical";
 
@@ -11,12 +12,14 @@ interface Props {
 	eagerLoadRichTextEditor: boolean;
 	onChange: (content: string) => void;
 	onFocus: (editor: LexicalEditor) => void;
+	saveChanges: () => Promise<void>;
 }
 
 function EditableCell({
 	cell,
 	autofocus,
 	eagerLoadRichTextEditor,
+	saveChanges,
 	onChange,
 	onFocus,
 }: Props) {
@@ -59,6 +62,15 @@ function EditableCell({
 					eagerLoadRichTextEditor={eagerLoadRichTextEditor}
 					onChange={onChange}
 					onFocus={onFocus}
+				/>
+			);
+		case "IncrementalReading":
+			return (
+				<IncrementalReading
+					cell={cell}
+					autofocus={autofocus}
+					onChange={onChange}
+					saveChanges={saveChanges}
 				/>
 			);
 	}

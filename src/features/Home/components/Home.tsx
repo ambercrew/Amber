@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { mdiFileTreeOutline, mdiFire } from "@mdi/js";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectRootFolder } from "../../../stores/fileSystem/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
+import ReadingQueue from "./ReadingQueue";
+import ExtractsQueue from "./ExtractsQueue";
+import BoxHeader from "./BoxHeader";
 import styles from "./styles.module.css";
 import ReviewHeatmap from "./ReviewHeatmap";
 import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
@@ -26,12 +30,20 @@ function Home({ onStudyClick, callApi }: Props) {
 	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
 		null,
 	);
+	// Used as a way to let components refresh each other's status on updates.
+	const [queuesReloadToken, setQueuesReloadToken] = useState(0);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const dispatch = useAppDispatch();
 
 	const fetchHomeStatistics = useCallback(async () => {
 		await callApi(async () => setHomeStatistics(await getHomeStatistics()));
 	}, [callApi]);
+
+	const reloadHome = useCallback(() => {
+		setQueuesReloadToken(token => token + 1);
+		void fetchHomeStatistics();
+		void dispatch(getReviewTreeFolderForRoot());
+	}, [fetchHomeStatistics, dispatch]);
 
 	useEffect(() => {
 		void (async () => await fetchHomeStatistics())();
@@ -91,9 +103,7 @@ function Home({ onStudyClick, callApi }: Props) {
 	return (
 		<div className={styles.home}>
 			<div className={styles.box}>
-				<div className={styles.header}>
-					<p>Review tree</p>
-				</div>
+				<BoxHeader icon={mdiFileTreeOutline} title="Review tree" />
 
 				<div className={styles.mainContent}>
 					{rootFolder &&
@@ -119,17 +129,35 @@ function Home({ onStudyClick, callApi }: Props) {
 				</div>
 			</div>
 
+			<ReadingQueue
+				callApi={callApi}
+				reloadToken={queuesReloadToken}
+				onReload={reloadHome}
+			/>
+
+			<ExtractsQueue
+				callApi={callApi}
+				reloadToken={queuesReloadToken}
+				onReload={reloadHome}
+			/>
+
 			{homeStatistics && (
-				<>
-					<p className={styles.reviewsOverview}>
-						Studied {homeStatistics.numberOfReviews} cards in
-						{" " +
-							secondsToLongString(homeStatistics.totalTime)}{" "}
-						today ({secondsPerCard.toFixed(1) + " "}
-						s/card)
-					</p>
-					<ReviewHeatmap homeStatistics={homeStatistics} />
-				</>
+				<div className={styles.box}>
+					<BoxHeader icon={mdiFire} title="Study activity" />
+
+					<div className={styles.mainContent}>
+						<p className={styles.reviewsOverview}>
+							Studied {homeStatistics.numberOfReviews} cards in
+							{" " +
+								secondsToLongString(
+									homeStatistics.totalTime,
+								)}{" "}
+							today ({secondsPerCard.toFixed(1) + " "}
+							s/card)
+						</p>
+						<ReviewHeatmap homeStatistics={homeStatistics} />
+					</div>
+				</div>
 			)}
 		</div>
 	);

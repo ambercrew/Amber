@@ -1,17 +1,21 @@
 import Repetition from "./repetition";
 
-export type CellType = "FlashCard" | "Note" | "Cloze" | "TrueFalse";
-export const allCellTypes: CellType[] = [
+export const allCellTypes = [
 	"FlashCard",
 	"Cloze",
 	"Note",
 	"TrueFalse",
-];
+	"IncrementalReading",
+] as const;
+
+export type CellType = (typeof allCellTypes)[number];
+
 export const cellTypesDisplayNames: Record<CellType, string> = {
 	Note: "Note",
 	Cloze: "Cloze",
 	FlashCard: "Flash Card",
 	TrueFalse: "True/False",
+	IncrementalReading: "Incremental reading",
 };
 
 export default interface Cell {

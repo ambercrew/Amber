@@ -1,6 +1,6 @@
 import Editor from "../../Editor/components/Editor";
 import styles from "./styles.module.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Alert from "../../../components/Alert/Alert";
 import Reviewer from "../../Reviewer/components/Reviewer";
 import Home from "../../Home/components/Home";
@@ -139,6 +139,10 @@ function App() {
 		});
 	};
 
+	const handleSideBarCollapse = useCallback(() => {
+		setIsSideBarExpanded(false);
+	}, []);
+
 	// Used to avoid showing in wrong theme, or zoom before settings are loaded.
 	if (!areSettingsLoaded) return null;
 
@@ -159,7 +163,7 @@ function App() {
 			<SideBar
 				onSettingsClick={() => setShowSettings(true)}
 				onExpand={() => setIsSideBarExpanded(true)}
-				onCollapse={() => setIsSideBarExpanded(false)}
+				onCollapse={handleSideBarCollapse}
 				isExpanded={isSideBarExpanded}
 			/>
 

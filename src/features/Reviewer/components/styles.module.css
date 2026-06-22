@@ -3,6 +3,8 @@
 	max-width: 1000px;
 	margin: 0 auto;
 	padding: var(--spacing-8) var(--spacing-4);
+	padding-top: var(--spacing-4);
+	padding-bottom: var(--spacing-8);
 
 	display: flex;
 	flex-direction: column;
@@ -72,6 +74,7 @@
 	border: var(--border-width) solid var(--border-default);
 	overflow: hidden;
 	background-color: var(--surface-card);
+	overflow-y: auto;
 
 	.card-type-label {
 		display: flex;
@@ -90,7 +93,6 @@
 		--content-pad: var(--content-vertical-pad) var(--content-horizontal-pad);
 
 		flex: 1;
-		overflow: auto;
 		padding: 0;
 		word-wrap: break-word;
 		word-break: break-word;

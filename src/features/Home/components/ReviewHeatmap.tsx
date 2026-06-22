@@ -1,17 +1,15 @@
 import { useMemo } from "react";
+import { Tooltip } from "react-tooltip";
 import ReviewHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
 import HomeStatistics from "../../../api/cells/valueObjects/homeStatistics";
-import useAppSelector from "../../../hooks/useAppSelector";
-import { selectSettings } from "../../../stores/settings/settingsSelector";
+import { heatmapTooltipId } from "../config/constants";
 
 interface Props {
 	homeStatistics: HomeStatistics;
 }
 
 function ReviewHeatmap({ homeStatistics }: Props) {
-	const settings = useAppSelector(selectSettings);
-
 	const weeksOfYear = useMemo(() => {
 		const dates = [];
 		const currentYear = new Date().getFullYear();
@@ -30,16 +28,15 @@ function ReviewHeatmap({ homeStatistics }: Props) {
 
 	return (
 		<div className={styles.reviewHeatmap}>
-			{settings &&
-				weeksOfYear.map((week, i) => (
-					<ReviewHeatmapColumn
-						currentYear={new Date().getFullYear()}
-						key={i}
-						date={week}
-						homeStatistics={homeStatistics}
-						isDarkTheme={settings.theme === "Dark"}
-					/>
-				))}
+			{weeksOfYear.map((week, i) => (
+				<ReviewHeatmapColumn
+					currentYear={new Date().getFullYear()}
+					key={i}
+					date={week}
+					homeStatistics={homeStatistics}
+				/>
+			))}
+			<Tooltip id={heatmapTooltipId} className={styles.tooltip} />
 		</div>
 	);
 }
