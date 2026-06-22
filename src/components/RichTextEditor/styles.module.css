@@ -49,6 +49,16 @@
 	code {
 		background-color: var(--surface-control);
 	}
+
+	blockquote {
+		margin: var(--spacing-3) 0;
+		padding: var(--spacing-2) var(--spacing-4);
+		border-left: var(--border-width-large) solid var(--border-strong);
+		background-color: var(--surface-pane);
+		border-radius: var(--border-radius);
+		color: var(--text-secondary);
+		font-style: italic;
+	}
 }
 
 .floating-menu {
