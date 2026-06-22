@@ -8,9 +8,12 @@
 	width: 100%;
 	margin: 0 auto;
 	gap: 1.2rem;
+	overflow-y: auto;
+	height: 100%;
 }
 
 .box {
+	flex-shrink: 0;
 	width: 100%;
 	background: var(--surface-card);
 	margin: 0 auto;
