@@ -112,9 +112,29 @@ export default function ImageComponent({
 				<img
 					ref={imgRef}
 					src={src}
+					onLoad={e => {
+						// Imported images often have no width/height. Capture
+						// their natural size once loaded so they render and can
+						// be resized, and persist it to the node.
+						if (currentWidth && currentHeight) return;
+						const { naturalWidth, naturalHeight } = e.currentTarget;
+						setCurrentWidth(naturalWidth);
+						setCurrentHeight(naturalHeight);
+						editor.update(() => {
+							const node = editor
+								.getEditorState()
+								._nodeMap.get(nodeKey);
+							if ($isImageNode(node)) {
+								node.setWidthAndHeight(
+									naturalWidth,
+									naturalHeight,
+								);
+							}
+						});
+					}}
 					style={{
-						width: `${currentWidth}px`,
-						height: `${currentHeight}px`,
+						width: currentWidth ? `${currentWidth}px` : "auto",
+						height: currentHeight ? `${currentHeight}px` : "auto",
 						display: "block",
 						cursor: isResizing ? "nwse-resize" : "default",
 					}}

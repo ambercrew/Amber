@@ -78,9 +78,28 @@ export default class ImageNode extends DecoratorNode<JSX.Element> {
 			img: () => {
 				return {
 					conversion: (element: HTMLElement) => {
-						const width = Number(element.getAttribute("width")!);
-						const height = Number(element.getAttribute("height")!);
-						const src = element.getAttribute("src")!;
+						// Default to 0 when the attribute is missing or
+						// non-numeric; ImageComponent treats 0 as "natural size".
+						const width =
+							Number(element.getAttribute("width")) || 0;
+						const height =
+							Number(element.getAttribute("height")) || 0;
+
+						// Readability frequently emits responsive <img srcset>
+						// without a src, so fall back to the first srcset
+						// candidate's URL.
+						let src = element.getAttribute("src") ?? "";
+						if (!src) {
+							const srcset = element.getAttribute("srcset");
+							if (srcset) {
+								src =
+									srcset
+										.split(",")[0]
+										?.trim()
+										.split(/\s+/)[0] ?? "";
+							}
+						}
+
 						return {
 							node: $createImageNode({
 								width,

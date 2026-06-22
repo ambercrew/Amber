@@ -14,6 +14,41 @@ import Select from "../../../../components/Select/Select";
 
 const SOURCE_TYPE_OPTIONS = [{ label: "Website", value: "url" }];
 
+// Attributes commonly used by lazy-loading scripts to stash the real image
+// URL until JS runs. Ordered by preference.
+const LAZY_SRC_ATTRS = [
+	"data-src",
+	"data-delayed-url",
+	"data-lazy-src",
+	"data-original",
+	"data-url",
+	"data-hi-res-src",
+];
+const LAZY_SRCSET_ATTRS = ["data-srcset", "data-lazy-srcset"];
+
+/**
+ * Promotes lazy-loaded image URLs (held in data-* attributes of the
+ * server-rendered HTML) into real src/srcset attributes, so Readability keeps
+ * the images instead of dropping those without a usable src.
+ */
+function hydrateLazyImages(doc: Document) {
+	doc.querySelectorAll("img").forEach(img => {
+		if (!img.getAttribute("src")) {
+			const lazySrc = LAZY_SRC_ATTRS.map(a => img.getAttribute(a)).find(
+				Boolean,
+			);
+			if (lazySrc) img.setAttribute("src", lazySrc);
+		}
+
+		if (!img.getAttribute("srcset")) {
+			const lazySrcset = LAZY_SRCSET_ATTRS.map(a =>
+				img.getAttribute(a),
+			).find(Boolean);
+			if (lazySrcset) img.setAttribute("srcset", lazySrcset);
+		}
+	});
+}
+
 interface Props {
 	onImport: (newValue: IncrementalReading) => void;
 	autofocus: boolean;
@@ -45,6 +80,12 @@ export default function ImportContainer({ autofocus, onImport }: Props) {
 			const base = doc.createElement("base");
 			base.href = url;
 			doc.head.prepend(base);
+
+			// The fetched HTML is server-rendered, so lazy-loaded images
+			// still hold their real URL in a data-* attribute. Promote it
+			// to src before Readability runs, otherwise Readability drops
+			// images that have no usable src.
+			hydrateLazyImages(doc);
 
 			const article = new Readability(doc).parse();
 
