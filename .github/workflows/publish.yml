@@ -156,15 +156,25 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: npm run tauri:windows:build -- --arch x64,arm64
 
-      - name: upload MSIX to release
+      - name: configure Microsoft Store CLI
         if: matrix.platform == 'windows-latest'
-        uses: softprops/action-gh-release@v2
+        uses: microsoft/store-submission@v1
         with:
-          tag_name: v${{ needs.create-release.outputs.version }}
-          draft: true
-          files: src-tauri/target/msix/*.msixbundle
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          command: configure
+          type: msix
+          seller-id: ${{ secrets.MS_STORE_SELLER_ID }}
+          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+          tenant-id: ${{ secrets.MS_STORE_TENANT_ID }}
+          client-id: ${{ secrets.MS_STORE_CLIENT_ID }}
+          client-secret: ${{ secrets.MS_STORE_CLIENT_SECRET }}
+
+      - name: publish MSIX to Microsoft Store
+        if: matrix.platform == 'windows-latest'
+        uses: microsoft/store-submission@v1
+        with:
+          command: publish
+          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+          package-path: src-tauri/target/msix/*.msixbundle
 
   publish-tauri-android:
     needs: create-release
