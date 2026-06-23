@@ -225,7 +225,6 @@
 			align-items: center;
 			width: 100%;
 			text-align: left;
-			justify-content: center;
 			gap: var(--spacing-1);
 			padding: var(--spacing-1);
 
