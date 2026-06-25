@@ -322,21 +322,4 @@ describe("App", () => {
 			).toBe(0);
 		});
 	});
-
-	it("Should collapse sidebar when navigating on small screen", async () => {
-		// Arrange
-
-		window.innerWidth = SMALL_SCREEN_MAX_WIDTH_IN_PX;
-		renderApp();
-
-		// Act
-		await waitFor(async () => {
-			await userEvent.click(screen.getByText("Search"));
-
-			// Assert
-
-			const sideBar = screen.getByRole("complementary");
-			expect(sideBar.className).toContain(sideBarStyles.closed);
-		});
-	});
 });

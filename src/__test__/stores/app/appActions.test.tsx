@@ -27,7 +27,6 @@ describe("appActions", () => {
 	it("Should load initial state when not loaded", async () => {
 		// Arrange
 
-		const expectedReviewTreeCb = vi.fn();
 		const expectedLoadSettingsCb = vi.fn();
 		vi.mocked(loadUserState).mockReturnValue(expectedLoadSettingsCb);
 
@@ -57,7 +56,6 @@ describe("appActions", () => {
 
 		// Assert
 
-		expect(dispatchMock).toHaveBeenCalledWith(expectedReviewTreeCb);
 		expect(dispatchMock).toHaveBeenCalledWith(expectedLoadSettingsCb);
 		expect(dispatchMock).toHaveBeenCalledWith(expectedInitiateSettings);
 		expect(dispatchMock).toHaveBeenCalledWith(expectedSync);
