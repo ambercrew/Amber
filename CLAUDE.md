@@ -1,10 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Overview
-
-Brainy is an open-source active learning desktop app built with **Tauri 2** (Rust backend) and **React 19** (TypeScript frontend). It implements spaced repetition (FSRS algorithm) with AI-assisted learning.
 
 ## Commands
 
@@ -62,8 +58,6 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 
 ### Domain Modules
 
-- **cells** — Card CRUD, repetitions, reviews, full-text search
-- **file_system** — Files/folders, export/import, review tree
 - **fsrs** — Spaced repetition profiles (FSRS algorithm config)
 - **ai_integration** — AI chat, streaming, tool calls, document upload
 - **backend** — Remote auth (sign-up, sign-in, etc.)

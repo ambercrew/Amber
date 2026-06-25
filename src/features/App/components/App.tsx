@@ -1,28 +1,14 @@
-import Editor from "../../Editor/components/Editor";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Alert from "../../../components/Alert/Alert";
-import Reviewer from "../../Reviewer/components/Reviewer";
-import Home from "../../Home/components/Home";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import SideBar from "../../SideBar/components/SideBar";
 import Settings from "../../Settings/components/Settings";
 import useGlobalKey from "../../../hooks/useGlobalKey";
 import { isModKey } from "../../../utils/keyboardUtils";
-import {
-	Route,
-	Routes,
-	useLocation,
-	useNavigate,
-	useSearchParams,
-} from "react-router";
-import {
-	EDITOR_CELL_ID,
-	FILE_ID_QUERY_PARAMETER,
-	SMALL_SCREEN_MAX_WIDTH_IN_PX,
-} from "../../../config/constants";
-import Searcher from "../../Searcher/components/Searcher";
+import { Route, Routes, useLocation, useNavigate } from "react-router";
+import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 import Updater from "../../Updater/components/Updater";
 import {
 	defaultGlobalSyncEventManager,
@@ -35,18 +21,14 @@ import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { isMobile } from "../../../utils/tauriUtils.ts";
-import IntroDialog from "../../IntroDialog/components/IntroDialog.tsx";
 import { TOOL_CALL_ACCEPTED_EVENT } from "../../../types/events/toolCallAcceptedEvent.ts";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
-	const [searchParams] = useSearchParams();
-	const [studyFileIds, setStudyFileIds] = useState<string[]>([]);
 	const [isSideBarExpanded, setIsSideBarExpanded] = useState(true);
 	const location = useLocation();
 	const [previousLocation, setPreviousLocation] = useState(location);
-	const selectedFileId = searchParams.get(FILE_ID_QUERY_PARAMETER);
 	const isSmallScreen = useIsSmallScreen();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const dispatch = useAppDispatch();
@@ -57,16 +39,6 @@ function App() {
 		if (window.innerWidth <= SMALL_SCREEN_MAX_WIDTH_IN_PX)
 			setIsSideBarExpanded(false);
 	}
-
-	const handleEditorStudyClick = () => {
-		setStudyFileIds([selectedFileId!]);
-		void navigate("/reviewer");
-	};
-
-	const handleHomeStudyClick = (fileIds: string[]) => {
-		setStudyFileIds(fileIds);
-		void navigate("/reviewer");
-	};
 
 	useEffect(() => {
 		const contextMenuCb = (e: MouseEvent) => {
@@ -130,15 +102,6 @@ function App() {
 		}
 	}, "keydown");
 
-	const handleEditButtonClick = (fileId: string, cellId: string) => {
-		searchParams.set(FILE_ID_QUERY_PARAMETER, fileId);
-		searchParams.set(EDITOR_CELL_ID, cellId);
-		void navigate({
-			pathname: "editor",
-			search: searchParams.toString(),
-		});
-	};
-
 	const handleSideBarCollapse = useCallback(() => {
 		setIsSideBarExpanded(false);
 	}, []);
@@ -148,8 +111,6 @@ function App() {
 
 	return (
 		<div className={`${styles.workspace}`}>
-			<IntroDialog />
-
 			{!isMobile() && <Updater callApi={callApi} />}
 
 			{errorMessage && (
@@ -161,7 +122,6 @@ function App() {
 			)}
 
 			<SideBar
-				onSettingsClick={() => setShowSettings(true)}
 				onExpand={() => setIsSideBarExpanded(true)}
 				onCollapse={handleSideBarCollapse}
 				isExpanded={isSideBarExpanded}
@@ -170,50 +130,9 @@ function App() {
 			<div
 				className={`${styles.workarea} ${isSmallScreen && isSideBarExpanded && styles.hidden}`}>
 				<Routes>
-					{["/", "/home"].map(path => (
-						<Route
-							key={path}
-							path={path}
-							element={
-								<Home
-									onStudyClick={handleHomeStudyClick}
-									callApi={callApi}
-								/>
-							}
-						/>
+					{["/"].map(path => (
+						<Route key={path} path={path} element={<></>} />
 					))}
-					<Route
-						path="/editor"
-						element={
-							<Editor
-								initialSelectedCellId={searchParams.get(
-									EDITOR_CELL_ID,
-								)}
-								callApi={callApi}
-								onStudyStart={() => handleEditorStudyClick()}
-								key={selectedFileId}
-							/>
-						}
-					/>
-					<Route
-						path="/reviewer"
-						element={
-							<Reviewer
-								onEditButtonClick={handleEditButtonClick}
-								callApi={callApi}
-								fileIds={studyFileIds}
-							/>
-						}
-					/>
-					<Route
-						path="/search"
-						element={
-							<Searcher
-								callApi={callApi}
-								onEditButtonClick={handleEditButtonClick}
-							/>
-						}
-					/>
 				</Routes>
 
 				<AiChatWidget />
