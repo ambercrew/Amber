@@ -16,12 +16,7 @@ describe("SideBar", () => {
 		// Arrange
 
 		renderWithProviders(
-			<SideBar
-				onExpand={vi.fn()}
-				onCollapse={vi.fn()}
-				isExpanded
-				onSettingsClick={vi.fn()}
-			/>,
+			<SideBar onExpand={vi.fn()} onCollapse={vi.fn()} isExpanded />,
 			{
 				preloadedState: {
 					user: {
@@ -48,12 +43,7 @@ describe("SideBar", () => {
 		// Act
 
 		renderWithProviders(
-			<SideBar
-				onExpand={vi.fn()}
-				onCollapse={vi.fn()}
-				isExpanded
-				onSettingsClick={vi.fn()}
-			/>,
+			<SideBar onExpand={vi.fn()} onCollapse={vi.fn()} isExpanded />,
 			{
 				preloadedState: {
 					user: {
@@ -75,12 +65,7 @@ describe("SideBar", () => {
 		// Act
 
 		renderWithProviders(
-			<SideBar
-				onExpand={vi.fn()}
-				onCollapse={vi.fn()}
-				isExpanded
-				onSettingsClick={vi.fn()}
-			/>,
+			<SideBar onExpand={vi.fn()} onCollapse={vi.fn()} isExpanded />,
 			{
 				preloadedState: {
 					user: {
@@ -120,7 +105,6 @@ describe("SideBar", () => {
 						onExpand={vi.fn()}
 						onCollapse={vi.fn()}
 						isExpanded
-						onSettingsClick={vi.fn()}
 					/>
 				</>
 			);

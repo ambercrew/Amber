@@ -3,17 +3,14 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 
 use crate::{
-    Guid, backend::backend_dto::SyncEntityDto,
-    cells::services::cell_invariants_enforcer::CellInvariantsEnforcerError,
-    common::repository_error::RepositoryError, sync::entities::synced_entity::SyncedEntity,
+    Guid, backend::backend_dto::SyncEntityDto, common::repository_error::RepositoryError,
+    sync::entities::synced_entity::SyncedEntity,
 };
 
 #[derive(Error, Debug)]
 pub enum SyncEntityStrategyError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error(transparent)]
-    CellInvariantsEnforcer(#[from] CellInvariantsEnforcerError),
 }
 
 #[async_trait]

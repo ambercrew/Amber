@@ -2,7 +2,6 @@ import styles from "./styles.module.css";
 import { useCallback, useEffect, useState } from "react";
 import Alert from "../../../components/Alert/Alert";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions";
 import SideBar from "../../SideBar/components/SideBar";
 import Settings from "../../Settings/components/Settings";
 import useGlobalKey from "../../../hooks/useGlobalKey";
@@ -10,18 +9,12 @@ import { isModKey } from "../../../utils/keyboardUtils";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../config/constants";
 import Updater from "../../Updater/components/Updater";
-import {
-	defaultGlobalSyncEventManager,
-	ListenerType,
-} from "../../../stores/sync/managers/syncEventManager";
 import useIsSmallScreen from "../../../hooks/useIsSmallScreen";
-import AiChatWidget from "../../AiChatWidget/components/AiChatWidget";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import useApi from "../../../hooks/useApi.ts";
 import { isMobile } from "../../../utils/tauriUtils.ts";
-import { TOOL_CALL_ACCEPTED_EVENT } from "../../../types/events/toolCallAcceptedEvent.ts";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -53,37 +46,6 @@ function App() {
 
 	useEffect(() => {
 		void dispatch(initialLoadApplicationState());
-	}, [dispatch]);
-
-	useEffect(() => {
-		const cb = async () => await dispatch(getReviewTreeFolderForRoot());
-		defaultGlobalSyncEventManager.addListener(
-			ListenerType.PostSyncComplete,
-			cb,
-		);
-		return () =>
-			defaultGlobalSyncEventManager.removeListener(
-				ListenerType.PostSyncComplete,
-				cb,
-			);
-	}, [dispatch]);
-
-	useEffect(() => {
-		// Reloading the state.
-		const id = setInterval(() => {
-			void dispatch(getReviewTreeFolderForRoot());
-		}, 60 * 1000);
-
-		return () => clearInterval(id);
-	}, [dispatch]);
-
-	useEffect(() => {
-		const cb = () => {
-			void dispatch(getReviewTreeFolderForRoot());
-		};
-
-		window.addEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
-		return () => window.removeEventListener(TOOL_CALL_ACCEPTED_EVENT, cb);
 	}, [dispatch]);
 
 	useGlobalKey(e => {
@@ -134,8 +96,6 @@ function App() {
 						<Route key={path} path={path} element={<></>} />
 					))}
 				</Routes>
-
-				<AiChatWidget />
 			</div>
 
 			{showSettings && (

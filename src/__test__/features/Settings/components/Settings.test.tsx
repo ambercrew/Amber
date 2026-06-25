@@ -27,7 +27,6 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 
 vi.mock(import("../../../../api/backend/api/authApi.ts"));
-vi.mock(import("../../../../api/fileSystem/api/fileSystemApi.ts"));
 vi.mock(import("../../../../api/backend/api/userApi.ts"));
 vi.mock(
 	import("../../../../api/settings/api/settingsApi.ts"),

@@ -1,5 +1,4 @@
 import { NavigateFunction } from "react-router";
-import { getReviewTreeFolderForRoot } from "../fileSystem/fileSystemActions";
 import { loadAndApplySettings } from "../settings/settingsActions";
 import { AppDispatch, RootState } from "../store";
 import { sync } from "../sync/syncActions";
@@ -36,7 +35,6 @@ async function loadAppState(
 	navigate?: NavigateFunction,
 	userInformationDto?: UserInformationDto,
 ) {
-	await dispatch(getReviewTreeFolderForRoot());
 	const settings = await dispatch(loadAndApplySettings());
 
 	if (userInformationDto) {

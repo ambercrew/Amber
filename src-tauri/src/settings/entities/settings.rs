@@ -3,7 +3,6 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::settings::value_objects::{
-    ai_provider::AiProvider, ai_provider_settings::AiProviderSettings,
     database_location::DatabaseLocation, settings_profile::SettingsProfile, theme::Theme,
 };
 
@@ -21,15 +20,6 @@ pub struct Settings {
     pub theme: Theme,
     pub zoom_percentage: f64,
     pub auto_sync: bool,
-
-    pub enable_ai: bool,
-    #[serde(default)]
-    pub ai_provider: AiProvider,
-
-    #[serde(default)]
-    pub ollama: AiProviderSettings,
-    #[serde(default)]
-    pub openai: AiProviderSettings,
 }
 
 impl Settings {
@@ -40,10 +30,6 @@ impl Settings {
             theme: Theme::FollowSystem,
             zoom_percentage: 100f64,
             auto_sync: true,
-            enable_ai: true,
-            ai_provider: AiProvider::default(),
-            ollama: AiProviderSettings::default(),
-            openai: AiProviderSettings::default(),
         }
     }
 

@@ -20,13 +20,6 @@ pub struct SyncedEntity {
 #[repr(u8)]
 pub enum EntityType {
     // NOTE: do not change the number as they are synced to the server.
-    Folder = 1,
-    File = 2,
-    Cell = 3,
-    Repetition = 4,
-    Review = 5,
-    DeletedEntity = 6,
-    FsrsProfile = 7,
-    IncrementalReadingSchedule = 8,
-    Extract = 9,
+    DeletedEntity = 1,
+    FsrsProfile = 2,
 }

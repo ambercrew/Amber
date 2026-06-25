@@ -1,25 +1,15 @@
 import App from "../../../../features/App/components/App.tsx";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders.tsx";
 import useAppDispatch from "../../../../hooks/useAppDispatch.ts";
-import { getReviewTreeFolderForRoot } from "../../../../stores/fileSystem/fileSystemActions.ts";
 import { act, screen, waitFor } from "@testing-library/react";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
-import {
-	defaultGlobalSyncEventManager,
-	ListenerType,
-} from "../../../../stores/sync/managers/syncEventManager.ts";
 import userEvent from "@testing-library/user-event";
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { ask } from "@tauri-apps/plugin-dialog";
 import appStyles from "../../../../features/App/components/styles.module.css";
 import sideBarStyles from "../../../../features/SideBar/components/styles.module.css";
-import homeStyles from "../../../../features/Home/components/styles.module.css";
-import editorStyles from "../../../../features/Editor/components/styles.module.css";
-import reviewerStyles from "../../../../features/Reviewer/components/styles.module.css";
-import searcherStyles from "../../../../features/Searcher/components/styles.module.css";
 import { SMALL_SCREEN_MAX_WIDTH_IN_PX } from "../../../../config/constants.ts";
-import { TOOL_CALL_ACCEPTED_EVENT } from "../../../../types/events/toolCallAcceptedEvent.ts";
 import { getCurrentLocation } from "../../../test-utils/locationUtils.ts";
 import { MemoryRouterProps } from "react-router";
 import { RootState } from "../../../../stores/store.ts";
@@ -28,17 +18,10 @@ import { SettingsState } from "../../../../stores/settings/settingsReducer.ts";
 vi.mock(import("../../../../hooks/useAppDispatch.ts"), () => ({
 	default: vi.fn(),
 }));
-vi.mock(import("../../../../stores/fileSystem/fileSystemActions.ts"));
 vi.mock(import("../../../../stores/user/userActions.ts"));
 vi.mock(import("../../../../stores/settings/settingsActions.ts"));
 vi.mock(import("../../../../stores/sync/syncActions.ts"));
 vi.mock(import("../../../../managers/closeRequestedEventManager.ts"));
-vi.mock(import("../../../../features/Editor/components/TitleBar.tsx"));
-vi.mock(import("../../../../features/IntroDialog/components/IntroDialog.tsx"));
-vi.mock(import("../../../../api/cells/api/cellApi.ts"), () => ({
-	getCellsForFilesWithFsrsProfileIds: () => Promise.resolve([]),
-	getFileCellsOrderedByIndex: () => Promise.resolve([]),
-}));
 vi.mock(import("../../../../api/appInfo/api/appInfoApi.ts"), () => ({
 	isStoreInstalled: () => Promise.resolve(false),
 }));
@@ -174,73 +157,6 @@ describe("App", () => {
 		expect(preventDefaultSpy).toHaveBeenCalled();
 	});
 
-	it("Should get new file tree when sync complete", async () => {
-		// Arrange
-
-		const expectedReviewTreeCb = vi.fn();
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			expectedReviewTreeCb,
-		);
-		renderApp();
-		// Waiting for async callback to finish.
-		await act(async () => {
-			/* Nothing */
-		});
-		const beforeTimes = dispatchMock.mock.calls.filter(
-			c => c[0] === expectedReviewTreeCb,
-		).length;
-
-		// Act
-
-		await act(async () => {
-			await defaultGlobalSyncEventManager.notifyListeners(
-				ListenerType.PostSyncComplete,
-			);
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			const times = dispatchMock.mock.calls.filter(
-				c => c[0] === expectedReviewTreeCb,
-			).length;
-			// Two times since it should get on the initial render.
-			expect(times).toBe(beforeTimes + 1);
-		});
-	});
-
-	it("Should get new file tree when tool call is accepted", async () => {
-		// Arrange
-
-		const expectedReviewTreeCb = vi.fn();
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			expectedReviewTreeCb,
-		);
-		renderApp();
-		await act(async () => {
-			/* Nothing */
-		});
-		const beforeTimes = dispatchMock.mock.calls.filter(
-			c => c[0] === expectedReviewTreeCb,
-		).length;
-
-		// Act
-
-		await act(() => {
-			window.dispatchEvent(new Event(TOOL_CALL_ACCEPTED_EVENT));
-			return Promise.resolve();
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			const times = dispatchMock.mock.calls.filter(
-				c => c[0] === expectedReviewTreeCb,
-			).length;
-			expect(times).toBe(beforeTimes + 1);
-		});
-	});
-
 	it("Should navigate to home on shortcut", async () => {
 		// Arrange
 
@@ -348,80 +264,6 @@ describe("App", () => {
 
 		const sideBar = screen.getByRole("complementary");
 		expect(sideBar.className).toContain(sideBarStyles.closed);
-	});
-
-	it("Should render home when on /home", async () => {
-		// Act
-
-		const { container } = renderApp({
-			memoryRouterProps: {
-				initialEntries: ["/home"],
-			},
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			expect(
-				container.getElementsByClassName(homeStyles.home).length,
-			).toBe(1);
-		});
-	});
-
-	it("Should render editor when on /editor", async () => {
-		// Act
-
-		const { container } = renderApp({
-			memoryRouterProps: {
-				initialEntries: ["/editor"],
-			},
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			expect(
-				container.getElementsByClassName(editorStyles.container).length,
-			).toBe(1);
-		});
-	});
-
-	it("Should render reviewer when on /reviewer", async () => {
-		// Act
-
-		const { container } = renderApp({
-			memoryRouterProps: {
-				initialEntries: ["/reviewer"],
-			},
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			expect(
-				container.getElementsByClassName(reviewerStyles.reviewer)
-					.length,
-			).toBe(1);
-		});
-	});
-
-	it("Should render searcher when on /search", async () => {
-		// Act
-
-		const { container } = renderApp({
-			memoryRouterProps: {
-				initialEntries: ["/search"],
-			},
-		});
-
-		// Assert
-
-		await waitFor(() => {
-			expect(
-				container.getElementsByClassName(searcherStyles.container)
-					.length,
-			).toBe(1);
-		});
 	});
 
 	it("Should add hidden class on work-area when screen is small and sidebar is expanded", async () => {

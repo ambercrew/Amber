@@ -4,9 +4,7 @@ use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
 use crate::{
-    ai_integration::services::implementations::default_ai_client_provider::OPENAI_API_KEY_SECRET,
     database::database_connection_manager::DatabaseConnectionManager,
-    secrets::repositories::secrets_repository::SecretsRepository,
     settings::{
         dto::update_settings_request_dto::UpdateSettingsRequestDto,
         repositories::settings_repository::SettingsRepository,
@@ -19,7 +17,6 @@ use crate::{
 pub struct DefaultSettingsUpdater {
     settings_repository: Arc<dyn SettingsRepository>,
     database_connection_manager: Arc<dyn DatabaseConnectionManager>,
-    secrets_repository: Arc<dyn SecretsRepository>,
 }
 
 #[async_trait]
@@ -52,18 +49,6 @@ impl SettingsUpdater for DefaultSettingsUpdater {
         if let Some(auto_sync) = new_settings.auto_sync {
             settings.auto_sync = auto_sync;
         }
-        if let Some(enable_ai) = new_settings.enable_ai {
-            settings.enable_ai = enable_ai;
-        }
-        if let Some(ai_provider) = new_settings.ai_provider {
-            settings.ai_provider = ai_provider;
-        }
-        if let Some(ollama) = new_settings.ollama {
-            settings.ollama = ollama;
-        }
-        if let Some(openai) = new_settings.openai {
-            settings.openai = openai;
-        }
 
         if change_database_location {
             log::info!(
@@ -76,12 +61,6 @@ impl SettingsUpdater for DefaultSettingsUpdater {
         }
 
         self.settings_repository.save_settings(settings).await?;
-
-        if let Some(api_key) = &new_settings.openai_api_key {
-            self.secrets_repository
-                .set_secret(OPENAI_API_KEY_SECRET, api_key)
-                .await?;
-        }
 
         Ok(())
     }
@@ -113,7 +92,6 @@ mod tests {
     use crate::{
         database::database_connection_manager::MockDatabaseConnectionManager,
         infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
-        secrets::repositories::secrets_repository::SecretsRepository,
         settings::{
             dto::update_settings_request_dto::UpdateSettingsRequestDto,
             entities::settings::Settings, services::settings_updater::SettingsUpdater,
@@ -190,69 +168,5 @@ mod tests {
         // Act & Assert
 
         service.update_settings(request).await.unwrap();
-    }
-
-    #[tokio::test]
-    pub async fn update_settings_openai_api_key_provided_saved_secret() {
-        // Arrange
-
-        let request = UpdateSettingsRequestDto {
-            openai_api_key: Some("sk-test-key".to_string()),
-            ..Default::default()
-        };
-
-        let mut database_connection_manager = MockDatabaseConnectionManager::new();
-        database_connection_manager
-            .expect_connect_to_database()
-            .never();
-
-        let injector = initialize_test_injector(database_connection_manager).await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<DefaultSettingsUpdater>().await;
-
-        // Act
-
-        service.update_settings(request).await.unwrap();
-
-        // Assert
-
-        let actual = scope
-            .resolve::<dyn SecretsRepository>()
-            .await
-            .get_secret(OPENAI_API_KEY_SECRET)
-            .await;
-        assert_eq!(Some("sk-test-key".to_string()), actual);
-    }
-
-    #[tokio::test]
-    pub async fn update_settings_openai_api_key_not_provided_did_not_save_secret() {
-        // Arrange
-
-        let request = UpdateSettingsRequestDto {
-            openai_api_key: None,
-            ..Default::default()
-        };
-
-        let mut database_connection_manager = MockDatabaseConnectionManager::new();
-        database_connection_manager
-            .expect_connect_to_database()
-            .never();
-
-        let injector = initialize_test_injector(database_connection_manager).await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<DefaultSettingsUpdater>().await;
-
-        // Act
-
-        service.update_settings(request).await.unwrap();
-
-        // Assert
-
-        let actual = scope
-            .resolve::<dyn SecretsRepository>()
-            .await
-            .get_secret(OPENAI_API_KEY_SECRET)
-            .await;
-        assert_eq!(None, actual);
     }
 }

@@ -7,10 +7,7 @@ use injector_derive::ScopeInjectable;
 use crate::{
     Guid,
     common::repository_error::RepositoryError,
-    fsrs::{
-        entities::fsrs_profile::FsrsProfile,
-        repositories::fsrs_repository::{DeleteFsrsRequest, FsrsRepository},
-    },
+    fsrs::{entities::fsrs_profile::FsrsProfile, repositories::fsrs_repository::FsrsRepository},
     infrastructure::{
         repositories::sqlite::sqlite_rows::fsrs_profile_row::FsrsProfileRow,
         value_objects::db_transaction::DbTransaction,
@@ -154,11 +151,10 @@ impl FsrsRepository for SqliteFsrsRepository {
         Ok(())
     }
 
-    async fn delete_by_id(&self, request: DeleteFsrsRequest) -> Result<(), RepositoryError> {
+    async fn delete_by_id(&self, id: Guid) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let id = request.id();
         let result = sqlx::query!("DELETE FROM fsrs_profiles WHERE id = $1", id)
             .execute(&mut *tx)
             .await;

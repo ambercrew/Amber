@@ -2,7 +2,6 @@ import { loadUserState } from "../../../stores/user/userActions.ts";
 import { loadAndApplySettings } from "../../../stores/settings/settingsActions.ts";
 import { sync } from "../../../stores/sync/syncActions.ts";
 import UpdateSettingsRequestDto from "../../../api/settings/dto/updateSettingsRequestDto.ts";
-import { getReviewTreeFolderForRoot } from "../../../stores/fileSystem/fileSystemActions.ts";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
 import useAppDispatch from "../../../hooks/useAppDispatch.ts";
@@ -13,7 +12,6 @@ import { AppState } from "../../../stores/app/appReducer.ts";
 vi.mock(import("../../../hooks/useAppDispatch.ts"), () => ({
 	default: vi.fn(),
 }));
-vi.mock(import("../../../stores/fileSystem/fileSystemActions.ts"));
 vi.mock(import("../../../stores/settings/settingsActions.ts"));
 vi.mock(import("../../../stores/user/userActions.ts"));
 vi.mock(import("../../../stores/sync/syncActions.ts"));
@@ -30,10 +28,6 @@ describe("appActions", () => {
 		// Arrange
 
 		const expectedReviewTreeCb = vi.fn();
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			expectedReviewTreeCb,
-		);
-
 		const expectedLoadSettingsCb = vi.fn();
 		vi.mocked(loadUserState).mockReturnValue(expectedLoadSettingsCb);
 
@@ -73,10 +67,6 @@ describe("appActions", () => {
 		// Arrange
 
 		const expectedReviewTreeCb = vi.fn();
-		vi.mocked(getReviewTreeFolderForRoot).mockReturnValue(
-			expectedReviewTreeCb,
-		);
-
 		const expectedLoadSettingsCb = vi.fn();
 		vi.mocked(loadUserState).mockReturnValue(expectedLoadSettingsCb);
 
