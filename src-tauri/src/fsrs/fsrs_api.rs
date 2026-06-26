@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use crate::{
-    Guid,
     common::api_error::ApiError,
     fsrs::{
         dto::create_profile_request_dto::CreateProfileRequestDto,
@@ -11,6 +10,7 @@ use crate::{
 };
 use injector::injector::Injector;
 use tauri::State;
+use uuid::Uuid;
 
 #[tauri::command]
 pub async fn get_all_fsrs_profiles(
@@ -50,7 +50,7 @@ pub async fn create_profile(
 #[tauri::command]
 pub async fn update_profile(
     injector: State<'_, Arc<Injector>>,
-    id: Guid,
+    id: Uuid,
     name: String,
     request_retention: f64,
     maximum_interval: f64,
@@ -73,7 +73,7 @@ pub async fn update_profile(
 #[tauri::command]
 pub async fn delete_fsrs_profile(
     injector: State<'_, Arc<Injector>>,
-    id: Guid,
+    id: Uuid,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope

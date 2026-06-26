@@ -6,8 +6,10 @@ import { Provider } from "react-redux";
 import App from "./features/App/components/App.tsx";
 import { BrowserRouter } from "react-router";
 import { setupStore } from "./stores/store.ts";
-import DefaultDragDropProvider from "./components/DefaultDragDropProvider/DefaultDragDropProvider.tsx";
 import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
+import "rsuite/dist/rsuite.css";
+import "@mantine/core/styles.css";
+import { createTheme, MantineProvider } from "@mantine/core";
 
 function forwardConsole(
 	fnName: "log" | "debug" | "info" | "warn" | "error",
@@ -34,14 +36,17 @@ forwardConsole("warn", warn);
 forwardConsole("error", error);
 
 const store = setupStore();
+
+const theme = createTheme({});
+
 createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
-			<BrowserRouter>
-				<DefaultDragDropProvider>
+			<MantineProvider theme={theme}>
+				<BrowserRouter>
 					<App />
-				</DefaultDragDropProvider>
-			</BrowserRouter>
+				</BrowserRouter>
+			</MantineProvider>
 		</Provider>
 	</React.StrictMode>,
 );

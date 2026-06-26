@@ -2,9 +2,9 @@ use std::{env, path::PathBuf, sync::Arc};
 
 use injector::injector::Injector;
 use tokio::fs;
+use uuid::Uuid;
 
 use crate::{
-    Guid,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
     infrastructure::{
         repositories::disk::disk_secrets_repository::DiskSecretsRepository,
@@ -15,7 +15,7 @@ use crate::{
 };
 
 pub async fn create_temp_directory() -> PathBuf {
-    let path = env::temp_dir().join(Guid::new_v4().to_string());
+    let path = env::temp_dir().join(Uuid::new_v4().to_string());
     fs::create_dir_all(path.clone()).await.unwrap();
     path
 }

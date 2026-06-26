@@ -3,9 +3,9 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
+use uuid::Uuid;
 
 use crate::{
-    Guid,
     common::repository_error::RepositoryError,
     fsrs::{entities::fsrs_profile::FsrsProfile, repositories::fsrs_repository::FsrsRepository},
     infrastructure::{
@@ -21,7 +21,7 @@ pub struct SqliteFsrsRepository {
 
 #[async_trait]
 impl FsrsRepository for SqliteFsrsRepository {
-    async fn get_by_id(&self, id: Guid) -> Result<FsrsProfile, RepositoryError> {
+    async fn get_by_id(&self, id: Uuid) -> Result<FsrsProfile, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
@@ -151,7 +151,7 @@ impl FsrsRepository for SqliteFsrsRepository {
         Ok(())
     }
 
-    async fn delete_by_id(&self, id: Guid) -> Result<(), RepositoryError> {
+    async fn delete_by_id(&self, id: Uuid) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
@@ -249,6 +249,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 pub mod tests {
     use chrono::Utc;
     use injector::{injector::Injector, register_scope};
+    use uuid::Uuid;
 
     use crate::{DEFAULT_FSRS_PROFILE_ID, test_utils::create_test_injector};
 
@@ -269,7 +270,7 @@ pub mod tests {
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile = FsrsProfile::new_unchecked(
-            Guid::new_v4(),
+            Uuid::new_v4(),
             Utc::now(),
             Utc::now(),
             "test".into(),
@@ -298,7 +299,7 @@ pub mod tests {
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile1 = FsrsProfile::new_unchecked(
-            Guid::new_v4(),
+            Uuid::new_v4(),
             Utc::now(),
             Utc::now(),
             "test".into(),
@@ -309,7 +310,7 @@ pub mod tests {
         fsrs_repository.create(&profile1).await.unwrap();
 
         let profile2 = FsrsProfile::new_unchecked(
-            Guid::new_v4(),
+            Uuid::new_v4(),
             Utc::now(),
             Utc::now(),
             "test".into(),
@@ -345,7 +346,7 @@ pub mod tests {
         let fsrs_repository = scope.resolve::<dyn FsrsRepository>().await;
 
         let profile = FsrsProfile::new_unchecked(
-            Guid::new_v4(),
+            Uuid::new_v4(),
             Utc::now(),
             Utc::now(),
             "test".into(),

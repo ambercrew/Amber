@@ -1,13 +1,14 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use uuid::Uuid;
 
-use crate::{DEFAULT_FSRS_PROFILE_ID, Guid};
+use crate::DEFAULT_FSRS_PROFILE_ID;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FsrsProfile {
-    id: Guid,
+    id: Uuid,
     created_date: DateTime<Utc>,
     modified_date: DateTime<Utc>,
     name: String,
@@ -26,7 +27,7 @@ pub enum FsrsProfileError {
 
 impl FsrsProfile {
     pub fn new(
-        id: Option<Guid>,
+        id: Option<Uuid>,
         name: String,
         request_retention: f64,
         maximum_interval: f64,
@@ -40,7 +41,7 @@ impl FsrsProfile {
         }
 
         Ok(Self {
-            id: id.unwrap_or(Guid::new_v4()),
+            id: id.unwrap_or(Uuid::new_v4()),
             created_date: Utc::now(),
             modified_date: Utc::now(),
             name,
@@ -51,7 +52,7 @@ impl FsrsProfile {
     }
 
     pub fn new_unchecked(
-        id: Guid,
+        id: Uuid,
         created_date: DateTime<Utc>,
         modified_date: DateTime<Utc>,
         name: String,
@@ -70,7 +71,7 @@ impl FsrsProfile {
         }
     }
 
-    pub fn id(&self) -> Guid {
+    pub fn id(&self) -> Uuid {
         self.id
     }
 

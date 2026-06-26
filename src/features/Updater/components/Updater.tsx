@@ -3,8 +3,6 @@ import { useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
-import Dialog from "../../../components/Dialog/Dialog";
-import Spinner from "../../../components/Spinner/Spinner";
 import { CallApiFn } from "../../../hooks/useApi";
 import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
 
@@ -62,7 +60,7 @@ function Updater({ callApi }: Props) {
 
 	return (
 		<>
-			{isUpdating && (
+			{/* TODO:isUpdating && (
 				<Dialog focusTrap={false}>
 					<div
 						className={`${styles.box}`}
@@ -74,7 +72,7 @@ function Updater({ callApi }: Props) {
 						<Spinner />
 					</div>
 				</Dialog>
-			)}
+			) */}
 		</>
 	);
 }

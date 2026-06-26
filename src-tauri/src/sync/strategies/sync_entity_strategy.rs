@@ -1,9 +1,10 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::{
-    Guid, backend::backend_dto::SyncEntityDto, common::repository_error::RepositoryError,
+    backend::backend_dto::SyncEntityDto, common::repository_error::RepositoryError,
     sync::entities::synced_entity::SyncedEntity,
 };
 
@@ -38,7 +39,7 @@ pub struct ParseSyncedEntityOutput<T> {
 }
 
 pub struct ParseSyncedEntityReference<T> {
-    pub id: Guid,
+    pub id: Uuid,
     pub repair: Option<RepairRemovedReferenceFn<T>>,
 }
 

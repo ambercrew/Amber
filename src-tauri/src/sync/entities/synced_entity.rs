@@ -1,14 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-
-use crate::Guid;
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SyncedEntity {
-    pub user_id: Guid,
-    pub entity_id: Guid,
+    pub user_id: Uuid,
+    pub entity_id: Uuid,
     pub created_date: DateTime<Utc>,
     pub last_sync_date: DateTime<Utc>,
     pub entity_type: EntityType,

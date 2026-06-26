@@ -3,6 +3,7 @@ mod backend;
 mod backup;
 mod common;
 mod database;
+mod elements;
 mod fsrs;
 mod infrastructure;
 mod local_configurations;
@@ -34,8 +35,8 @@ use crate::common::utils::create_injector::create_injector;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 
-pub use common::constants::{DEFAULT_FSRS_PROFILE_ID, ROOT_FOLDER_ID};
-pub use common::types::{Guid, SourceError};
+pub use common::constants::DEFAULT_FSRS_PROFILE_ID;
+pub use common::types::SourceError;
 
 pub mod generated_code {
     include!(concat!(env!("OUT_DIR"), "/generated_code.rs"));

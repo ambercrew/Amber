@@ -2,6 +2,12 @@
 
 ## Overview
 
+## UI Guidelines
+
+- Use **Mantine** (`@mantine/core`, `@mantine/hooks`) components for all UI. Prefer built-in Mantine components over building custom ones.
+- Use **`@tabler/icons-react`** for icons.
+- Avoid custom CSS. Use Mantine's built-in style props (`p`, `px`, `h`, `w`, `gap`, `justify`, `align`) and inline `style` objects only when Mantine props are insufficient. Do not create `.module.css` files for layout or cosmetic concerns that Mantine already covers.
+
 ## Commands
 
 ```bash
@@ -59,7 +65,6 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 ### Domain Modules
 
 - **fsrs** — Spaced repetition profiles (FSRS algorithm config)
-- **ai_integration** — AI chat, streaming, tool calls, document upload
 - **backend** — Remote auth (sign-up, sign-in, etc.)
 - **secrets** — `SecretsRepository` trait for reading/writing OS-level secrets; keyring implementation lives in `infrastructure/repositories/keyring/`
 - **settings** — User preferences
@@ -82,7 +87,6 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 - `api/` — Typed wrappers around `invoke()` calls, mirroring backend modules
 - `features/` — Route-scoped feature modules (Editor, Reviewer, Home, AiChatWidget, FileTree, etc.)
 - `stores/` — Redux slices: `fileSystem`, `user`, `sync`, `settings`, `app`
-- `components/` — Shared UI (Dialog, Form, RichTextEditor via Lexical, Toast, etc.)
 - `hooks/` — Reusable hooks; notably `useApi` for loading/error state around API calls
 - `utils/`, `config/`, `types/` — Helpers, constants, shared types
 

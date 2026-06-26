@@ -5,9 +5,9 @@ use base64::{Engine as _, engine::general_purpose};
 use chrono::{DateTime, Duration, TimeZone, Utc};
 use injector_derive::ScopeInjectable;
 use prost::Message;
+use uuid::Uuid;
 
 use crate::{
-    Guid,
     backend::{backend_dto::SyncEntityDto, clients::brainy_backend_client::BrainyBackendClient},
     fsrs::entities::fsrs_profile::FsrsProfile,
     generated_code::{self},
@@ -120,7 +120,7 @@ impl DefaultSyncer {
         &self,
         sync_page: u32,
         last_sync_date: DateTime<Utc>,
-        entities_overwritten_by_server: &mut HashSet<Guid>,
+        entities_overwritten_by_server: &mut HashSet<Uuid>,
     ) -> Result<bool, SyncError> {
         let result = self
             .backend_client
@@ -265,7 +265,7 @@ impl DefaultSyncer {
     async fn send_unsynced_entities_since(
         &self,
         last_sync_date: DateTime<Utc>,
-        excluded_entities: &HashSet<Guid>,
+        excluded_entities: &HashSet<Uuid>,
     ) -> Result<(), SyncError> {
         log::info!("Sending all entities modified after date {last_sync_date} to sync.");
 
@@ -448,10 +448,10 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_new_entities_from_backend_inserted_new_entities() {
 //         // Arrange
 //
-//         let user_id = Guid::new_v4();
-//         let file_id = Guid::new_v4();
-//         let cell_id = Guid::new_v4();
-//         let fsrs_profile_id = Guid::new_v4();
+//         let user_id = Uuid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let cell_id = Uuid::new_v4();
+//         let fsrs_profile_id = Uuid::new_v4();
 //         let file_modified_date = Utc::now() - Duration::hours(8);
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![
@@ -472,7 +472,7 @@ impl DefaultSyncer {
 //             },
 //             SyncedEntity {
 //                 user_id,
-//                 entity_id: Guid::new_v4(),
+//                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Folder,
 //                 created_date: Utc::now(),
 //                 last_sync_date: Utc::now(),
@@ -516,7 +516,7 @@ impl DefaultSyncer {
 //             },
 //             SyncedEntity {
 //                 user_id,
-//                 entity_id: Guid::new_v4(),
+//                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Repetition,
 //                 created_date: Utc::now(),
 //                 last_sync_date: Utc::now(),
@@ -532,7 +532,7 @@ impl DefaultSyncer {
 //             },
 //             SyncedEntity {
 //                 user_id,
-//                 entity_id: Guid::new_v4(),
+//                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Review,
 //                 created_date: Utc::now(),
 //                 last_sync_date: Utc::now(),
@@ -642,11 +642,11 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_two_cells_with_same_index_corrected_index_and_sent_update() {
 //         // Arrange
 //
-//         let cell_in_database_id = Guid::new_v4();
-//         let cell_from_sync_id = Guid::new_v4();
+//         let cell_in_database_id = Uuid::new_v4();
+//         let cell_from_sync_id = Uuid::new_v4();
 //
 //         let file = File::new_unchecked(
-//             Guid::new_v4(),
+//             Uuid::new_v4(),
 //             Utc::now(),
 //             Utc::now(),
 //             Some(ROOT_FOLDER_ID),
@@ -655,7 +655,7 @@ impl DefaultSyncer {
 //         );
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: cell_from_sync_id,
 //             entity_type: EntityType::Cell,
 //             created_date: Utc::now(),
@@ -747,8 +747,8 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_deleted_entity_from_backend_processed_correctly() {
 //         // Arrange
 //
-//         let user_id = Guid::new_v4();
-//         let file_id = Guid::new_v4();
+//         let user_id = Uuid::new_v4();
+//         let file_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
 //             user_id,
@@ -821,9 +821,9 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_existing_entity_with_older_modified_date_local_entity_updated() {
 //         // Arrange
 //
-//         let user_id = Guid::new_v4();
-//         let file_id = Guid::new_v4();
-//         let cell_id = Guid::new_v4();
+//         let user_id = Uuid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let cell_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![
 //             SyncedEntity {
@@ -969,9 +969,9 @@ impl DefaultSyncer {
 //      {
 //         // Arrange
 //
-//         let user_id = Guid::new_v4();
-//         let file_id = Guid::new_v4();
-//         let cell_id = Guid::new_v4();
+//         let user_id = Uuid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let cell_id = Uuid::new_v4();
 //
 //         let synced_entities_modified_date = Utc::now() - Duration::seconds(1);
 //
@@ -1142,7 +1142,7 @@ impl DefaultSyncer {
 //         // Arrange
 //
 //         let file = File::new_unchecked(
-//             Guid::new_v4(),
+//             Uuid::new_v4(),
 //             Utc::now(),
 //             Utc::now(),
 //             Some(ROOT_FOLDER_ID),
@@ -1192,7 +1192,7 @@ impl DefaultSyncer {
 //         // Arrange
 //
 //         let file = File::new_unchecked(
-//             Guid::new_v4(),
+//             Uuid::new_v4(),
 //             Utc::now(),
 //             Utc::now() - Duration::seconds(10),
 //             Some(ROOT_FOLDER_ID),
@@ -1341,11 +1341,11 @@ impl DefaultSyncer {
 //      {
 //         // Arrange
 //
-//         let file_id = Guid::new_v4();
-//         let cell_id = Guid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let cell_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: cell_id,
 //             entity_type: EntityType::Cell,
 //             created_date: Utc::now(),
@@ -1382,7 +1382,7 @@ impl DefaultSyncer {
 //             .resolve::<dyn SyncRepository>()
 //             .await
 //             .delete_synced_entity(&SyncedEntity {
-//                 user_id: Guid::new_v4(),
+//                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
 //                 created_date: Utc::now(),
@@ -1427,11 +1427,11 @@ impl DefaultSyncer {
 //      {
 //         // Arrange
 //
-//         let file_id = Guid::new_v4();
-//         let cell_id = Guid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let cell_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: cell_id,
 //             entity_type: EntityType::Cell,
 //             created_date: Utc::now(),
@@ -1467,7 +1467,7 @@ impl DefaultSyncer {
 //         let sync_repository = scope.resolve::<dyn SyncRepository>().await;
 //         sync_repository
 //             .delete_synced_entity(&SyncedEntity {
-//                 user_id: Guid::new_v4(),
+//                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
 //                 created_date: Utc::now(),
@@ -1478,7 +1478,7 @@ impl DefaultSyncer {
 //             .unwrap();
 //         sync_repository
 //             .delete_synced_entity(&SyncedEntity {
-//                 user_id: Guid::new_v4(),
+//                 user_id: Uuid::new_v4(),
 //                 entity_id: cell_id,
 //                 entity_type: EntityType::Cell,
 //                 created_date: Utc::now(),
@@ -1522,11 +1522,11 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_optional_reference_deleted_repair_applied_and_entity_upserted() {
 //         // Arrange
 //
-//         let file_id = Guid::new_v4();
-//         let deleted_fsrs_id = Guid::new_v4();
+//         let file_id = Uuid::new_v4();
+//         let deleted_fsrs_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: file_id,
 //             entity_type: EntityType::File,
 //             created_date: Utc::now(),
@@ -1562,7 +1562,7 @@ impl DefaultSyncer {
 //             .resolve::<dyn SyncRepository>()
 //             .await
 //             .delete_synced_entity(&SyncedEntity {
-//                 user_id: Guid::new_v4(),
+//                 user_id: Uuid::new_v4(),
 //                 entity_id: deleted_fsrs_id,
 //                 entity_type: EntityType::FsrsProfile,
 //                 created_date: Utc::now(),
@@ -1600,10 +1600,10 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_locally_deleted_entity_received_from_backend_entity_skipped() {
 //         // Arrange
 //
-//         let file_id = Guid::new_v4();
+//         let file_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: file_id,
 //             entity_type: EntityType::File,
 //             created_date: Utc::now(),
@@ -1638,7 +1638,7 @@ impl DefaultSyncer {
 //             .resolve::<dyn SyncRepository>()
 //             .await
 //             .delete_synced_entity(&SyncedEntity {
-//                 user_id: Guid::new_v4(),
+//                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
 //                 created_date: Utc::now(),
@@ -1674,10 +1674,10 @@ impl DefaultSyncer {
 //     pub async fn sync_with_backend_overwritten_change_from_backend_did_not_send_change() {
 //         // Arrange
 //
-//         let folder_id = Guid::new_v4();
+//         let folder_id = Uuid::new_v4();
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![SyncedEntity {
-//             user_id: Guid::new_v4(),
+//             user_id: Uuid::new_v4(),
 //             entity_id: folder_id,
 //             entity_type: EntityType::Folder,
 //             created_date: Utc::now(),

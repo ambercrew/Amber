@@ -3,9 +3,9 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use injector_derive::ScopeInjectable;
+use uuid::Uuid;
 
 use crate::{
-    Guid,
     common::repository_error::RepositoryError,
     infrastructure::value_objects::db_transaction::DbTransaction,
     sync::{
@@ -84,7 +84,7 @@ impl SyncRepository for SqliteSyncRepository {
         Ok(rows.into_iter().collect())
     }
 
-    async fn is_entity_deleted(&self, entity_id: Guid) -> Result<bool, RepositoryError> {
+    async fn is_entity_deleted(&self, entity_id: Uuid) -> Result<bool, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 

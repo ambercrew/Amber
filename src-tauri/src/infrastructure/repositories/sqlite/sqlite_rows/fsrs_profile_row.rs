@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
-use crate::{Guid, fsrs::entities::fsrs_profile::FsrsProfile};
+use crate::fsrs::entities::fsrs_profile::FsrsProfile;
 
 pub struct FsrsProfileRow {
-    pub id: Guid,
+    pub id: Uuid,
     pub created_date: DateTime<Utc>,
     pub modified_date: DateTime<Utc>,
     pub name: String,
