@@ -1,49 +1,39 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import "@testing-library/jest-dom";
-
-// Node.js 22+ defines localStorage as a non-configurable global (unavailable
-// without --localstorage-file), which prevents happy-dom from overriding it.
-// vi.stubGlobal bypasses the non-configurable restriction.
-const localStorageMock = (() => {
-	let store: Record<string, string> = {};
-	return {
-		getItem: (key: string) => store[key] ?? null,
-		setItem: (key: string, value: string) => {
-			store[key] = value;
-		},
-		removeItem: (key: string) => {
-			delete store[key];
-		},
-		clear: () => {
-			store = {};
-		},
-		get length() {
-			return Object.keys(store).length;
-		},
-		key: (index: number) => Object.keys(store)[index] ?? null,
-	};
-})();
-vi.stubGlobal("localStorage", localStorageMock);
+import { vi } from "vitest";
 
 vi.mock("@tauri-apps/api/app", () => ({
 	onBackButtonPress: vi.fn().mockResolvedValue({ unregister: vi.fn() }),
 }));
 
-vi.stubGlobal(
-	"ResizeObserver",
-	class {
-		observe() {}
-		unobserve() {}
-		disconnect() {}
-	},
-);
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const { getComputedStyle } = window;
+window.getComputedStyle = elt => getComputedStyle(elt);
+window.HTMLElement.prototype.scrollIntoView = () => {};
 
-vi.stubGlobal("alert", vi.fn());
-
-// KaTeX warns when document.compatMode isn't "CSS1Compat" (quirks mode).
-// Happy DOM reports "BackCompat" and inserting a doctype after parsing
-// doesn't flip it, so override the getter directly.
-Object.defineProperty(document, "compatMode", {
-	configurable: true,
-	get: () => "CSS1Compat",
+Object.defineProperty(window, "matchMedia", {
+	writable: true,
+	value: vi.fn().mockImplementation(query => ({
+		matches: false,
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		media: query,
+		onchange: null,
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	})),
 });
+
+Object.defineProperty(document, "fonts", {
+	value: { addEventListener: vi.fn(), removeEventListener: vi.fn() },
+});
+
+class ResizeObserver {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserver;

@@ -7,8 +7,8 @@ import {
 	Skeleton,
 	ActionIcon,
 } from "@mantine/core";
-import { IconMenu2 } from "@tabler/icons-react";
 import useAppDispatch from "../../../hooks/useAppDispatch";
+import { SidebarSimpleIcon } from "@phosphor-icons/react";
 import Updater from "../../Updater/components/Updater";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
@@ -57,7 +57,7 @@ function App() {
 					<ActionIcon
 						variant="subtle"
 						onClick={() => setSidebarExpanded(v => !v)}>
-						<IconMenu2 />
+						<SidebarSimpleIcon size={20} />
 					</ActionIcon>
 					<Breadcrumbs>
 						<Anchor>Home</Anchor>

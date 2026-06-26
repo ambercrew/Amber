@@ -12,6 +12,7 @@ import { createTypeScriptImportResolver } from "eslint-import-resolver-typescrip
 import { importX } from "eslint-plugin-import-x";
 import { defineConfig } from "eslint/config";
 import lexicalPlugin from "@lexical/eslint-plugin";
+import mantine from "eslint-config-mantine";
 
 export default defineConfig([
 	{ ignores: ["dist", "src-tauri", "coverage"] },
@@ -23,6 +24,7 @@ export default defineConfig([
 			"import-x/resolver-next": [createTypeScriptImportResolver()],
 		},
 		extends: [
+			...mantine,
 			js.configs.recommended,
 			tseslint.configs.recommendedTypeChecked,
 			tseslint.configs.stylisticTypeChecked,

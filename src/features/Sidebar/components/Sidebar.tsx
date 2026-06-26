@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { AppShell, Group, ActionIcon } from "@mantine/core";
-import {
-	IconLayoutSidebarLeftCollapse,
-	IconBinaryTree,
-	IconSortDescending,
-} from "@tabler/icons-react";
 import TreePanel from "./TreePanel";
 import PriorityQueuePanel from "./PriorityQueuePanel";
+import { TreeViewIcon, QueueIcon, XIcon } from "@phosphor-icons/react";
 
 type Tab = "tree" | "priority queue";
 
@@ -26,7 +22,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 							variant={activeTab === "tree" ? "filled" : "subtle"}
 							onClick={() => setActiveTab("tree")}
 							title="Library - used for managing concepts and elements">
-							<IconBinaryTree size={16} />
+							<TreeViewIcon size={20} />
 						</ActionIcon>
 						<ActionIcon
 							variant={
@@ -36,7 +32,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 							}
 							onClick={() => setActiveTab("priority queue")}
 							title="Priority queue - used for reviewing your learning materials">
-							<IconSortDescending size={16} />
+							<QueueIcon size={20} />
 						</ActionIcon>
 					</Group>
 					<ActionIcon
@@ -44,7 +40,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 						onClick={onCollapse}
 						hiddenFrom="sm"
 						style={{ position: "absolute", right: 0 }}>
-						<IconLayoutSidebarLeftCollapse size={16} />
+						<XIcon size={20} />
 					</ActionIcon>
 				</Group>
 			</AppShell.Section>

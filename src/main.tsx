@@ -7,9 +7,8 @@ import App from "./features/App/components/App.tsx";
 import { BrowserRouter } from "react-router";
 import { setupStore } from "./stores/store.ts";
 import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
-import "rsuite/dist/rsuite.css";
 import "@mantine/core/styles.css";
-import { createTheme, MantineProvider } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 
 function forwardConsole(
 	fnName: "log" | "debug" | "info" | "warn" | "error",
@@ -37,12 +36,10 @@ forwardConsole("error", error);
 
 const store = setupStore();
 
-const theme = createTheme({});
-
 createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
-			<MantineProvider theme={theme}>
+			<MantineProvider>
 				<BrowserRouter>
 					<App />
 				</BrowserRouter>
