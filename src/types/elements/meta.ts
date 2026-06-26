@@ -1,6 +1,6 @@
 export interface Meta {
 	id: string;
-	title: string;
+	name: string;
 	position: number;
 	createdAt: string;
 	modifiedAt: string;

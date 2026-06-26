@@ -44,98 +44,132 @@ CREATE TABLE local_configurations(
 
 -------------------------------------------------------------------------
 
-CREATE TABLE concepts(
+CREATE TABLE folders(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    title                       TEXT        NOT NULL,
+    name                        TEXT        NOT NULL,
+    position                    INTEGER     NOT NULL        DEFAULT 0,
+    parent_folder_id            TEXT,
+    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
+    removed_at                  TEXT,
+    FOREIGN KEY (parent_folder_id) REFERENCES folders(id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE INDEX folders_parent_folder_id_index ON folders(parent_folder_id);
+
+-------------------------------------------------------------------------
+
+CREATE TABLE tags(
+    id                          TEXT        NOT NULL        PRIMARY KEY,
+    name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
     removed_at                  TEXT
 );
 
-CREATE TABLE concept_parents(
-    concept_id                  TEXT        NOT NULL,
-    parent_concept_id           TEXT        NOT NULL,
-    PRIMARY KEY (concept_id, parent_concept_id),
-    FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (parent_concept_id) REFERENCES concepts(id) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE tag_parents(
+    tag_id                      TEXT        NOT NULL,
+    parent_tag_id               TEXT        NOT NULL,
+    PRIMARY KEY (tag_id, parent_tag_id),
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (parent_tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX concept_parents_concept_id_index ON concept_parents(concept_id);
-CREATE INDEX concept_parents_parent_concept_id_index ON concept_parents(parent_concept_id);
+CREATE INDEX tag_parents_tag_id_index ON tag_parents(tag_id);
+CREATE INDEX tag_parents_parent_tag_id_index ON tag_parents(parent_tag_id);
+
+CREATE TABLE folder_tags(
+    folder_id                   TEXT        NOT NULL,
+    tag_id                      TEXT        NOT NULL,
+    PRIMARY KEY (folder_id, tag_id),
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE INDEX folder_tags_folder_id_index ON folder_tags(folder_id);
+CREATE INDEX folder_tags_tag_id_index ON folder_tags(tag_id);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE readings(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    title                       TEXT        NOT NULL,
+    name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
+    folder_id                   TEXT        NOT NULL,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
     removed_at                  TEXT,
     source_type                 TEXT        NOT NULL,
     source_url                  TEXT,
-    body                        TEXT        NOT NULL
+    body                        TEXT        NOT NULL,
+    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE reading_concepts(
+CREATE INDEX readings_folder_id_index ON readings(folder_id);
+
+CREATE TABLE reading_tags(
     reading_id                  TEXT        NOT NULL,
-    concept_id                  TEXT        NOT NULL,
-    PRIMARY KEY (reading_id, concept_id),
+    tag_id                      TEXT        NOT NULL,
+    PRIMARY KEY (reading_id, tag_id),
     FOREIGN KEY (reading_id) REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX reading_concepts_reading_id_index ON reading_concepts(reading_id);
-CREATE INDEX reading_concepts_concept_id_index ON reading_concepts(concept_id);
+CREATE INDEX reading_tags_reading_id_index ON reading_tags(reading_id);
+CREATE INDEX reading_tags_tag_id_index ON reading_tags(tag_id);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE extracts(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    title                       TEXT        NOT NULL,
+    name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
+    parent_type                 TEXT        NOT NULL,
+    parent_id                   TEXT        NOT NULL,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
     removed_at                  TEXT,
-    parent_type                 TEXT        NOT NULL,
-    parent_id                   TEXT        NOT NULL,
     text                        TEXT        NOT NULL
 );
 
-CREATE TABLE extract_concepts(
+CREATE INDEX extracts_parent_id_index ON extracts(parent_id);
+
+CREATE TABLE extract_tags(
     extract_id                  TEXT        NOT NULL,
-    concept_id                  TEXT        NOT NULL,
-    PRIMARY KEY (extract_id, concept_id),
+    tag_id                      TEXT        NOT NULL,
+    PRIMARY KEY (extract_id, tag_id),
     FOREIGN KEY (extract_id) REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX extract_concepts_extract_id_index ON extract_concepts(extract_id);
-CREATE INDEX extract_concepts_concept_id_index ON extract_concepts(concept_id);
+CREATE INDEX extract_tags_extract_id_index ON extract_tags(extract_id);
+CREATE INDEX extract_tags_tag_id_index ON extract_tags(tag_id);
 
 -------------------------------------------------------------------------
 
 CREATE TABLE cards(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    title                       TEXT        NOT NULL,
+    name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
+    parent_type                 TEXT        NOT NULL,
+    parent_id                   TEXT        NOT NULL,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
     removed_at                  TEXT,
-    parent_type                 TEXT        NOT NULL,
-    parent_id                   TEXT        NOT NULL,
     front                       TEXT        NOT NULL,
     back                        TEXT        NOT NULL
 );
 
-CREATE TABLE card_concepts(
+CREATE INDEX cards_parent_id_index ON cards(parent_id);
+
+CREATE TABLE card_tags(
     card_id                     TEXT        NOT NULL,
-    concept_id                  TEXT        NOT NULL,
-    PRIMARY KEY (card_id, concept_id),
+    tag_id                      TEXT        NOT NULL,
+    PRIMARY KEY (card_id, tag_id),
     FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (concept_id) REFERENCES concepts(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX card_concepts_card_id_index ON card_concepts(card_id);
-CREATE INDEX card_concepts_concept_id_index ON card_concepts(concept_id);
+CREATE INDEX card_tags_card_id_index ON card_tags(card_id);
+CREATE INDEX card_tags_tag_id_index ON card_tags(tag_id);

@@ -1,16 +1,15 @@
 use super::meta::Meta;
 use crate::elements::entities::card::Card;
-use crate::elements::entities::concept::Concept;
 use crate::elements::entities::extract::Extract;
+use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::Reading;
-use crate::elements::entities::traits::{Categorized, Derived, Element};
+use crate::elements::entities::tag::Tag;
+use crate::elements::entities::traits::{Derived, Element, Tagged};
 
-/// A closed-set wrapper for storing elements together and matching exhaustively.
-/// Implements `Element` so common accessors work without unwrapping, and offers
-/// views down to the narrower traits.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AnyElement {
-    Concept(Concept),
+    Folder(Folder),
+    Tag(Tag),
     Reading(Reading),
     Extract(Extract),
     Card(Card),
@@ -19,7 +18,8 @@ pub enum AnyElement {
 impl Element for AnyElement {
     fn meta(&self) -> &Meta {
         match self {
-            AnyElement::Concept(e) => e.meta(),
+            AnyElement::Folder(e) => e.meta(),
+            AnyElement::Tag(e) => e.meta(),
             AnyElement::Reading(e) => e.meta(),
             AnyElement::Extract(e) => e.meta(),
             AnyElement::Card(e) => e.meta(),
@@ -28,12 +28,13 @@ impl Element for AnyElement {
 }
 
 impl AnyElement {
-    pub fn as_categorized(&self) -> Option<&dyn Categorized> {
+    pub fn as_tagged(&self) -> Option<&dyn Tagged> {
         match self {
+            AnyElement::Folder(e) => Some(e),
             AnyElement::Reading(e) => Some(e),
             AnyElement::Extract(e) => Some(e),
             AnyElement::Card(e) => Some(e),
-            AnyElement::Concept(_) => None,
+            AnyElement::Tag(_) => None,
         }
     }
 

@@ -1,10 +1,12 @@
 import { Card } from "./card";
-import { Concept } from "./concept";
 import { Extract } from "./extract";
+import { Folder } from "./folder";
 import { Reading } from "./reading";
+import { Tag } from "./tag";
 
 export type AnyElement =
-	| { type: "concept"; data: Concept }
+	| { type: "folder"; data: Folder }
+	| { type: "tag"; data: Tag }
 	| { type: "reading"; data: Reading }
 	| { type: "extract"; data: Extract }
 	| { type: "card"; data: Card };

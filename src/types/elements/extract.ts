@@ -3,7 +3,7 @@ import { Provenance } from "./provenance";
 
 export interface Extract {
 	meta: Meta;
-	concepts: string[];
 	parent: Provenance;
+	tags: string[];
 	text: string;
 }

@@ -4,28 +4,19 @@ use super::traits::{Element, Tagged};
 use crate::elements::value_objects::meta::Meta;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Reading {
+pub struct Folder {
     pub meta: Meta,
-    pub folder_id: Uuid,
+    pub parent_folder_id: Option<Uuid>,
     pub tags: Vec<Uuid>,
-    pub source: ReadingSource,
-    pub body: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ReadingSource {
-    Article { url: String },
-    Clipboard,
-    Pdf,
-}
-
-impl Element for Reading {
+impl Element for Folder {
     fn meta(&self) -> &Meta {
         &self.meta
     }
 }
 
-impl Tagged for Reading {
+impl Tagged for Folder {
     fn tags(&self) -> &[Uuid] {
         &self.tags
     }

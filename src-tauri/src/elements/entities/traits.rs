@@ -3,7 +3,6 @@ use uuid::Uuid;
 use crate::elements::value_objects::meta::Meta;
 use crate::elements::value_objects::provenance::Provenance;
 
-/// Operations common to every element: stable identity and lifecycle.
 pub trait Element {
     fn meta(&self) -> &Meta;
 
@@ -12,12 +11,12 @@ pub trait Element {
     }
 }
 
-/// Elements that carry concept assignments — everything except `Concept`.
-pub trait Categorized {
-    fn concepts(&self) -> &[Uuid];
+/// Elements that carry direct tag assignments.
+pub trait Tagged {
+    fn tags(&self) -> &[Uuid];
 }
 
-/// Elements with a provenance parent.
+/// Elements with a provenance parent (Reading, Extract, or Folder).
 pub trait Derived {
     fn parent(&self) -> Provenance;
 }

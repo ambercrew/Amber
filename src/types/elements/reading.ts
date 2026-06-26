@@ -7,7 +7,8 @@ export type ReadingSource =
 
 export interface Reading {
 	meta: Meta;
-	concepts: string[];
+	folderId: string;
+	tags: string[];
 	source: ReadingSource;
 	body: string;
 }

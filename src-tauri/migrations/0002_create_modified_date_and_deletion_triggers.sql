@@ -15,20 +15,37 @@ BEGIN
 END;
 
 
-CREATE TRIGGER concepts_update_modified_at_after_update
-    AFTER UPDATE ON concepts
+CREATE TRIGGER folders_update_modified_at_after_update
+    AFTER UPDATE ON folders
     WHEN OLD.modified_at == NEW.modified_at
 BEGIN
-    UPDATE concepts
+    UPDATE folders
     SET modified_at = datetime('now')
     WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER concepts_add_to_deleted_entities_after_delete
-    AFTER DELETE ON concepts
+CREATE TRIGGER folders_add_to_deleted_entities_after_delete
+    AFTER DELETE ON folders
 BEGIN
     INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
-    VALUES ('concepts', OLD.id, OLD.created_at, datetime('now'));
+    VALUES ('folders', OLD.id, OLD.created_at, datetime('now'));
+END;
+
+
+CREATE TRIGGER tags_update_modified_at_after_update
+    AFTER UPDATE ON tags
+    WHEN OLD.modified_at == NEW.modified_at
+BEGIN
+    UPDATE tags
+    SET modified_at = datetime('now')
+    WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER tags_add_to_deleted_entities_after_delete
+    AFTER DELETE ON tags
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    VALUES ('tags', OLD.id, OLD.created_at, datetime('now'));
 END;
 
 

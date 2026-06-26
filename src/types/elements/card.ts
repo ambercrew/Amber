@@ -3,8 +3,8 @@ import { Provenance } from "./provenance";
 
 export interface Card {
 	meta: Meta;
-	concepts: string[];
 	parent: Provenance;
+	tags: string[];
 	front: string;
 	back: string;
 }

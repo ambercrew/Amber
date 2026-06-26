@@ -1,16 +1,14 @@
 use uuid::Uuid;
 
-use super::traits::{Categorized, Derived, Element};
+use super::traits::{Derived, Element, Tagged};
 use crate::elements::value_objects::meta::Meta;
 use crate::elements::value_objects::provenance::Provenance;
 
-/// A passage derived from a Reading or another Extract by highlighting.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Extract {
     pub meta: Meta,
-    pub concepts: Vec<Uuid>,
     pub parent: Provenance,
-    /// The extracted passage, copied as HTML.
+    pub tags: Vec<Uuid>,
     pub text: String,
 }
 
@@ -20,9 +18,9 @@ impl Element for Extract {
     }
 }
 
-impl Categorized for Extract {
-    fn concepts(&self) -> &[Uuid] {
-        &self.concepts
+impl Tagged for Extract {
+    fn tags(&self) -> &[Uuid] {
+        &self.tags
     }
 }
 
