@@ -5,7 +5,7 @@
 ## UI Guidelines
 
 - Use **Mantine** (`@mantine/core`, `@mantine/hooks`) components for all UI. Prefer built-in Mantine components over building custom ones.
-- Use **`@tabler/icons-react`** for icons.
+- Use **`@phosphor-icons/react`** for icons.
 - Avoid custom CSS. Use Mantine's built-in style props (`p`, `px`, `h`, `w`, `gap`, `justify`, `align`) and inline `style` objects only when Mantine props are insufficient. Do not create `.module.css` files for layout or cosmetic concerns that Mantine already covers.
 
 ## Commands
