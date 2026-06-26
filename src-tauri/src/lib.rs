@@ -21,6 +21,7 @@ use tauri::Manager;
 use app_info::app_info_api::*;
 use backend::api::auth_api::*;
 use backend::api::user_api::*;
+use elements::elements_api::*;
 use fsrs::fsrs_api::*;
 use settings::settings_api::*;
 
@@ -152,6 +153,8 @@ pub async fn run() -> Result<(), String> {
             delete_fsrs_profile,
             get_all_fsrs_profiles,
             update_profile,
+            // Elements
+            get_element_tree,
             // App Info
             is_store_installed,
         ])

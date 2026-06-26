@@ -12,6 +12,12 @@ use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 #[cfg(not(test))]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool_from_location;
 use crate::database::database_connection_manager::DatabaseConnectionManager;
+use crate::elements::repositories::card_repository::CardRepository;
+use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_tree_service::ElementTreeService;
+use crate::elements::services::implementations::default_element_tree_service::DefaultElementTreeService;
 use crate::fsrs::entities::fsrs_profile::FsrsProfile;
 use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::generated_code;
@@ -19,8 +25,12 @@ use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHtt
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_extract_repository::SqliteExtractRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_fsrs_repository::SqliteFsrsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::infrastructure::value_objects::db_pool::DbPool;
@@ -122,6 +132,14 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         dyn LocalConfigurationRepository,
         SqliteLocalConfigurationRepository
     );
+
+    // Elements
+
+    register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+    register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+    register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+    register_scope!(injector, dyn CardRepository, SqliteCardRepository);
+    register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
 
     // FSRS
 
