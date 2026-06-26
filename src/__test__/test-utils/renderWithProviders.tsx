@@ -1,6 +1,5 @@
 import React, { JSX, PropsWithChildren } from "react";
-import { render } from "@testing-library/react";
-import type { RenderOptions } from "@testing-library/react";
+import { render, RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { AppStore, RootState, setupStore } from "../../stores/store";
 import { MemoryRouter, useLocation, MemoryRouterProps } from "react-router";

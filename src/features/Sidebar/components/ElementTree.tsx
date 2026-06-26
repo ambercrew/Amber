@@ -1,68 +1,54 @@
 import {
-	defaultTreeNodeFilter,
+	getTreeExpandedState,
 	Group,
 	Highlight,
 	RenderTreeNodePayload,
 	Stack,
 	TextInput,
 	Tree,
-	TreeNodeData,
 	useTree,
 } from "@mantine/core";
 import {
-	Article,
-	Cards,
-	Folder,
-	FolderOpen,
-	Quotes,
-	MagnifyingGlass,
+	ArticleIcon,
+	CardsIcon,
+	CaretDownIcon,
+	CaretRightIcon,
+	FolderIcon,
+	FolderOpenIcon,
+	QuotesIcon,
+	MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
 import {
 	dtosToTreeData,
 	ElementNodeProps,
-	ElementNodeType,
-} from "./elementTreeUtils";
-
-interface ElementNodeIconProps {
-	type: ElementNodeType;
-	expanded: boolean;
-}
+	getMatchingAncestors,
+} from "../utils/elementTreeUtils";
+import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
 interface ElementTreeProps {
 	tree: FolderNodeDto[];
 }
 
-function getMatchingAncestors(nodes: TreeNodeData[], query: string): string[] {
-	const result: string[] = [];
-	for (const node of nodes) {
-		const childMatches = node.children
-			? getMatchingAncestors(node.children, query)
-			: [];
-		if (defaultTreeNodeFilter(query, node) || childMatches.length > 0) {
-			result.push(node.value, ...childMatches);
-		}
-	}
-	return result;
-}
-
 function ElementTree({ tree }: ElementTreeProps) {
 	const [search, setSearch] = useState("");
+	const expandedStateBeforeSearch = useRef<Record<string, boolean> | null>(
+		null,
+	);
 	const data = dtosToTreeData(tree);
 	const treeController = useTree();
 
 	function handleSearchChange(value: string) {
 		setSearch(value);
 		if (value.trim()) {
-			treeController.expandAllNodes();
-			// collapse branches with no matches
-			const matching = new Set(getMatchingAncestors(data, value));
 			treeController.setExpandedState(
-				Object.fromEntries([...matching].map(v => [v, true])),
+				getTreeExpandedState(data, getMatchingAncestors(data, value)),
 			);
 		} else {
-			treeController.collapseAllNodes();
+			treeController.setExpandedState(
+				expandedStateBeforeSearch.current ?? {},
+			);
 		}
 	}
 
@@ -73,10 +59,25 @@ function ElementTree({ tree }: ElementTreeProps) {
 	}: RenderTreeNodePayload) {
 		const { type } = node.nodeProps as ElementNodeProps;
 		const label = typeof node.label === "string" ? node.label : node.value;
+		const hasChildren = node.children && node.children.length > 0;
+
 		return (
 			<Group gap={6} {...elementProps}>
+				{hasChildren ? (
+					expanded ? (
+						<CaretDownIcon size={12} />
+					) : (
+						<CaretRightIcon size={12} />
+					)
+				) : (
+					<div style={{ width: 12 }} />
+				)}
 				<ElementNodeIcon type={type} expanded={expanded} />
-				<Highlight highlight={search} style={{ userSelect: "none" }}>
+				<Highlight
+					highlight={search}
+					flex={1}
+					truncate="end"
+					title={label}>
 					{label}
 				</Highlight>
 			</Group>
@@ -87,7 +88,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 		<Stack gap="xs">
 			<TextInput
 				placeholder="Search..."
-				leftSection={<MagnifyingGlass size={16} />}
+				leftSection={<MagnifyingGlassIcon size={16} />}
 				value={search}
 				onChange={e => handleSearchChange(e.currentTarget.value)}
 			/>
@@ -101,6 +102,11 @@ function ElementTree({ tree }: ElementTreeProps) {
 	);
 }
 
+interface ElementNodeIconProps {
+	type: ElementNodeType;
+	expanded: boolean;
+}
+
 // TODO: try to collect all front-end things in one place for different element types
 function ElementNodeIcon({ type, expanded }: ElementNodeIconProps) {
 	const size = 20;
@@ -108,16 +114,16 @@ function ElementNodeIcon({ type, expanded }: ElementNodeIconProps) {
 	switch (type) {
 		case "folder":
 			return expanded ? (
-				<FolderOpen size={size} />
+				<FolderOpenIcon size={size} />
 			) : (
-				<Folder size={size} />
+				<FolderIcon size={size} />
 			);
 		case "reading":
-			return <Article size={size} />;
+			return <ArticleIcon size={size} />;
 		case "extract":
-			return <Quotes size={size} />;
+			return <QuotesIcon size={size} />;
 		case "card":
-			return <Cards size={size} />;
+			return <CardsIcon size={size} />;
 	}
 }
 

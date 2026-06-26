@@ -1,11 +1,9 @@
-import { TreeNodeData } from "@mantine/core";
+import { defaultTreeNodeFilter, TreeNodeData } from "@mantine/core";
 import CardNodeDto from "../../../api/elements/dto/cardNodeDto";
 import ExtractNodeDto from "../../../api/elements/dto/extractNodeDto";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
 import ReadingNodeDto from "../../../api/elements/dto/readingNodeDto";
-import type { ElementNodeType } from "../../../types/elements";
-
-export type { ElementNodeType };
+import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
 export interface ElementNodeProps {
 	type: ElementNodeType;
@@ -59,4 +57,20 @@ export function folderToTreeNode(folder: FolderNodeDto): TreeNodeData {
 
 export function dtosToTreeData(folders: FolderNodeDto[]): TreeNodeData[] {
 	return folders.map(folderToTreeNode);
+}
+
+export function getMatchingAncestors(
+	nodes: TreeNodeData[],
+	query: string,
+): string[] {
+	const result: string[] = [];
+	for (const node of nodes) {
+		const childMatches = node.children
+			? getMatchingAncestors(node.children, query)
+			: [];
+		if (defaultTreeNodeFilter(query, node) || childMatches.length > 0) {
+			result.push(node.value, ...childMatches);
+		}
+	}
+	return result;
 }
