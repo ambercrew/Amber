@@ -3,9 +3,9 @@ import CardNodeDto from "../../../api/elements/dto/cardNodeDto";
 import ExtractNodeDto from "../../../api/elements/dto/extractNodeDto";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
 import ReadingNodeDto from "../../../api/elements/dto/readingNodeDto";
+import type { ElementNodeType } from "../../../types/elements";
 
-// TODO: move
-export type ElementNodeType = "folder" | "reading" | "extract" | "card";
+export type { ElementNodeType };
 
 export interface ElementNodeProps {
 	type: ElementNodeType;
