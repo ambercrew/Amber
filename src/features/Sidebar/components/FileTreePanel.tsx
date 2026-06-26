@@ -2,10 +2,15 @@ import { Alert, Stack } from "@mantine/core";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { clearTreeError } from "../../../stores/elements/elementsReducer";
-import { selectElementTreeError } from "../../../stores/elements/elementsSelectors";
+import {
+	selectElementTree,
+	selectElementTreeError,
+} from "../../../stores/elements/elementsSelectors";
+import ElementTree from "./ElementTree";
 
 function FileTreePanel() {
 	const dispatch = useAppDispatch();
+	const tree = useAppSelector(selectElementTree);
 	const error = useAppSelector(selectElementTreeError);
 
 	return (
@@ -18,6 +23,7 @@ function FileTreePanel() {
 					onClose={() => dispatch(clearTreeError())}
 				/>
 			)}
+			<ElementTree tree={tree} />
 		</Stack>
 	);
 }

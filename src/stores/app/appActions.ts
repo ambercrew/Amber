@@ -7,6 +7,7 @@ import { UserInformationDto } from "../../api/backend/dto/userInformationDto";
 import { setUserInformation } from "../user/userReducer";
 import { selectStartedInitialStateLoading } from "./appSelectors";
 import { markStartLoadingOfInitialState } from "./appReducer";
+import { loadElementTree } from "../elements/elementsActions";
 
 export function initialLoadApplicationState() {
 	return async function (
@@ -49,4 +50,6 @@ async function loadAppState(
 	if (navigate) {
 		await navigate("/");
 	}
+
+	await dispatch(loadElementTree());
 }
