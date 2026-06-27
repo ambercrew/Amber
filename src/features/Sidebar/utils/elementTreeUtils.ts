@@ -7,51 +7,72 @@ import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
 export interface ElementNodeProps {
 	type: ElementNodeType;
+	childrenCount: number;
+}
+
+function countPages(node: TreeNodeData): number {
+	if (!node.children) return 1;
+	return node.children.reduce((sum, child) => sum + countPages(child), 0);
 }
 
 function cardToTreeNode(card: CardNodeDto): TreeNodeData {
 	return {
 		label: card.name,
 		value: card.id,
-		nodeProps: { type: "card" } satisfies ElementNodeProps,
+		nodeProps: {
+			type: "card",
+			childrenCount: 1,
+		} satisfies ElementNodeProps,
 	};
 }
 
 function extractToTreeNode(extract: ExtractNodeDto): TreeNodeData {
+	const children = [
+		...extract.extracts.map(extractToTreeNode),
+		...extract.cards.map(cardToTreeNode),
+	];
 	return {
 		label: extract.name,
 		value: extract.id,
-		nodeProps: { type: "extract" } satisfies ElementNodeProps,
-		children: [
-			...extract.extracts.map(extractToTreeNode),
-			...extract.cards.map(cardToTreeNode),
-		],
+		nodeProps: {
+			type: "extract",
+			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+		} satisfies ElementNodeProps,
+		children,
 	};
 }
 
 function readingToTreeNode(reading: ReadingNodeDto): TreeNodeData {
+	const children = [
+		...reading.extracts.map(extractToTreeNode),
+		...reading.cards.map(cardToTreeNode),
+	];
 	return {
 		label: reading.name,
 		value: reading.id,
-		nodeProps: { type: "reading" } satisfies ElementNodeProps,
-		children: [
-			...reading.extracts.map(extractToTreeNode),
-			...reading.cards.map(cardToTreeNode),
-		],
+		nodeProps: {
+			type: "reading",
+			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+		} satisfies ElementNodeProps,
+		children,
 	};
 }
 
 export function folderToTreeNode(folder: FolderNodeDto): TreeNodeData {
+	const children = [
+		...folder.folders.map(folderToTreeNode),
+		...folder.readings.map(readingToTreeNode),
+		...folder.extracts.map(extractToTreeNode),
+		...folder.cards.map(cardToTreeNode),
+	];
 	return {
 		label: folder.name,
 		value: folder.id,
-		nodeProps: { type: "folder" } satisfies ElementNodeProps,
-		children: [
-			...folder.folders.map(folderToTreeNode),
-			...folder.readings.map(readingToTreeNode),
-			...folder.extracts.map(extractToTreeNode),
-			...folder.cards.map(cardToTreeNode),
-		],
+		nodeProps: {
+			type: "folder",
+			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+		} satisfies ElementNodeProps,
+		children,
 	};
 }
 

@@ -2,23 +2,19 @@ import { useEffect, useState } from "react";
 import {
 	AppShell,
 	Box,
-	Group,
-	Breadcrumbs,
-	Anchor,
 	Skeleton,
-	ActionIcon,
 	useMantineTheme,
 	MantineBreakpoint,
 } from "@mantine/core";
 import { useSplitter, useMediaQuery } from "@mantine/hooks";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { SidebarSimpleIcon } from "@phosphor-icons/react";
 import Updater from "../../Updater/components/Updater";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import useApi from "../../../hooks/useApi.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
+import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
 const SIDEBAR_DEFAULT = 320;
@@ -83,18 +79,7 @@ function App() {
 			{!isMobile() && <Updater callApi={callApi} />}
 
 			<AppShell.Header>
-				<Group h="100%" p="md" gap={16} align="center">
-					<ActionIcon
-						variant="subtle"
-						onClick={() => splitter.toggleCollapse(0)}>
-						<SidebarSimpleIcon size={20} />
-					</ActionIcon>
-					<Breadcrumbs>
-						<Anchor>Home</Anchor>
-						<Anchor>Components</Anchor>
-						<span>Breadcrumb</span>
-					</Breadcrumbs>
-				</Group>
+				<AppHeader onToggleSidebar={() => splitter.toggleCollapse(0)} />
 			</AppShell.Header>
 
 			<AppShell.Navbar style={{ overflow: "visible" }}>

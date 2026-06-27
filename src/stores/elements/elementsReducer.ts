@@ -1,16 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import FolderNodeDto from "../../api/elements/dto/folderNodeDto";
+import { ElementId } from "../../types/elements/elementId";
 
 export interface ElementsState {
 	tree: FolderNodeDto[];
 	isLoading: boolean;
 	error: string | null;
+	selectedElementId: ElementId | null;
 }
 
 const initialState: ElementsState = {
 	tree: [],
 	isLoading: false,
 	error: null,
+	selectedElementId: null,
 };
 
 const elementsSlice = createSlice({
@@ -33,10 +36,21 @@ const elementsSlice = createSlice({
 		clearTreeError: state => {
 			state.error = null;
 		},
+		setSelectedElementId: (
+			state,
+			action: PayloadAction<ElementId | null>,
+		) => {
+			state.selectedElementId = action.payload;
+		},
 	},
 });
 
 export default elementsSlice.reducer;
 
-export const { setTreeLoading, setTree, setTreeError, clearTreeError } =
-	elementsSlice.actions;
+export const {
+	setTreeLoading,
+	setTree,
+	setTreeError,
+	clearTreeError,
+	setSelectedElementId,
+} = elementsSlice.actions;

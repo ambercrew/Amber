@@ -5,7 +5,7 @@ use uuid::Uuid;
 /// still stops you from mixing them up.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ElementId {
-    Concept(Uuid),
+    Folder(Uuid),
     Reading(Uuid),
     Extract(Uuid),
     Card(Uuid),
