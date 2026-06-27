@@ -37,3 +37,19 @@ pub async fn delete_element(
     scope.save_changes().await?;
     Ok(())
 }
+
+#[tauri::command]
+pub async fn rename_element(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+    new_name: String,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ElementRepository>()
+        .await
+        .rename(element_id, new_name)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}

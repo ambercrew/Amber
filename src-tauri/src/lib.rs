@@ -156,6 +156,7 @@ pub async fn run() -> Result<(), String> {
             // Elements
             get_element_tree,
             delete_element,
+            rename_element,
             // App Info
             is_store_installed,
         ])

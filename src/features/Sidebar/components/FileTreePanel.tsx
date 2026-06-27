@@ -6,7 +6,7 @@ import {
 	selectElementTree,
 	selectElementTreeError,
 } from "../../../stores/elements/elementsSelectors";
-import ElementTree from "./ElementTree";
+import ElementTree from "./ElementTree/ElementTree";
 
 function FileTreePanel() {
 	const dispatch = useAppDispatch();

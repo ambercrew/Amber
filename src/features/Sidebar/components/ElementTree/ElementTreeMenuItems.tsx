@@ -8,8 +8,8 @@ import {
 	QuotesIcon,
 	TrashIcon,
 } from "@phosphor-icons/react";
-import { ElementId } from "../../../types/elements/elementId";
-import { ElementNodeType } from "../../../types/elements/elementNodeType";
+import { ElementId } from "../../../../types/elements/elementId";
+import { ElementNodeType } from "../../../../types/elements/elementNodeType";
 
 const CREATE_ITEMS: Partial<Record<ElementNodeType, React.ReactNode>> = {
 	folder: (
@@ -39,9 +39,11 @@ const CREATE_ITEMS: Partial<Record<ElementNodeType, React.ReactNode>> = {
 
 function ElementTreeMenuItems({
 	elementId,
+	onRenameClick,
 	onDeleteClick,
 }: {
 	elementId: ElementId;
+	onRenameClick: () => void;
 	onDeleteClick: () => void;
 }) {
 	const createItems = CREATE_ITEMS[elementId.type];
@@ -61,7 +63,9 @@ function ElementTreeMenuItems({
 					<Menu.Divider />
 				</>
 			)}
-			<Menu.Item leftSection={<PencilSimpleIcon size={16} />}>
+			<Menu.Item
+				leftSection={<PencilSimpleIcon size={16} />}
+				onClick={onRenameClick}>
 				Rename
 			</Menu.Item>
 			<Menu.Divider />

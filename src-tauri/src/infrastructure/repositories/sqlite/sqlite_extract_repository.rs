@@ -82,4 +82,18 @@ impl ElementRepository for SqliteExtractRepository {
             .await?;
         Ok(())
     }
+
+    async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE extracts SET name = $1 WHERE id = $2"#,
+            new_name,
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }

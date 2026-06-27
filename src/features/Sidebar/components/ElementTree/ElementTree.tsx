@@ -8,14 +8,14 @@ import {
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
-import { useElementParams } from "../../../hooks/useElementParams";
-import { paths } from "../../../paths";
-import { ElementId } from "../../../types/elements/elementId";
-import { ElementNodeType } from "../../../types/elements/elementNodeType";
-import { dtosToTreeData, ElementNodeProps } from "../utils/elementTreeUtils";
-import { useElementTreeExpansion } from "../hooks/useElementTreeExpansion";
-import DeleteElementModal from "./DeleteElementModal";
+import FolderNodeDto from "../../../../api/elements/dto/folderNodeDto";
+import { useElementParams } from "../../../../hooks/useElementParams";
+import { paths } from "../../../../paths";
+import { ElementId } from "../../../../types/elements/elementId";
+import { ElementNodeType } from "../../../../types/elements/elementNodeType";
+import { dtosToTreeData, ElementNodeProps } from "../../utils/elementTreeUtils";
+import { useElementTreeExpansion } from "../../hooks/useElementTreeExpansion";
+import DeleteElementModal from "../DeleteElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import ElementTreeNode from "./ElementTreeNode";
 
@@ -32,6 +32,9 @@ function ElementTree({ tree }: ElementTreeProps) {
 		type: ElementNodeType;
 	} | null>(null);
 	const [deleteTarget, setDeleteTarget] = useState<ElementId | null>(null);
+	const [renamingTarget, setRenamingTarget] = useState<ElementId | null>(
+		null,
+	);
 
 	const { treeController, search, handleSearchChange } =
 		useElementTreeExpansion(data);
@@ -42,6 +45,9 @@ function ElementTree({ tree }: ElementTreeProps) {
 		const isSelected =
 			selected?.id === node.value && selected?.type === type;
 
+		const isRenaming =
+			renamingTarget?.id === node.value && renamingTarget?.type === type;
+
 		return (
 			<ElementTreeNode
 				payload={payload}
@@ -51,10 +57,15 @@ function ElementTree({ tree }: ElementTreeProps) {
 					contextMenuNode?.value === node.value &&
 					contextMenuNode?.type === type
 				}
+				isRenaming={isRenaming}
 				onSelect={() => void navigate(paths.element(type, node.value))}
 				onContextMenu={() =>
 					setContextMenuNode({ value: node.value, type })
 				}
+				onRenameClick={() =>
+					setRenamingTarget({ type, id: node.value })
+				}
+				onRenameClose={() => setRenamingTarget(null)}
 			/>
 		);
 	}
@@ -86,6 +97,12 @@ function ElementTree({ tree }: ElementTreeProps) {
 								type: contextMenuNode.type,
 								id: contextMenuNode.value,
 							}}
+							onRenameClick={() =>
+								setRenamingTarget({
+									type: contextMenuNode.type,
+									id: contextMenuNode.value,
+								})
+							}
 							onDeleteClick={() =>
 								setDeleteTarget({
 									type: contextMenuNode.type,

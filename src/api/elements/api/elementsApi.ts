@@ -9,3 +9,10 @@ export function getElementTree(): Promise<FolderNodeDto[]> {
 export function deleteElement(elementId: ElementId): Promise<void> {
 	return invoke("delete_element", { elementId });
 }
+
+export function renameElement(
+	elementId: ElementId,
+	newName: string,
+): Promise<void> {
+	return invoke("rename_element", { elementId, newName });
+}

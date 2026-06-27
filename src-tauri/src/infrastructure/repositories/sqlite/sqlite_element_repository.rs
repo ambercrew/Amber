@@ -29,4 +29,13 @@ impl ElementRepository for SqliteElementRepository {
             ElementId::Card(_) => self.card_repo.delete(id).await,
         }
     }
+
+    async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError> {
+        match id {
+            ElementId::Folder(_) => self.folder_repo.rename(id, new_name).await,
+            ElementId::Reading(_) => self.reading_repo.rename(id, new_name).await,
+            ElementId::Extract(_) => self.extract_repo.rename(id, new_name).await,
+            ElementId::Card(_) => self.card_repo.rename(id, new_name).await,
+        }
+    }
 }
