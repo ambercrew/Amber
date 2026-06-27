@@ -18,7 +18,8 @@ use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_tree_service::ElementTreeService;
-use crate::elements::value_objects::provenance::Provenance;
+use crate::elements::value_objects::card_parent::CardParent;
+use crate::elements::value_objects::extract_parent::ExtractParent;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultElementTreeService {
@@ -84,8 +85,8 @@ fn build_folder_node(
     folder: &Folder,
     folders_by_parent: &HashMap<Option<Uuid>, Vec<Folder>>,
     readings_by_folder: &HashMap<Uuid, Vec<Reading>>,
-    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
-    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+    extracts_by_parent: &HashMap<ExtractParent, Vec<Extract>>,
+    cards_by_parent: &HashMap<CardParent, Vec<Card>>,
 ) -> FolderNodeDto {
     let meta = folder.meta();
     let id = meta.id;
@@ -120,15 +121,19 @@ fn build_folder_node(
                     .collect()
             })
             .unwrap_or_default(),
-        extracts: collect_extracts(Provenance::Folder(id), extracts_by_parent, cards_by_parent),
-        cards: collect_cards(Provenance::Folder(id), cards_by_parent),
+        extracts: collect_extracts(
+            ExtractParent::Folder(id),
+            extracts_by_parent,
+            cards_by_parent,
+        ),
+        cards: collect_cards(CardParent::Folder(id), cards_by_parent),
     }
 }
 
 fn build_reading_node(
     reading: &Reading,
-    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
-    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+    extracts_by_parent: &HashMap<ExtractParent, Vec<Extract>>,
+    cards_by_parent: &HashMap<CardParent, Vec<Card>>,
 ) -> ReadingNodeDto {
     ReadingNodeDto {
         id: reading.meta.id.to_string(),
@@ -136,18 +141,18 @@ fn build_reading_node(
         position: reading.meta.position,
         tags: tag_strings(reading),
         extracts: collect_extracts(
-            Provenance::Reading(reading.meta.id),
+            ExtractParent::Reading(reading.meta.id),
             extracts_by_parent,
             cards_by_parent,
         ),
-        cards: collect_cards(Provenance::Reading(reading.meta.id), cards_by_parent),
+        cards: collect_cards(CardParent::Reading(reading.meta.id), cards_by_parent),
     }
 }
 
 fn collect_extracts(
-    parent: Provenance,
-    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
-    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+    parent: ExtractParent,
+    extracts_by_parent: &HashMap<ExtractParent, Vec<Extract>>,
+    cards_by_parent: &HashMap<CardParent, Vec<Card>>,
 ) -> Vec<ExtractNodeDto> {
     extracts_by_parent
         .get(&parent)
@@ -161,8 +166,8 @@ fn collect_extracts(
 
 fn build_extract_node(
     extract: &Extract,
-    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
-    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+    extracts_by_parent: &HashMap<ExtractParent, Vec<Extract>>,
+    cards_by_parent: &HashMap<CardParent, Vec<Card>>,
 ) -> ExtractNodeDto {
     ExtractNodeDto {
         id: extract.meta.id.to_string(),
@@ -171,17 +176,17 @@ fn build_extract_node(
         text: extract.text.clone(),
         tags: tag_strings(extract),
         extracts: collect_extracts(
-            Provenance::Extract(extract.meta.id),
+            ExtractParent::Extract(extract.meta.id),
             extracts_by_parent,
             cards_by_parent,
         ),
-        cards: collect_cards(Provenance::Extract(extract.meta.id), cards_by_parent),
+        cards: collect_cards(CardParent::Extract(extract.meta.id), cards_by_parent),
     }
 }
 
 fn collect_cards(
-    parent: Provenance,
-    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+    parent: CardParent,
+    cards_by_parent: &HashMap<CardParent, Vec<Card>>,
 ) -> Vec<CardNodeDto> {
     cards_by_parent
         .get(&parent)
@@ -301,7 +306,7 @@ mod tests {
         id: Uuid,
         name: &str,
         position: i64,
-        parent: Provenance,
+        parent: ExtractParent,
         text: &str,
     ) {
         let parent_type = parent.type_str();
@@ -331,7 +336,7 @@ mod tests {
         id: Uuid,
         name: &str,
         position: i64,
-        parent: Provenance,
+        parent: CardParent,
         front: &str,
         back: &str,
     ) {
@@ -455,7 +460,7 @@ mod tests {
             extract_id,
             "Key passage",
             0,
-            Provenance::Reading(reading_id),
+            ExtractParent::Reading(reading_id),
             "Plants convert sunlight",
         )
         .await;
@@ -464,7 +469,7 @@ mod tests {
             card_id,
             "Card 1",
             0,
-            Provenance::Extract(extract_id),
+            CardParent::Extract(extract_id),
             "What do plants convert?",
             "Sunlight",
         )
@@ -595,7 +600,7 @@ mod tests {
             extract_id,
             "Direct extract",
             0,
-            Provenance::Folder(folder_id),
+            ExtractParent::Folder(folder_id),
             "Some text",
         )
         .await;

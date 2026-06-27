@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::elements::entities::card::Card;
+use crate::elements::value_objects::card_parent::CardParent;
 use crate::elements::value_objects::meta::Meta;
-use crate::elements::value_objects::provenance::Provenance;
 
 pub struct CardRow {
     pub id: Uuid,
@@ -20,7 +20,7 @@ pub struct CardRow {
 
 impl From<CardRow> for Card {
     fn from(row: CardRow) -> Self {
-        let parent = Provenance::from_type_and_id(&row.parent_type, row.parent_id);
+        let parent = CardParent::from_type_and_id(&row.parent_type, row.parent_id);
         Card {
             meta: Meta {
                 id: row.id,

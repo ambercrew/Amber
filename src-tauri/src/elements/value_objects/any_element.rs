@@ -4,7 +4,7 @@ use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::Reading;
 use crate::elements::entities::tag::Tag;
-use crate::elements::entities::traits::{Derived, Element, Tagged};
+use crate::elements::entities::traits::{Element, Tagged};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AnyElement {
@@ -35,14 +35,6 @@ impl AnyElement {
             AnyElement::Extract(e) => Some(e),
             AnyElement::Card(e) => Some(e),
             AnyElement::Tag(_) => None,
-        }
-    }
-
-    pub fn as_derived(&self) -> Option<&dyn Derived> {
-        match self {
-            AnyElement::Extract(e) => Some(e),
-            AnyElement::Card(e) => Some(e),
-            _ => None,
         }
     }
 }

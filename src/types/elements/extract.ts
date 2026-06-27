@@ -1,9 +1,9 @@
 import { Meta } from "./meta";
-import { Provenance } from "./provenance";
+import { ExtractParent } from "./extractParent";
 
 export interface Extract {
 	meta: Meta;
-	parent: Provenance;
+	parent: ExtractParent;
 	tags: string[];
 	text: string;
 }

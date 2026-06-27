@@ -1,9 +1,9 @@
 import { Meta } from "./meta";
-import { Provenance } from "./provenance";
+import { CardParent } from "./cardParent";
 
 export interface Card {
 	meta: Meta;
-	parent: Provenance;
+	parent: CardParent;
 	tags: string[];
 	front: string;
 	back: string;

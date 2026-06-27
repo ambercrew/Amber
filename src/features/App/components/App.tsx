@@ -21,10 +21,10 @@ const SIDEBAR_DEFAULT = 320;
 const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 
 function App() {
-	const { callApi } = useApi();
-	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
-	const dispatch = useAppDispatch();
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
+	const { callApi } = useApi();
+	const dispatch = useAppDispatch();
+	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const theme = useMantineTheme();
 	const isMobileViewport =
 		useMediaQuery(

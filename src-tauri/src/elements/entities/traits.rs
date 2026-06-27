@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
+use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
-use crate::elements::value_objects::provenance::Provenance;
 
 pub trait Element {
     fn meta(&self) -> &Meta;
@@ -16,7 +16,7 @@ pub trait Tagged {
     fn tags(&self) -> &[Uuid];
 }
 
-/// Elements with a provenance parent (Reading, Extract, or Folder).
+/// Elements with a typed parent.
 pub trait Derived {
-    fn parent(&self) -> Provenance;
+    fn parent(&self) -> ElementId;
 }

@@ -80,11 +80,11 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 
 ### Element Duplication
 
-Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent: Provenance`). Avoid duplicating logic that can be expressed through these traits:
+Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent`). Avoid duplicating logic that can be expressed through these traits:
 
 - Use `element.meta()` (via `Element`) instead of repeating `element.meta.id / .name / .position` patterns across element types.
 - Use `tag_strings(tagged)` or equivalent helpers rather than inlining `.tags().iter().map(|t| t.to_string()).collect()` per element.
-- Use `Provenance::from_type_and_id` / `Provenance::type_str` / `Provenance::id` instead of repeating the `"reading" / "extract" / "folder"` match arms.
+- Use `ExtractParent::from_type_and_id` / `CardParent::from_type_and_id` and their `type_str()` / `id()` methods instead of repeating the `"reading" / "extract" / "folder"` match arms. `Extract` uses `ExtractParent` (Reading | Extract | Folder); `Card` uses `CardParent` (Reading | Extract | Folder).
 - Use generic helpers for patterns that repeat over different element types.
 
 ## Frontend Architecture (`src/`)

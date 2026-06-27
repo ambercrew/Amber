@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::elements::entities::extract::Extract;
+use crate::elements::value_objects::extract_parent::ExtractParent;
 use crate::elements::value_objects::meta::Meta;
-use crate::elements::value_objects::provenance::Provenance;
 
 pub struct ExtractRow {
     pub id: Uuid,
@@ -19,7 +19,7 @@ pub struct ExtractRow {
 
 impl From<ExtractRow> for Extract {
     fn from(row: ExtractRow) -> Self {
-        let parent = Provenance::from_type_and_id(&row.parent_type, row.parent_id);
+        let parent = ExtractParent::from_type_and_id(&row.parent_type, row.parent_id);
         Extract {
             meta: Meta {
                 id: row.id,
