@@ -1,23 +1,55 @@
 import { Menu } from "@mantine/core";
 import {
 	BookOpenIcon,
+	CardsIcon,
 	FolderPlusIcon,
 	PencilSimpleIcon,
+	PlusIcon,
+	QuotesIcon,
 	TrashIcon,
 } from "@phosphor-icons/react";
 import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
+const CREATE_ITEMS: Partial<Record<ElementNodeType, React.ReactNode>> = {
+	folder: (
+		<>
+			<Menu.Item leftSection={<FolderPlusIcon size={16} />}>
+				Folder
+			</Menu.Item>
+			<Menu.Item leftSection={<BookOpenIcon size={16} />}>
+				Reading
+			</Menu.Item>
+			<Menu.Item leftSection={<QuotesIcon size={16} />}>
+				Extract
+			</Menu.Item>
+			<Menu.Item leftSection={<CardsIcon size={16} />}>Card</Menu.Item>
+		</>
+	),
+	reading: (
+		<>
+			<Menu.Item leftSection={<QuotesIcon size={16} />}>
+				Extract
+			</Menu.Item>
+			<Menu.Item leftSection={<CardsIcon size={16} />}>Card</Menu.Item>
+		</>
+	),
+	extract: <Menu.Item leftSection={<CardsIcon size={16} />}>Card</Menu.Item>,
+};
+
 function ElementTreeMenuItems({ type }: { type: ElementNodeType }) {
+	const createItems = CREATE_ITEMS[type];
 	return (
 		<>
-			{type === "folder" && (
+			{createItems && (
 				<>
-					<Menu.Item leftSection={<FolderPlusIcon size={16} />}>
-						New Folder
-					</Menu.Item>
-					<Menu.Item leftSection={<BookOpenIcon size={16} />}>
-						New Reading
-					</Menu.Item>
+					<Menu.Sub openDelay={120} closeDelay={150}>
+						<Menu.Sub.Target>
+							<Menu.Sub.Item leftSection={<PlusIcon size={16} />}>
+								New
+							</Menu.Sub.Item>
+						</Menu.Sub.Target>
+						<Menu.Sub.Dropdown>{createItems}</Menu.Sub.Dropdown>
+					</Menu.Sub>
 					<Menu.Divider />
 				</>
 			)}
