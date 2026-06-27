@@ -1,17 +1,27 @@
 import { ActionIcon, Anchor, Breadcrumbs, Group } from "@mantine/core";
 import { SidebarSimpleIcon } from "@phosphor-icons/react";
-import useAppDispatch from "../../../hooks/useAppDispatch";
+import { useMemo } from "react";
+import { useNavigate } from "react-router";
+import { useElementParams } from "../../../hooks/useElementParams";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { setSelectedElementId } from "../../../stores/elements/elementsReducer";
-import { selectElementPath } from "../../../stores/elements/elementsSelectors";
+import {
+	getElementPath,
+	selectElementTree,
+} from "../../../stores/elements/elementsSelectors";
+import { paths } from "../../../paths";
 
 interface AppHeaderProps {
 	onToggleSidebar: () => void;
 }
 
 function AppHeader({ onToggleSidebar }: AppHeaderProps) {
-	const dispatch = useAppDispatch();
-	const path = useAppSelector(selectElementPath);
+	const navigate = useNavigate();
+	const selected = useElementParams();
+	const tree = useAppSelector(selectElementTree);
+	const path = useMemo(
+		() => getElementPath(tree, selected),
+		[tree, selected],
+	);
 
 	return (
 		<Group h="100%" p="md" gap="xs" align="center">
@@ -24,7 +34,9 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 						<Anchor
 							key={item.id.id}
 							onClick={() =>
-								dispatch(setSelectedElementId(item.id))
+								void navigate(
+									paths.element(item.id.type, item.id.id),
+								)
 							}>
 							{item.name}
 						</Anchor>

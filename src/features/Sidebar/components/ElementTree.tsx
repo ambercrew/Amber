@@ -22,12 +22,10 @@ import {
 	TrashIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
-import useAppDispatch from "../../../hooks/useAppDispatch";
-import useAppSelector from "../../../hooks/useAppSelector";
-import { setSelectedElementId } from "../../../stores/elements/elementsReducer";
-import { selectSelectedElementId } from "../../../stores/elements/elementsSelectors";
-import { ElementId } from "../../../types/elements/elementId";
+import { useElementParams } from "../../../hooks/useElementParams";
+import { paths } from "../../../paths";
 import { ElementNodeType } from "../../../types/elements/elementNodeType";
 import {
 	dtosToTreeData,
@@ -44,8 +42,8 @@ interface ElementTreeProps {
 
 // TODO: refactor
 function ElementTree({ tree }: ElementTreeProps) {
-	const dispatch = useAppDispatch();
-	const selectedElementId = useAppSelector(selectSelectedElementId);
+	const navigate = useNavigate();
+	const selected = useElementParams();
 	const [search, setSearch] = useState("");
 	const data = useMemo(() => dtosToTreeData(tree), [tree]);
 	const [hoveredValue, setHoveredValue] = useState<string | null>(null);
@@ -125,8 +123,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 		const label = typeof node.label === "string" ? node.label : node.value;
 		const hasChildren = node.children && node.children.length > 0;
 		const isSelected =
-			selectedElementId?.id === node.value &&
-			selectedElementId?.type === type;
+			selected?.id === node.value && selected?.type === type;
 		const showDots =
 			hoveredValue === node.value || dotsMenuOpenFor === node.value;
 
@@ -138,9 +135,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 		}
 
 		function handleSelect() {
-			dispatch(
-				setSelectedElementId({ type, id: node.value } as ElementId),
-			);
+			void navigate(paths.element(type, node.value));
 		}
 
 		return (

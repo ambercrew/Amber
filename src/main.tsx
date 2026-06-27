@@ -3,8 +3,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import { Provider } from "react-redux";
-import App from "./features/App/components/App.tsx";
-import { BrowserRouter } from "react-router";
+import { RouterProvider } from "react-router";
+import { router } from "./router.tsx";
 import { setupStore } from "./stores/store.ts";
 import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
 import "@mantine/core/styles.css";
@@ -41,9 +41,7 @@ createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
 			<MantineProvider theme={theme}>
-				<BrowserRouter>
-					<App />
-				</BrowserRouter>
+				<RouterProvider router={router} />
 			</MantineProvider>
 		</Provider>
 	</React.StrictMode>,

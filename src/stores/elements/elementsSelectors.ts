@@ -2,7 +2,6 @@ import CardNodeDto from "../../api/elements/dto/cardNodeDto";
 import ExtractNodeDto from "../../api/elements/dto/extractNodeDto";
 import FolderNodeDto from "../../api/elements/dto/folderNodeDto";
 import ReadingNodeDto from "../../api/elements/dto/readingNodeDto";
-import { createSelector } from "@reduxjs/toolkit";
 import { ElementId } from "../../types/elements/elementId";
 import { RootState } from "../store";
 
@@ -16,16 +15,14 @@ export const selectElementTreeIsLoading = (state: RootState) =>
 	state.elements.isLoading;
 export const selectElementTreeError = (state: RootState) =>
 	state.elements.error;
-export const selectSelectedElementId = (state: RootState) =>
-	state.elements.selectedElementId;
 
-export const selectElementPath = createSelector(
-	[selectElementTree, selectSelectedElementId],
-	(tree, selected) => {
-		if (!selected) return [];
-		return findInFolders(tree, selected, []) ?? [];
-	},
-);
+export function getElementPath(
+	tree: FolderNodeDto[],
+	selected: ElementId | null,
+): PathItem[] {
+	if (!selected) return [];
+	return findInFolders(tree, selected, []) ?? [];
+}
 
 function findInFolders(
 	folders: FolderNodeDto[],

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { Outlet } from "react-router";
 import {
 	AppShell,
 	Box,
-	Skeleton,
 	useMantineTheme,
 	MantineBreakpoint,
 } from "@mantine/core";
@@ -82,7 +82,7 @@ function App() {
 				<AppHeader onToggleSidebar={() => splitter.toggleCollapse(0)} />
 			</AppShell.Header>
 
-			<AppShell.Navbar style={{ overflow: "visible" }}>
+			<AppShell.Navbar bg="var(--mantine-color-default-hover)">
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isMobileViewport && (
 					<Box
@@ -102,9 +102,7 @@ function App() {
 			</AppShell.Navbar>
 
 			<AppShell.Main>
-				<Skeleton height={8} radius="xl" mb="xs" />
-				<Skeleton height={8} radius="xl" mb="xs" />
-				<Skeleton height={8} radius="xl" mb="xs" width="70%" />
+				<Outlet />
 			</AppShell.Main>
 		</AppShell>
 	);
