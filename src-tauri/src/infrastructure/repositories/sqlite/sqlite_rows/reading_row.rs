@@ -19,7 +19,7 @@ pub struct ReadingRow {
 impl From<ReadingRow> for Reading {
     fn from(row: ReadingRow) -> Self {
         let source = match row.source_type.as_str() {
-            "article" => ReadingSource::Article {
+            "website" => ReadingSource::Website {
                 url: row.source_url.unwrap_or_default(),
             },
             "pdf" => ReadingSource::Pdf,

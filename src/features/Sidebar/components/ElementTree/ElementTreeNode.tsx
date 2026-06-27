@@ -30,6 +30,7 @@ interface ElementTreeNodeProps {
 	onContextMenu: () => void;
 	onRenameClick: () => void;
 	onRenameClose: () => void;
+	onAfterCreate: () => void;
 }
 
 function ElementTreeNode({
@@ -42,6 +43,7 @@ function ElementTreeNode({
 	onContextMenu,
 	onRenameClick,
 	onRenameClose,
+	onAfterCreate,
 }: ElementTreeNodeProps) {
 	const { node, expanded, elementProps } = payload;
 	const { type, childrenCount } = node.nodeProps as ElementNodeProps;
@@ -144,6 +146,7 @@ function ElementTreeNode({
 							elementId={{ type, id }}
 							onRenameClick={onRenameClick}
 							onDeleteClick={() => setDeleteTarget({ type, id })}
+							onAfterCreate={onAfterCreate}
 						/>
 					</Menu.Dropdown>
 				</Menu>

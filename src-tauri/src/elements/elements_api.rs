@@ -1,12 +1,27 @@
 use std::sync::Arc;
 
+use chrono::Utc;
 use tauri::State;
+use uuid::Uuid;
 
 use crate::common::api_error::ApiError;
+use crate::elements::dto::create_card_dto::CreateCardDto;
+use crate::elements::dto::create_extract_dto::CreateExtractDto;
+use crate::elements::dto::create_folder_dto::CreateFolderDto;
+use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::dto::tree_dto::FolderNodeDto;
+use crate::elements::entities::card::Card;
+use crate::elements::entities::extract::Extract;
+use crate::elements::entities::folder::Folder;
+use crate::elements::entities::reading::Reading;
+use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::element_repository::ElementRepository;
+use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::meta::Meta;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;
 
@@ -49,6 +64,119 @@ pub async fn rename_element(
         .resolve::<dyn ElementRepository>()
         .await
         .rename(element_id, new_name)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn create_folder(
+    injector: State<'_, Arc<Injector>>,
+    dto: CreateFolderDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let now = Utc::now();
+    let folder = Folder {
+        meta: Meta {
+            id: Uuid::new_v4(),
+            name: dto.name,
+            position: dto.position as u32,
+            created_at: now,
+            modified_at: now,
+        },
+        parent_folder_id: dto.parent_folder_id,
+        tags: vec![],
+    };
+    scope
+        .resolve::<dyn FolderRepository>()
+        .await
+        .create(folder)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn create_reading(
+    injector: State<'_, Arc<Injector>>,
+    dto: CreateReadingDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let now = Utc::now();
+    let reading = Reading {
+        meta: Meta {
+            id: Uuid::new_v4(),
+            name: dto.name,
+            position: dto.position as u32,
+            created_at: now,
+            modified_at: now,
+        },
+        folder_id: dto.folder_id,
+        tags: vec![],
+        source: dto.source,
+        body: dto.body,
+    };
+    scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .create(reading)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn create_extract(
+    injector: State<'_, Arc<Injector>>,
+    dto: CreateExtractDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let now = Utc::now();
+    let extract = Extract {
+        meta: Meta {
+            id: Uuid::new_v4(),
+            name: dto.name,
+            position: dto.position as u32,
+            created_at: now,
+            modified_at: now,
+        },
+        parent: dto.parent,
+        tags: vec![],
+        text: dto.text,
+    };
+    scope
+        .resolve::<dyn ExtractRepository>()
+        .await
+        .create(extract)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn create_card(
+    injector: State<'_, Arc<Injector>>,
+    dto: CreateCardDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let now = Utc::now();
+    let card = Card {
+        meta: Meta {
+            id: Uuid::new_v4(),
+            name: dto.name,
+            position: dto.position as u32,
+            created_at: now,
+            modified_at: now,
+        },
+        parent: dto.parent,
+        tags: vec![],
+        front: dto.front,
+        back: dto.back,
+    };
+    scope
+        .resolve::<dyn CardRepository>()
+        .await
+        .create(card)
         .await?;
     scope.save_changes().await?;
     Ok(())

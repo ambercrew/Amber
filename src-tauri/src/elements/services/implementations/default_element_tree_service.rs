@@ -209,16 +209,22 @@ fn collect_cards(
 mod tests {
     use chrono::Utc;
     use injector::{injector::Injector, register_scope};
-    use std::sync::Arc;
     use uuid::Uuid;
 
     use crate::{
         elements::{
+            entities::{
+                card::Card,
+                extract::Extract,
+                folder::Folder,
+                reading::{Reading, ReadingSource},
+            },
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
                 folder_repository::FolderRepository, reading_repository::ReadingRepository,
             },
             services::element_tree_service::ElementTreeService,
+            value_objects::meta::Meta,
         },
         infrastructure::{
             repositories::sqlite::{
@@ -246,131 +252,6 @@ mod tests {
         injector
     }
 
-    // TODO: move these methods
-    async fn insert_folder(
-        tx: &Arc<DbTransaction>,
-        id: Uuid,
-        name: &str,
-        position: i64,
-        parent_folder_id: Option<Uuid>,
-    ) {
-        let now = Utc::now();
-        let mut guard = tx.lock().await;
-        let tx_ref = guard.as_mut();
-        sqlx::query!(
-            "INSERT INTO folders (id, name, position, parent_folder_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, datetime($5), datetime($6))",
-            id,
-            name,
-            position,
-            parent_folder_id,
-            now,
-            now
-        )
-        .execute(&mut *tx_ref)
-        .await
-        .unwrap();
-    }
-
-    async fn insert_reading(
-        tx: &Arc<DbTransaction>,
-        id: Uuid,
-        name: &str,
-        position: i64,
-        folder_id: Uuid,
-        source_type: &str,
-        body: &str,
-    ) {
-        let now = Utc::now();
-        let mut guard = tx.lock().await;
-        let tx_ref = guard.as_mut();
-        sqlx::query!(
-            "INSERT INTO readings (id, name, position, folder_id, created_at, modified_at, source_type, body)
-             VALUES ($1, $2, $3, $4, datetime($5), datetime($6), $7, $8)",
-            id,
-            name,
-            position,
-            folder_id,
-            now,
-            now,
-            source_type,
-            body
-        )
-        .execute(&mut *tx_ref)
-        .await
-        .unwrap();
-    }
-
-    async fn insert_extract(
-        tx: &Arc<DbTransaction>,
-        id: Uuid,
-        name: &str,
-        position: i64,
-        parent: ExtractParent,
-        text: &str,
-    ) {
-        let (parent_reading_id, parent_extract_id, parent_folder_id) = match parent {
-            ExtractParent::Reading(id) => (Some(id), None, None),
-            ExtractParent::Extract(id) => (None, Some(id), None),
-            ExtractParent::Folder(id) => (None, None, Some(id)),
-        };
-        let now = Utc::now();
-        let mut guard = tx.lock().await;
-        let tx_ref = guard.as_mut();
-        sqlx::query!(
-            "INSERT INTO extracts (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, text)
-             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9)",
-            id,
-            name,
-            position,
-            parent_reading_id,
-            parent_extract_id,
-            parent_folder_id,
-            now,
-            now,
-            text
-        )
-        .execute(&mut *tx_ref)
-        .await
-        .unwrap();
-    }
-
-    async fn insert_card(
-        tx: &Arc<DbTransaction>,
-        id: Uuid,
-        name: &str,
-        position: i64,
-        parent: CardParent,
-        front: &str,
-        back: &str,
-    ) {
-        let (parent_reading_id, parent_extract_id, parent_folder_id) = match parent {
-            CardParent::Reading(id) => (Some(id), None, None),
-            CardParent::Extract(id) => (None, Some(id), None),
-            CardParent::Folder(id) => (None, None, Some(id)),
-        };
-        let now = Utc::now();
-        let mut guard = tx.lock().await;
-        let tx_ref = guard.as_mut();
-        sqlx::query!(
-            "INSERT INTO cards (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, front, back)
-             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9, $10)",
-            id,
-            name,
-            position,
-            parent_reading_id,
-            parent_extract_id,
-            parent_folder_id,
-            now,
-            now,
-            front,
-            back
-        )
-        .execute(&mut *tx_ref)
-        .await
-        .unwrap();
-    }
-
     #[tokio::test]
     async fn get_element_tree_empty_database_returns_empty_vec() {
         // Arrange
@@ -394,11 +275,26 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let tx = scope.resolve::<DbTransaction>().await;
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let folder_id = Uuid::new_v4();
-        insert_folder(&tx, folder_id, "Science", 0, None).await;
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: folder_id,
+                    name: "Science".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
 
         // Act
 
@@ -417,13 +313,43 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let tx = scope.resolve::<DbTransaction>().await;
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let parent_id = Uuid::new_v4();
         let child_id = Uuid::new_v4();
-        insert_folder(&tx, parent_id, "Science", 0, None).await;
-        insert_folder(&tx, child_id, "Biology", 0, Some(parent_id)).await;
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: parent_id,
+                    name: "Science".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: child_id,
+                    name: "Biology".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: Some(parent_id),
+                tags: vec![],
+            })
+            .await
+            .unwrap();
 
         // Act
 
@@ -444,44 +370,82 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let tx = scope.resolve::<DbTransaction>().await;
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let folder_id = Uuid::new_v4();
         let reading_id = Uuid::new_v4();
         let extract_id = Uuid::new_v4();
         let card_id = Uuid::new_v4();
-
-        insert_folder(&tx, folder_id, "Science", 0, None).await;
-        insert_reading(
-            &tx,
-            reading_id,
-            "Photosynthesis",
-            0,
-            folder_id,
-            "article",
-            "body text",
-        )
-        .await;
-        insert_extract(
-            &tx,
-            extract_id,
-            "Key passage",
-            0,
-            ExtractParent::Reading(reading_id),
-            "Plants convert sunlight",
-        )
-        .await;
-        insert_card(
-            &tx,
-            card_id,
-            "Card 1",
-            0,
-            CardParent::Extract(extract_id),
-            "What do plants convert?",
-            "Sunlight",
-        )
-        .await;
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: folder_id,
+                    name: "Science".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .create(Reading {
+                meta: Meta {
+                    id: reading_id,
+                    name: "Photosynthesis".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                folder_id,
+                tags: vec![],
+                source: ReadingSource::Website { url: String::new() },
+                body: "body text".to_string(),
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn ExtractRepository>()
+            .await
+            .create(Extract {
+                meta: Meta {
+                    id: extract_id,
+                    name: "Key passage".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent: ExtractParent::Reading(reading_id),
+                tags: vec![],
+                text: "Plants convert sunlight".to_string(),
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn CardRepository>()
+            .await
+            .create(Card {
+                meta: Meta {
+                    id: card_id,
+                    name: "Card 1".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent: CardParent::Extract(extract_id),
+                tags: vec![],
+                front: "What do plants convert?".to_string(),
+                back: "Sunlight".to_string(),
+            })
+            .await
+            .unwrap();
 
         // Act
 
@@ -509,35 +473,66 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let tx = scope.resolve::<DbTransaction>().await;
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let folder_id = Uuid::new_v4();
         let reading_first_id = Uuid::new_v4();
         let reading_second_id = Uuid::new_v4();
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: folder_id,
+                    name: "Science".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
 
-        insert_folder(&tx, folder_id, "Science", 0, None).await;
         // Insert in reverse position order to verify sorting
-        insert_reading(
-            &tx,
-            reading_second_id,
-            "Second",
-            2,
-            folder_id,
-            "clipboard",
-            "",
-        )
-        .await;
-        insert_reading(
-            &tx,
-            reading_first_id,
-            "First",
-            1,
-            folder_id,
-            "clipboard",
-            "",
-        )
-        .await;
+        scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .create(Reading {
+                meta: Meta {
+                    id: reading_second_id,
+                    name: "Second".to_string(),
+                    position: 2,
+                    created_at: now,
+                    modified_at: now,
+                },
+                folder_id,
+                tags: vec![],
+                source: ReadingSource::Clipboard,
+                body: String::new(),
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .create(Reading {
+                meta: Meta {
+                    id: reading_first_id,
+                    name: "First".to_string(),
+                    position: 1,
+                    created_at: now,
+                    modified_at: now,
+                },
+                folder_id,
+                tags: vec![],
+                source: ReadingSource::Clipboard,
+                body: String::new(),
+            })
+            .await
+            .unwrap();
 
         // Act
 
@@ -562,9 +557,39 @@ mod tests {
 
         let active_id = Uuid::new_v4();
         let removed_id = Uuid::new_v4();
-
-        insert_folder(&tx, active_id, "Active", 0, None).await;
-        insert_folder(&tx, removed_id, "Removed", 1, None).await;
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: active_id,
+                    name: "Active".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: removed_id,
+                    name: "Removed".to_string(),
+                    position: 1,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
 
         {
             let mut guard = tx.lock().await;
@@ -591,22 +616,44 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let tx = scope.resolve::<DbTransaction>().await;
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let folder_id = Uuid::new_v4();
         let extract_id = Uuid::new_v4();
-
-        insert_folder(&tx, folder_id, "Science", 0, None).await;
-        insert_extract(
-            &tx,
-            extract_id,
-            "Direct extract",
-            0,
-            ExtractParent::Folder(folder_id),
-            "Some text",
-        )
-        .await;
+        let now = Utc::now();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(Folder {
+                meta: Meta {
+                    id: folder_id,
+                    name: "Science".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent_folder_id: None,
+                tags: vec![],
+            })
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn ExtractRepository>()
+            .await
+            .create(Extract {
+                meta: Meta {
+                    id: extract_id,
+                    name: "Direct extract".to_string(),
+                    position: 0,
+                    created_at: now,
+                    modified_at: now,
+                },
+                parent: ExtractParent::Folder(folder_id),
+                tags: vec![],
+                text: "Some text".to_string(),
+            })
+            .await
+            .unwrap();
 
         // Act
 

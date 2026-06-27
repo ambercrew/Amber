@@ -7,4 +7,5 @@ use crate::elements::repositories::element_repository::ElementRepository;
 #[async_trait]
 pub trait ReadingRepository: ElementRepository + Send + Sync {
     async fn get_all(&self) -> Result<Vec<Reading>, RepositoryError>;
+    async fn create(&self, reading: Reading) -> Result<(), RepositoryError>;
 }

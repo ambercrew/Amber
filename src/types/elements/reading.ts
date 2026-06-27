@@ -1,7 +1,7 @@
 import { Meta } from "./meta";
 
 export type ReadingSource =
-	| { type: "article"; url: string }
+	| { type: "website"; url: string }
 	| { type: "clipboard" }
 	| { type: "pdf" };
 

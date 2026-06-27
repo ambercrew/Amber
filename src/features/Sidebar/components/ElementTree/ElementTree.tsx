@@ -66,6 +66,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 					setRenamingTarget({ type, id: node.value })
 				}
 				onRenameClose={() => setRenamingTarget(null)}
+				onAfterCreate={() => treeController.expand(node.value)}
 			/>
 		);
 	}
@@ -108,6 +109,9 @@ function ElementTree({ tree }: ElementTreeProps) {
 									type: contextMenuNode.type,
 									id: contextMenuNode.value,
 								})
+							}
+							onAfterCreate={() =>
+								treeController.expand(contextMenuNode.value)
 							}
 						/>
 					)}

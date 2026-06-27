@@ -9,6 +9,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::folder::Folder;
 use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::folder_row::FolderRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
@@ -20,6 +21,25 @@ pub struct SqliteFolderRepository {
 
 #[async_trait]
 impl FolderRepository for SqliteFolderRepository {
+    async fn create(&self, folder: Folder) -> Result<(), RepositoryError> {
+        let position = folder.meta.position as i64;
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "INSERT INTO folders (id, name, position, parent_folder_id, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, datetime($5), datetime($6))",
+            folder.meta.id,
+            folder.meta.name,
+            position,
+            folder.parent_folder_id,
+            folder.meta.created_at,
+            folder.meta.modified_at,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
     async fn get_all(&self) -> Result<Vec<Folder>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

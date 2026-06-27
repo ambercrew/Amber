@@ -12,9 +12,10 @@ pub struct Reading {
     pub body: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum ReadingSource {
-    Article { url: String },
+    Website { url: String },
     Clipboard,
     Pdf,
 }

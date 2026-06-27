@@ -9,6 +9,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::card::Card;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::element_repository::ElementRepository;
+use crate::elements::value_objects::card_parent::CardParent;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::card_row::CardRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
@@ -20,6 +21,34 @@ pub struct SqliteCardRepository {
 
 #[async_trait]
 impl CardRepository for SqliteCardRepository {
+    async fn create(&self, card: Card) -> Result<(), RepositoryError> {
+        let position = card.meta.position as i64;
+        let (parent_reading_id, parent_extract_id, parent_folder_id) = match card.parent {
+            CardParent::Reading(pid) => (Some(pid), None, None),
+            CardParent::Extract(pid) => (None, Some(pid), None),
+            CardParent::Folder(pid) => (None, None, Some(pid)),
+        };
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "INSERT INTO cards (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, front, back)
+             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9, $10)",
+            card.meta.id,
+            card.meta.name,
+            position,
+            parent_reading_id,
+            parent_extract_id,
+            parent_folder_id,
+            card.meta.created_at,
+            card.meta.modified_at,
+            card.front,
+            card.back,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
     async fn get_all(&self) -> Result<Vec<Card>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

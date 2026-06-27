@@ -1,4 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
+import { CreateCardDto } from "../../../types/elements/createCardDto";
+import { CreateExtractDto } from "../../../types/elements/createExtractDto";
+import { CreateFolderDto } from "../../../types/elements/createFolderDto";
+import { CreateReadingDto } from "../../../types/elements/createReadingDto";
 import { ElementId } from "../../../types/elements/elementId";
 import FolderNodeDto from "../dto/folderNodeDto";
 
@@ -15,4 +19,20 @@ export function renameElement(
 	newName: string,
 ): Promise<void> {
 	return invoke("rename_element", { elementId, newName });
+}
+
+export function createFolder(dto: CreateFolderDto): Promise<void> {
+	return invoke("create_folder", { dto });
+}
+
+export function createReading(dto: CreateReadingDto): Promise<void> {
+	return invoke("create_reading", { dto });
+}
+
+export function createExtract(dto: CreateExtractDto): Promise<void> {
+	return invoke("create_extract", { dto });
+}
+
+export function createCard(dto: CreateCardDto): Promise<void> {
+	return invoke("create_card", { dto });
 }

@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::Reading;
+use crate::elements::entities::reading::ReadingSource;
 use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::value_objects::element_id::ElementId;
@@ -20,6 +21,33 @@ pub struct SqliteReadingRepository {
 
 #[async_trait]
 impl ReadingRepository for SqliteReadingRepository {
+    async fn create(&self, reading: Reading) -> Result<(), RepositoryError> {
+        let position = reading.meta.position as i64;
+        let (source_type, source_url) = match reading.source {
+            ReadingSource::Website { url } => ("website".to_string(), Some(url)),
+            ReadingSource::Clipboard => ("clipboard".to_string(), None),
+            ReadingSource::Pdf => ("pdf".to_string(), None),
+        };
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "INSERT INTO readings (id, name, position, folder_id, created_at, modified_at, source_type, source_url, body)
+             VALUES ($1, $2, $3, $4, datetime($5), datetime($6), $7, $8, $9)",
+            reading.meta.id,
+            reading.meta.name,
+            position,
+            reading.folder_id,
+            reading.meta.created_at,
+            reading.meta.modified_at,
+            source_type,
+            source_url,
+            reading.body,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
     async fn get_all(&self) -> Result<Vec<Reading>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::element_id::ElementId;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(tag = "type", content = "id", rename_all = "lowercase")]
 pub enum CardParent {
     Reading(Uuid),
     Extract(Uuid),

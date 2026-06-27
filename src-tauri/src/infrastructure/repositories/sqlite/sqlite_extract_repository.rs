@@ -10,6 +10,7 @@ use crate::elements::entities::extract::Extract;
 use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::extract_parent::ExtractParent;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -20,6 +21,33 @@ pub struct SqliteExtractRepository {
 
 #[async_trait]
 impl ExtractRepository for SqliteExtractRepository {
+    async fn create(&self, extract: Extract) -> Result<(), RepositoryError> {
+        let position = extract.meta.position as i64;
+        let (parent_reading_id, parent_extract_id, parent_folder_id) = match extract.parent {
+            ExtractParent::Reading(pid) => (Some(pid), None, None),
+            ExtractParent::Extract(pid) => (None, Some(pid), None),
+            ExtractParent::Folder(pid) => (None, None, Some(pid)),
+        };
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "INSERT INTO extracts (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, text)
+             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9)",
+            extract.meta.id,
+            extract.meta.name,
+            position,
+            parent_reading_id,
+            parent_extract_id,
+            parent_folder_id,
+            extract.meta.created_at,
+            extract.meta.modified_at,
+            extract.text,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
     async fn get_all(&self) -> Result<Vec<Extract>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
