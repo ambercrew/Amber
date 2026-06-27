@@ -11,7 +11,6 @@ pub struct FolderRow {
     pub parent_folder_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub removed_at: Option<DateTime<Utc>>,
 }
 
 impl From<FolderRow> for Folder {
@@ -23,7 +22,6 @@ impl From<FolderRow> for Folder {
                 position: row.position as u32,
                 created_at: row.created_at,
                 modified_at: row.modified_at,
-                removed_at: row.removed_at,
             },
             parent_folder_id: row.parent_folder_id,
             tags: vec![],

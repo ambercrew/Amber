@@ -11,11 +11,13 @@ import { useNavigate } from "react-router";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
 import { useElementParams } from "../../../hooks/useElementParams";
 import { paths } from "../../../paths";
+import { ElementId } from "../../../types/elements/elementId";
 import { ElementNodeType } from "../../../types/elements/elementNodeType";
 import { dtosToTreeData, ElementNodeProps } from "../utils/elementTreeUtils";
 import { useElementTreeExpansion } from "../hooks/useElementTreeExpansion";
-import ElementTreeNode from "./ElementTreeNode";
+import DeleteElementModal from "./DeleteElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
+import ElementTreeNode from "./ElementTreeNode";
 
 interface ElementTreeProps {
 	tree: FolderNodeDto[];
@@ -29,6 +31,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 		value: string;
 		type: ElementNodeType;
 	} | null>(null);
+	const [deleteTarget, setDeleteTarget] = useState<ElementId | null>(null);
 
 	const { treeController, search, handleSearchChange } =
 		useElementTreeExpansion(data);
@@ -44,6 +47,10 @@ function ElementTree({ tree }: ElementTreeProps) {
 				payload={payload}
 				search={search}
 				isSelected={isSelected}
+				isContextMenuOpen={
+					contextMenuNode?.value === node.value &&
+					contextMenuNode?.type === type
+				}
 				onSelect={() => void navigate(paths.element(type, node.value))}
 				onContextMenu={() =>
 					setContextMenuNode({ value: node.value, type })
@@ -74,10 +81,25 @@ function ElementTree({ tree }: ElementTreeProps) {
 				</Menu.ContextMenu>
 				<Menu.Dropdown>
 					{contextMenuNode && (
-						<ElementTreeMenuItems type={contextMenuNode.type} />
+						<ElementTreeMenuItems
+							elementId={{
+								type: contextMenuNode.type,
+								id: contextMenuNode.value,
+							}}
+							onDeleteClick={() =>
+								setDeleteTarget({
+									type: contextMenuNode.type,
+									id: contextMenuNode.value,
+								})
+							}
+						/>
 					)}
 				</Menu.Dropdown>
 			</Menu>
+			<DeleteElementModal
+				elementId={deleteTarget}
+				onClose={() => setDeleteTarget(null)}
+			/>
 		</Stack>
 	);
 }

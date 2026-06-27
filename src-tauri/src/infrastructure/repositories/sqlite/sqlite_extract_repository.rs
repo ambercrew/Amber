@@ -7,7 +7,9 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::extract::Extract;
+use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -28,14 +30,13 @@ impl ExtractRepository for SqliteExtractRepository {
                 id as "id: _",
                 name,
                 position as "position: _",
-                parent_type,
-                parent_id as "parent_id: _",
+                parent_reading_id as "parent_reading_id: _",
+                parent_extract_id as "parent_extract_id: _",
+                parent_folder_id as "parent_folder_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _",
-                removed_at as "removed_at: _",
                 text
             FROM extracts
-            WHERE removed_at IS NULL
             ORDER BY position"#
         )
         .fetch_all(&mut *tx)
@@ -67,5 +68,18 @@ impl ExtractRepository for SqliteExtractRepository {
                 entity
             })
             .collect())
+    }
+}
+
+#[async_trait]
+impl ElementRepository for SqliteExtractRepository {
+    async fn delete(&self, id: ElementId) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(r#"DELETE FROM extracts WHERE id = $1"#, uuid)
+            .execute(&mut *tx)
+            .await?;
+        Ok(())
     }
 }

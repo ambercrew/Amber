@@ -7,7 +7,9 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::folder::Folder;
+use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::folder_row::FolderRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -30,10 +32,8 @@ impl FolderRepository for SqliteFolderRepository {
                 position as "position: _",
                 parent_folder_id as "parent_folder_id: _",
                 created_at as "created_at: _",
-                modified_at as "modified_at: _",
-                removed_at as "removed_at: _"
+                modified_at as "modified_at: _"
             FROM folders
-            WHERE removed_at IS NULL
             ORDER BY position"#
         )
         .fetch_all(&mut *tx)
@@ -65,5 +65,18 @@ impl FolderRepository for SqliteFolderRepository {
                 entity
             })
             .collect())
+    }
+}
+
+#[async_trait]
+impl ElementRepository for SqliteFolderRepository {
+    async fn delete(&self, id: ElementId) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(r#"DELETE FROM folders WHERE id = $1"#, uuid)
+            .execute(&mut *tx)
+            .await?;
+        Ok(())
     }
 }

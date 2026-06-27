@@ -51,8 +51,7 @@ CREATE TABLE folders(
     parent_folder_id            TEXT,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    removed_at                  TEXT,
-    FOREIGN KEY (parent_folder_id) REFERENCES folders(id) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (parent_folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE INDEX folders_parent_folder_id_index ON folders(parent_folder_id);
@@ -64,8 +63,7 @@ CREATE TABLE tags(
     name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    removed_at                  TEXT
+    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now'))
 );
 
 CREATE TABLE tag_parents(
@@ -99,7 +97,6 @@ CREATE TABLE readings(
     folder_id                   TEXT        NOT NULL,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    removed_at                  TEXT,
     source_type                 TEXT        NOT NULL,
     source_url                  TEXT,
     body                        TEXT        NOT NULL,
@@ -125,15 +122,22 @@ CREATE TABLE extracts(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
-    parent_type                 TEXT        NOT NULL        CHECK (parent_type IN ('reading', 'extract', 'folder')),
-    parent_id                   TEXT        NOT NULL,
+    parent_reading_id           TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_extract_id           TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_folder_id            TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    removed_at                  TEXT,
-    text                        TEXT        NOT NULL
+    text                        TEXT        NOT NULL,
+    CHECK (
+        (parent_reading_id IS NOT NULL) +
+        (parent_extract_id IS NOT NULL) +
+        (parent_folder_id  IS NOT NULL) = 1
+    )
 );
 
-CREATE INDEX extracts_parent_id_index ON extracts(parent_id);
+CREATE INDEX extracts_parent_reading_id_index ON extracts(parent_reading_id);
+CREATE INDEX extracts_parent_extract_id_index ON extracts(parent_extract_id);
+CREATE INDEX extracts_parent_folder_id_index  ON extracts(parent_folder_id);
 
 CREATE TABLE extract_tags(
     extract_id                  TEXT        NOT NULL,
@@ -152,16 +156,23 @@ CREATE TABLE cards(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     name                        TEXT        NOT NULL,
     position                    INTEGER     NOT NULL        DEFAULT 0,
-    parent_type                 TEXT        NOT NULL        CHECK (parent_type IN ('reading', 'extract', 'folder')),
-    parent_id                   TEXT        NOT NULL,
+    parent_reading_id           TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_extract_id           TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_folder_id            TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    removed_at                  TEXT,
     front                       TEXT        NOT NULL,
-    back                        TEXT        NOT NULL
+    back                        TEXT        NOT NULL,
+    CHECK (
+        (parent_reading_id IS NOT NULL) +
+        (parent_extract_id IS NOT NULL) +
+        (parent_folder_id  IS NOT NULL) = 1
+    )
 );
 
-CREATE INDEX cards_parent_id_index ON cards(parent_id);
+CREATE INDEX cards_parent_reading_id_index ON cards(parent_reading_id);
+CREATE INDEX cards_parent_extract_id_index ON cards(parent_extract_id);
+CREATE INDEX cards_parent_folder_id_index  ON cards(parent_folder_id);
 
 CREATE TABLE card_tags(
     card_id                     TEXT        NOT NULL,

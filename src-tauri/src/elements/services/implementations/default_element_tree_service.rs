@@ -309,19 +309,23 @@ mod tests {
         parent: ExtractParent,
         text: &str,
     ) {
-        let parent_type = parent.type_str();
-        let parent_id = parent.id();
+        let (parent_reading_id, parent_extract_id, parent_folder_id) = match parent {
+            ExtractParent::Reading(id) => (Some(id), None, None),
+            ExtractParent::Extract(id) => (None, Some(id), None),
+            ExtractParent::Folder(id) => (None, None, Some(id)),
+        };
         let now = Utc::now();
         let mut guard = tx.lock().await;
         let tx_ref = guard.as_mut();
         sqlx::query!(
-            "INSERT INTO extracts (id, name, position, parent_type, parent_id, created_at, modified_at, text)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7), $8)",
+            "INSERT INTO extracts (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, text)
+             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9)",
             id,
             name,
             position,
-            parent_type,
-            parent_id,
+            parent_reading_id,
+            parent_extract_id,
+            parent_folder_id,
             now,
             now,
             text
@@ -340,19 +344,23 @@ mod tests {
         front: &str,
         back: &str,
     ) {
-        let parent_type = parent.type_str();
-        let parent_id = parent.id();
+        let (parent_reading_id, parent_extract_id, parent_folder_id) = match parent {
+            CardParent::Reading(id) => (Some(id), None, None),
+            CardParent::Extract(id) => (None, Some(id), None),
+            CardParent::Folder(id) => (None, None, Some(id)),
+        };
         let now = Utc::now();
         let mut guard = tx.lock().await;
         let tx_ref = guard.as_mut();
         sqlx::query!(
-            "INSERT INTO cards (id, name, position, parent_type, parent_id, created_at, modified_at, front, back)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7), $8, $9)",
+            "INSERT INTO cards (id, name, position, parent_reading_id, parent_extract_id, parent_folder_id, created_at, modified_at, front, back)
+             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8), $9, $10)",
             id,
             name,
             position,
-            parent_type,
-            parent_id,
+            parent_reading_id,
+            parent_extract_id,
+            parent_folder_id,
             now,
             now,
             front,
@@ -558,18 +566,13 @@ mod tests {
         insert_folder(&tx, active_id, "Active", 0, None).await;
         insert_folder(&tx, removed_id, "Removed", 1, None).await;
 
-        let now = Utc::now();
         {
             let mut guard = tx.lock().await;
             let tx_ref = guard.as_mut();
-            sqlx::query!(
-                "UPDATE folders SET removed_at = datetime($1) WHERE id = $2",
-                now,
-                removed_id
-            )
-            .execute(&mut *tx_ref)
-            .await
-            .unwrap();
+            sqlx::query!("DELETE FROM folders WHERE id = $1", removed_id)
+                .execute(&mut *tx_ref)
+                .await
+                .unwrap();
         }
 
         // Act

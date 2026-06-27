@@ -7,7 +7,9 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::Reading;
+use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -31,12 +33,10 @@ impl ReadingRepository for SqliteReadingRepository {
                 folder_id as "folder_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _",
-                removed_at as "removed_at: _",
                 source_type,
                 source_url,
                 body
             FROM readings
-            WHERE removed_at IS NULL
             ORDER BY position"#
         )
         .fetch_all(&mut *tx)
@@ -68,5 +68,18 @@ impl ReadingRepository for SqliteReadingRepository {
                 entity
             })
             .collect())
+    }
+}
+
+#[async_trait]
+impl ElementRepository for SqliteReadingRepository {
+    async fn delete(&self, id: ElementId) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(r#"DELETE FROM readings WHERE id = $1"#, uuid)
+            .execute(&mut *tx)
+            .await?;
+        Ok(())
     }
 }

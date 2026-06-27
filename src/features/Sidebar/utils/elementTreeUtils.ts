@@ -10,18 +10,13 @@ export interface ElementNodeProps {
 	childrenCount: number;
 }
 
-function countPages(node: TreeNodeData): number {
-	if (!node.children) return 1;
-	return node.children.reduce((sum, child) => sum + countPages(child), 0);
-}
-
 function cardToTreeNode(card: CardNodeDto): TreeNodeData {
 	return {
 		label: card.name,
 		value: card.id,
 		nodeProps: {
 			type: "card",
-			childrenCount: 1,
+			childrenCount: 0,
 		} satisfies ElementNodeProps,
 	};
 }
@@ -36,7 +31,7 @@ function extractToTreeNode(extract: ExtractNodeDto): TreeNodeData {
 		value: extract.id,
 		nodeProps: {
 			type: "extract",
-			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+			childrenCount: children.length,
 		} satisfies ElementNodeProps,
 		children,
 	};
@@ -52,7 +47,7 @@ function readingToTreeNode(reading: ReadingNodeDto): TreeNodeData {
 		value: reading.id,
 		nodeProps: {
 			type: "reading",
-			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+			childrenCount: children.length,
 		} satisfies ElementNodeProps,
 		children,
 	};
@@ -70,7 +65,7 @@ export function folderToTreeNode(folder: FolderNodeDto): TreeNodeData {
 		value: folder.id,
 		nodeProps: {
 			type: "folder",
-			childrenCount: children.reduce((sum, c) => sum + countPages(c), 0),
+			childrenCount: children.length,
 		} satisfies ElementNodeProps,
 		children,
 	};

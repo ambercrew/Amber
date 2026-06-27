@@ -4,7 +4,10 @@ use tauri::State;
 
 use crate::common::api_error::ApiError;
 use crate::elements::dto::tree_dto::FolderNodeDto;
+use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::services::element_tree_service::ElementTreeService;
+use crate::elements::value_objects::element_id::ElementId;
+use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;
 
 #[tauri::command]
@@ -18,4 +21,19 @@ pub async fn get_element_tree(
         .get_element_tree()
         .await?;
     Ok(result)
+}
+
+#[tauri::command]
+pub async fn delete_element(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ElementRepository>()
+        .await
+        .delete(element_id)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
 }
