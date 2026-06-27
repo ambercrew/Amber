@@ -71,7 +71,6 @@ function App() {
 			// eslint-disable-next-line react-hooks/refs
 			ref={splitter.ref}
 			layout="alt"
-			header={{ height: 60 }}
 			navbar={{
 				width: navbarWidth,
 				breakpoint: SIDEBAR_BREAKPOINT,
@@ -84,7 +83,7 @@ function App() {
 			{!isMobile() && <Updater callApi={callApi} />}
 
 			<AppShell.Header>
-				<Group h="100%" px="md" gap={16} align="center">
+				<Group h="100%" p="md" gap={16} align="center">
 					<ActionIcon
 						variant="subtle"
 						onClick={() => splitter.toggleCollapse(0)}>

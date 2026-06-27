@@ -8,6 +8,7 @@ import {
 	Tree,
 	useTree,
 } from "@mantine/core";
+import { useLocalStorage } from "@mantine/hooks";
 import {
 	FileTextIcon,
 	CardsIcon,
@@ -18,7 +19,7 @@ import {
 	QuotesIcon,
 	MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FolderNodeDto from "../../../api/elements/dto/folderNodeDto";
 import {
 	dtosToTreeData,
@@ -33,11 +34,32 @@ interface ElementTreeProps {
 
 function ElementTree({ tree }: ElementTreeProps) {
 	const [search, setSearch] = useState("");
-	const expandedStateBeforeSearch = useRef<Record<string, boolean> | null>(
-		null,
-	);
-	const data = dtosToTreeData(tree);
-	const treeController = useTree();
+	const data = useMemo(() => dtosToTreeData(tree), [tree]);
+
+	const [persistedExpandedState, setPersistedExpandedState] = useLocalStorage<
+		Record<string, boolean>
+	>({
+		key: "element-tree-expanded",
+		defaultValue: {},
+		getInitialValueInEffect: false,
+	});
+
+	const treeController = useTree({
+		initialExpandedState: persistedExpandedState,
+		onNodeExpand: value =>
+			setPersistedExpandedState(prev => ({ ...prev, [value]: true })),
+		onNodeCollapse: value =>
+			setPersistedExpandedState(prev => ({ ...prev, [value]: false })),
+	});
+
+	// Data loads after first render leading to initial expanded state not being applied.
+	const restoredRef = useRef(false);
+	useEffect(() => {
+		if (!restoredRef.current && data.length > 0) {
+			treeController.setExpandedState(persistedExpandedState);
+			restoredRef.current = true;
+		}
+	}, [data]);
 
 	function handleSearchChange(value: string) {
 		setSearch(value);
@@ -46,9 +68,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 				getTreeExpandedState(data, getMatchingAncestors(data, value)),
 			);
 		} else {
-			treeController.setExpandedState(
-				expandedStateBeforeSearch.current ?? {},
-			);
+			treeController.setExpandedState({});
 		}
 	}
 
