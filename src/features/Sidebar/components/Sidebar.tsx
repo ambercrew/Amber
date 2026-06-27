@@ -10,6 +10,7 @@ interface SidebarProps {
 	onCollapse: () => void;
 }
 
+// TODO: always contiaing current active element should be active
 function Sidebar({ onCollapse }: SidebarProps) {
 	const [activeTab, setActiveTab] = useState<Tab>("tree");
 
