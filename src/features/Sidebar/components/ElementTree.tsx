@@ -189,11 +189,13 @@ function ElementTree({ tree }: ElementTreeProps) {
 					title={label}>
 					{`${label} (${childrenCount})`}
 				</Highlight>
+				{/* Rendering a second menu since the first one is used for context menu and this one for the button. */}
 				<Menu
 					withinPortal
 					position="bottom-start"
 					onOpen={() => setDotsMenuOpenFor(node.value)}
-					onClose={() => setDotsMenuOpenFor(null)}>
+					onClose={() => setDotsMenuOpenFor(null)}
+					shadow="lg">
 					<Menu.Target>
 						<ActionIcon
 							variant="subtle"
@@ -202,7 +204,10 @@ function ElementTree({ tree }: ElementTreeProps) {
 								visibility: showDots ? "visible" : "hidden",
 							}}
 							onClick={e => e.stopPropagation()}>
-							<DotsThreeVerticalIcon size={16} weight="bold" />
+							<DotsThreeVerticalIcon
+								size={ICON_SIZE}
+								weight="bold"
+							/>
 						</ActionIcon>
 					</Menu.Target>
 					<Menu.Dropdown>{renderMenuItems(type)}</Menu.Dropdown>
@@ -219,7 +224,10 @@ function ElementTree({ tree }: ElementTreeProps) {
 				value={search}
 				onChange={e => handleSearchChange(e.currentTarget.value)}
 			/>
-			<Menu withinPortal onClose={() => setContextMenuNode(null)}>
+			<Menu
+				withinPortal
+				onClose={() => setContextMenuNode(null)}
+				shadow="lg">
 				<Menu.ContextMenu>
 					<Tree
 						data={data}
