@@ -17,7 +17,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 		<>
 			<AppShell.Section p="sm">
 				<Group justify="center" style={{ position: "relative" }}>
-					<Group gap={4}>
+					<Group gap="xs">
 						<ActionIcon
 							variant={activeTab === "tree" ? "filled" : "subtle"}
 							onClick={() => setActiveTab("tree")}

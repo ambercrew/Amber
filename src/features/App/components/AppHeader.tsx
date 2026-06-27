@@ -14,7 +14,7 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 	const path = useAppSelector(selectElementPath);
 
 	return (
-		<Group h="100%" p="md" gap={16} align="center">
+		<Group h="100%" p="md" gap="xs" align="center">
 			<ActionIcon variant="subtle" onClick={onToggleSidebar}>
 				<SidebarSimpleIcon size={20} />
 			</ActionIcon>
