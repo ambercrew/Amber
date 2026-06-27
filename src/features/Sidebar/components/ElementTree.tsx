@@ -103,14 +103,20 @@ function ElementTree({ tree }: ElementTreeProps) {
 		}
 	}, [data, persistedExpandedState, treeController]);
 
+	const preSearchExpandedState = useRef<Record<string, boolean> | null>(null);
+
 	function handleSearchChange(value: string) {
 		setSearch(value);
 		if (value.trim()) {
+			preSearchExpandedState.current ??= persistedExpandedState;
 			treeController.setExpandedState(
 				getTreeExpandedState(data, getMatchingAncestors(data, value)),
 			);
 		} else {
-			treeController.setExpandedState({});
+			treeController.setExpandedState(
+				preSearchExpandedState.current ?? {},
+			);
+			preSearchExpandedState.current = null;
 		}
 	}
 
