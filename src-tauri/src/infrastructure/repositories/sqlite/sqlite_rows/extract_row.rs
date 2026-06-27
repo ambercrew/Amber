@@ -19,11 +19,7 @@ pub struct ExtractRow {
 
 impl From<ExtractRow> for Extract {
     fn from(row: ExtractRow) -> Self {
-        let parent = match row.parent_type.as_str() {
-            "reading" => Provenance::Reading(row.parent_id),
-            "extract" => Provenance::Extract(row.parent_id),
-            _ => Provenance::Folder(row.parent_id),
-        };
+        let parent = Provenance::from_type_and_id(&row.parent_type, row.parent_id);
         Extract {
             meta: Meta {
                 id: row.id,

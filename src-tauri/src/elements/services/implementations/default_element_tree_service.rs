@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -11,6 +12,7 @@ use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::Reading;
+use crate::elements::entities::traits::{Element, Tagged};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
@@ -34,49 +36,11 @@ impl ElementTreeService for DefaultElementTreeService {
         let extracts = self.extract_repository.get_all().await?;
         let cards = self.card_repository.get_all().await?;
 
-        let mut folders_by_parent: HashMap<Option<Uuid>, Vec<Folder>> = HashMap::new();
-        for folder in folders {
-            folders_by_parent
-                .entry(folder.parent_folder_id)
-                .or_default()
-                .push(folder);
-        }
-        for children in folders_by_parent.values_mut() {
-            children.sort_by_key(|f| f.meta.position);
-        }
-
-        let mut readings_by_folder: HashMap<Uuid, Vec<Reading>> = HashMap::new();
-        for reading in readings {
-            readings_by_folder
-                .entry(reading.folder_id)
-                .or_default()
-                .push(reading);
-        }
-        for rs in readings_by_folder.values_mut() {
-            rs.sort_by_key(|r| r.meta.position);
-        }
-
-        let mut extracts_by_parent: HashMap<(String, Uuid), Vec<Extract>> = HashMap::new();
-        for extract in extracts {
-            extracts_by_parent
-                .entry(provenance_key(extract.parent))
-                .or_default()
-                .push(extract);
-        }
-        for es in extracts_by_parent.values_mut() {
-            es.sort_by_key(|e| e.meta.position);
-        }
-
-        let mut cards_by_parent: HashMap<(String, Uuid), Vec<Card>> = HashMap::new();
-        for card in cards {
-            cards_by_parent
-                .entry(provenance_key(card.parent))
-                .or_default()
-                .push(card);
-        }
-        for cs in cards_by_parent.values_mut() {
-            cs.sort_by_key(|c| c.meta.position);
-        }
+        let folders_by_parent =
+            group_by_parent_and_sort_by_position(folders, |f| f.parent_folder_id);
+        let readings_by_folder = group_by_parent_and_sort_by_position(readings, |r| r.folder_id);
+        let extracts_by_parent = group_by_parent_and_sort_by_position(extracts, |e| e.parent);
+        let cards_by_parent = group_by_parent_and_sort_by_position(cards, |c| c.parent);
 
         let empty_folders: Vec<Folder> = vec![];
         let root_folders = folders_by_parent.get(&None).unwrap_or(&empty_folders);
@@ -96,151 +60,144 @@ impl ElementTreeService for DefaultElementTreeService {
     }
 }
 
-fn provenance_key(provenance: Provenance) -> (String, Uuid) {
-    match provenance {
-        Provenance::Reading(id) => ("reading".to_string(), id),
-        Provenance::Extract(id) => ("extract".to_string(), id),
-        Provenance::Folder(id) => ("folder".to_string(), id),
+fn group_by_parent_and_sort_by_position<K, V, F>(items: Vec<V>, get_parent: F) -> HashMap<K, Vec<V>>
+where
+    K: Eq + Hash,
+    V: Element,
+    F: Fn(&V) -> K,
+{
+    let mut map: HashMap<K, Vec<V>> = HashMap::new();
+    for item in items {
+        map.entry(get_parent(&item)).or_default().push(item);
     }
+    for group in map.values_mut() {
+        group.sort_by_key(|v| v.meta().position);
+    }
+    map
+}
+
+fn tag_strings(tagged: &impl Tagged) -> Vec<String> {
+    tagged.tags().iter().map(|t| t.to_string()).collect()
 }
 
 fn build_folder_node(
     folder: &Folder,
     folders_by_parent: &HashMap<Option<Uuid>, Vec<Folder>>,
     readings_by_folder: &HashMap<Uuid, Vec<Reading>>,
-    extracts_by_parent: &HashMap<(String, Uuid), Vec<Extract>>,
-    cards_by_parent: &HashMap<(String, Uuid), Vec<Card>>,
+    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
+    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
 ) -> FolderNodeDto {
-    let id = folder.meta.id;
-    let folder_key = ("folder".to_string(), id);
-
-    let child_folders = folders_by_parent
-        .get(&Some(id))
-        .map(|children| {
-            children
-                .iter()
-                .map(|child| {
-                    build_folder_node(
-                        child,
-                        folders_by_parent,
-                        readings_by_folder,
-                        extracts_by_parent,
-                        cards_by_parent,
-                    )
-                })
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let readings = readings_by_folder
-        .get(&id)
-        .map(|rs| {
-            rs.iter()
-                .map(|r| build_reading_node(r, extracts_by_parent, cards_by_parent))
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let extracts = extracts_by_parent
-        .get(&folder_key)
-        .map(|es| {
-            es.iter()
-                .map(|e| build_extract_node(e, extracts_by_parent, cards_by_parent))
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let cards = cards_by_parent
-        .get(&folder_key)
-        .map(|cs| cs.iter().map(to_card_node).collect())
-        .unwrap_or_default();
+    let meta = folder.meta();
+    let id = meta.id;
 
     FolderNodeDto {
         id: id.to_string(),
-        name: folder.meta.name.clone(),
-        position: folder.meta.position,
-        tags: folder.tags.iter().map(|t| t.to_string()).collect(),
-        folders: child_folders,
-        readings,
-        extracts,
-        cards,
+        name: meta.name.clone(),
+        position: meta.position,
+        tags: tag_strings(folder),
+        folders: folders_by_parent
+            .get(&Some(id))
+            .map(|children| {
+                children
+                    .iter()
+                    .map(|child| {
+                        build_folder_node(
+                            child,
+                            folders_by_parent,
+                            readings_by_folder,
+                            extracts_by_parent,
+                            cards_by_parent,
+                        )
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
+        readings: readings_by_folder
+            .get(&id)
+            .map(|rs| {
+                rs.iter()
+                    .map(|r| build_reading_node(r, extracts_by_parent, cards_by_parent))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        extracts: collect_extracts(Provenance::Folder(id), extracts_by_parent, cards_by_parent),
+        cards: collect_cards(Provenance::Folder(id), cards_by_parent),
     }
 }
 
 fn build_reading_node(
     reading: &Reading,
-    extracts_by_parent: &HashMap<(String, Uuid), Vec<Extract>>,
-    cards_by_parent: &HashMap<(String, Uuid), Vec<Card>>,
+    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
+    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
 ) -> ReadingNodeDto {
-    let id = reading.meta.id;
-    let reading_key = ("reading".to_string(), id);
+    ReadingNodeDto {
+        id: reading.meta.id.to_string(),
+        name: reading.meta.name.clone(),
+        position: reading.meta.position,
+        tags: tag_strings(reading),
+        extracts: collect_extracts(
+            Provenance::Reading(reading.meta.id),
+            extracts_by_parent,
+            cards_by_parent,
+        ),
+        cards: collect_cards(Provenance::Reading(reading.meta.id), cards_by_parent),
+    }
+}
 
-    let extracts = extracts_by_parent
-        .get(&reading_key)
+fn collect_extracts(
+    parent: Provenance,
+    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
+    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+) -> Vec<ExtractNodeDto> {
+    extracts_by_parent
+        .get(&parent)
         .map(|es| {
             es.iter()
                 .map(|e| build_extract_node(e, extracts_by_parent, cards_by_parent))
                 .collect()
         })
-        .unwrap_or_default();
-
-    let cards = cards_by_parent
-        .get(&reading_key)
-        .map(|cs| cs.iter().map(to_card_node).collect())
-        .unwrap_or_default();
-
-    ReadingNodeDto {
-        id: id.to_string(),
-        name: reading.meta.name.clone(),
-        position: reading.meta.position,
-        tags: reading.tags.iter().map(|t| t.to_string()).collect(),
-        extracts,
-        cards,
-    }
+        .unwrap_or_default()
 }
 
 fn build_extract_node(
     extract: &Extract,
-    extracts_by_parent: &HashMap<(String, Uuid), Vec<Extract>>,
-    cards_by_parent: &HashMap<(String, Uuid), Vec<Card>>,
+    extracts_by_parent: &HashMap<Provenance, Vec<Extract>>,
+    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
 ) -> ExtractNodeDto {
-    let id = extract.meta.id;
-    let extract_key = ("extract".to_string(), id);
-
-    let child_extracts = extracts_by_parent
-        .get(&extract_key)
-        .map(|es| {
-            es.iter()
-                .map(|e| build_extract_node(e, extracts_by_parent, cards_by_parent))
-                .collect()
-        })
-        .unwrap_or_default();
-
-    let cards = cards_by_parent
-        .get(&extract_key)
-        .map(|cs| cs.iter().map(to_card_node).collect())
-        .unwrap_or_default();
-
     ExtractNodeDto {
-        id: id.to_string(),
+        id: extract.meta.id.to_string(),
         name: extract.meta.name.clone(),
         position: extract.meta.position,
         text: extract.text.clone(),
-        tags: extract.tags.iter().map(|t| t.to_string()).collect(),
-        extracts: child_extracts,
-        cards,
+        tags: tag_strings(extract),
+        extracts: collect_extracts(
+            Provenance::Extract(extract.meta.id),
+            extracts_by_parent,
+            cards_by_parent,
+        ),
+        cards: collect_cards(Provenance::Extract(extract.meta.id), cards_by_parent),
     }
 }
 
-fn to_card_node(card: &Card) -> CardNodeDto {
-    CardNodeDto {
-        id: card.meta.id.to_string(),
-        name: card.meta.name.clone(),
-        position: card.meta.position,
-        front: card.front.clone(),
-        back: card.back.clone(),
-        tags: card.tags.iter().map(|t| t.to_string()).collect(),
-    }
+fn collect_cards(
+    parent: Provenance,
+    cards_by_parent: &HashMap<Provenance, Vec<Card>>,
+) -> Vec<CardNodeDto> {
+    cards_by_parent
+        .get(&parent)
+        .map(|cs| {
+            cs.iter()
+                .map(|card| CardNodeDto {
+                    id: card.meta.id.to_string(),
+                    name: card.meta.name.clone(),
+                    position: card.meta.position,
+                    front: card.front.clone(),
+                    back: card.back.clone(),
+                    tags: tag_strings(card),
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -344,10 +301,11 @@ mod tests {
         id: Uuid,
         name: &str,
         position: i64,
-        parent_type: &str,
-        parent_id: Uuid,
+        parent: Provenance,
         text: &str,
     ) {
+        let parent_type = parent.type_str();
+        let parent_id = parent.id();
         let now = Utc::now();
         let mut guard = tx.lock().await;
         let tx_ref = guard.as_mut();
@@ -373,11 +331,12 @@ mod tests {
         id: Uuid,
         name: &str,
         position: i64,
-        parent_type: &str,
-        parent_id: Uuid,
+        parent: Provenance,
         front: &str,
         back: &str,
     ) {
+        let parent_type = parent.type_str();
+        let parent_id = parent.id();
         let now = Utc::now();
         let mut guard = tx.lock().await;
         let tx_ref = guard.as_mut();
@@ -496,8 +455,7 @@ mod tests {
             extract_id,
             "Key passage",
             0,
-            "reading",
-            reading_id,
+            Provenance::Reading(reading_id),
             "Plants convert sunlight",
         )
         .await;
@@ -506,8 +464,7 @@ mod tests {
             card_id,
             "Card 1",
             0,
-            "extract",
-            extract_id,
+            Provenance::Extract(extract_id),
             "What do plants convert?",
             "Sunlight",
         )
@@ -638,8 +595,7 @@ mod tests {
             extract_id,
             "Direct extract",
             0,
-            "folder",
-            folder_id,
+            Provenance::Folder(folder_id),
             "Some text",
         )
         .await;

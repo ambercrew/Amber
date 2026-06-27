@@ -78,6 +78,15 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 - Repository traits live in `repositories/`, implementations in `repositories/infrastructure/sqlite/`
 - Error types use `thiserror`; all commands return `Result<T, ApiError>`
 
+### Element Duplication
+
+Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent: Provenance`). Avoid duplicating logic that can be expressed through these traits:
+
+- Use `element.meta()` (via `Element`) instead of repeating `element.meta.id / .name / .position` patterns across element types.
+- Use `tag_strings(tagged)` or equivalent helpers rather than inlining `.tags().iter().map(|t| t.to_string()).collect()` per element.
+- Use `Provenance::from_type_and_id` / `Provenance::type_str` / `Provenance::id` instead of repeating the `"reading" / "extract" / "folder"` match arms.
+- Use generic helpers for patterns that repeat over different element types.
+
 ## Frontend Architecture (`src/`)
 
 **React 19** with Redux Toolkit, React Router 7, and Vite.

@@ -9,7 +9,7 @@ import {
 	useTree,
 } from "@mantine/core";
 import {
-	ArticleIcon,
+	FileTextIcon,
 	CardsIcon,
 	CaretDownIcon,
 	CaretRightIcon,
@@ -119,7 +119,7 @@ function ElementNodeIcon({ type, expanded }: ElementNodeIconProps) {
 				<FolderIcon size={size} />
 			);
 		case "reading":
-			return <ArticleIcon size={size} />;
+			return <FileTextIcon size={size} />;
 		case "extract":
 			return <QuotesIcon size={size} />;
 		case "card":
