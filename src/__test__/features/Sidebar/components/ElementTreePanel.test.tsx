@@ -20,7 +20,8 @@ describe("ElementTreePanel — new root folder button", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("New root folder"));
+		await user.click(screen.getByTitle("New element"));
+		await user.click(await screen.findByText("Folder"));
 
 		// Assert
 
@@ -40,7 +41,8 @@ describe("ElementTreePanel — new root folder button", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("New root folder"));
+		await user.click(screen.getByTitle("New element"));
+		await user.click(await screen.findByText("Folder"));
 
 		// Assert — name is "Folder YYYY-MM-DD HH:MM:SS"
 

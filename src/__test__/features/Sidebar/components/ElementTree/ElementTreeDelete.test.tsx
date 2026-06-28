@@ -9,7 +9,7 @@ vi.mock(import("../../../../../stores/elements/elementsActions"));
 const TREE: NodeDto[] = [
 	{
 		meta: {
-			id: "folder-science",
+			id: { type: "folder", id: "folder-science" },
 			name: "Science",
 			position: "0",
 			tags: [],

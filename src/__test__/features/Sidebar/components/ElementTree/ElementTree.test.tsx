@@ -3,6 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
+import { ElementId } from "../../../../../types/elements/elementId";
 import {
 	LOCATION_DISPLAY_TEST_ID,
 	renderWithProviders,
@@ -22,12 +23,13 @@ vi.mock(
 );
 
 function makeNode(
-	id: string,
+	id: ElementId,
 	name: string,
 	children: Partial<NodeDto["children"]> = {},
+	position = "0",
 ): NodeDto {
 	return {
-		meta: { id, name, position: "0", tags: [] },
+		meta: { id, name, position, tags: [] },
 		children: {
 			folders: [],
 			readings: [],
@@ -39,17 +41,26 @@ function makeNode(
 }
 
 const TREE: NodeDto[] = [
-	makeNode("folder-science", "Science", {
-		readings: [makeNode("reading-biology", "Biology Basics")],
+	makeNode({ type: "folder", id: "folder-science" }, "Science", {
+		readings: [
+			makeNode(
+				{ type: "reading", id: "reading-biology" },
+				"Biology Basics",
+			),
+		],
 	}),
-	makeNode("folder-art", "Art", {
+	makeNode({ type: "folder", id: "folder-art" }, "Art", {
 		extracts: [
-			makeNode("extract-impressionism", "Impressionism", {
-				cards: [
-					makeNode("card-1", "Monet"),
-					makeNode("card-2", "Renoir"),
-				],
-			}),
+			makeNode(
+				{ type: "extract", id: "extract-impressionism" },
+				"Impressionism",
+				{
+					cards: [
+						makeNode({ type: "card", id: "card-1" }, "Monet"),
+						makeNode({ type: "card", id: "card-2" }, "Renoir"),
+					],
+				},
+			),
 		],
 	}),
 ];
@@ -214,5 +225,130 @@ describe("ElementTree search", () => {
 
 		// Assert — Impressionism has 2 card children.
 		expect(screen.getByText("Impressionism (2)")).toBeInTheDocument();
+	});
+});
+
+describe("ElementTree sorting", () => {
+	beforeEach(() => window.localStorage.clear());
+
+	it("Should sort mixed-type children by position", async () => {
+		// Arrange — a folder whose children span all four types, with
+		// positions deliberately out of insertion order so the sort is
+		// observable.
+
+		const tree: NodeDto[] = [
+			{
+				meta: {
+					id: { type: "folder", id: "root" },
+					name: "Root",
+					position: "0",
+					tags: [],
+				},
+				children: {
+					folders: [
+						makeNode(
+							{ type: "folder", id: "child-folder" },
+							"Child Folder",
+							{},
+							"c",
+						),
+					],
+					readings: [
+						makeNode(
+							{ type: "reading", id: "child-reading" },
+							"Child Reading",
+							{},
+							"a",
+						),
+					],
+					extracts: [
+						makeNode(
+							{ type: "extract", id: "child-extract" },
+							"Child Extract",
+							{},
+							"d",
+						),
+					],
+					cards: [
+						makeNode(
+							{ type: "card", id: "child-card" },
+							"Child Card",
+							{},
+							"b",
+						),
+					],
+				},
+			},
+		];
+		const user = userEvent.setup();
+		renderWithProviders(
+			<MantineProvider>
+				<ElementTree tree={tree} />
+			</MantineProvider>,
+		);
+
+		// Act — expand Root to reveal all children.
+
+		await user.click(screen.getByRole("button", { name: "Expand" }));
+
+		// Assert — children appear in position order: Reading(a) < Card(b) < Folder(c) < Extract(d)
+
+		const items = screen
+			.getAllByRole("treeitem")
+			.map(li => li.querySelector("[title]")?.getAttribute("title"))
+			.filter(Boolean);
+
+		const childIndex = (name: string) => items.indexOf(name);
+		expect(childIndex("Child Reading")).toBeLessThan(
+			childIndex("Child Card"),
+		);
+		expect(childIndex("Child Card")).toBeLessThan(
+			childIndex("Child Folder"),
+		);
+		expect(childIndex("Child Folder")).toBeLessThan(
+			childIndex("Child Extract"),
+		);
+	});
+
+	it("Should sort root-level nodes by position regardless of type", () => {
+		// Arrange — two folders and a reading at root, with positions that
+		// put the reading between the two folders.
+
+		const tree: NodeDto[] = [
+			makeNode(
+				{ type: "folder", id: "folder-first" },
+				"First Folder",
+				{},
+				"a",
+			),
+			makeNode(
+				{ type: "reading", id: "reading-middle" },
+				"Middle Reading",
+				{},
+				"b",
+			),
+			makeNode(
+				{ type: "folder", id: "folder-last" },
+				"Last Folder",
+				{},
+				"c",
+			),
+		];
+		renderWithProviders(
+			<MantineProvider>
+				<ElementTree tree={tree} />
+			</MantineProvider>,
+		);
+
+		// Assert
+
+		const items = screen
+			.getAllByRole("treeitem")
+			.map(li => li.querySelector("[title]")?.getAttribute("title"))
+			.filter(Boolean);
+
+		const idx = (name: string) => items.indexOf(name);
+		expect(idx("First Folder")).toBeLessThan(idx("Middle Reading"));
+		expect(idx("Middle Reading")).toBeLessThan(idx("Last Folder"));
 	});
 });
