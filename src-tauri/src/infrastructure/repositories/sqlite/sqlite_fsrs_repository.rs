@@ -29,8 +29,8 @@ impl FsrsRepository for SqliteFsrsRepository {
             FsrsProfileRow,
             r#"SELECT
                 id as "id: _",
-                created_date as "created_date: _",
-                modified_date as "modified_date: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _",
                 name,
                 request_retention as "request_retention: _",
                 maximum_interval as "maximum_interval: _",
@@ -53,8 +53,8 @@ impl FsrsRepository for SqliteFsrsRepository {
             FsrsProfileRow,
             r#"SELECT
                 id as "id: _",
-                created_date as "created_date: _",
-                modified_date as "modified_date: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _",
                 name,
                 request_retention as "request_retention: _",
                 maximum_interval as "maximum_interval: _",
@@ -72,8 +72,8 @@ impl FsrsRepository for SqliteFsrsRepository {
         let tx = tx.as_mut();
 
         let id = fsrs_profile.id();
-        let created_date = fsrs_profile.created_date();
-        let modified_date = fsrs_profile.modified_date();
+        let created_at = fsrs_profile.created_at();
+        let modified_at = fsrs_profile.modified_at();
         let name = fsrs_profile.name();
         let request_retention = fsrs_profile.request_retention();
         let maximum_interval = fsrs_profile.maximum_interval();
@@ -87,16 +87,16 @@ impl FsrsRepository for SqliteFsrsRepository {
         let result = sqlx::query!(
             "INSERT INTO fsrs_profiles(
                 id,
-                created_date,
-                modified_date,
+                created_at,
+                modified_at,
                 name,
                 request_retention,
                 maximum_interval,
                 weights)
             VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7)",
             id,
-            created_date,
-            modified_date,
+            created_at,
+            modified_at,
             name,
             request_retention,
             maximum_interval,
@@ -114,8 +114,8 @@ impl FsrsRepository for SqliteFsrsRepository {
         let tx = tx.as_mut();
 
         let id = fsrs_profile.id();
-        let created_date = fsrs_profile.created_date();
-        let modified_date = fsrs_profile.modified_date();
+        let created_at = fsrs_profile.created_at();
+        let modified_at = fsrs_profile.modified_at();
         let name = fsrs_profile.name();
         let request_retention = fsrs_profile.request_retention();
         let maximum_interval = fsrs_profile.maximum_interval();
@@ -129,16 +129,16 @@ impl FsrsRepository for SqliteFsrsRepository {
         let result = sqlx::query!(
             "UPDATE fsrs_profiles SET
                 id = $1,
-                created_date = datetime($2),
-                modified_date = datetime($3),
+                created_at = datetime($2),
+                modified_at = datetime($3),
                 name = $4,
                 request_retention = $5,
                 maximum_interval = $6,
                 weights = $7
             WHERE id = $1",
             id,
-            created_date,
-            modified_date,
+            created_at,
+            modified_at,
             name,
             request_retention,
             maximum_interval,
@@ -163,16 +163,16 @@ impl FsrsRepository for SqliteFsrsRepository {
         Ok(())
     }
 
-    async fn upsert_with_modified_date_if_modified_before(
+    async fn upsert_with_modified_at_if_modified_before(
         &self,
         fsrs_profile: &FsrsProfile,
-        modified_date: DateTime<Utc>,
+        modified_at: DateTime<Utc>,
     ) -> Result<u64, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
         let id = fsrs_profile.id();
-        let created_date = fsrs_profile.created_date();
+        let created_at = fsrs_profile.created_at();
         let name = fsrs_profile.name();
         let request_retention = fsrs_profile.request_retention();
         let maximum_interval = fsrs_profile.maximum_interval();
@@ -186,8 +186,8 @@ impl FsrsRepository for SqliteFsrsRepository {
         let result = sqlx::query!(
             r#"INSERT INTO fsrs_profiles(
                 id,
-                created_date,
-                modified_date,
+                created_at,
+                modified_at,
                 name,
                 request_retention,
                 maximum_interval,
@@ -195,17 +195,17 @@ impl FsrsRepository for SqliteFsrsRepository {
             VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7)
             ON CONFLICT(id) DO UPDATE
             SET id = $1,
-                created_date = datetime($2),
-                modified_date = datetime($3),
+                created_at = datetime($2),
+                modified_at = datetime($3),
                 name = $4,
                 request_retention = $5,
                 maximum_interval = $6,
                 weights = $7
-            WHERE modified_date <= datetime($3)
+            WHERE modified_at <= datetime($3)
             "#,
             id,
-            created_date,
-            modified_date,
+            created_at,
+            modified_at,
             name,
             request_retention,
             maximum_interval,
@@ -219,7 +219,7 @@ impl FsrsRepository for SqliteFsrsRepository {
 
     async fn get_all_modified_on_or_after(
         &self,
-        modified_date: DateTime<Utc>,
+        modified_at: DateTime<Utc>,
     ) -> Result<Vec<FsrsProfile>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
@@ -228,15 +228,15 @@ impl FsrsRepository for SqliteFsrsRepository {
             FsrsProfileRow,
             r#"SELECT
                 id as "id: _",
-                created_date as "created_date: _",
-                modified_date as "modified_date: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _",
                 name,
                 request_retention as "request_retention: _",
                 maximum_interval as "maximum_interval: _",
                 weights
             FROM fsrs_profiles
-            WHERE modified_date >= datetime($1)"#,
-            modified_date
+            WHERE modified_at >= datetime($1)"#,
+            modified_at
         )
         .fetch_all(&mut *tx)
         .await;

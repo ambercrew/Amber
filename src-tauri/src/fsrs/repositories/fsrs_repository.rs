@@ -11,13 +11,13 @@ pub trait FsrsRepository: Send + Sync {
     async fn create(&self, fsrs_profile: &FsrsProfile) -> Result<(), RepositoryError>;
     async fn update(&self, fsrs_profile: &FsrsProfile) -> Result<(), RepositoryError>;
     async fn delete_by_id(&self, id: Uuid) -> Result<(), RepositoryError>;
-    async fn upsert_with_modified_date_if_modified_before(
+    async fn upsert_with_modified_at_if_modified_before(
         &self,
         fsrs_profile: &FsrsProfile,
-        modified_date: DateTime<Utc>,
+        modified_at: DateTime<Utc>,
     ) -> Result<u64, RepositoryError>;
     async fn get_all_modified_on_or_after(
         &self,
-        modified_date: DateTime<Utc>,
+        modified_at: DateTime<Utc>,
     ) -> Result<Vec<FsrsProfile>, RepositoryError>;
 }

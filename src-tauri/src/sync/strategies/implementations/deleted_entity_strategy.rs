@@ -40,7 +40,7 @@ impl SyncEntityStrategy for DefaultDeletedEntityStrategy {
         let entity = DeletedEntity::new(
             synced_entity.entity_id,
             decoded_entity.entity_name,
-            synced_entity.created_date,
+            synced_entity.created_at,
             decoded_entity
                 .deleted_date
                 .unwrap()
@@ -73,7 +73,7 @@ impl SyncEntityStrategy for DefaultDeletedEntityStrategy {
             .into_iter()
             .map(|d| SyncEntityDto {
                 entity_id: d.entity_id,
-                created_date: d.entity_created_date,
+                created_at: d.entity_created_at,
                 entity_type: EntityType::DeletedEntity,
                 data: generated_code::DeletedEntity {
                     entity_name: d.entity_name,

@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub struct DeletedEntity {
     pub entity_id: Uuid,
     pub entity_name: String,
-    pub entity_created_date: DateTime<Utc>,
+    pub entity_created_at: DateTime<Utc>,
     pub deleted_date: DateTime<Utc>,
 }
 
@@ -16,13 +16,13 @@ impl DeletedEntity {
     pub fn new(
         entity_id: Uuid,
         entity_name: String,
-        entity_created_date: DateTime<Utc>,
+        entity_created_at: DateTime<Utc>,
         deleted_date: DateTime<Utc>,
     ) -> Self {
         Self {
             entity_id,
             entity_name,
-            entity_created_date,
+            entity_created_at,
             deleted_date,
         }
     }

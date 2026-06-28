@@ -8,7 +8,7 @@ use uuid::Uuid;
 pub struct SyncedEntity {
     pub user_id: Uuid,
     pub entity_id: Uuid,
-    pub created_date: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     pub last_sync_date: DateTime<Utc>,
     pub entity_type: EntityType,
     pub data: String,

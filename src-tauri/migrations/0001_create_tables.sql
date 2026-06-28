@@ -1,8 +1,7 @@
--- TODO: use created_at and modified_at
 CREATE TABLE fsrs_profiles(
     id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_date                TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_date               TEXT        NOT NULL        DEFAULT (datetime('now')),
+    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
     name                        TEXT        NOT NULL,
     request_retention           REAL        NOT NULL,
     maximum_interval            REAL        NOT NULL,
@@ -23,19 +22,19 @@ INSERT INTO fsrs_profiles(
     '0.212 1.2931 2.3065 8.2956 6.4133 0.8334 3.0194 0.001 1.8722 0.1666 0.796 1.4835 0.0614 0.2629 1.6483 0.6014 1.8729 0.5425 0.0912 0.0658 0.1542'
 );
 
-CREATE TRIGGER fsrs_profiles_update_modified_date_after_update
+CREATE TRIGGER fsrs_profiles_update_modified_at_after_update
     AFTER UPDATE OF name, request_retention, maximum_interval, weights ON fsrs_profiles
 BEGIN
     UPDATE fsrs_profiles
-    SET modified_date = datetime('now')
+    SET modified_at = datetime('now')
     WHERE id = NEW.id;
 END;
 
 CREATE TRIGGER fsrs_profiles_add_to_deleted_entities_after_delete
     AFTER DELETE ON fsrs_profiles
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
-    VALUES ('fsrs_profiles', OLD.id, OLD.created_date, datetime('now'));
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
+    VALUES ('fsrs_profiles', OLD.id, OLD.created_at, datetime('now'));
 END;
 
 
@@ -44,7 +43,7 @@ END;
 CREATE TABLE deleted_entities(
     entity_id                   TEXT        NOT NULL,
     entity_name                 TEXT        NOT NULL,
-    entity_created_date         TEXT        NOT NULL        DEFAULT (datetime('now')),
+    entity_created_at         TEXT        NOT NULL        DEFAULT (datetime('now')),
     deleted_date                TEXT        NOT NULL        DEFAULT (datetime('now'))
 );
 
@@ -99,7 +98,7 @@ END;
 CREATE TRIGGER tags_add_to_deleted_entities_after_delete
     AFTER DELETE ON tags
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
     VALUES ('tags', OLD.id, OLD.created_at, datetime('now'));
 END;
 
@@ -175,7 +174,7 @@ END;
 CREATE TRIGGER folders_add_to_deleted_entities_after_delete
     AFTER DELETE ON folders
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
     SELECT 'folders', OLD.id, created_at, datetime('now')
     FROM meta WHERE id = OLD.id;
 END;
@@ -189,7 +188,7 @@ END;
 CREATE TRIGGER readings_add_to_deleted_entities_after_delete
     AFTER DELETE ON readings
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
     SELECT 'readings', OLD.id, created_at, datetime('now')
     FROM meta WHERE id = OLD.id;
 END;
@@ -203,7 +202,7 @@ END;
 CREATE TRIGGER extracts_add_to_deleted_entities_after_delete
     AFTER DELETE ON extracts
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
     SELECT 'extracts', OLD.id, created_at, datetime('now')
     FROM meta WHERE id = OLD.id;
 END;
@@ -217,7 +216,7 @@ END;
 CREATE TRIGGER cards_add_to_deleted_entities_after_delete
     AFTER DELETE ON cards
 BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
     SELECT 'cards', OLD.id, created_at, datetime('now')
     FROM meta WHERE id = OLD.id;
 END;

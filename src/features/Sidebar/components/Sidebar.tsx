@@ -15,7 +15,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 
 	return (
 		<>
-			<AppShell.Section p="sm">
+			<AppShell.Section p="sm" grow style={{ overflowY: "auto" }}>
 				<Group justify="center" style={{ position: "relative" }}>
 					<Group gap="xs">
 						<ActionIcon
@@ -43,9 +43,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 						<XIcon size={20} />
 					</ActionIcon>
 				</Group>
-			</AppShell.Section>
 
-			<AppShell.Section grow style={{ overflowY: "auto" }}>
 				{activeTab === "tree" ? (
 					<ElementTreePanel />
 				) : (

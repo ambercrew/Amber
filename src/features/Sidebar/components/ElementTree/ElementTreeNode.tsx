@@ -85,7 +85,7 @@ function ElementTreeNode({
 						? "var(--mantine-primary-color-light-color)"
 						: undefined
 				}
-				style={{ borderRadius: "var(--mantine-radius-sm)" }}>
+				style={{ borderRadius: "var(--mantine-radius-default)" }}>
 				<ActionIcon
 					variant="transparent"
 					size="xs"
@@ -127,7 +127,6 @@ function ElementTreeNode({
 					<Menu.Target>
 						<ActionIcon
 							variant="subtle"
-							size="xs"
 							aria-label="Open actions menu"
 							style={{
 								visibility:

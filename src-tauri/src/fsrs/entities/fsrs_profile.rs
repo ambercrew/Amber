@@ -9,8 +9,8 @@ use crate::DEFAULT_FSRS_PROFILE_ID;
 #[serde(rename_all = "camelCase")]
 pub struct FsrsProfile {
     id: Uuid,
-    created_date: DateTime<Utc>,
-    modified_date: DateTime<Utc>,
+    created_at: DateTime<Utc>,
+    modified_at: DateTime<Utc>,
     name: String,
     request_retention: f64,
     maximum_interval: f64,
@@ -42,8 +42,8 @@ impl FsrsProfile {
 
         Ok(Self {
             id: id.unwrap_or(Uuid::new_v4()),
-            created_date: Utc::now(),
-            modified_date: Utc::now(),
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
             name,
             request_retention,
             maximum_interval,
@@ -53,8 +53,8 @@ impl FsrsProfile {
 
     pub fn new_unchecked(
         id: Uuid,
-        created_date: DateTime<Utc>,
-        modified_date: DateTime<Utc>,
+        created_at: DateTime<Utc>,
+        modified_at: DateTime<Utc>,
         name: String,
         request_retention: f64,
         maximum_interval: f64,
@@ -62,8 +62,8 @@ impl FsrsProfile {
     ) -> Self {
         Self {
             id,
-            created_date,
-            modified_date,
+            created_at,
+            modified_at,
             name,
             request_retention,
             maximum_interval,
@@ -75,12 +75,12 @@ impl FsrsProfile {
         self.id
     }
 
-    pub fn created_date(&self) -> DateTime<Utc> {
-        self.created_date
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.created_at
     }
 
-    pub fn modified_date(&self) -> DateTime<Utc> {
-        self.modified_date
+    pub fn modified_at(&self) -> DateTime<Utc> {
+        self.modified_at
     }
 
     pub fn name(&self) -> &str {

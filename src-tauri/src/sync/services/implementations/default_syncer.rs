@@ -124,7 +124,7 @@ impl DefaultSyncer {
     ) -> Result<bool, SyncError> {
         let result = self
             .backend_client
-            .get_synced_entities_after_ordered_by_created_date(last_sync_date, sync_page)
+            .get_synced_entities_after_ordered_by_created_at(last_sync_date, sync_page)
             .await?;
 
         for synced_entity in result.synced_entities {
@@ -452,17 +452,17 @@ impl DefaultSyncer {
 //         let file_id = Uuid::new_v4();
 //         let cell_id = Uuid::new_v4();
 //         let fsrs_profile_id = Uuid::new_v4();
-//         let file_modified_date = Utc::now() - Duration::hours(8);
+//         let file_modified_at = Utc::now() - Duration::hours(8);
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![
 //             SyncedEntity {
 //                 user_id,
 //                 entity_id: fsrs_profile_id,
 //                 entity_type: EntityType::FsrsProfile,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::FsrsProfile {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     name: "test profile".into(),
 //                     request_retention: 10f64,
 //                     maximum_interval: 8f64,
@@ -474,10 +474,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Folder,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Folder {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     name: "test".into(),
 //                     parent_id: Some(ROOT_FOLDER_ID.into()),
 //                     fsrs_profile_id: None,
@@ -488,10 +488,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::File {
-//                     modified_date: Some(file_modified_date.into_timestamp()),
+//                     modified_at: Some(file_modified_at.into_timestamp()),
 //                     name: "test".into(),
 //                     parent_id: Some(ROOT_FOLDER_ID.into()),
 //                     fsrs_profile_id: Some(fsrs_profile_id.to_string()),
@@ -502,10 +502,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: cell_id,
 //                 entity_type: EntityType::Cell,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Cell {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     content: "content".to_string(),
 //                     cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                     index: 1,
@@ -518,10 +518,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Repetition,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Repetition {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     file_id: file_id.to_string(),
 //                     cell_id: cell_id.to_string(),
 //                     due: Some(Utc::now().into_timestamp()),
@@ -534,10 +534,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: Uuid::new_v4(),
 //                 entity_type: EntityType::Review,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Review {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     cell_id: Some(cell_id.to_string()),
 //                     date: Some(Utc::now().into_timestamp()),
 //                     rating: serde_json::to_string(&Rating::Hard).unwrap(),
@@ -549,7 +549,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -613,7 +613,7 @@ impl DefaultSyncer {
 //             == FileSystemItemName::new_unchecked("test".to_string())
 //             && f.parent_id() == Some(ROOT_FOLDER_ID)
 //             && f.fsrs_profile_choice() == FsrsProfileChoice::Id(fsrs_profile_id)
-//             && (f.modified_date() - file_modified_date) <= Duration::seconds(1)));
+//             && (f.modified_at() - file_modified_at) <= Duration::seconds(1)));
 //
 //         let cells = scope
 //             .resolve::<dyn CellRepository>()
@@ -658,10 +658,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: cell_from_sync_id,
 //             entity_type: EntityType::Cell,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::Cell {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 content: "content".to_string(),
 //                 cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                 index: 1,
@@ -673,7 +673,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -754,7 +754,7 @@ impl DefaultSyncer {
 //             user_id,
 //             entity_id: file_id,
 //             entity_type: EntityType::DeletedEntity,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::DeletedEntity {
 //                 entity_name: "files".to_string(),
@@ -766,7 +766,7 @@ impl DefaultSyncer {
 //         let mut backend_client = MockBrainyBackendClient::new();
 //
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -818,7 +818,7 @@ impl DefaultSyncer {
 //     }
 //
 //     #[tokio::test]
-//     pub async fn sync_with_backend_existing_entity_with_older_modified_date_local_entity_updated() {
+//     pub async fn sync_with_backend_existing_entity_with_older_modified_at_local_entity_updated() {
 //         // Arrange
 //
 //         let user_id = Uuid::new_v4();
@@ -830,10 +830,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::File {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     name: "new name".into(),
 //                     parent_id: Some(ROOT_FOLDER_ID.into()),
 //                     fsrs_profile_id: None,
@@ -844,10 +844,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: cell_id,
 //                 entity_type: EntityType::Cell,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Cell {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     content: "new content".to_string(),
 //                     cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                     file_id: file_id.to_string(),
@@ -859,10 +859,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: DEFAULT_FSRS_PROFILE_ID,
 //                 entity_type: EntityType::FsrsProfile,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::FsrsProfile {
-//                     modified_date: Some(Utc::now().into_timestamp()),
+//                     modified_at: Some(Utc::now().into_timestamp()),
 //                     name: "new name".into(),
 //                     request_retention: 10f64,
 //                     maximum_interval: 8f64,
@@ -874,7 +874,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -965,7 +965,7 @@ impl DefaultSyncer {
 //     }
 //
 //     #[tokio::test]
-//     pub async fn sync_with_backend_existing_entity_with_newer_modified_date_locally_entities_not_updated()
+//     pub async fn sync_with_backend_existing_entity_with_newer_modified_at_locally_entities_not_updated()
 //      {
 //         // Arrange
 //
@@ -973,17 +973,17 @@ impl DefaultSyncer {
 //         let file_id = Uuid::new_v4();
 //         let cell_id = Uuid::new_v4();
 //
-//         let synced_entities_modified_date = Utc::now() - Duration::seconds(1);
+//         let synced_entities_modified_at = Utc::now() - Duration::seconds(1);
 //
 //         let synced_entities: Vec<SyncedEntity> = vec![
 //             SyncedEntity {
 //                 user_id,
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::File {
-//                     modified_date: Some(synced_entities_modified_date.into_timestamp()),
+//                     modified_at: Some(synced_entities_modified_at.into_timestamp()),
 //                     name: "new name".into(),
 //                     parent_id: Some(ROOT_FOLDER_ID.into()),
 //                     fsrs_profile_id: None,
@@ -994,10 +994,10 @@ impl DefaultSyncer {
 //                 user_id,
 //                 entity_id: cell_id,
 //                 entity_type: EntityType::Cell,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: generated_code::Cell {
-//                     modified_date: Some(synced_entities_modified_date.into_timestamp()),
+//                     modified_at: Some(synced_entities_modified_at.into_timestamp()),
 //                     content: "new content".to_string(),
 //                     cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                     file_id: file_id.to_string(),
@@ -1009,7 +1009,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -1096,7 +1096,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: Vec::new(),
@@ -1152,7 +1152,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: Vec::new(),
@@ -1202,7 +1202,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: Vec::new(),
@@ -1253,7 +1253,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .withf(|date, _| {
 //                 (*date - Utc.with_ymd_and_hms(2001, 1, 1, 0, 0, 0).unwrap()).abs()
 //                     <= Duration::seconds(1)
@@ -1300,7 +1300,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .withf(move |date, _| (*date - stored_sync_date).abs() <= Duration::seconds(1))
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
@@ -1348,10 +1348,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: cell_id,
 //             entity_type: EntityType::Cell,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::Cell {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 content: "content".to_string(),
 //                 cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                 index: 1,
@@ -1363,7 +1363,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -1385,7 +1385,7 @@ impl DefaultSyncer {
 //                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: String::new(),
 //             })
@@ -1434,10 +1434,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: cell_id,
 //             entity_type: EntityType::Cell,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::Cell {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 content: "content".to_string(),
 //                 cell_type: serde_json::to_string(&CellType::FlashCard).unwrap(),
 //                 index: 1,
@@ -1449,7 +1449,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -1470,7 +1470,7 @@ impl DefaultSyncer {
 //                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: String::new(),
 //             })
@@ -1481,7 +1481,7 @@ impl DefaultSyncer {
 //                 user_id: Uuid::new_v4(),
 //                 entity_id: cell_id,
 //                 entity_type: EntityType::Cell,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: String::new(),
 //             })
@@ -1529,10 +1529,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: file_id,
 //             entity_type: EntityType::File,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::File {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 name: "test".into(),
 //                 parent_id: Some(ROOT_FOLDER_ID.into()),
 //                 fsrs_profile_id: Some(deleted_fsrs_id.to_string()),
@@ -1542,7 +1542,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -1565,7 +1565,7 @@ impl DefaultSyncer {
 //                 user_id: Uuid::new_v4(),
 //                 entity_id: deleted_fsrs_id,
 //                 entity_type: EntityType::FsrsProfile,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: String::new(),
 //             })
@@ -1606,10 +1606,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: file_id,
 //             entity_type: EntityType::File,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::File {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 name: "should not be inserted".into(),
 //                 parent_id: Some(ROOT_FOLDER_ID.into()),
 //                 fsrs_profile_id: None,
@@ -1619,7 +1619,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),
@@ -1641,7 +1641,7 @@ impl DefaultSyncer {
 //                 user_id: Uuid::new_v4(),
 //                 entity_id: file_id,
 //                 entity_type: EntityType::File,
-//                 created_date: Utc::now(),
+//                 created_at: Utc::now(),
 //                 last_sync_date: Utc::now(),
 //                 data: String::new(),
 //             })
@@ -1680,10 +1680,10 @@ impl DefaultSyncer {
 //             user_id: Uuid::new_v4(),
 //             entity_id: folder_id,
 //             entity_type: EntityType::Folder,
-//             created_date: Utc::now(),
+//             created_at: Utc::now(),
 //             last_sync_date: Utc::now(),
 //             data: generated_code::Folder {
-//                 modified_date: Some(Utc::now().into_timestamp()),
+//                 modified_at: Some(Utc::now().into_timestamp()),
 //                 name: "test".into(),
 //                 parent_id: Some(ROOT_FOLDER_ID.into()),
 //                 fsrs_profile_id: None,
@@ -1693,7 +1693,7 @@ impl DefaultSyncer {
 //
 //         let mut backend_client = MockBrainyBackendClient::new();
 //         backend_client
-//             .expect_get_synced_entities_after_ordered_by_created_date()
+//             .expect_get_synced_entities_after_ordered_by_created_at()
 //             .returning(move |_, _| {
 //                 Ok(SyncedEntitiesPageDto {
 //                     synced_entities: synced_entities.clone(),

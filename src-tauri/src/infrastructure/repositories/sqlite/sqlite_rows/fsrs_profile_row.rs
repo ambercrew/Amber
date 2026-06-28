@@ -5,8 +5,8 @@ use crate::fsrs::entities::fsrs_profile::FsrsProfile;
 
 pub struct FsrsProfileRow {
     pub id: Uuid,
-    pub created_date: DateTime<Utc>,
-    pub modified_date: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub modified_at: DateTime<Utc>,
     pub name: String,
     pub request_retention: f64,
     pub maximum_interval: f64,
@@ -22,8 +22,8 @@ impl From<FsrsProfileRow> for FsrsProfile {
             .collect();
         FsrsProfile::new_unchecked(
             value.id,
-            value.created_date,
-            value.modified_date,
+            value.created_at,
+            value.modified_at,
             value.name,
             value.request_retention,
             value.maximum_interval,

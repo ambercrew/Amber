@@ -5,7 +5,7 @@ import "google/protobuf/timestamp.proto";
 package generated_code;
 
 message FsrsProfile {
-  google.protobuf.Timestamp modified_date = 1;
+  google.protobuf.Timestamp modified_at = 1;
   string name = 2;
   double request_retention = 3;
   double maximum_interval = 4;

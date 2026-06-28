@@ -34,7 +34,7 @@ impl SyncRepository for SqliteSyncRepository {
         let DeletedEntity {
             entity_name,
             entity_id,
-            entity_created_date,
+            entity_created_at,
             deleted_date,
         } = deleted_entity;
 
@@ -46,11 +46,11 @@ impl SyncRepository for SqliteSyncRepository {
 
         let result = sqlx::query!(
             r#"UPDATE deleted_entities
-                SET deleted_date = datetime($1), entity_created_date = datetime($2)
+                SET deleted_date = datetime($1), entity_created_at = datetime($2)
                 WHERE entity_name = $3 AND entity_id = $4
             "#,
             deleted_date,
-            entity_created_date,
+            entity_created_at,
             entity_name,
             entity_id
         )
@@ -72,7 +72,7 @@ impl SyncRepository for SqliteSyncRepository {
             r#"SELECT
                 entity_id as "entity_id: _",
                 entity_name,
-                entity_created_date as "entity_created_date: _",
+                entity_created_at as "entity_created_at: _",
                 deleted_date as "deleted_date: _"
             FROM deleted_entities
             WHERE deleted_date >= datetime($1)"#,
@@ -116,13 +116,13 @@ impl SyncRepository for SqliteSyncRepository {
                 r#"INSERT INTO deleted_entities(
                     entity_name,
                     entity_id,
-                    entity_created_date,
+                    entity_created_at,
                     deleted_date)
                     VALUES ($1, $2, datetime($3), datetime($4))
                 "#,
                 table_name,
                 entity.entity_id,
-                entity.created_date,
+                entity.created_at,
                 deleted_date,
             )
             .execute(&mut *tx)

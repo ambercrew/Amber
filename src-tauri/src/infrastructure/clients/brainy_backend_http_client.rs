@@ -248,7 +248,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn get_synced_entities_after_ordered_by_created_date(
+    async fn get_synced_entities_after_ordered_by_created_at(
         &self,
         date: DateTime<Utc>,
         page: u32,

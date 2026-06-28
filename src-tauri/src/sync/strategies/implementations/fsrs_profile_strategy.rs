@@ -36,12 +36,8 @@ impl SyncEntityStrategy for DefaultFsrsProfileStrategy {
     ) -> ParseSyncedEntityOutput<Self::Entity> {
         let entity = FsrsProfile::new_unchecked(
             synced_entity.entity_id,
-            synced_entity.created_date,
-            decoded_entity
-                .modified_date
-                .unwrap()
-                .into_datetime()
-                .unwrap(),
+            synced_entity.created_at,
+            decoded_entity.modified_at.unwrap().into_datetime().unwrap(),
             decoded_entity.name,
             decoded_entity.request_retention,
             decoded_entity.maximum_interval,
@@ -56,7 +52,7 @@ impl SyncEntityStrategy for DefaultFsrsProfileStrategy {
 
     async fn upsert(&self, entity: Self::Entity) -> Result<u64, SyncEntityStrategyError> {
         self.fsrs_repository
-            .upsert_with_modified_date_if_modified_before(&entity, entity.modified_date())
+            .upsert_with_modified_at_if_modified_before(&entity, entity.modified_at())
             .await
             .map_err(Into::into)
     }
@@ -73,10 +69,10 @@ impl SyncEntityStrategy for DefaultFsrsProfileStrategy {
             .into_iter()
             .map(|p| SyncEntityDto {
                 entity_id: p.id(),
-                created_date: p.created_date(),
+                created_at: p.created_at(),
                 entity_type: EntityType::FsrsProfile,
                 data: generated_code::FsrsProfile {
-                    modified_date: Some(p.modified_date().into_timestamp()),
+                    modified_at: Some(p.modified_at().into_timestamp()),
                     name: p.name().to_string(),
                     request_retention: p.request_retention(),
                     maximum_interval: p.maximum_interval(),
