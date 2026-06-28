@@ -13,9 +13,9 @@ use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool_from_location;
 use crate::database::database_connection_manager::DatabaseConnectionManager;
 use crate::elements::repositories::card_repository::CardRepository;
-use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
@@ -29,11 +29,11 @@ use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager:
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
-use crate::infrastructure::repositories::sqlite::sqlite_element_repository::SqliteElementRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_extract_repository::SqliteExtractRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_fsrs_repository::SqliteFsrsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteMetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
@@ -143,7 +143,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
     register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
     register_scope!(injector, dyn CardRepository, SqliteCardRepository);
-    register_scope!(injector, dyn ElementRepository, SqliteElementRepository);
+    register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
 
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);

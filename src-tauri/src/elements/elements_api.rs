@@ -17,9 +17,9 @@ use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::Reading;
 use crate::elements::repositories::card_repository::CardRepository;
-use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
@@ -48,7 +48,7 @@ pub async fn delete_element(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn ElementRepository>()
+        .resolve::<dyn MetaRepository>()
         .await
         .delete(element_id)
         .await?;
@@ -64,7 +64,7 @@ pub async fn rename_element(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn ElementRepository>()
+        .resolve::<dyn MetaRepository>()
         .await
         .rename(element_id, new_name)
         .await?;
@@ -166,7 +166,7 @@ pub async fn element_exists(
 ) -> Result<bool, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ElementRepository>()
+        .resolve::<dyn MetaRepository>()
         .await
         .exists(element_id)
         .await?;

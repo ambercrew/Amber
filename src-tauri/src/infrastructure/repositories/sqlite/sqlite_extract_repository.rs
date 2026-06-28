@@ -2,16 +2,12 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use fractional_index::FractionalIndex;
-use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::extract::Extract;
-use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
@@ -110,108 +106,6 @@ impl ExtractRepository for SqliteExtractRepository {
     }
 }
 
-#[async_trait]
-impl ElementRepository for SqliteExtractRepository {
-    async fn delete(&self, id: ElementId) -> Result<(), RepositoryError> {
-        let uuid = id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        sqlx::query!(r#"DELETE FROM extracts WHERE id = $1"#, uuid)
-            .execute(&mut *tx)
-            .await?;
-        Ok(())
-    }
-
-    async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError> {
-        let uuid = id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        sqlx::query!(r#"UPDATE meta SET name = $1 WHERE id = $2"#, new_name, uuid)
-            .execute(&mut *tx)
-            .await?;
-        Ok(())
-    }
-
-    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
-        let uuid = id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        let row = sqlx::query!(
-            r#"SELECT EXISTS(SELECT 1 FROM extracts WHERE id = $1) as "exists: bool""#,
-            uuid
-        )
-        .fetch_one(&mut *tx)
-        .await?;
-        Ok(row.exists)
-    }
-
-    async fn get_location(
-        &self,
-        id: ElementId,
-    ) -> Result<(Option<ElementId>, FractionalIndex), RepositoryError> {
-        let uuid = id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        let row = sqlx::query!(
-            r#"SELECT
-                parent_folder_id  as "parent_folder_id: uuid::Uuid",
-                parent_reading_id as "parent_reading_id: uuid::Uuid",
-                parent_extract_id as "parent_extract_id: uuid::Uuid",
-                parent_card_id    as "parent_card_id: uuid::Uuid",
-                position as "position: Vec<u8>"
-               FROM meta WHERE id = $1"#,
-            uuid
-        )
-        .fetch_one(&mut *tx)
-        .await?;
-        let parent = if let Some(pid) = row.parent_folder_id {
-            Some(ElementId::Folder(pid))
-        } else if let Some(pid) = row.parent_reading_id {
-            Some(ElementId::Reading(pid))
-        } else if let Some(pid) = row.parent_extract_id {
-            Some(ElementId::Extract(pid))
-        } else {
-            row.parent_card_id.map(ElementId::Card)
-        };
-        Ok((
-            parent,
-            FractionalIndex::from_bytes(row.position).expect("Invalid fractional index"),
-        ))
-    }
-
-    async fn move_to(
-        &self,
-        id: ElementId,
-        new_parent: Option<ElementId>,
-        new_position: FractionalIndex,
-    ) -> Result<(), RepositoryError> {
-        let uuid = id.id();
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match new_parent.expect("extracts must have a parent") {
-                ElementId::Folder(pid) => (Some(pid), None, None, None),
-                ElementId::Reading(pid) => (None, Some(pid), None, None),
-                ElementId::Extract(pid) => (None, None, Some(pid), None),
-                ElementId::Card(pid) => (None, None, None, Some(pid)),
-            };
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        sqlx::query!(
-            r#"UPDATE meta
-               SET parent_folder_id = $1, parent_reading_id = $2, parent_extract_id = $3, parent_card_id = $4, position = $5
-               WHERE id = $6"#,
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
-            new_position.as_bytes(),
-            uuid
-        )
-        .execute(&mut *tx)
-        .await?;
-        Ok(())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
@@ -228,16 +122,16 @@ mod tests {
                 reading::{Reading, ReadingSource},
             },
             repositories::{
-                card_repository::CardRepository, element_repository::ElementRepository,
-                extract_repository::ExtractRepository, folder_repository::FolderRepository,
+                card_repository::CardRepository, extract_repository::ExtractRepository,
+                folder_repository::FolderRepository, meta_repository::MetaRepository,
                 reading_repository::ReadingRepository,
             },
             value_objects::{element_id::ElementId, meta::Meta},
         },
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
-            sqlite_element_repository::SqliteElementRepository,
             sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_meta_repository::SqliteMetaRepository,
             sqlite_reading_repository::SqliteReadingRepository,
         },
         test_utils::create_test_injector,
@@ -251,7 +145,7 @@ mod tests {
         register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
-        register_scope!(injector, dyn ElementRepository, SqliteElementRepository);
+        register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         injector
     }
 
@@ -276,7 +170,7 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
-        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder { meta: make_meta() };
         let reading = Reading {
@@ -308,7 +202,7 @@ mod tests {
 
         // Act
 
-        element_repo
+        meta_repo
             .delete(ElementId::Extract(parent_extract.meta.id))
             .await
             .unwrap();
@@ -329,7 +223,7 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let card_repo = scope.resolve::<dyn CardRepository>().await;
-        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder { meta: make_meta() };
         let reading = Reading {
@@ -362,7 +256,7 @@ mod tests {
 
         // Act
 
-        element_repo
+        meta_repo
             .delete(ElementId::Extract(extract.meta.id))
             .await
             .unwrap();
@@ -382,7 +276,7 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
-        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder { meta: make_meta() };
         let reading = Reading {
@@ -406,7 +300,7 @@ mod tests {
 
         // Act
 
-        element_repo
+        meta_repo
             .rename(ElementId::Extract(extract.meta.id), "renamed".into())
             .await
             .unwrap();
@@ -430,6 +324,7 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder { meta: make_meta() };
         let reading = Reading {
@@ -453,7 +348,7 @@ mod tests {
 
         // Act
 
-        let actual = extract_repo
+        let actual = meta_repo
             .exists(ElementId::Extract(extract.meta.id))
             .await
             .unwrap();
@@ -469,11 +364,11 @@ mod tests {
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         // Act
 
-        let actual = extract_repo
+        let actual = meta_repo
             .exists(ElementId::Extract(Uuid::new_v4()))
             .await
             .unwrap();

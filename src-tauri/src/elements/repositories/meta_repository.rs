@@ -5,15 +5,13 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
 
 #[async_trait]
-pub trait ElementRepository: Send + Sync {
-    // TODO: those can be done directly on the meta table no need to forward the request
+pub trait MetaRepository: Send + Sync {
     async fn delete(&self, id: ElementId) -> Result<(), RepositoryError>;
     async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError>;
     async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError>;
 
     /// Returns (parent_id, current_position) of the given element.
     /// parent_id is None for root-level folders.
-    // TODO: how will this work with fractional indexing
     async fn get_location(
         &self,
         id: ElementId,
@@ -27,6 +25,4 @@ pub trait ElementRepository: Send + Sync {
         new_parent: Option<ElementId>,
         new_position: FractionalIndex,
     ) -> Result<(), RepositoryError>;
-
-    // TODO: max child position method for create methods?
 }
