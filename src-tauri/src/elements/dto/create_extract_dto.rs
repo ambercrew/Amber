@@ -1,12 +1,11 @@
 use serde::Deserialize;
 
-use crate::elements::value_objects::extract_parent::ExtractParent;
+use crate::elements::value_objects::element_id::ElementId;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateExtractDto {
     pub name: String,
-    pub position: i64,
-    pub parent: ExtractParent,
+    pub parent: Option<ElementId>,
     pub text: String,
 }

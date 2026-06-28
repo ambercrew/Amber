@@ -5,6 +5,8 @@ import {
 	createReading,
 	deleteElement,
 	getElementTree,
+	moveElement,
+	MoveElementDto,
 	renameElement,
 } from "../../api/elements/api/elementsApi";
 import { CreateCardDto } from "../../types/elements/createCardDto";
@@ -42,6 +44,10 @@ export function createExtractAction(dto: CreateExtractDto) {
 
 export function createCardAction(dto: CreateCardDto) {
 	return withTreeRefresh(() => createCard(dto));
+}
+
+export function moveElementAction(dto: MoveElementDto) {
+	return withTreeRefresh(() => moveElement(dto));
 }
 
 function withTreeRefresh(operation: () => Promise<void>) {

@@ -1,7 +1,7 @@
 import { MantineProvider } from "@mantine/core";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import FolderNodeDto from "../../../../../api/elements/dto/folderNodeDto";
+import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
 import {
 	LOCATION_DISPLAY_TEST_ID,
@@ -21,63 +21,37 @@ vi.mock(
 	() => ({ default: () => <></> }),
 );
 
-const TREE: FolderNodeDto[] = [
-	{
-		id: "folder-science",
-		name: "Science",
-		position: 0,
-		tags: [],
-		folders: [],
-		readings: [
-			{
-				id: "reading-biology",
-				name: "Biology Basics",
-				position: 0,
-				tags: [],
-				extracts: [],
-				cards: [],
-			},
-		],
-		extracts: [],
-		cards: [],
-	},
-	{
-		id: "folder-art",
-		name: "Art",
-		position: 1,
-		tags: [],
-		folders: [],
-		readings: [],
+function makeNode(
+	id: string,
+	name: string,
+	children: Partial<NodeDto["children"]> = {},
+): NodeDto {
+	return {
+		meta: { id, name, position: "0", tags: [] },
+		children: {
+			folders: [],
+			readings: [],
+			extracts: [],
+			cards: [],
+			...children,
+		},
+	};
+}
+
+const TREE: NodeDto[] = [
+	makeNode("folder-science", "Science", {
+		readings: [makeNode("reading-biology", "Biology Basics")],
+	}),
+	makeNode("folder-art", "Art", {
 		extracts: [
-			{
-				id: "extract-impressionism",
-				name: "Impressionism",
-				position: 0,
-				text: "",
-				tags: [],
-				extracts: [],
+			makeNode("extract-impressionism", "Impressionism", {
 				cards: [
-					{
-						id: "card-1",
-						name: "Monet",
-						position: 0,
-						front: "",
-						back: "",
-						tags: [],
-					},
-					{
-						id: "card-2",
-						name: "Renoir",
-						position: 1,
-						front: "",
-						back: "",
-						tags: [],
-					},
+					makeNode("card-1", "Monet"),
+					makeNode("card-2", "Renoir"),
 				],
-			},
+			}),
 		],
-		cards: [],
-	},
+	}),
 ];
 
 describe("ElementTree search", () => {

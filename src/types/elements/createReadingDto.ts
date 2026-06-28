@@ -1,9 +1,9 @@
+import { ElementId } from "./elementId";
 import { ReadingSource } from "./reading";
 
 export interface CreateReadingDto {
 	name: string;
-	position: number;
-	folderId: string;
+	parent: ElementId | null;
 	source: ReadingSource;
 	body: string;
 }

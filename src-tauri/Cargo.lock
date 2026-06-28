@@ -11,6 +11,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "cookie_store",
+ "fractional_index",
  "injector",
  "injector_derive",
  "log",
@@ -1578,6 +1579,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
+]
+
+[[package]]
+name = "fractional_index"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce01fad85c73f947e62a39152c7b0f785af7f44859da36e421c42a3023bcbe3a"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

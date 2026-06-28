@@ -1,21 +1,20 @@
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import FolderNodeDto from "../../../../../api/elements/dto/folderNodeDto";
+import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
 import { renderWithProviders } from "../../../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../../../stores/elements/elementsActions"));
 
-const TREE: FolderNodeDto[] = [
+const TREE: NodeDto[] = [
 	{
-		id: "folder-science",
-		name: "Science",
-		position: 0,
-		tags: [],
-		folders: [],
-		readings: [],
-		extracts: [],
-		cards: [],
+		meta: {
+			id: "folder-science",
+			name: "Science",
+			position: "0",
+			tags: [],
+		},
+		children: { folders: [], readings: [], extracts: [], cards: [] },
 	},
 ];
 

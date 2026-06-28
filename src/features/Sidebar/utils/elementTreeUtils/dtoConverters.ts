@@ -1,71 +1,41 @@
 import { TreeNodeData } from "@mantine/core";
-import CardNodeDto from "../../../../api/elements/dto/cardNodeDto";
-import ExtractNodeDto from "../../../../api/elements/dto/extractNodeDto";
-import FolderNodeDto from "../../../../api/elements/dto/folderNodeDto";
-import ReadingNodeDto from "../../../../api/elements/dto/readingNodeDto";
+import { NodeDto } from "../../../../api/elements/dto/nodeDto";
+import { ElementNodeType } from "../../../../types/elements/elementNodeType";
 import { ElementNodeProps } from "./elementNodeProps";
 
-function cardToTreeNode(card: CardNodeDto): TreeNodeData {
-	return {
-		label: card.name,
-		value: card.id,
-		nodeProps: {
-			type: "card",
-			childrenCount: 0,
-		} satisfies ElementNodeProps,
-	};
-}
-
-function extractToTreeNode(extract: ExtractNodeDto): TreeNodeData {
+function nodeToTreeNode(node: NodeDto, type: ElementNodeType): TreeNodeData {
 	const children = [
-		...extract.extracts.map(extractToTreeNode),
-		...extract.cards.map(cardToTreeNode),
+		...node.children.folders.map(f => nodeToTreeNode(f, "folder")),
+		...node.children.readings.map(r => nodeToTreeNode(r, "reading")),
+		...node.children.extracts.map(e => nodeToTreeNode(e, "extract")),
+		...node.children.cards.map(c => nodeToTreeNode(c, "card")),
 	];
 	return {
-		label: extract.name,
-		value: extract.id,
+		label: node.meta.name,
+		value: node.meta.id,
 		nodeProps: {
-			type: "extract",
+			type,
 			childrenCount: children.length,
 		} satisfies ElementNodeProps,
 		children,
 	};
 }
 
-function readingToTreeNode(reading: ReadingNodeDto): TreeNodeData {
-	const children = [
-		...reading.extracts.map(extractToTreeNode),
-		...reading.cards.map(cardToTreeNode),
-	];
-	return {
-		label: reading.name,
-		value: reading.id,
-		nodeProps: {
-			type: "reading",
-			childrenCount: children.length,
-		} satisfies ElementNodeProps,
-		children,
-	};
+export function dtosToTreeData(folders: NodeDto[]): TreeNodeData[] {
+	return folders.map(f => nodeToTreeNode(f, "folder"));
 }
 
-export function folderToTreeNode(folder: FolderNodeDto): TreeNodeData {
-	const children = [
-		...folder.folders.map(folderToTreeNode),
-		...folder.readings.map(readingToTreeNode),
-		...folder.extracts.map(extractToTreeNode),
-		...folder.cards.map(cardToTreeNode),
-	];
-	return {
-		label: folder.name,
-		value: folder.id,
-		nodeProps: {
-			type: "folder",
-			childrenCount: children.length,
-		} satisfies ElementNodeProps,
-		children,
-	};
-}
-
-export function dtosToTreeData(folders: FolderNodeDto[]): TreeNodeData[] {
-	return folders.map(folderToTreeNode);
+export function findNodeType(
+	nodes: TreeNodeData[],
+	value: string,
+): ElementNodeType | null {
+	for (const node of nodes) {
+		if (node.value === value)
+			return (node.nodeProps as ElementNodeProps).type;
+		if (node.children) {
+			const found = findNodeType(node.children, value);
+			if (found) return found;
+		}
+	}
+	return null;
 }

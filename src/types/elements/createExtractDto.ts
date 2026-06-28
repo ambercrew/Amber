@@ -1,8 +1,7 @@
-import { ExtractParent } from "./extractParent";
+import { ElementId } from "./elementId";
 
 export interface CreateExtractDto {
 	name: string;
-	position: number;
-	parent: ExtractParent;
+	parent: ElementId | null;
 	text: string;
 }

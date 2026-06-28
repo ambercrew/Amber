@@ -4,9 +4,9 @@ import { CreateExtractDto } from "../../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../../types/elements/createFolderDto";
 import { CreateReadingDto } from "../../../types/elements/createReadingDto";
 import { ElementId } from "../../../types/elements/elementId";
-import FolderNodeDto from "../dto/folderNodeDto";
+import { NodeDto } from "../dto/nodeDto";
 
-export function getElementTree(): Promise<FolderNodeDto[]> {
+export function getElementTree(): Promise<NodeDto[]> {
 	return invoke("get_element_tree");
 }
 

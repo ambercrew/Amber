@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use fractional_index::FractionalIndex;
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
@@ -22,23 +23,38 @@ pub struct SqliteReadingRepository {
 #[async_trait]
 impl ReadingRepository for SqliteReadingRepository {
     async fn create(&self, reading: Reading) -> Result<(), RepositoryError> {
-        let position = reading.meta.position as i64;
         let (source_type, source_url) = match reading.source {
             ReadingSource::Website { url } => ("website".to_string(), Some(url)),
             ReadingSource::Clipboard => ("clipboard".to_string(), None),
             ReadingSource::Pdf => ("pdf".to_string(), None),
         };
+        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
+            match reading.meta.parent.expect("readings must have a parent") {
+                ElementId::Folder(id) => (Some(id), None, None, None),
+                ElementId::Reading(id) => (None, Some(id), None, None),
+                ElementId::Extract(id) => (None, None, Some(id), None),
+                ElementId::Card(id) => (None, None, None, Some(id)),
+            };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO readings (id, name, position, folder_id, created_at, modified_at, source_type, source_url, body)
-             VALUES ($1, $2, $3, $4, datetime($5), datetime($6), $7, $8, $9)",
+            "INSERT INTO meta (id, name, position, parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
             reading.meta.id,
             reading.meta.name,
-            position,
-            reading.folder_id,
+            reading.meta.position.as_bytes(),
+            parent_folder_id,
+            parent_reading_id,
+            parent_extract_id,
+            parent_card_id,
             reading.meta.created_at,
             reading.meta.modified_at,
+        )
+        .execute(&mut *tx)
+        .await?;
+        sqlx::query!(
+            "INSERT INTO readings (id, source_type, source_url, body) VALUES ($1, $2, $3, $4)",
+            reading.meta.id,
             source_type,
             source_url,
             reading.body,
@@ -55,17 +71,21 @@ impl ReadingRepository for SqliteReadingRepository {
         let rows = sqlx::query_as!(
             ReadingRow,
             r#"SELECT
-                id as "id: _",
-                name,
-                position as "position: _",
-                folder_id as "folder_id: _",
-                created_at as "created_at: _",
-                modified_at as "modified_at: _",
-                source_type,
-                source_url,
-                body
-            FROM readings
-            ORDER BY position"#
+                m.id as "id: _",
+                m.name,
+                m.position as "position: _",
+                m.parent_reading_id as "parent_reading_id: _",
+                m.parent_extract_id as "parent_extract_id: _",
+                m.parent_folder_id as "parent_folder_id: _",
+                m.parent_card_id as "parent_card_id: _",
+                m.created_at as "created_at: _",
+                m.modified_at as "modified_at: _",
+                r.source_type,
+                r.source_url,
+                r.body
+            FROM readings r
+            INNER JOIN meta m ON r.id = m.id
+            ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)
         .await?;
@@ -115,13 +135,9 @@ impl ElementRepository for SqliteReadingRepository {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
-        sqlx::query!(
-            r#"UPDATE readings SET name = $1 WHERE id = $2"#,
-            new_name,
-            uuid
-        )
-        .execute(&mut *tx)
-        .await?;
+        sqlx::query!(r#"UPDATE meta SET name = $1 WHERE id = $2"#, new_name, uuid)
+            .execute(&mut *tx)
+            .await?;
         Ok(())
     }
 
@@ -137,11 +153,78 @@ impl ElementRepository for SqliteReadingRepository {
         .await?;
         Ok(row.exists)
     }
+
+    async fn get_location(
+        &self,
+        id: ElementId,
+    ) -> Result<(Option<ElementId>, FractionalIndex), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT
+                parent_folder_id  as "parent_folder_id: uuid::Uuid",
+                parent_reading_id as "parent_reading_id: uuid::Uuid",
+                parent_extract_id as "parent_extract_id: uuid::Uuid",
+                parent_card_id    as "parent_card_id: uuid::Uuid",
+                position as "position: Vec<u8>"
+               FROM meta WHERE id = $1"#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        let parent = if let Some(pid) = row.parent_folder_id {
+            Some(ElementId::Folder(pid))
+        } else if let Some(pid) = row.parent_reading_id {
+            Some(ElementId::Reading(pid))
+        } else if let Some(pid) = row.parent_extract_id {
+            Some(ElementId::Extract(pid))
+        } else {
+            row.parent_card_id.map(ElementId::Card)
+        };
+        Ok((
+            parent,
+            FractionalIndex::from_bytes(row.position).expect("Invalid fractional index"),
+        ))
+    }
+
+    async fn move_to(
+        &self,
+        id: ElementId,
+        new_parent: Option<ElementId>,
+        new_position: FractionalIndex,
+    ) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
+            match new_parent.expect("readings must have a parent") {
+                ElementId::Folder(pid) => (Some(pid), None, None, None),
+                ElementId::Reading(pid) => (None, Some(pid), None, None),
+                ElementId::Extract(pid) => (None, None, Some(pid), None),
+                ElementId::Card(pid) => (None, None, None, Some(pid)),
+            };
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE meta
+               SET parent_folder_id = $1, parent_reading_id = $2, parent_extract_id = $3, parent_card_id = $4, position = $5
+               WHERE id = $6"#,
+            parent_folder_id,
+            parent_reading_id,
+            parent_extract_id,
+            parent_card_id,
+            new_position.as_bytes(),
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
+    use fractional_index::FractionalIndex;
     use injector::{injector::Injector, register_scope};
     use uuid::Uuid;
 
@@ -158,10 +241,7 @@ mod tests {
                 extract_repository::ExtractRepository, folder_repository::FolderRepository,
                 reading_repository::ReadingRepository,
             },
-            value_objects::{
-                card_parent::CardParent, element_id::ElementId, extract_parent::ExtractParent,
-                meta::Meta,
-            },
+            value_objects::{element_id::ElementId, meta::Meta},
         },
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
@@ -188,7 +268,8 @@ mod tests {
         Meta {
             id: Uuid::new_v4(),
             name: "test".into(),
-            position: 0,
+            parent: None,
+            position: FractionalIndex::default(),
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -207,19 +288,22 @@ mod tests {
 
         let folder = Folder {
             meta: make_meta(),
-            parent_folder_id: None,
             tags: vec![],
         };
         let reading = Reading {
-            meta: make_meta(),
-            folder_id: folder.meta.id,
+            meta: Meta {
+                parent: Some(ElementId::Folder(folder.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
-            meta: make_meta(),
-            parent: ExtractParent::Reading(reading.meta.id),
+            meta: Meta {
+                parent: Some(ElementId::Reading(reading.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             text: String::new(),
         };
@@ -253,19 +337,22 @@ mod tests {
 
         let folder = Folder {
             meta: make_meta(),
-            parent_folder_id: None,
             tags: vec![],
         };
         let reading = Reading {
-            meta: make_meta(),
-            folder_id: folder.meta.id,
+            meta: Meta {
+                parent: Some(ElementId::Folder(folder.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
-            meta: make_meta(),
-            parent: CardParent::Reading(reading.meta.id),
+            meta: Meta {
+                parent: Some(ElementId::Reading(reading.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             front: String::new(),
             back: String::new(),
@@ -299,12 +386,13 @@ mod tests {
 
         let folder = Folder {
             meta: make_meta(),
-            parent_folder_id: None,
             tags: vec![],
         };
         let reading = Reading {
-            meta: make_meta(),
-            folder_id: folder.meta.id,
+            meta: Meta {
+                parent: Some(ElementId::Folder(folder.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -340,12 +428,13 @@ mod tests {
 
         let folder = Folder {
             meta: make_meta(),
-            parent_folder_id: None,
             tags: vec![],
         };
         let reading = Reading {
-            meta: make_meta(),
-            folder_id: folder.meta.id,
+            meta: Meta {
+                parent: Some(ElementId::Folder(folder.meta.id)),
+                ..make_meta()
+            },
             tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),

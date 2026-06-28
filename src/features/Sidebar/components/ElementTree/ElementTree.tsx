@@ -8,35 +8,33 @@ import {
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import {
-	moveElement,
-	MoveElementDto,
-} from "../../../../api/elements/api/elementsApi";
-import FolderNodeDto from "../../../../api/elements/dto/folderNodeDto";
+import { MoveElementDto } from "../../../../api/elements/api/elementsApi";
+import { NodeDto } from "../../../../api/elements/dto/nodeDto";
 import { useElementParams } from "../../../../hooks/useElementParams";
 import { paths } from "../../../../paths";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeType } from "../../../../types/elements/elementNodeType";
 import {
 	dtosToTreeData,
-	DropPayload,
 	ElementNodeProps,
 	findNodeType,
-	isDropAllowed,
 } from "../../utils/elementTreeUtils";
 import { useElementTreeExpansion } from "../../hooks/useElementTreeExpansion";
 import DeleteElementModal from "../DeleteElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import ElementTreeNode from "./ElementTreeNode";
+import useAppDispatch from "../../../../hooks/useAppDispatch";
+import { moveElementAction } from "../../../../stores/elements/elementsActions";
 
 interface ElementTreeProps {
-	tree: FolderNodeDto[];
+	tree: NodeDto[];
 }
 
 function ElementTree({ tree }: ElementTreeProps) {
 	const navigate = useNavigate();
 	const selected = useElementParams();
 	const data = useMemo(() => dtosToTreeData(tree), [tree]);
+	const dispatch = useAppDispatch();
 	const [contextMenuNode, setContextMenuNode] = useState<{
 		value: string;
 		type: ElementNodeType;
@@ -111,12 +109,8 @@ function ElementTree({ tree }: ElementTreeProps) {
 								targetId: { type: targetType, id: targetNode },
 								position,
 							};
-							// TODO: through actions
-							void moveElement(dto);
+							void dispatch(moveElementAction(dto));
 						}}
-						allowDrop={(payload: DropPayload) =>
-							isDropAllowed(data, payload)
-						}
 					/>
 				</Menu.ContextMenu>
 				<Menu.Dropdown>

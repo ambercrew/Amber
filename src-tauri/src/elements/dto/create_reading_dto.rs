@@ -1,14 +1,12 @@
 use serde::Deserialize;
-use uuid::Uuid;
 
-use crate::elements::entities::reading::ReadingSource;
+use crate::elements::{entities::reading::ReadingSource, value_objects::element_id::ElementId};
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateReadingDto {
     pub name: String,
-    pub position: i64,
-    pub folder_id: Uuid,
+    pub parent: Option<ElementId>,
     pub source: ReadingSource,
     pub body: String,
 }

@@ -1,9 +1,8 @@
-import { CardParent } from "./cardParent";
+import { ElementId } from "./elementId";
 
 export interface CreateCardDto {
 	name: string;
-	position: number;
-	parent: CardParent;
+	parent: ElementId | null;
 	front: string;
 	back: string;
 }

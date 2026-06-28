@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import FolderNodeDto from "../../api/elements/dto/folderNodeDto";
+import { NodeDto } from "../../api/elements/dto/nodeDto";
 
 export interface ElementsState {
-	tree: FolderNodeDto[];
+	tree: NodeDto[];
 	isLoading: boolean;
 	error: string | null;
 }
@@ -21,7 +21,7 @@ const elementsSlice = createSlice({
 			state.isLoading = true;
 			state.error = null;
 		},
-		setTree: (state, action: PayloadAction<FolderNodeDto[]>) => {
+		setTree: (state, action: PayloadAction<NodeDto[]>) => {
 			state.tree = action.payload;
 			state.isLoading = false;
 			state.error = null;

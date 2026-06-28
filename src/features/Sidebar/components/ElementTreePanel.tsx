@@ -38,8 +38,7 @@ function ElementTreePanel() {
 						void dispatch(
 							createFolderAction({
 								name: defaultElementName("Folder"),
-								position: Date.now(),
-								parentFolderId: null,
+								parent: null,
 							}),
 						)
 					}>

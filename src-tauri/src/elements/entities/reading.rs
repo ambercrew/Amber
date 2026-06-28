@@ -6,7 +6,6 @@ use crate::elements::value_objects::meta::Meta;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Reading {
     pub meta: Meta,
-    pub folder_id: Uuid,
     pub tags: Vec<Uuid>,
     pub source: ReadingSource,
     pub body: String,

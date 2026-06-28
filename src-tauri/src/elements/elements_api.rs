@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use chrono::Utc;
+use fractional_index::FractionalIndex;
 use tauri::State;
 use uuid::Uuid;
 
@@ -10,7 +11,7 @@ use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
-use crate::elements::dto::tree_dto::FolderNodeDto;
+use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
@@ -30,7 +31,7 @@ use injector::injector::Injector;
 #[tauri::command]
 pub async fn get_element_tree(
     injector: State<'_, Arc<Injector>>,
-) -> Result<Vec<FolderNodeDto>, ApiError> {
+) -> Result<Vec<NodeDto>, ApiError> {
     let scope = injector.start_scope();
     let result = scope
         .resolve::<dyn ElementTreeService>()
@@ -82,11 +83,12 @@ pub async fn create_folder(
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.name,
-            position: dto.position as u32,
+            parent: dto.parent,
+            // TODO:
+            position: FractionalIndex::default(),
             created_at: now,
             modified_at: now,
         },
-        parent_folder_id: dto.parent_folder_id,
         tags: vec![],
     };
     scope
@@ -109,11 +111,12 @@ pub async fn create_reading(
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.name,
-            position: dto.position as u32,
+            parent: dto.parent,
+            // TODO:
+            position: FractionalIndex::default(),
             created_at: now,
             modified_at: now,
         },
-        folder_id: dto.folder_id,
         tags: vec![],
         source: dto.source,
         body: dto.body,
@@ -138,11 +141,12 @@ pub async fn create_extract(
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.name,
-            position: dto.position as u32,
+            parent: dto.parent,
+            // TODO:
+            position: FractionalIndex::default(),
             created_at: now,
             modified_at: now,
         },
-        parent: dto.parent,
         tags: vec![],
         text: dto.text,
     };
@@ -180,11 +184,12 @@ pub async fn create_card(
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.name,
-            position: dto.position as u32,
+            parent: dto.parent,
+            // TODO:
+            position: FractionalIndex::default(),
             created_at: now,
             modified_at: now,
         },
-        parent: dto.parent,
         tags: vec![],
         front: dto.front,
         back: dto.back,

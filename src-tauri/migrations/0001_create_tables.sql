@@ -23,6 +23,23 @@ INSERT INTO fsrs_profiles(
     '0.212 1.2931 2.3065 8.2956 6.4133 0.8334 3.0194 0.001 1.8722 0.1666 0.796 1.4835 0.0614 0.2629 1.6483 0.6014 1.8729 0.5425 0.0912 0.0658 0.1542'
 );
 
+CREATE TRIGGER fsrs_profiles_update_modified_date_after_update
+    AFTER UPDATE ON fsrs_profiles
+    WHEN OLD.modified_date == NEW.modified_date
+BEGIN
+    UPDATE fsrs_profiles 
+    SET modified_date = datetime('now') 
+    WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER fsrs_profiles_add_to_deleted_entities_after_delete
+    AFTER DELETE ON fsrs_profiles
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    VALUES ('fsrs_profiles', OLD.id, OLD.created_date, datetime('now'));
+END;
+
+
 -------------------------------------------------------------------------
 
 CREATE TABLE deleted_entities(
@@ -44,24 +61,10 @@ CREATE TABLE local_configurations(
 
 -------------------------------------------------------------------------
 
-CREATE TABLE folders(
-    id                          TEXT        NOT NULL        PRIMARY KEY,
-    name                        TEXT        NOT NULL,
-    position                    INTEGER     NOT NULL        DEFAULT 0,
-    parent_folder_id            TEXT,
-    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    FOREIGN KEY (parent_folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE INDEX folders_parent_folder_id_index ON folders(parent_folder_id);
-
--------------------------------------------------------------------------
-
 CREATE TABLE tags(
     id                          TEXT        NOT NULL        PRIMARY KEY,
     name                        TEXT        NOT NULL,
-    position                    INTEGER     NOT NULL        DEFAULT 0,
+    position                    BLOB        NOT NULL        DEFAULT 0,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now'))
 );
@@ -74,113 +77,174 @@ CREATE TABLE tag_parents(
     FOREIGN KEY (parent_tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- TODO: create relationship with elements using a common way using triggers for deletion
+
 CREATE INDEX tag_parents_tag_id_index ON tag_parents(tag_id);
 CREATE INDEX tag_parents_parent_tag_id_index ON tag_parents(parent_tag_id);
 
 CREATE TABLE folder_tags(
-    folder_id                   TEXT        NOT NULL,
-    tag_id                      TEXT        NOT NULL,
-    PRIMARY KEY (folder_id, tag_id),
-    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
+    folder_id TEXT NOT NULL REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    tag_id    TEXT NOT NULL REFERENCES tags(id)    ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (folder_id, tag_id)
 );
-
-CREATE INDEX folder_tags_folder_id_index ON folder_tags(folder_id);
-CREATE INDEX folder_tags_tag_id_index ON folder_tags(tag_id);
-
--------------------------------------------------------------------------
-
-CREATE TABLE readings(
-    id                          TEXT        NOT NULL        PRIMARY KEY,
-    name                        TEXT        NOT NULL,
-    position                    INTEGER     NOT NULL        DEFAULT 0,
-    folder_id                   TEXT        NOT NULL,
-    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    source_type                 TEXT        NOT NULL,
-    source_url                  TEXT,
-    body                        TEXT        NOT NULL,
-    FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
-
-CREATE INDEX readings_folder_id_index ON readings(folder_id);
 
 CREATE TABLE reading_tags(
-    reading_id                  TEXT        NOT NULL,
-    tag_id                      TEXT        NOT NULL,
-    PRIMARY KEY (reading_id, tag_id),
-    FOREIGN KEY (reading_id) REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
+    reading_id TEXT NOT NULL REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    tag_id     TEXT NOT NULL REFERENCES tags(id)     ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (reading_id, tag_id)
 );
-
-CREATE INDEX reading_tags_reading_id_index ON reading_tags(reading_id);
-CREATE INDEX reading_tags_tag_id_index ON reading_tags(tag_id);
-
--------------------------------------------------------------------------
-
-CREATE TABLE extracts(
-    id                          TEXT        NOT NULL        PRIMARY KEY,
-    name                        TEXT        NOT NULL,
-    position                    INTEGER     NOT NULL        DEFAULT 0,
-    parent_reading_id           TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_extract_id           TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_folder_id            TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    text                        TEXT        NOT NULL,
-    CHECK (
-        (parent_reading_id IS NOT NULL) +
-        (parent_extract_id IS NOT NULL) +
-        (parent_folder_id  IS NOT NULL) = 1
-    )
-);
-
-CREATE INDEX extracts_parent_reading_id_index ON extracts(parent_reading_id);
-CREATE INDEX extracts_parent_extract_id_index ON extracts(parent_extract_id);
-CREATE INDEX extracts_parent_folder_id_index  ON extracts(parent_folder_id);
 
 CREATE TABLE extract_tags(
-    extract_id                  TEXT        NOT NULL,
-    tag_id                      TEXT        NOT NULL,
-    PRIMARY KEY (extract_id, tag_id),
-    FOREIGN KEY (extract_id) REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
+    extract_id TEXT NOT NULL REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    tag_id     TEXT NOT NULL REFERENCES tags(id)     ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (extract_id, tag_id)
 );
 
-CREATE INDEX extract_tags_extract_id_index ON extract_tags(extract_id);
-CREATE INDEX extract_tags_tag_id_index ON extract_tags(tag_id);
+CREATE TABLE card_tags(
+    card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    tag_id  TEXT NOT NULL REFERENCES tags(id)  ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (card_id, tag_id)
+);
+
+CREATE TRIGGER tags_update_modified_at_after_update
+    AFTER UPDATE ON tags
+    WHEN OLD.modified_at == NEW.modified_at
+BEGIN
+    UPDATE tags
+    SET modified_at = datetime('now')
+    WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER tags_add_to_deleted_entities_after_delete
+    AFTER DELETE ON tags
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    VALUES ('tags', OLD.id, OLD.created_at, datetime('now'));
+END;
+
+-------------------------------------------------------------------------
+-- Element tables are created first (no FK to meta) so that meta can
+-- reference them. The reverse constraint (element must have a meta row)
+-- is enforced by the application inserting meta before the element row.
+
+CREATE TABLE folders(
+    id TEXT NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE readings(
+    id          TEXT NOT NULL PRIMARY KEY,
+    source_type TEXT NOT NULL,
+    source_url  TEXT,
+    body        TEXT NOT NULL
+);
+
+CREATE TABLE extracts(
+    id   TEXT NOT NULL PRIMARY KEY,
+    text TEXT NOT NULL
+);
+
+CREATE TABLE cards(
+    id    TEXT NOT NULL PRIMARY KEY,
+    front TEXT NOT NULL,
+    back  TEXT NOT NULL
+);
 
 -------------------------------------------------------------------------
 
-CREATE TABLE cards(
-    id                          TEXT        NOT NULL        PRIMARY KEY,
-    name                        TEXT        NOT NULL,
-    position                    INTEGER     NOT NULL        DEFAULT 0,
-    parent_reading_id           TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_extract_id           TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_folder_id            TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    front                       TEXT        NOT NULL,
-    back                        TEXT        NOT NULL,
-    CHECK (
-        (parent_reading_id IS NOT NULL) +
-        (parent_extract_id IS NOT NULL) +
-        (parent_folder_id  IS NOT NULL) = 1
-    )
+CREATE TABLE meta(
+    id                  TEXT        NOT NULL PRIMARY KEY,
+    name                TEXT        NOT NULL,
+    position            BLOB        NOT NULL,
+    parent_reading_id   TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_extract_id   TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_folder_id    TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
+    parent_card_id      TEXT        REFERENCES cards(id)    ON DELETE CASCADE ON UPDATE CASCADE,
+    created_at          TEXT        NOT NULL DEFAULT (datetime('now')),
+    modified_at         TEXT        NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX cards_parent_reading_id_index ON cards(parent_reading_id);
-CREATE INDEX cards_parent_extract_id_index ON cards(parent_extract_id);
-CREATE INDEX cards_parent_folder_id_index  ON cards(parent_folder_id);
+CREATE INDEX meta_parent_reading_id_index ON meta(parent_reading_id);
+CREATE INDEX meta_parent_extract_id_index ON meta(parent_extract_id);
+CREATE INDEX meta_parent_folder_id_index  ON meta(parent_folder_id);
+CREATE INDEX meta_parent_card_id_index    ON meta(parent_card_id);
 
-CREATE TABLE card_tags(
-    card_id                     TEXT        NOT NULL,
-    tag_id                      TEXT        NOT NULL,
-    PRIMARY KEY (card_id, tag_id),
-    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
-);
+CREATE TRIGGER meta_update_modified_at_after_update
+    AFTER UPDATE ON meta
+    WHEN OLD.modified_at == NEW.modified_at
+BEGIN
+    UPDATE meta
+    SET modified_at = datetime('now')
+    WHERE id = NEW.id;
+END;
 
-CREATE INDEX card_tags_card_id_index ON card_tags(card_id);
-CREATE INDEX card_tags_tag_id_index ON card_tags(tag_id);
+-- When a meta row is cascade-deleted (e.g. because its parent was deleted),
+-- delete the corresponding element row so there are no orphaned element rows.
+CREATE TRIGGER meta_delete_element_after_delete
+    AFTER DELETE ON meta
+BEGIN
+    DELETE FROM folders  WHERE id = OLD.id;
+    DELETE FROM readings WHERE id = OLD.id;
+    DELETE FROM extracts WHERE id = OLD.id;
+    DELETE FROM cards    WHERE id = OLD.id;
+END;
+
+----------- Element → meta delete triggers
+-- These fire when an element is explicitly deleted and clean up the meta row.
+-- Logging triggers are registered first so they run before meta is removed.
+
+CREATE TRIGGER folders_add_to_deleted_entities_after_delete
+    AFTER DELETE ON folders
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    SELECT 'folders', OLD.id, created_at, datetime('now')
+    FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER folders_delete_meta_after_delete
+    AFTER DELETE ON folders
+BEGIN
+    DELETE FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER readings_add_to_deleted_entities_after_delete
+    AFTER DELETE ON readings
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    SELECT 'readings', OLD.id, created_at, datetime('now')
+    FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER readings_delete_meta_after_delete
+    AFTER DELETE ON readings
+BEGIN
+    DELETE FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER extracts_add_to_deleted_entities_after_delete
+    AFTER DELETE ON extracts
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    SELECT 'extracts', OLD.id, created_at, datetime('now')
+    FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER extracts_delete_meta_after_delete
+    AFTER DELETE ON extracts
+BEGIN
+    DELETE FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER cards_add_to_deleted_entities_after_delete
+    AFTER DELETE ON cards
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_date, deleted_date)
+    SELECT 'cards', OLD.id, created_at, datetime('now')
+    FROM meta WHERE id = OLD.id;
+END;
+
+CREATE TRIGGER cards_delete_meta_after_delete
+    AFTER DELETE ON cards
+BEGIN
+    DELETE FROM meta WHERE id = OLD.id;
+END;
+

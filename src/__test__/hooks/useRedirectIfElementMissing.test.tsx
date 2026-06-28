@@ -5,20 +5,14 @@ import {
 	LOCATION_DISPLAY_TEST_ID,
 	renderWithProviders,
 } from "../test-utils/renderWithProviders";
-import FolderNodeDto from "../../api/elements/dto/folderNodeDto";
+import { NodeDto } from "../../api/elements/dto/nodeDto";
 
 vi.mock(import("../../hooks/useElementParams"));
 
-const TREE: FolderNodeDto[] = [
+const TREE: NodeDto[] = [
 	{
-		id: "folder-1",
-		name: "Science",
-		position: 0,
-		tags: [],
-		folders: [],
-		readings: [],
-		extracts: [],
-		cards: [],
+		meta: { id: "folder-1", name: "Science", position: "0", tags: [] },
+		children: { folders: [], readings: [], extracts: [], cards: [] },
 	},
 ];
 
