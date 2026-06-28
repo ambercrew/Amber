@@ -125,3 +125,167 @@ impl ElementRepository for SqliteExtractRepository {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+    use injector::{injector::Injector, register_scope};
+    use uuid::Uuid;
+
+    use crate::{
+        elements::{
+            entities::{
+                card::Card,
+                extract::Extract,
+                folder::Folder,
+                reading::{Reading, ReadingSource},
+            },
+            repositories::{
+                card_repository::CardRepository, element_repository::ElementRepository,
+                extract_repository::ExtractRepository, folder_repository::FolderRepository,
+                reading_repository::ReadingRepository,
+            },
+            value_objects::{
+                card_parent::CardParent, element_id::ElementId, extract_parent::ExtractParent,
+                meta::Meta,
+            },
+        },
+        infrastructure::repositories::sqlite::{
+            sqlite_card_repository::SqliteCardRepository,
+            sqlite_element_repository::SqliteElementRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_reading_repository::SqliteReadingRepository,
+        },
+        test_utils::create_test_injector,
+    };
+
+    use super::*;
+
+    async fn initialize_test_injector() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+        register_scope!(injector, dyn CardRepository, SqliteCardRepository);
+        register_scope!(injector, dyn ElementRepository, SqliteElementRepository);
+        injector
+    }
+
+    fn make_meta() -> Meta {
+        Meta {
+            id: Uuid::new_v4(),
+            name: "test".into(),
+            position: 0,
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        }
+    }
+
+    #[tokio::test]
+    async fn delete_extract_with_child_extract_cascades_to_child_extract() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let parent_extract = Extract {
+            meta: make_meta(),
+            parent: ExtractParent::Reading(reading.meta.id),
+            tags: vec![],
+            text: String::new(),
+        };
+        let child_extract = Extract {
+            meta: make_meta(),
+            parent: ExtractParent::Extract(parent_extract.meta.id),
+            tags: vec![],
+            text: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading).await.unwrap();
+        extract_repo.create(parent_extract.clone()).await.unwrap();
+        extract_repo.create(child_extract.clone()).await.unwrap();
+
+        // Act
+
+        element_repo
+            .delete(ElementId::Extract(parent_extract.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        let remaining = extract_repo.get_all().await.unwrap();
+        assert!(!remaining.iter().any(|e| e.meta.id == child_extract.meta.id));
+    }
+
+    #[tokio::test]
+    async fn delete_extract_with_card_cascades_to_card() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+        let card_repo = scope.resolve::<dyn CardRepository>().await;
+        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let extract = Extract {
+            meta: make_meta(),
+            parent: ExtractParent::Reading(reading.meta.id),
+            tags: vec![],
+            text: String::new(),
+        };
+        let card = Card {
+            meta: make_meta(),
+            parent: CardParent::Extract(extract.meta.id),
+            tags: vec![],
+            front: String::new(),
+            back: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading).await.unwrap();
+        extract_repo.create(extract.clone()).await.unwrap();
+        card_repo.create(card.clone()).await.unwrap();
+
+        // Act
+
+        element_repo
+            .delete(ElementId::Extract(extract.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        let remaining = card_repo.get_all().await.unwrap();
+        assert!(!remaining.iter().any(|c| c.meta.id == card.meta.id));
+    }
+}
