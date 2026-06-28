@@ -11,8 +11,7 @@ import {
 } from "../../../stores/elements/elementsSelectors";
 import ElementTree from "./ElementTree/ElementTree";
 
-// TODO: rename to element tree (this + docs + buttons on top)
-function FileTreePanel() {
+function ElementTreePanel() {
 	const dispatch = useAppDispatch();
 	const tree = useAppSelector(selectElementTree);
 	const error = useAppSelector(selectElementTreeError);
@@ -52,4 +51,4 @@ function FileTreePanel() {
 	);
 }
 
-export default FileTreePanel;
+export default ElementTreePanel;

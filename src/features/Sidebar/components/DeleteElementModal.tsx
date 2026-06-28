@@ -28,7 +28,7 @@ function DeleteElementModal({ elementId, onClose }: DeleteElementModalProps) {
 				Are you sure you want to delete this element? This action cannot
 				be undone.
 			</Text>
-			<Group justify="flex-end" gap="xs">
+			<Group justify="flex-end" gap="xs" mt="sm">
 				<Button variant="default" onClick={onClose}>
 					Cancel
 				</Button>

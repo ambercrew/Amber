@@ -3,6 +3,7 @@ import { render, RenderOptions } from "@testing-library/react";
 import { Provider } from "react-redux";
 import { AppStore, RootState, setupStore } from "../../stores/store";
 import { MemoryRouter, useLocation, MemoryRouterProps } from "react-router";
+import { MantineProvider } from "@mantine/core";
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 	preloadedState?: Partial<RootState>;
@@ -36,10 +37,12 @@ export function renderWithProviders(
 
 	function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
 		return (
-			<MemoryRouter {...memoryRouterProps}>
-				<LocationDisplay />
-				<Provider store={store}>{children}</Provider>
-			</MemoryRouter>
+			<MantineProvider>
+				<MemoryRouter {...memoryRouterProps}>
+					<LocationDisplay />
+					<Provider store={store}>{children}</Provider>
+				</MemoryRouter>
+			</MantineProvider>
 		);
 	}
 	return {

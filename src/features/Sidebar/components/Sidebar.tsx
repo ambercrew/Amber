@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AppShell, Group, ActionIcon } from "@mantine/core";
-import FileTreePanel from "./FileTreePanel";
+import ElementTreePanel from "./ElementTreePanel";
 import PriorityQueuePanel from "./PriorityQueuePanel";
 import { TreeViewIcon, QueueIcon, XIcon } from "@phosphor-icons/react";
 
@@ -22,7 +22,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 						<ActionIcon
 							variant={activeTab === "tree" ? "filled" : "subtle"}
 							onClick={() => setActiveTab("tree")}
-							title="File Tree - used for managing your learning materials">
+							title="Element Tree - used for managing your learning materials">
 							<TreeViewIcon size={20} />
 						</ActionIcon>
 						<ActionIcon
@@ -48,7 +48,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 
 			<AppShell.Section grow style={{ overflowY: "auto" }}>
 				{activeTab === "tree" ? (
-					<FileTreePanel />
+					<ElementTreePanel />
 				) : (
 					<PriorityQueuePanel />
 				)}

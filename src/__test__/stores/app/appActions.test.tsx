@@ -1,6 +1,7 @@
 import { loadUserState } from "../../../stores/user/userActions.ts";
 import { loadAndApplySettings } from "../../../stores/settings/settingsActions.ts";
 import { sync } from "../../../stores/sync/syncActions.ts";
+import { loadElementTree } from "../../../stores/elements/elementsActions.ts";
 import UpdateSettingsRequestDto from "../../../api/settings/dto/updateSettingsRequestDto.ts";
 import { Mock } from "vitest";
 import { Procedure } from "@vitest/spy";
@@ -15,6 +16,7 @@ vi.mock(import("../../../hooks/useAppDispatch.ts"), () => ({
 vi.mock(import("../../../stores/settings/settingsActions.ts"));
 vi.mock(import("../../../stores/user/userActions.ts"));
 vi.mock(import("../../../stores/sync/syncActions.ts"));
+vi.mock(import("../../../stores/elements/elementsActions.ts"));
 
 describe("appActions", () => {
 	let dispatchMock: Mock<Procedure>;
@@ -45,6 +47,9 @@ describe("appActions", () => {
 		const expectedSync = vi.fn();
 		vi.mocked(sync).mockReturnValue(expectedSync);
 
+		const expectedLoadElementTree = vi.fn();
+		vi.mocked(loadElementTree).mockReturnValue(expectedLoadElementTree);
+
 		const getState = vi.fn();
 		getState.mockReturnValue({
 			app: {} as AppState,
@@ -59,6 +64,7 @@ describe("appActions", () => {
 		expect(dispatchMock).toHaveBeenCalledWith(expectedLoadSettingsCb);
 		expect(dispatchMock).toHaveBeenCalledWith(expectedInitiateSettings);
 		expect(dispatchMock).toHaveBeenCalledWith(expectedSync);
+		expect(dispatchMock).toHaveBeenCalledWith(expectedLoadElementTree);
 	});
 
 	it("Should not load initial state when loaded", async () => {
@@ -83,6 +89,9 @@ describe("appActions", () => {
 		const expectedSync = vi.fn();
 		vi.mocked(sync).mockReturnValue(expectedSync);
 
+		const expectedLoadElementTree = vi.fn();
+		vi.mocked(loadElementTree).mockReturnValue(expectedLoadElementTree);
+
 		const getState = vi.fn();
 		getState.mockReturnValue({
 			app: {
@@ -100,6 +109,7 @@ describe("appActions", () => {
 		expect(dispatchMock).not.toHaveBeenCalledWith(expectedLoadSettingsCb);
 		expect(dispatchMock).not.toHaveBeenCalledWith(expectedInitiateSettings);
 		expect(dispatchMock).not.toHaveBeenCalledWith(expectedSync);
+		expect(dispatchMock).not.toHaveBeenCalledWith(expectedLoadElementTree);
 	});
 
 	it("Should not auto-sync on start if it is not enabled", async () => {
@@ -120,6 +130,9 @@ describe("appActions", () => {
 		const expectedSync = vi.fn();
 		vi.mocked(sync).mockReturnValue(expectedSync);
 
+		const expectedLoadElementTree = vi.fn();
+		vi.mocked(loadElementTree).mockReturnValue(expectedLoadElementTree);
+
 		const getState = vi.fn();
 		getState.mockReturnValue({
 			app: {} as AppState,
@@ -133,5 +146,6 @@ describe("appActions", () => {
 
 		expect(dispatchMock).toHaveBeenCalledWith(expectedInitiateSettings);
 		expect(dispatchMock).not.toHaveBeenCalledWith(expectedSync);
+		expect(dispatchMock).toHaveBeenCalledWith(expectedLoadElementTree);
 	});
 });
