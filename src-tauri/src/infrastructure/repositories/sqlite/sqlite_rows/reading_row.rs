@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use crate::elements::entities::reading::{Reading, ReadingSource};
 use crate::elements::extensions::into_element_id_ext::IntoOptionalElementIdExt;
+use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 
 #[derive(Debug, Clone, sqlx::FromRow)]
@@ -30,7 +31,7 @@ impl From<ReadingRow> for Reading {
         };
         Reading {
             meta: Meta {
-                id: row.id,
+                id: ElementId::Reading(row.id),
                 name: row.name,
                 parent: (row.parent_id, row.parent_type).into_element_id(),
                 position: fractional_index::FractionalIndex::from_bytes(row.position)

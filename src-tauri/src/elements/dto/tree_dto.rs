@@ -1,9 +1,11 @@
 use serde::Serialize;
 
+use crate::elements::value_objects::element_id::ElementId;
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetaNodeDto {
-    pub id: String,
+    pub id: ElementId,
     pub name: String,
     pub position: String,
     pub tags: Vec<String>,

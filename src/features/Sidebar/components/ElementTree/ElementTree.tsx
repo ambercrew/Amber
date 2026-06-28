@@ -100,13 +100,15 @@ function ElementTree({ tree }: ElementTreeProps) {
 						onDragDrop={({ draggedNode, targetNode, position }) => {
 							const draggedType = findNodeType(data, draggedNode);
 							const targetType = findNodeType(data, targetNode);
-							if (!draggedType || !targetType) return;
+							if (!draggedType) return;
 							const dto: MoveElementDto = {
 								draggedId: {
 									type: draggedType,
 									id: draggedNode,
 								},
-								targetId: { type: targetType, id: targetNode },
+								targetId: targetType
+									? { type: targetType, id: targetNode }
+									: null,
 								position,
 							};
 							void dispatch(moveElementAction(dto));

@@ -1,10 +1,12 @@
+import { ElementId } from "../../../types/elements/elementId";
+
 export interface NodeDto {
 	meta: MetaNodeDto;
 	children: NodeChildrenDto;
 }
 
 export interface MetaNodeDto {
-	id: string;
+	id: ElementId;
 	name: string;
 	position: string;
 	tags: string[];

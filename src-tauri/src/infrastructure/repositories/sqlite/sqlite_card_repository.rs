@@ -8,35 +8,27 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::card::Card;
 use crate::elements::repositories::card_repository::CardRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::card_row::CardRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
 pub struct SqliteCardRepository {
     tx: Arc<DbTransaction>,
+    meta_repository: Arc<dyn MetaRepository>,
 }
 
 #[async_trait]
 impl CardRepository for SqliteCardRepository {
     async fn create(&self, card: Card) -> Result<(), RepositoryError> {
+        self.meta_repository.create_meta(&card.meta).await?;
+
+        let uuid = card.meta.id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
-            card.meta.id,
-            card.meta.name,
-            card.meta.position.as_bytes(),
-            card.meta.parent.map(|p| p.id()),
-            card.meta.parent.map(|p| p.element_name()),
-            card.meta.created_at,
-            card.meta.modified_at,
-        )
-        .execute(&mut *tx)
-        .await?;
-        sqlx::query!(
             "INSERT INTO cards (id, front, back) VALUES ($1, $2, $3)",
-            card.meta.id,
+            uuid,
             card.front,
             card.back,
         )
@@ -140,9 +132,9 @@ mod tests {
         injector
     }
 
-    fn make_meta() -> Meta {
+    fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id: Uuid::new_v4(),
+            id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
@@ -150,6 +142,16 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn folder_meta() -> Meta {
+        make_meta(ElementId::Folder(Uuid::new_v4()))
+    }
+    fn reading_meta() -> Meta {
+        make_meta(ElementId::Reading(Uuid::new_v4()))
+    }
+    fn card_meta() -> Meta {
+        make_meta(ElementId::Card(Uuid::new_v4()))
     }
 
     #[tokio::test]
@@ -163,19 +165,21 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -186,10 +190,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Card(card.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(card.meta.id).await.unwrap();
 
         // Assert
 
@@ -208,19 +209,21 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -232,7 +235,7 @@ mod tests {
         // Act
 
         meta_repo
-            .rename(ElementId::Card(card.meta.id), "renamed".into())
+            .rename(card.meta.id, "renamed".into())
             .await
             .unwrap();
 
@@ -257,19 +260,21 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -280,10 +285,7 @@ mod tests {
 
         // Act
 
-        let actual = meta_repo
-            .exists(ElementId::Card(card.meta.id))
-            .await
-            .unwrap();
+        let actual = meta_repo.exists(card.meta.id).await.unwrap();
 
         // Assert
 

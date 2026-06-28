@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use crate::elements::entities::card::Card;
 use crate::elements::extensions::into_element_id_ext::IntoOptionalElementIdExt;
+use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 
 #[derive(Debug, Clone, sqlx::FromRow)]
@@ -22,7 +23,7 @@ impl From<CardRow> for Card {
     fn from(row: CardRow) -> Self {
         Card {
             meta: Meta {
-                id: row.id,
+                id: ElementId::Card(row.id),
                 name: row.name,
                 parent: (row.parent_id, row.parent_type).into_element_id(),
                 position: fractional_index::FractionalIndex::from_bytes(row.position)

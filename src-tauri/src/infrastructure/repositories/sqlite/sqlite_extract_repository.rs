@@ -8,35 +8,27 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::extract::Extract;
 use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
 pub struct SqliteExtractRepository {
     tx: Arc<DbTransaction>,
+    meta_repository: Arc<dyn MetaRepository>,
 }
 
 #[async_trait]
 impl ExtractRepository for SqliteExtractRepository {
     async fn create(&self, extract: Extract) -> Result<(), RepositoryError> {
+        self.meta_repository.create_meta(&extract.meta).await?;
+
+        let uuid = extract.meta.id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
-            extract.meta.id,
-            extract.meta.name,
-            extract.meta.position.as_bytes(),
-            extract.meta.parent.map(|p| p.id()),
-            extract.meta.parent.map(|p| p.element_name()),
-            extract.meta.created_at,
-            extract.meta.modified_at,
-        )
-        .execute(&mut *tx)
-        .await?;
-        sqlx::query!(
             "INSERT INTO extracts (id, text) VALUES ($1, $2)",
-            extract.meta.id,
+            uuid,
             extract.text,
         )
         .execute(&mut *tx)
@@ -139,9 +131,9 @@ mod tests {
         injector
     }
 
-    fn make_meta() -> Meta {
+    fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id: Uuid::new_v4(),
+            id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
@@ -149,6 +141,19 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn folder_meta() -> Meta {
+        make_meta(ElementId::Folder(Uuid::new_v4()))
+    }
+    fn reading_meta() -> Meta {
+        make_meta(ElementId::Reading(Uuid::new_v4()))
+    }
+    fn extract_meta() -> Meta {
+        make_meta(ElementId::Extract(Uuid::new_v4()))
+    }
+    fn card_meta() -> Meta {
+        make_meta(ElementId::Card(Uuid::new_v4()))
     }
 
     #[tokio::test]
@@ -162,26 +167,28 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let parent_extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
         let child_extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Extract(parent_extract.meta.id)),
-                ..make_meta()
+                parent: Some(parent_extract.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
@@ -192,10 +199,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Extract(parent_extract.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(parent_extract.meta.id).await.unwrap();
 
         // Assert
 
@@ -215,26 +219,28 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Extract(extract.meta.id)),
-                ..make_meta()
+                parent: Some(extract.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -246,10 +252,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Extract(extract.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(extract.meta.id).await.unwrap();
 
         // Assert
 
@@ -268,19 +271,21 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
@@ -291,7 +296,7 @@ mod tests {
         // Act
 
         meta_repo
-            .rename(ElementId::Extract(extract.meta.id), "renamed".into())
+            .rename(extract.meta.id, "renamed".into())
             .await
             .unwrap();
 
@@ -316,19 +321,21 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
@@ -338,10 +345,7 @@ mod tests {
 
         // Act
 
-        let actual = meta_repo
-            .exists(ElementId::Extract(extract.meta.id))
-            .await
-            .unwrap();
+        let actual = meta_repo.exists(extract.meta.id).await.unwrap();
 
         // Assert
 

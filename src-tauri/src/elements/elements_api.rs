@@ -87,7 +87,7 @@ pub async fn create_folder(
     let now = Utc::now();
     let folder = Folder {
         meta: Meta {
-            id: Uuid::new_v4(),
+            id: ElementId::Folder(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
@@ -120,7 +120,7 @@ pub async fn create_reading(
     let now = Utc::now();
     let reading = Reading {
         meta: Meta {
-            id: Uuid::new_v4(),
+            id: ElementId::Reading(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
@@ -155,7 +155,7 @@ pub async fn create_extract(
     let now = Utc::now();
     let extract = Extract {
         meta: Meta {
-            id: Uuid::new_v4(),
+            id: ElementId::Extract(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
@@ -203,7 +203,7 @@ pub async fn create_card(
     let now = Utc::now();
     let card = Card {
         meta: Meta {
-            id: Uuid::new_v4(),
+            id: ElementId::Card(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,

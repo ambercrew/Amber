@@ -8,6 +8,7 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::Reading;
 use crate::elements::entities::reading::ReadingSource;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
@@ -15,6 +16,7 @@ use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 #[derive(ScopeInjectable)]
 pub struct SqliteReadingRepository {
     tx: Arc<DbTransaction>,
+    meta_repository: Arc<dyn MetaRepository>,
 }
 
 #[async_trait]
@@ -26,24 +28,14 @@ impl ReadingRepository for SqliteReadingRepository {
             ReadingSource::Pdf => ("pdf".to_string(), None),
         };
 
+        self.meta_repository.create_meta(&reading.meta).await?;
+
+        let uuid = reading.meta.id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
-            reading.meta.id,
-            reading.meta.name,
-            reading.meta.position.as_bytes(),
-            reading.meta.parent.map(|p| p.id()),
-            reading.meta.parent.map(|p| p.element_name()),
-            reading.meta.created_at,
-            reading.meta.modified_at,
-        )
-        .execute(&mut *tx)
-        .await?;
-        sqlx::query!(
             "INSERT INTO readings (id, source_type, source_url, body) VALUES ($1, $2, $3, $4)",
-            reading.meta.id,
+            uuid,
             source_type,
             source_url,
             reading.body,
@@ -150,9 +142,9 @@ mod tests {
         injector
     }
 
-    fn make_meta() -> Meta {
+    fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id: Uuid::new_v4(),
+            id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
@@ -160,6 +152,19 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn folder_meta() -> Meta {
+        make_meta(ElementId::Folder(Uuid::new_v4()))
+    }
+    fn reading_meta() -> Meta {
+        make_meta(ElementId::Reading(Uuid::new_v4()))
+    }
+    fn extract_meta() -> Meta {
+        make_meta(ElementId::Extract(Uuid::new_v4()))
+    }
+    fn card_meta() -> Meta {
+        make_meta(ElementId::Card(Uuid::new_v4()))
     }
 
     #[tokio::test]
@@ -173,19 +178,21 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
@@ -195,10 +202,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Reading(reading.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(reading.meta.id).await.unwrap();
 
         // Assert
 
@@ -217,19 +221,21 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Reading(reading.meta.id)),
-                ..make_meta()
+                parent: Some(reading.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -240,10 +246,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Reading(reading.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(reading.meta.id).await.unwrap();
 
         // Assert
 
@@ -261,11 +264,13 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -276,7 +281,7 @@ mod tests {
         // Act
 
         meta_repo
-            .rename(ElementId::Reading(reading.meta.id), "renamed".into())
+            .rename(reading.meta.id, "renamed".into())
             .await
             .unwrap();
 
@@ -300,11 +305,13 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -314,10 +321,7 @@ mod tests {
 
         // Act
 
-        let actual = meta_repo
-            .exists(ElementId::Reading(reading.meta.id))
-            .await
-            .unwrap();
+        let actual = meta_repo.exists(reading.meta.id).await.unwrap();
 
         // Assert
 

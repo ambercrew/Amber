@@ -24,11 +24,10 @@ INSERT INTO fsrs_profiles(
 );
 
 CREATE TRIGGER fsrs_profiles_update_modified_date_after_update
-    AFTER UPDATE ON fsrs_profiles
-    WHEN OLD.modified_date == NEW.modified_date
+    AFTER UPDATE OF name, request_retention, maximum_interval, weights ON fsrs_profiles
 BEGIN
-    UPDATE fsrs_profiles 
-    SET modified_date = datetime('now') 
+    UPDATE fsrs_profiles
+    SET modified_date = datetime('now')
     WHERE id = NEW.id;
 END;
 
@@ -90,8 +89,7 @@ CREATE TABLE element_tags(
 CREATE INDEX element_tags_tag_id_index ON element_tags(tag_id);
 
 CREATE TRIGGER tags_update_modified_at_after_update
-    AFTER UPDATE ON tags
-    WHEN OLD.modified_at == NEW.modified_at
+    AFTER UPDATE OF name, position ON tags
 BEGIN
     UPDATE tags
     SET modified_at = datetime('now')
@@ -135,24 +133,31 @@ CREATE TABLE cards(
 -------------------------------------------------------------------------
 
 CREATE TABLE meta(
-    id          TEXT    NOT NULL PRIMARY KEY,
-    name        TEXT    NOT NULL,
-    position    BLOB    NOT NULL,
-    parent_id   TEXT,
-    parent_type TEXT,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-    modified_at TEXT    NOT NULL DEFAULT (datetime('now'))
+    id           TEXT    NOT NULL PRIMARY KEY,
+    element_type TEXT    NOT NULL,
+    name         TEXT    NOT NULL,
+    position     BLOB    NOT NULL,
+    parent_id    TEXT,
+    parent_type  TEXT,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    modified_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX meta_parent_id_index ON meta(parent_id);
 
 CREATE TRIGGER meta_update_modified_at_after_update
-    AFTER UPDATE ON meta
-    WHEN OLD.modified_at == NEW.modified_at
+    AFTER UPDATE OF name, parent_id, parent_type, position ON meta
 BEGIN
     UPDATE meta
     SET modified_at = datetime('now')
     WHERE id = NEW.id;
+END;
+
+-- Delete children.
+CREATE TRIGGER meta_cascade_delete_children_after_delete
+    AFTER DELETE ON meta
+BEGIN
+    DELETE FROM meta WHERE parent_id = OLD.id;
 END;
 
 -- When a meta row is deleted, delete the corresponding element row.
@@ -166,8 +171,6 @@ BEGIN
 END;
 
 ----------- Element → meta delete triggers
--- These fire when an element is explicitly deleted and clean up the meta row.
--- Logging triggers are registered first so they run before meta is removed.
 
 CREATE TRIGGER folders_add_to_deleted_entities_after_delete
     AFTER DELETE ON folders

@@ -3,12 +3,16 @@ import { NodeDto } from "../../../../api/elements/dto/nodeDto";
 import { ElementNodeType } from "../../../../types/elements/elementNodeType";
 import { ElementNodeProps } from "./elementNodeProps";
 
-function nodeToTreeNode(node: NodeDto, type: ElementNodeType): TreeNodeData {
+export function dtosToTreeData(nodes: NodeDto[]): TreeNodeData[] {
+	return nodes.map(f => nodeToTreeNode(f));
+}
+
+function nodeToTreeNode(node: NodeDto): TreeNodeData {
 	const children = [
-		...node.children.folders.map(f => nodeToTreeNode(f, "folder")),
-		...node.children.readings.map(r => nodeToTreeNode(r, "reading")),
-		...node.children.extracts.map(e => nodeToTreeNode(e, "extract")),
-		...node.children.cards.map(c => nodeToTreeNode(c, "card")),
+		...node.children.folders.map(nodeToTreeNode),
+		...node.children.readings.map(nodeToTreeNode),
+		...node.children.extracts.map(nodeToTreeNode),
+		...node.children.cards.map(nodeToTreeNode),
 	];
 	children.sort((a, b) => {
 		return (a.nodeProps as ElementNodeProps).position.localeCompare(
@@ -17,18 +21,14 @@ function nodeToTreeNode(node: NodeDto, type: ElementNodeType): TreeNodeData {
 	});
 	return {
 		label: node.meta.name,
-		value: node.meta.id,
+		value: node.meta.id.id,
 		nodeProps: {
-			type,
+			type: node.meta.id.type,
 			childrenCount: children.length,
 			position: node.meta.position,
 		} satisfies ElementNodeProps,
 		children,
 	};
-}
-
-export function dtosToTreeData(folders: NodeDto[]): TreeNodeData[] {
-	return folders.map(f => nodeToTreeNode(f, "folder"));
 }
 
 export function findNodeType(

@@ -38,22 +38,63 @@ impl ElementTreeService for DefaultElementTreeService {
         let extracts_by_parent = group_by_parent(extracts, |e| e.meta().parent);
         let cards_by_parent = group_by_parent(cards, |c| c.meta().parent);
 
-        let empty: Vec<Folder> = vec![];
-        Ok(folders_by_parent
-            .get(&None)
-            .unwrap_or(&empty)
-            .iter()
-            .map(|f| {
+        let mut root_nodes: Vec<(fractional_index::FractionalIndex, NodeDto)> = Vec::new();
+
+        for f in folders_by_parent.get(&None).into_iter().flatten() {
+            root_nodes.push((
+                f.meta().position.clone(),
                 build_node(
                     f,
-                    Some(ElementId::Folder(f.meta().id)),
+                    Some(f.meta().id),
                     &folders_by_parent,
                     &readings_by_parent,
                     &extracts_by_parent,
                     &cards_by_parent,
-                )
-            })
-            .collect())
+                ),
+            ));
+        }
+        for r in readings_by_parent.get(&None).into_iter().flatten() {
+            root_nodes.push((
+                r.meta().position.clone(),
+                build_node(
+                    r,
+                    Some(r.meta().id),
+                    &folders_by_parent,
+                    &readings_by_parent,
+                    &extracts_by_parent,
+                    &cards_by_parent,
+                ),
+            ));
+        }
+        for e in extracts_by_parent.get(&None).into_iter().flatten() {
+            root_nodes.push((
+                e.meta().position.clone(),
+                build_node(
+                    e,
+                    Some(e.meta().id),
+                    &folders_by_parent,
+                    &readings_by_parent,
+                    &extracts_by_parent,
+                    &cards_by_parent,
+                ),
+            ));
+        }
+        for c in cards_by_parent.get(&None).into_iter().flatten() {
+            root_nodes.push((
+                c.meta().position.clone(),
+                build_node(
+                    c,
+                    Some(c.meta().id),
+                    &folders_by_parent,
+                    &readings_by_parent,
+                    &extracts_by_parent,
+                    &cards_by_parent,
+                ),
+            ));
+        }
+
+        root_nodes.sort_by(|a, b| a.0.cmp(&b.0));
+        Ok(root_nodes.into_iter().map(|(_, n)| n).collect())
     }
 }
 
@@ -75,7 +116,7 @@ where
 fn make_meta(element: &impl Element) -> MetaNodeDto {
     let meta = element.meta();
     MetaNodeDto {
-        id: meta.id.to_string(),
+        id: meta.id,
         name: meta.name.clone(),
         position: meta.position.to_string(),
         tags: meta.tags.iter().map(|t| t.to_string()).collect(),
@@ -100,7 +141,7 @@ fn build_node(
                         .map(|f| {
                             build_node(
                                 f,
-                                Some(ElementId::Folder(f.meta().id)),
+                                Some(f.meta().id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -117,7 +158,7 @@ fn build_node(
                         .map(|r| {
                             build_node(
                                 r,
-                                Some(ElementId::Reading(r.meta().id)),
+                                Some(r.meta().id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -134,7 +175,7 @@ fn build_node(
                         .map(|e| {
                             build_node(
                                 e,
-                                Some(ElementId::Extract(e.meta().id)),
+                                Some(e.meta().id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -151,7 +192,7 @@ fn build_node(
                         .map(|c| {
                             build_node(
                                 c,
-                                Some(ElementId::Card(c.meta().id)),
+                                Some(c.meta().id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -182,7 +223,8 @@ mod tests {
             },
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
-                folder_repository::FolderRepository, reading_repository::ReadingRepository,
+                folder_repository::FolderRepository, meta_repository::MetaRepository,
+                reading_repository::ReadingRepository,
             },
             services::element_tree_service::ElementTreeService,
             value_objects::{element_id::ElementId, meta::Meta},
@@ -192,6 +234,7 @@ mod tests {
                 sqlite_card_repository::SqliteCardRepository,
                 sqlite_extract_repository::SqliteExtractRepository,
                 sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_meta_repository::SqliteMetaRepository,
                 sqlite_reading_repository::SqliteReadingRepository,
             },
             value_objects::db_transaction::DbTransaction,
@@ -208,14 +251,15 @@ mod tests {
         register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
+        register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
 
         injector
     }
 
-    fn make_meta() -> Meta {
+    fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id: Uuid::new_v4(),
+            id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
@@ -223,6 +267,19 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn folder_meta() -> Meta {
+        make_meta(ElementId::Folder(Uuid::new_v4()))
+    }
+    fn reading_meta() -> Meta {
+        make_meta(ElementId::Reading(Uuid::new_v4()))
+    }
+    fn extract_meta() -> Meta {
+        make_meta(ElementId::Extract(Uuid::new_v4()))
+    }
+    fn card_meta() -> Meta {
+        make_meta(ElementId::Card(Uuid::new_v4()))
     }
 
     #[tokio::test]
@@ -253,7 +310,7 @@ mod tests {
         let folder = Folder {
             meta: Meta {
                 name: "Science".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let folder_id = folder.meta.id;
@@ -271,7 +328,7 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(folder_id.to_string(), actual[0].meta.id);
+        assert_eq!(folder_id, actual[0].meta.id);
         assert_eq!("Science", actual[0].meta.name);
     }
 
@@ -286,15 +343,15 @@ mod tests {
         let parent = Folder {
             meta: Meta {
                 name: "Science".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let parent_id = parent.meta.id;
         let child = Folder {
             meta: Meta {
                 name: "Biology".to_string(),
-                parent: Some(ElementId::Folder(parent_id)),
-                ..make_meta()
+                parent: Some(parent_id),
+                ..folder_meta()
             },
         };
         let child_id = child.meta.id;
@@ -309,9 +366,9 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(parent_id.to_string(), actual[0].meta.id);
+        assert_eq!(parent_id, actual[0].meta.id);
         assert_eq!(1, actual[0].children.folders.len());
-        assert_eq!(child_id.to_string(), actual[0].children.folders[0].meta.id);
+        assert_eq!(child_id, actual[0].children.folders[0].meta.id);
         assert_eq!("Biology", actual[0].children.folders[0].meta.name);
     }
 
@@ -326,15 +383,15 @@ mod tests {
         let folder = Folder {
             meta: Meta {
                 name: "Science".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let folder_id = folder.meta.id;
         let reading = Reading {
             meta: Meta {
                 name: "Photosynthesis".to_string(),
-                parent: Some(ElementId::Folder(folder_id)),
-                ..make_meta()
+                parent: Some(folder_id),
+                ..reading_meta()
             },
             source: ReadingSource::Website { url: String::new() },
             body: "body text".to_string(),
@@ -343,8 +400,8 @@ mod tests {
         let extract = Extract {
             meta: Meta {
                 name: "Key passage".to_string(),
-                parent: Some(ElementId::Reading(reading_id)),
-                ..make_meta()
+                parent: Some(reading_id),
+                ..extract_meta()
             },
             text: "Plants convert sunlight".to_string(),
         };
@@ -352,8 +409,8 @@ mod tests {
         let card = Card {
             meta: Meta {
                 name: "Card 1".to_string(),
-                parent: Some(ElementId::Extract(extract_id)),
-                ..make_meta()
+                parent: Some(extract_id),
+                ..card_meta()
             },
             front: "What do plants convert?".to_string(),
             back: "Sunlight".to_string(),
@@ -395,12 +452,12 @@ mod tests {
         let folder = &actual[0];
         assert_eq!(1, folder.children.readings.len());
         let reading = &folder.children.readings[0];
-        assert_eq!(reading_id.to_string(), reading.meta.id);
+        assert_eq!(reading_id, reading.meta.id);
         assert_eq!(1, reading.children.extracts.len());
         let extract = &reading.children.extracts[0];
-        assert_eq!(extract_id.to_string(), extract.meta.id);
+        assert_eq!(extract_id, extract.meta.id);
         assert_eq!(1, extract.children.cards.len());
-        assert_eq!(card_id.to_string(), extract.children.cards[0].meta.id);
+        assert_eq!(card_id, extract.children.cards[0].meta.id);
     }
 
     #[tokio::test]
@@ -414,7 +471,7 @@ mod tests {
         let folder = Folder {
             meta: Meta {
                 name: "Science".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let folder_id = folder.meta.id;
@@ -428,9 +485,9 @@ mod tests {
         let reading_first = Reading {
             meta: Meta {
                 name: "First".to_string(),
-                parent: Some(ElementId::Folder(folder_id)),
+                parent: Some(folder_id),
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
-                ..make_meta()
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -438,11 +495,11 @@ mod tests {
         let reading_second = Reading {
             meta: Meta {
                 name: "Second".to_string(),
-                parent: Some(ElementId::Folder(folder_id)),
+                parent: Some(folder_id),
                 position: FractionalIndex::new_after(&FractionalIndex::new_after(
                     &FractionalIndex::default(),
                 )),
-                ..make_meta()
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -463,8 +520,8 @@ mod tests {
 
         let readings = &actual[0].children.readings;
         assert_eq!(2, readings.len());
-        assert_eq!(reading_first_id.to_string(), readings[0].meta.id);
-        assert_eq!(reading_second_id.to_string(), readings[1].meta.id);
+        assert_eq!(reading_first_id, readings[0].meta.id);
+        assert_eq!(reading_second_id, readings[1].meta.id);
     }
 
     #[tokio::test]
@@ -479,18 +536,18 @@ mod tests {
         let active = Folder {
             meta: Meta {
                 name: "Active".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let removed = Folder {
             meta: Meta {
                 name: "Removed".to_string(),
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let active_id = active.meta.id;
-        let removed_id = removed.meta.id;
+        let removed_id = removed.meta.id.id();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         folder_repo.create(active).await.unwrap();
         folder_repo.create(removed).await.unwrap();
@@ -511,7 +568,113 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(active_id.to_string(), actual[0].meta.id);
+        assert_eq!(active_id, actual[0].meta.id);
+    }
+
+    #[tokio::test]
+    async fn get_element_tree_root_reading_appears_at_root() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn ElementTreeService>().await;
+
+        let reading = Reading {
+            meta: Meta {
+                name: "Orphan Reading".to_string(),
+                ..reading_meta()
+            },
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let reading_id = reading.meta.id;
+        scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .create(reading)
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = service.get_element_tree().await.unwrap();
+
+        // Assert
+
+        assert_eq!(1, actual.len());
+        assert_eq!(reading_id, actual[0].meta.id);
+        assert_eq!("Orphan Reading", actual[0].meta.name);
+    }
+
+    #[tokio::test]
+    async fn get_element_tree_mixed_root_elements_sorted_by_position() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn ElementTreeService>().await;
+
+        let pos_first = FractionalIndex::default();
+        let pos_second = FractionalIndex::new_after(&pos_first);
+        let pos_third = FractionalIndex::new_after(&pos_second);
+
+        let reading = Reading {
+            meta: Meta {
+                name: "Reading".to_string(),
+                position: pos_first,
+                ..reading_meta()
+            },
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let folder = Folder {
+            meta: Meta {
+                name: "Folder".to_string(),
+                position: pos_second,
+                ..folder_meta()
+            },
+        };
+        let extract = Extract {
+            meta: Meta {
+                name: "Extract".to_string(),
+                position: pos_third,
+                ..extract_meta()
+            },
+            text: "Some text".to_string(),
+        };
+        let reading_id = reading.meta.id;
+        let folder_id = folder.meta.id;
+        let extract_id = extract.meta.id;
+
+        scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .create(reading)
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .create(folder)
+            .await
+            .unwrap();
+        scope
+            .resolve::<dyn ExtractRepository>()
+            .await
+            .create(extract)
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = service.get_element_tree().await.unwrap();
+
+        // Assert
+
+        assert_eq!(3, actual.len());
+        assert_eq!(reading_id, actual[0].meta.id);
+        assert_eq!(folder_id, actual[1].meta.id);
+        assert_eq!(extract_id, actual[2].meta.id);
     }
 
     #[tokio::test]
@@ -525,15 +688,15 @@ mod tests {
         let folder = Folder {
             meta: Meta {
                 name: "Science".to_string(),
-                ..make_meta()
+                ..folder_meta()
             },
         };
         let folder_id = folder.meta.id;
         let extract = Extract {
             meta: Meta {
                 name: "Direct extract".to_string(),
-                parent: Some(ElementId::Folder(folder_id)),
-                ..make_meta()
+                parent: Some(folder_id),
+                ..extract_meta()
             },
             text: "Some text".to_string(),
         };
@@ -560,6 +723,6 @@ mod tests {
         let folder = &actual[0];
         assert!(folder.children.readings.is_empty());
         assert_eq!(1, folder.children.extracts.len());
-        assert_eq!(extract_id.to_string(), folder.children.extracts[0].meta.id);
+        assert_eq!(extract_id, folder.children.extracts[0].meta.id);
     }
 }

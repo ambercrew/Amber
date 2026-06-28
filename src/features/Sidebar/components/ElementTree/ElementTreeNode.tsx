@@ -86,20 +86,18 @@ function ElementTreeNode({
 						: undefined
 				}
 				style={{ borderRadius: "var(--mantine-radius-sm)" }}>
-				{hasChildren && (
-					<ActionIcon
-						variant="transparent"
-						size="xs"
-						c="inherit"
-						aria-label={expanded ? "Collapse" : "Expand"}
-						onClick={handleCaretClick}>
-						{expanded ? (
-							<CaretDownIcon size={ICON_SIZE} />
-						) : (
-							<CaretRightIcon size={ICON_SIZE} />
-						)}
-					</ActionIcon>
-				)}
+				<ActionIcon
+					variant="transparent"
+					size="xs"
+					c="inherit"
+					aria-label={expanded ? "Collapse" : "Expand"}
+					onClick={handleCaretClick}>
+					{expanded ? (
+						<CaretDownIcon size={ICON_SIZE} />
+					) : (
+						<CaretRightIcon size={ICON_SIZE} />
+					)}
+				</ActionIcon>
 				<ElementNodeIcon
 					type={type}
 					expanded={expanded}

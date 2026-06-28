@@ -6,7 +6,7 @@ use crate::elements::value_objects::element_id::ElementId;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Meta {
-    pub id: Uuid,
+    pub id: ElementId,
     pub name: String,
     pub parent: Option<ElementId>,
     pub position: FractionalIndex,

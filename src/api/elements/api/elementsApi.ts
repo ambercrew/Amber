@@ -45,7 +45,7 @@ export type DropPosition = "before" | "after" | "inside";
 
 export interface MoveElementDto {
 	draggedId: ElementId;
-	targetId: ElementId;
+	targetId: ElementId | null;
 	position: DropPosition;
 }
 

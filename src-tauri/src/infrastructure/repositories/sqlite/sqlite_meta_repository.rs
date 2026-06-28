@@ -3,10 +3,13 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use fractional_index::FractionalIndex;
 use injector_derive::ScopeInjectable;
+use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::meta::Meta;
+use crate::infrastructure::repositories::sqlite::sqlite_rows::meta_row::MetaRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
@@ -16,6 +19,53 @@ pub struct SqliteMetaRepository {
 
 #[async_trait]
 impl MetaRepository for SqliteMetaRepository {
+    async fn create_meta(&self, meta: &Meta) -> Result<(), RepositoryError> {
+        let uuid = meta.id.id();
+        let element_type = meta.id.element_name();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "INSERT INTO meta (id, element_type, name, position, parent_id, parent_type, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8))",
+            uuid,
+            element_type,
+            meta.name,
+            meta.position.as_bytes(),
+            meta.parent.map(|p| p.id()),
+            meta.parent.map(|p| p.element_name()),
+            meta.created_at,
+            meta.modified_at,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Meta, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                id as "id: _",
+                element_type,
+                name,
+                position as "position: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE id = $1"#,
+            id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        Ok(row.into())
+    }
+
     async fn delete(&self, id: ElementId) -> Result<(), RepositoryError> {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
@@ -58,19 +108,12 @@ impl MetaRepository for SqliteMetaRepository {
         new_position: FractionalIndex,
     ) -> Result<(), RepositoryError> {
         let uuid = id.id();
-        let (parent_id, parent_type): (Option<uuid::Uuid>, Option<&str>) = match new_parent {
-            None => (None, None),
-            Some(ElementId::Folder(pid)) => (Some(pid), Some("folder")),
-            Some(ElementId::Reading(pid)) => (Some(pid), Some("reading")),
-            Some(ElementId::Extract(pid)) => (Some(pid), Some("extract")),
-            Some(ElementId::Card(pid)) => (Some(pid), Some("card")),
-        };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
             r#"UPDATE meta SET parent_id = $1, parent_type = $2, position = $3 WHERE id = $4"#,
-            parent_id,
-            parent_type,
+            new_parent.map(|p| p.id()),
+            new_parent.map(|p| p.element_name()),
             new_position.as_bytes(),
             uuid
         )
@@ -93,5 +136,89 @@ impl MetaRepository for SqliteMetaRepository {
         .fetch_optional(&mut *tx)
         .await?;
         Ok(row.map(|r| FractionalIndex::from_bytes(r.position).expect("Invalid fractional index")))
+    }
+
+    async fn get_previous_sibling(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                id as "id: _",
+                element_type,
+                name,
+                position as "position: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE parent_id IS $1 AND position < $2
+            ORDER BY position DESC
+            LIMIT 1"#,
+            meta.parent.map(|m| m.id()),
+            meta.position.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        Ok(row.map(|r| r.into()))
+    }
+
+    async fn get_next_sibling(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                id as "id: _",
+                element_type,
+                name,
+                position as "position: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE parent_id IS $1 AND position > $2
+            ORDER BY position
+            LIMIT 1"#,
+            meta.parent.map(|m| m.id()),
+            meta.position.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        Ok(row.map(|r| r.into()))
+    }
+
+    async fn get_children_ordered(
+        &self,
+        parent: Option<ElementId>,
+    ) -> Result<Vec<Meta>, RepositoryError> {
+        let parent_id = parent.map(|p| p.id());
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let rows = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                id as "id: _",
+                element_type,
+                name,
+                position as "position: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE parent_id IS $1
+            ORDER BY position"#,
+            parent_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.into()).collect())
     }
 }

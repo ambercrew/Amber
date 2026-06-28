@@ -8,35 +8,25 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::folder::Folder;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::folder_row::FolderRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
 pub struct SqliteFolderRepository {
     tx: Arc<DbTransaction>,
+    meta_repository: Arc<dyn MetaRepository>,
 }
 
 #[async_trait]
 impl FolderRepository for SqliteFolderRepository {
     async fn create(&self, folder: Folder) -> Result<(), RepositoryError> {
+        self.meta_repository.create_meta(&folder.meta).await?;
+
+        let uuid = folder.meta.id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
-
-        sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
-            folder.meta.id,
-            folder.meta.name,
-            folder.meta.position.as_bytes(),
-            folder.meta.parent.map(|p| p.id()),
-            folder.meta.parent.map(|p| p.element_name()),
-            folder.meta.created_at,
-            folder.meta.modified_at,
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        sqlx::query!("INSERT INTO folders (id) VALUES ($1)", folder.meta.id)
+        sqlx::query!("INSERT INTO folders (id) VALUES ($1)", uuid)
             .execute(&mut *tx)
             .await?;
 
@@ -137,9 +127,9 @@ mod tests {
         injector
     }
 
-    fn make_meta() -> Meta {
+    fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id: Uuid::new_v4(),
+            id,
             name: "test".into(),
             parent: None,
             tags: Vec::new(),
@@ -147,6 +137,19 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn folder_meta() -> Meta {
+        make_meta(ElementId::Folder(Uuid::new_v4()))
+    }
+    fn reading_meta() -> Meta {
+        make_meta(ElementId::Reading(Uuid::new_v4()))
+    }
+    fn extract_meta() -> Meta {
+        make_meta(ElementId::Extract(Uuid::new_v4()))
+    }
+    fn card_meta() -> Meta {
+        make_meta(ElementId::Card(Uuid::new_v4()))
     }
 
     #[tokio::test]
@@ -158,11 +161,13 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let parent = Folder { meta: make_meta() };
+        let parent = Folder {
+            meta: folder_meta(),
+        };
         let child = Folder {
             meta: Meta {
-                parent: Some(ElementId::Folder(parent.meta.id)),
-                ..make_meta()
+                parent: Some(parent.meta.id),
+                ..folder_meta()
             },
         };
         folder_repo.create(parent.clone()).await.unwrap();
@@ -170,10 +175,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Folder(parent.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(parent.meta.id).await.unwrap();
 
         // Assert
 
@@ -191,11 +193,13 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let reading = Reading {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..reading_meta()
             },
             source: ReadingSource::Clipboard,
             body: String::new(),
@@ -205,10 +209,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Folder(folder.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(folder.meta.id).await.unwrap();
 
         // Assert
 
@@ -226,11 +227,13 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let extract = Extract {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..extract_meta()
             },
             text: String::new(),
         };
@@ -239,10 +242,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Folder(folder.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(folder.meta.id).await.unwrap();
 
         // Assert
 
@@ -260,11 +260,13 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         let card = Card {
             meta: Meta {
-                parent: Some(ElementId::Folder(folder.meta.id)),
-                ..make_meta()
+                parent: Some(folder.meta.id),
+                ..card_meta()
             },
             front: String::new(),
             back: String::new(),
@@ -274,10 +276,7 @@ mod tests {
 
         // Act
 
-        meta_repo
-            .delete(ElementId::Folder(folder.meta.id))
-            .await
-            .unwrap();
+        meta_repo.delete(folder.meta.id).await.unwrap();
 
         // Assert
 
@@ -294,13 +293,15 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         folder_repo.create(folder.clone()).await.unwrap();
 
         // Act
 
         meta_repo
-            .rename(ElementId::Folder(folder.meta.id), "renamed".into())
+            .rename(folder.meta.id, "renamed".into())
             .await
             .unwrap();
 
@@ -323,15 +324,14 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
-        let folder = Folder { meta: make_meta() };
+        let folder = Folder {
+            meta: folder_meta(),
+        };
         folder_repo.create(folder.clone()).await.unwrap();
 
         // Act
 
-        let actual = meta_repo
-            .exists(ElementId::Folder(folder.meta.id))
-            .await
-            .unwrap();
+        let actual = meta_repo.exists(folder.meta.id).await.unwrap();
 
         // Assert
 
