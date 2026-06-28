@@ -1,6 +1,5 @@
 import { NodeDto } from "../../api/elements/dto/nodeDto";
 import { ElementId } from "../../types/elements/elementId";
-import { ElementNodeType } from "../../types/elements/elementNodeType";
 import { RootState } from "../store";
 
 export interface PathItem {
@@ -19,26 +18,26 @@ export function getElementPath(
 	selected: ElementId | null,
 ): PathItem[] {
 	if (!selected) return [];
-	return findPath(tree, "folder", selected, []) ?? [];
+	return findPath(tree, selected, []) ?? [];
 }
 
 function findPath(
 	nodes: NodeDto[],
-	type: ElementNodeType,
 	target: ElementId,
 	path: PathItem[],
 ): PathItem[] | null {
 	for (const node of nodes) {
-		const next = [
+		const next: PathItem[] = [
 			...path,
-			{ id: { type, id: node.meta.id }, name: node.meta.name },
+			{ id: node.meta.id, name: node.meta.name },
 		];
-		if (type === target.type && node.meta.id === target.id) return next;
+		if (node.meta.id.type === target.type && node.meta.id.id === target.id)
+			return next;
 		const found =
-			findPath(node.children.folders, "folder", target, next) ??
-			findPath(node.children.readings, "reading", target, next) ??
-			findPath(node.children.extracts, "extract", target, next) ??
-			findPath(node.children.cards, "card", target, next);
+			findPath(node.children.folders, target, next) ??
+			findPath(node.children.readings, target, next) ??
+			findPath(node.children.extracts, target, next) ??
+			findPath(node.children.cards, target, next);
 		if (found) return found;
 	}
 	return null;

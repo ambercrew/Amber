@@ -49,7 +49,6 @@ function ElementTreeNode({
 	const { type, childrenCount } = node.nodeProps as ElementNodeProps;
 	const id = node.value;
 	const label = typeof node.label === "string" ? node.label : node.value;
-	const hasChildren = node.children && node.children.length > 0;
 	const [isHovered, setIsHovered] = useState(false);
 	// Only controls the menu with three dots.
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
