@@ -25,7 +25,9 @@ describe("ElementTreePanel — new root folder button", () => {
 		// Assert
 
 		expect(createFolderAction).toHaveBeenCalledWith(
-			expect.objectContaining({ parentFolderId: null }),
+			expect.objectContaining({
+				meta: expect.objectContaining({ parent: null }) as object,
+			}),
 		);
 	});
 
@@ -44,9 +46,11 @@ describe("ElementTreePanel — new root folder button", () => {
 
 		expect(createFolderAction).toHaveBeenCalledWith(
 			expect.objectContaining({
-				name: expect.stringMatching(
-					/^Folder \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
-				) as string,
+				meta: expect.objectContaining({
+					name: expect.stringMatching(
+						/^Folder \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
+					) as string,
+				}) as object,
 			}),
 		);
 	});

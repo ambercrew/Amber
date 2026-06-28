@@ -45,10 +45,10 @@ impl From<ReadingRow> for Reading {
                 parent,
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
+                tags: vec![],
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            tags: vec![],
             source,
             body: row.body,
         }

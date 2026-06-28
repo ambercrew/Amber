@@ -82,29 +82,13 @@ CREATE TABLE tag_parents(
 CREATE INDEX tag_parents_tag_id_index ON tag_parents(tag_id);
 CREATE INDEX tag_parents_parent_tag_id_index ON tag_parents(parent_tag_id);
 
-CREATE TABLE folder_tags(
-    folder_id TEXT NOT NULL REFERENCES folders(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    tag_id    TEXT NOT NULL REFERENCES tags(id)    ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (folder_id, tag_id)
+CREATE TABLE element_tags(
+    element_id TEXT NOT NULL REFERENCES meta(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    tag_id     TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY (element_id, tag_id)
 );
 
-CREATE TABLE reading_tags(
-    reading_id TEXT NOT NULL REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    tag_id     TEXT NOT NULL REFERENCES tags(id)     ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (reading_id, tag_id)
-);
-
-CREATE TABLE extract_tags(
-    extract_id TEXT NOT NULL REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    tag_id     TEXT NOT NULL REFERENCES tags(id)     ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (extract_id, tag_id)
-);
-
-CREATE TABLE card_tags(
-    card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    tag_id  TEXT NOT NULL REFERENCES tags(id)  ON DELETE CASCADE ON UPDATE CASCADE,
-    PRIMARY KEY (card_id, tag_id)
-);
+CREATE INDEX element_tags_tag_id_index ON element_tags(tag_id);
 
 CREATE TRIGGER tags_update_modified_at_after_update
     AFTER UPDATE ON tags

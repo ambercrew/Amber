@@ -82,14 +82,14 @@ pub async fn create_folder(
     let folder = Folder {
         meta: Meta {
             id: Uuid::new_v4(),
-            name: dto.name,
-            parent: dto.parent,
+            name: dto.meta.name,
+            parent: dto.meta.parent,
             // TODO:
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: now,
             modified_at: now,
         },
-        tags: vec![],
     };
     scope
         .resolve::<dyn FolderRepository>()
@@ -110,14 +110,14 @@ pub async fn create_reading(
     let reading = Reading {
         meta: Meta {
             id: Uuid::new_v4(),
-            name: dto.name,
-            parent: dto.parent,
+            name: dto.meta.name,
+            parent: dto.meta.parent,
             // TODO:
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: now,
             modified_at: now,
         },
-        tags: vec![],
         source: dto.source,
         body: dto.body,
     };
@@ -140,14 +140,14 @@ pub async fn create_extract(
     let extract = Extract {
         meta: Meta {
             id: Uuid::new_v4(),
-            name: dto.name,
-            parent: dto.parent,
+            name: dto.meta.name,
+            parent: dto.meta.parent,
             // TODO:
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: now,
             modified_at: now,
         },
-        tags: vec![],
         text: dto.text,
     };
     scope
@@ -183,14 +183,14 @@ pub async fn create_card(
     let card = Card {
         meta: Meta {
             id: Uuid::new_v4(),
-            name: dto.name,
-            parent: dto.parent,
+            name: dto.meta.name,
+            parent: dto.meta.parent,
             // TODO:
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: now,
             modified_at: now,
         },
-        tags: vec![],
         front: dto.front,
         back: dto.back,
     };

@@ -1,9 +1,9 @@
-import { ElementId } from "./elementId";
 import { ReadingSource } from "./reading";
 
+import { CreateMetaDto } from "./createMetaDto";
+
 export interface CreateReadingDto {
-	name: string;
-	parent: ElementId | null;
+	meta: CreateMetaDto;
 	source: ReadingSource;
 	body: string;
 }

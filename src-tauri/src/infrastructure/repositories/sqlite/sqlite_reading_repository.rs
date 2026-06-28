@@ -92,9 +92,10 @@ impl ReadingRepository for SqliteReadingRepository {
 
         let tag_rows = sqlx::query!(
             r#"SELECT
-                reading_id as "reading_id: Uuid",
-                tag_id as "tag_id: Uuid"
-            FROM reading_tags"#
+                et.element_id as "element_id: Uuid",
+                et.tag_id as "tag_id: Uuid"
+            FROM element_tags et
+            INNER JOIN readings r ON et.element_id = r.id"#
         )
         .fetch_all(&mut *tx)
         .await?;
@@ -102,7 +103,7 @@ impl ReadingRepository for SqliteReadingRepository {
         let mut tags_by_id: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
         for row in tag_rows {
             tags_by_id
-                .entry(row.reading_id)
+                .entry(row.element_id)
                 .or_default()
                 .push(row.tag_id);
         }
@@ -112,7 +113,7 @@ impl ReadingRepository for SqliteReadingRepository {
             .map(|row| {
                 let id = row.id;
                 let mut entity: Reading = row.into();
-                entity.tags = tags_by_id.remove(&id).unwrap_or_default();
+                entity.meta.tags = tags_by_id.remove(&id).unwrap_or_default();
                 entity
             })
             .collect())
@@ -270,6 +271,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -286,16 +288,12 @@ mod tests {
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let element_repo = scope.resolve::<dyn ElementRepository>().await;
 
-        let folder = Folder {
-            meta: make_meta(),
-            tags: vec![],
-        };
+        let folder = Folder { meta: make_meta() };
         let reading = Reading {
             meta: Meta {
                 parent: Some(ElementId::Folder(folder.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
@@ -304,7 +302,6 @@ mod tests {
                 parent: Some(ElementId::Reading(reading.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             text: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
@@ -335,16 +332,12 @@ mod tests {
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let element_repo = scope.resolve::<dyn ElementRepository>().await;
 
-        let folder = Folder {
-            meta: make_meta(),
-            tags: vec![],
-        };
+        let folder = Folder { meta: make_meta() };
         let reading = Reading {
             meta: Meta {
                 parent: Some(ElementId::Folder(folder.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
@@ -353,7 +346,6 @@ mod tests {
                 parent: Some(ElementId::Reading(reading.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             front: String::new(),
             back: String::new(),
         };
@@ -384,16 +376,12 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let element_repo = scope.resolve::<dyn ElementRepository>().await;
 
-        let folder = Folder {
-            meta: make_meta(),
-            tags: vec![],
-        };
+        let folder = Folder { meta: make_meta() };
         let reading = Reading {
             meta: Meta {
                 parent: Some(ElementId::Folder(folder.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
@@ -426,16 +414,12 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
 
-        let folder = Folder {
-            meta: make_meta(),
-            tags: vec![],
-        };
+        let folder = Folder { meta: make_meta() };
         let reading = Reading {
             meta: Meta {
                 parent: Some(ElementId::Folder(folder.meta.id)),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };

@@ -6,8 +6,10 @@ import {
 	renderWithProviders,
 } from "../test-utils/renderWithProviders";
 import { NodeDto } from "../../api/elements/dto/nodeDto";
+import { elementExists } from "../../api/elements/api/elementsApi.ts";
 
 vi.mock(import("../../hooks/useElementParams"));
+vi.mock(import("../../api/elements/api/elementsApi.ts"));
 
 const TREE: NodeDto[] = [
 	{
@@ -52,6 +54,7 @@ describe("useRedirectIfElementMissing", () => {
 	it("Should not navigate when the element exists in the tree", () => {
 		// Arrange
 
+		vi.mocked(elementExists).mockResolvedValue(true);
 		vi.mocked(useElementParams).mockReturnValue({
 			type: "folder",
 			id: "folder-1",
@@ -71,6 +74,7 @@ describe("useRedirectIfElementMissing", () => {
 	it("Should navigate back when the element is not in the tree", async () => {
 		// Arrange
 
+		vi.mocked(elementExists).mockResolvedValue(false);
 		vi.mocked(useElementParams).mockReturnValue({
 			type: "folder",
 			id: "folder-missing",

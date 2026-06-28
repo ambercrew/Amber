@@ -1,7 +1,6 @@
-import { ElementId } from "./elementId";
+import { CreateMetaDto } from "./createMetaDto";
 
 export interface CreateExtractDto {
-	name: string;
-	parent: ElementId | null;
+	meta: CreateMetaDto;
 	text: string;
 }

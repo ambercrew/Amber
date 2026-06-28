@@ -1,7 +1,5 @@
-import { ElementId } from "./elementId";
+import { CreateMetaDto } from "./createMetaDto";
 
-// TODO: metadata could be its own dto for create dtos
 export interface CreateFolderDto {
-	name: string;
-	parent: ElementId | null;
+	meta: CreateMetaDto;
 }

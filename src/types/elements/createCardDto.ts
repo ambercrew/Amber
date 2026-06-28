@@ -1,8 +1,7 @@
-import { ElementId } from "./elementId";
+import { CreateMetaDto } from "./createMetaDto";
 
 export interface CreateCardDto {
-	name: string;
-	parent: ElementId | null;
+	meta: CreateMetaDto;
 	front: string;
 	back: string;
 }

@@ -34,15 +34,19 @@ function useCreateHandlers(elementId: ElementId, onAfterCreate: () => void) {
 		folder: () =>
 			run(
 				createFolderAction({
-					name: defaultElementName("Folder"),
-					parent: elementId,
+					meta: {
+						name: defaultElementName("Folder"),
+						parent: elementId,
+					},
 				}),
 			),
 		reading: () =>
 			run(
 				createReadingAction({
-					name: defaultElementName("Reading"),
-					parent: elementId,
+					meta: {
+						name: defaultElementName("Reading"),
+						parent: elementId,
+					},
 					source: { type: "clipboard" },
 					body: "",
 				}),
@@ -50,16 +54,20 @@ function useCreateHandlers(elementId: ElementId, onAfterCreate: () => void) {
 		extract: () =>
 			run(
 				createExtractAction({
-					name: defaultElementName("Extract"),
-					parent: elementId,
+					meta: {
+						name: defaultElementName("Extract"),
+						parent: elementId,
+					},
 					text: "",
 				}),
 			),
 		card: () =>
 			run(
 				createCardAction({
-					name: defaultElementName("Card"),
-					parent: elementId,
+					meta: {
+						name: defaultElementName("Card"),
+						parent: elementId,
+					},
 					front: "",
 					back: "",
 				}),

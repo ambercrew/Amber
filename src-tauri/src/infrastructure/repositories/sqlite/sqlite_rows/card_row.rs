@@ -37,10 +37,10 @@ impl From<CardRow> for Card {
                 parent,
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
+                tags: vec![],
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            tags: vec![],
             front: row.front,
             back: row.back,
         }

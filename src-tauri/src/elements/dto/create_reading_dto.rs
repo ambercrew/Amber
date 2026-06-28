@@ -1,12 +1,13 @@
 use serde::Deserialize;
 
-use crate::elements::{entities::reading::ReadingSource, value_objects::element_id::ElementId};
+use crate::elements::entities::reading::ReadingSource;
+
+use super::create_meta_dto::CreateMetaDto;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateReadingDto {
-    pub name: String,
-    pub parent: Option<ElementId>,
+    pub meta: CreateMetaDto,
     pub source: ReadingSource,
     pub body: String,
 }

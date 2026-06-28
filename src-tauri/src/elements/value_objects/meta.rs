@@ -9,10 +9,8 @@ pub struct Meta {
     pub id: Uuid,
     pub name: String,
     pub parent: Option<ElementId>,
-    // The position of the element. The positions of a node do not need to be
-    // increasing numbers by one, they can be arbitarly numbers as long as they
-    // are different.
     pub position: FractionalIndex,
+    pub tags: Vec<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
 }

@@ -6,7 +6,7 @@ use injector_derive::ScopeInjectable;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::dto::tree_dto::{MetaNodeDto, NodeChildrenDto, NodeDto};
-use crate::elements::entities::traits::{Element, Tagged};
+use crate::elements::entities::traits::Element;
 use crate::elements::entities::{card::Card, extract::Extract, folder::Folder, reading::Reading};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
@@ -72,18 +72,18 @@ where
     map
 }
 
-fn make_meta(element: &(impl Element + Tagged)) -> MetaNodeDto {
+fn make_meta(element: &impl Element) -> MetaNodeDto {
     let meta = element.meta();
     MetaNodeDto {
         id: meta.id.to_string(),
         name: meta.name.clone(),
         position: meta.position.to_string(),
-        tags: element.tags().iter().map(|t| t.to_string()).collect(),
+        tags: meta.tags.iter().map(|t| t.to_string()).collect(),
     }
 }
 
 fn build_node(
-    element: &(impl Element + Tagged),
+    element: &impl Element,
     parent_key: Option<ElementId>,
     folders_by_parent: &ElementMap<Folder>,
     readings_by_parent: &ElementMap<Reading>,
@@ -219,6 +219,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            tags: vec![],
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -254,7 +255,6 @@ mod tests {
                 name: "Science".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let folder_id = folder.meta.id;
         scope
@@ -288,7 +288,6 @@ mod tests {
                 name: "Science".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let parent_id = parent.meta.id;
         let child = Folder {
@@ -297,7 +296,6 @@ mod tests {
                 parent: Some(ElementId::Folder(parent_id)),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let child_id = child.meta.id;
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
@@ -330,7 +328,6 @@ mod tests {
                 name: "Science".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let folder_id = folder.meta.id;
         let reading = Reading {
@@ -339,7 +336,6 @@ mod tests {
                 parent: Some(ElementId::Folder(folder_id)),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Website { url: String::new() },
             body: "body text".to_string(),
         };
@@ -350,7 +346,6 @@ mod tests {
                 parent: Some(ElementId::Reading(reading_id)),
                 ..make_meta()
             },
-            tags: vec![],
             text: "Plants convert sunlight".to_string(),
         };
         let extract_id = extract.meta.id;
@@ -360,7 +355,6 @@ mod tests {
                 parent: Some(ElementId::Extract(extract_id)),
                 ..make_meta()
             },
-            tags: vec![],
             front: "What do plants convert?".to_string(),
             back: "Sunlight".to_string(),
         };
@@ -422,7 +416,6 @@ mod tests {
                 name: "Science".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let folder_id = folder.meta.id;
         scope
@@ -439,7 +432,6 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
@@ -452,7 +444,6 @@ mod tests {
                 )),
                 ..make_meta()
             },
-            tags: vec![],
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
@@ -490,7 +481,6 @@ mod tests {
                 name: "Active".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let removed = Folder {
             meta: Meta {
@@ -498,7 +488,6 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let active_id = active.meta.id;
         let removed_id = removed.meta.id;
@@ -538,7 +527,6 @@ mod tests {
                 name: "Science".to_string(),
                 ..make_meta()
             },
-            tags: vec![],
         };
         let folder_id = folder.meta.id;
         let extract = Extract {
@@ -547,7 +535,6 @@ mod tests {
                 parent: Some(ElementId::Folder(folder_id)),
                 ..make_meta()
             },
-            tags: vec![],
             text: "Some text".to_string(),
         };
         let extract_id = extract.meta.id;

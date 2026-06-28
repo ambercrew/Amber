@@ -6,6 +6,7 @@ use crate::elements::value_objects::element_id::ElementId;
 
 #[async_trait]
 pub trait ElementRepository: Send + Sync {
+    // TODO: those can be done directly on the meta table no need to forward the request
     async fn delete(&self, id: ElementId) -> Result<(), RepositoryError>;
     async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError>;
     async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError>;

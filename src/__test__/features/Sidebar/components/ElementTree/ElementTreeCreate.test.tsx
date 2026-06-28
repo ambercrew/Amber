@@ -83,7 +83,9 @@ describe("ElementTree create child", () => {
 
 		expect(createFolderAction).toHaveBeenCalledWith(
 			expect.objectContaining({
-				parent: { type: "folder", id: "folder-science" },
+				meta: expect.objectContaining({
+					parent: { type: "folder", id: "folder-science" },
+				}) as object,
 			}),
 		);
 	});
@@ -115,7 +117,9 @@ describe("ElementTree create child", () => {
 
 		expect(createExtractAction).toHaveBeenCalledWith(
 			expect.objectContaining({
-				parent: { type: "reading", id: "reading-biology" },
+				meta: expect.objectContaining({
+					parent: { type: "reading", id: "reading-biology" },
+				}) as object,
 			}),
 		);
 	});
@@ -146,9 +150,11 @@ describe("ElementTree create child", () => {
 
 		expect(createFolderAction).toHaveBeenCalledWith(
 			expect.objectContaining({
-				name: expect.stringMatching(
-					/^Folder \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
-				) as string,
+				meta: expect.objectContaining({
+					name: expect.stringMatching(
+						/^Folder \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/,
+					) as string,
+				}) as object,
 			}),
 		);
 	});

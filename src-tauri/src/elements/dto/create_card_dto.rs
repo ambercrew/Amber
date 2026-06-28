@@ -1,12 +1,11 @@
 use serde::Deserialize;
 
-use crate::elements::value_objects::element_id::ElementId;
+use super::create_meta_dto::CreateMetaDto;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateCardDto {
-    pub name: String,
-    pub parent: Option<ElementId>,
+    pub meta: CreateMetaDto,
     pub front: String,
     pub back: String,
 }

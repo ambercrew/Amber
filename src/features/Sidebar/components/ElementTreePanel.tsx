@@ -37,8 +37,10 @@ function ElementTreePanel() {
 					onClick={() =>
 						void dispatch(
 							createFolderAction({
-								name: defaultElementName("Folder"),
-								parent: null,
+								meta: {
+									name: defaultElementName("Folder"),
+									parent: null,
+								},
 							}),
 						)
 					}>
