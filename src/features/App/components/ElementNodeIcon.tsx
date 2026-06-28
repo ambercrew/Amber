@@ -3,7 +3,7 @@ import {
 	FileTextIcon,
 	FolderIcon,
 	FolderOpenIcon,
-	QuotesIcon,
+	ScissorsIcon,
 } from "@phosphor-icons/react";
 import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
@@ -24,7 +24,7 @@ function ElementNodeIcon({ type, expanded, size }: ElementNodeIconProps) {
 		case "reading":
 			return <FileTextIcon size={size} />;
 		case "extract":
-			return <QuotesIcon size={size} />;
+			return <ScissorsIcon size={size} />;
 		case "card":
 			return <CardsIcon size={size} />;
 	}
