@@ -8,12 +8,22 @@ import {
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import {
+	moveElement,
+	MoveElementDto,
+} from "../../../../api/elements/api/elementsApi";
 import FolderNodeDto from "../../../../api/elements/dto/folderNodeDto";
 import { useElementParams } from "../../../../hooks/useElementParams";
 import { paths } from "../../../../paths";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeType } from "../../../../types/elements/elementNodeType";
-import { dtosToTreeData, ElementNodeProps } from "../../utils/elementTreeUtils";
+import {
+	dtosToTreeData,
+	DropPayload,
+	ElementNodeProps,
+	findNodeType,
+	isDropAllowed,
+} from "../../utils/elementTreeUtils";
 import { useElementTreeExpansion } from "../../hooks/useElementTreeExpansion";
 import DeleteElementModal from "../DeleteElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
@@ -89,6 +99,24 @@ function ElementTree({ tree }: ElementTreeProps) {
 						tree={treeController}
 						renderNode={renderNode}
 						withLines
+						onDragDrop={({ draggedNode, targetNode, position }) => {
+							const draggedType = findNodeType(data, draggedNode);
+							const targetType = findNodeType(data, targetNode);
+							if (!draggedType || !targetType) return;
+							const dto: MoveElementDto = {
+								draggedId: {
+									type: draggedType,
+									id: draggedNode,
+								},
+								targetId: { type: targetType, id: targetNode },
+								position,
+							};
+							// TODO: through actions
+							void moveElement(dto);
+						}}
+						allowDrop={(payload: DropPayload) =>
+							isDropAllowed(data, payload)
+						}
 					/>
 				</Menu.ContextMenu>
 				<Menu.Dropdown>

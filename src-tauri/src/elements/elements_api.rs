@@ -9,6 +9,7 @@ use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
+use crate::elements::dto::move_element_dto::MoveElementRequestDto;
 use crate::elements::dto::tree_dto::FolderNodeDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
@@ -19,6 +20,7 @@ use crate::elements::repositories::element_repository::ElementRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
@@ -191,6 +193,21 @@ pub async fn create_card(
         .resolve::<dyn CardRepository>()
         .await
         .create(card)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn move_element(
+    injector: State<'_, Arc<Injector>>,
+    dto: MoveElementRequestDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ElementMoveService>()
+        .await
+        .move_element(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())

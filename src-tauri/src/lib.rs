@@ -158,6 +158,7 @@ pub async fn run() -> Result<(), String> {
             delete_element,
             rename_element,
             element_exists,
+            move_element,
             create_folder,
             create_reading,
             create_extract,

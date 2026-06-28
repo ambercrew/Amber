@@ -40,3 +40,15 @@ export function createCard(dto: CreateCardDto): Promise<void> {
 export function elementExists(elementId: ElementId): Promise<boolean> {
 	return invoke("element_exists", { elementId });
 }
+
+export type DropPosition = "before" | "after" | "inside";
+
+export interface MoveElementDto {
+	draggedId: ElementId;
+	targetId: ElementId;
+	position: DropPosition;
+}
+
+export function moveElement(dto: MoveElementDto): Promise<void> {
+	return invoke("move_element", { dto });
+}
