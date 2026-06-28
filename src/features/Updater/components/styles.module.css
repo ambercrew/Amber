@@ -1,7 +1,0 @@
-.box {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-	gap: 1.2rem;
-	min-width: 36rem;
-}

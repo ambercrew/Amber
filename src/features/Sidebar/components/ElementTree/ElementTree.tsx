@@ -44,8 +44,8 @@ function ElementTree({ tree }: ElementTreeProps) {
 		null,
 	);
 
-	const { treeController, search, handleSearchChange } =
-		useElementTreeExpansion(data);
+	const { treeController, filteredData, search, handleSearchChange } =
+		useElementTreeExpansion(data, selected?.id ?? null);
 
 	function renderNode(payload: RenderTreeNodePayload) {
 		const { node } = payload;
@@ -93,7 +93,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 				shadow="lg">
 				<Menu.ContextMenu>
 					<Tree
-						data={data}
+						data={filteredData}
 						tree={treeController}
 						renderNode={renderNode}
 						withLines

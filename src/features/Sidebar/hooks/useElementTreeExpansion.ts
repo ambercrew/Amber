@@ -1,9 +1,17 @@
-import { getTreeExpandedState, TreeNodeData, useTree } from "@mantine/core";
+import {
+	filterTreeData,
+	getTreeExpandedState,
+	TreeNodeData,
+	useTree,
+} from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
-import { useEffect, useRef, useState } from "react";
-import { getMatchingAncestors } from "../utils/elementTreeUtils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getAncestorsOf } from "../utils/elementTreeUtils";
 
-export function useElementTreeExpansion(data: TreeNodeData[]) {
+export function useElementTreeExpansion(
+	data: TreeNodeData[],
+	selectedId: string | null = null,
+) {
 	const [persistedExpandedState, setPersistedExpandedState] = useLocalStorage<
 		Record<string, boolean>
 	>({
@@ -32,20 +40,33 @@ export function useElementTreeExpansion(data: TreeNodeData[]) {
 	const [search, setSearch] = useState("");
 	const preSearchExpandedState = useRef<Record<string, boolean> | null>(null);
 
+	const filteredData = useMemo(
+		() => (search.trim() ? filterTreeData(data, search) : data),
+		[data, search],
+	);
+
 	function handleSearchChange(value: string) {
 		setSearch(value);
 		if (value.trim()) {
 			preSearchExpandedState.current ??= persistedExpandedState;
+			const filtered = filterTreeData(data, value);
 			treeController.setExpandedState(
-				getTreeExpandedState(data, getMatchingAncestors(data, value)),
+				getTreeExpandedState(filtered, "*"),
 			);
 		} else {
-			treeController.setExpandedState(
-				preSearchExpandedState.current ?? {},
-			);
+			const restored = preSearchExpandedState.current ?? {};
+			if (selectedId) {
+				const ancestors = getAncestorsOf(data, selectedId) ?? [];
+				const extra = Object.fromEntries(
+					ancestors.map(id => [id, true]),
+				);
+				treeController.setExpandedState({ ...restored, ...extra });
+			} else {
+				treeController.setExpandedState(restored);
+			}
 			preSearchExpandedState.current = null;
 		}
 	}
 
-	return { treeController, search, handleSearchChange };
+	return { treeController, filteredData, search, handleSearchChange };
 }

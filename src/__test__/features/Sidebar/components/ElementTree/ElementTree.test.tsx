@@ -121,6 +121,26 @@ describe("ElementTree search", () => {
 		expect(markTexts.every(t => t === "Science")).toBe(true);
 	});
 
+	it("Should remove irrelevant nodes from the DOM when searching", async () => {
+		// Arrange
+
+		const user = userEvent.setup();
+		render();
+
+		// Assert pre-condition — both root nodes visible before searching
+		expect(screen.getByTitle("Science")).toBeInTheDocument();
+		expect(screen.getByTitle("Art")).toBeInTheDocument();
+
+		// Act
+
+		await user.type(screen.getByPlaceholderText("Search..."), "Science");
+
+		// Assert — Art does not match and must not be in the DOM at all
+
+		expect(screen.queryByTitle("Art")).not.toBeInTheDocument();
+		expect(screen.getByTitle("Science")).toBeInTheDocument();
+	});
+
 	it("Should restore pre-search expanded state when search is cleared", async () => {
 		// Arrange
 

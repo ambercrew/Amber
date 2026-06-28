@@ -15,3 +15,17 @@ export function getMatchingAncestors(
 	}
 	return result;
 }
+
+export function getAncestorsOf(
+	nodes: TreeNodeData[],
+	targetValue: string,
+): string[] {
+	for (const node of nodes) {
+		if (node.value === targetValue) return [];
+		const childPath = node.children
+			? getAncestorsOf(node.children, targetValue)
+			: null;
+		if (childPath !== null) return [node.value, ...childPath];
+	}
+	return null!;
+}

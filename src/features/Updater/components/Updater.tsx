@@ -1,8 +1,8 @@
-import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
+import { Loader, Modal, Stack, Text } from "@mantine/core";
 import { CallApiFn } from "../../../hooks/useApi";
 import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
 
@@ -43,11 +43,11 @@ function Updater({ callApi }: Props) {
 							);
 							break;
 						case "Finished":
-							console.log("Download finished");
 							break;
 					}
 				});
 
+				// eslint-disable-next-line no-alert
 				alert("Restarting the application to install the update!");
 				await relaunch();
 			},
@@ -59,21 +59,23 @@ function Updater({ callApi }: Props) {
 	}, [callApi]);
 
 	return (
-		<>
-			{/* TODO:isUpdating && (
-				<Dialog focusTrap={false}>
-					<div
-						className={`${styles.box}`}
-						onClick={e => e.stopPropagation()}>
-						<p>
-							Updating the application ({updatePercentage}%),
-							please wait...
-						</p>
-						<Spinner />
-					</div>
-				</Dialog>
-			) */}
-		</>
+		<Modal
+			opened={isUpdating}
+			onClose={() => {
+				/* Empty */
+			}}
+			withCloseButton={false}
+			closeOnClickOutside={false}
+			closeOnEscape={false}
+			centered>
+			<Stack align="center">
+				<Loader size="lg" />
+				<Text>
+					Updating the application ({updatePercentage}%), please
+					wait...
+				</Text>
+			</Stack>
+		</Modal>
 	);
 }
 
