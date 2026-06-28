@@ -9,7 +9,6 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::Reading;
 use crate::elements::entities::reading::ReadingSource;
 use crate::elements::repositories::reading_repository::ReadingRepository;
-use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -26,25 +25,17 @@ impl ReadingRepository for SqliteReadingRepository {
             ReadingSource::Clipboard => ("clipboard".to_string(), None),
             ReadingSource::Pdf => ("pdf".to_string(), None),
         };
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match reading.meta.parent.expect("readings must have a parent") {
-                ElementId::Folder(id) => (Some(id), None, None, None),
-                ElementId::Reading(id) => (None, Some(id), None, None),
-                ElementId::Extract(id) => (None, None, Some(id), None),
-                ElementId::Card(id) => (None, None, None, Some(id)),
-            };
+
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
+            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
             reading.meta.id,
             reading.meta.name,
             reading.meta.position.as_bytes(),
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
+            reading.meta.parent.map(|p| p.id()),
+            reading.meta.parent.map(|p| p.element_name()),
             reading.meta.created_at,
             reading.meta.modified_at,
         )
@@ -72,10 +63,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.id as "id: _",
                 m.name,
                 m.position as "position: _",
-                m.parent_reading_id as "parent_reading_id: _",
-                m.parent_extract_id as "parent_extract_id: _",
-                m.parent_folder_id as "parent_folder_id: _",
-                m.parent_card_id as "parent_card_id: _",
+                m.parent_id as "parent_id: _",
+                m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 r.source_type,

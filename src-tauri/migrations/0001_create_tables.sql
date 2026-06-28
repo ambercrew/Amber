@@ -77,12 +77,11 @@ CREATE TABLE tag_parents(
     FOREIGN KEY (parent_tag_id) REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- TODO: create relationship with elements using a common way using triggers for deletion
-
 CREATE INDEX tag_parents_tag_id_index ON tag_parents(tag_id);
 CREATE INDEX tag_parents_parent_tag_id_index ON tag_parents(parent_tag_id);
 
 CREATE TABLE element_tags(
+    -- Meta and elements share a common id.
     element_id TEXT NOT NULL REFERENCES meta(id) ON DELETE CASCADE ON UPDATE CASCADE,
     tag_id     TEXT NOT NULL REFERENCES tags(id) ON DELETE CASCADE ON UPDATE CASCADE,
     PRIMARY KEY (element_id, tag_id)
@@ -136,21 +135,16 @@ CREATE TABLE cards(
 -------------------------------------------------------------------------
 
 CREATE TABLE meta(
-    id                  TEXT        NOT NULL PRIMARY KEY,
-    name                TEXT        NOT NULL,
-    position            BLOB        NOT NULL,
-    parent_reading_id   TEXT        REFERENCES readings(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_extract_id   TEXT        REFERENCES extracts(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_folder_id    TEXT        REFERENCES folders(id)  ON DELETE CASCADE ON UPDATE CASCADE,
-    parent_card_id      TEXT        REFERENCES cards(id)    ON DELETE CASCADE ON UPDATE CASCADE,
-    created_at          TEXT        NOT NULL DEFAULT (datetime('now')),
-    modified_at         TEXT        NOT NULL DEFAULT (datetime('now'))
+    id          TEXT    NOT NULL PRIMARY KEY,
+    name        TEXT    NOT NULL,
+    position    BLOB    NOT NULL,
+    parent_id   TEXT,
+    parent_type TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
+    modified_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX meta_parent_reading_id_index ON meta(parent_reading_id);
-CREATE INDEX meta_parent_extract_id_index ON meta(parent_extract_id);
-CREATE INDEX meta_parent_folder_id_index  ON meta(parent_folder_id);
-CREATE INDEX meta_parent_card_id_index    ON meta(parent_card_id);
+CREATE INDEX meta_parent_id_index ON meta(parent_id);
 
 CREATE TRIGGER meta_update_modified_at_after_update
     AFTER UPDATE ON meta
@@ -161,8 +155,7 @@ BEGIN
     WHERE id = NEW.id;
 END;
 
--- When a meta row is cascade-deleted (e.g. because its parent was deleted),
--- delete the corresponding element row so there are no orphaned element rows.
+-- When a meta row is deleted, delete the corresponding element row.
 CREATE TRIGGER meta_delete_element_after_delete
     AFTER DELETE ON meta
 BEGIN
@@ -231,4 +224,3 @@ CREATE TRIGGER cards_delete_meta_after_delete
 BEGIN
     DELETE FROM meta WHERE id = OLD.id;
 END;
-

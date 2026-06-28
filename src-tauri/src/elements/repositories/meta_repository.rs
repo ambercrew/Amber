@@ -10,19 +10,18 @@ pub trait MetaRepository: Send + Sync {
     async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError>;
     async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError>;
 
-    /// Returns (parent_id, current_position) of the given element.
-    /// parent_id is None for root-level folders.
-    async fn get_location(
-        &self,
-        id: ElementId,
-    ) -> Result<(Option<ElementId>, FractionalIndex), RepositoryError>;
-
     /// Changes the parent and position of the given element.
-    /// new_parent = None is only valid for folders (root level).
     async fn move_to(
         &self,
         id: ElementId,
         new_parent: Option<ElementId>,
         new_position: FractionalIndex,
     ) -> Result<(), RepositoryError>;
+
+    /// Returns the highest position among all elements with the given parent,
+    /// or None if there are no such elements.
+    async fn get_last_position(
+        &self,
+        parent: Option<ElementId>,
+    ) -> Result<Option<FractionalIndex>, RepositoryError>;
 }

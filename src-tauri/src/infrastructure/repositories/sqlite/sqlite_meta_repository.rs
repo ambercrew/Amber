@@ -51,40 +51,6 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(row.exists)
     }
 
-    async fn get_location(
-        &self,
-        id: ElementId,
-    ) -> Result<(Option<ElementId>, FractionalIndex), RepositoryError> {
-        let uuid = id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        let row = sqlx::query!(
-            r#"SELECT
-                parent_folder_id  as "parent_folder_id: uuid::Uuid",
-                parent_reading_id as "parent_reading_id: uuid::Uuid",
-                parent_extract_id as "parent_extract_id: uuid::Uuid",
-                parent_card_id    as "parent_card_id: uuid::Uuid",
-                position as "position: Vec<u8>"
-               FROM meta WHERE id = $1"#,
-            uuid
-        )
-        .fetch_one(&mut *tx)
-        .await?;
-        let parent = if let Some(pid) = row.parent_folder_id {
-            Some(ElementId::Folder(pid))
-        } else if let Some(pid) = row.parent_reading_id {
-            Some(ElementId::Reading(pid))
-        } else if let Some(pid) = row.parent_extract_id {
-            Some(ElementId::Extract(pid))
-        } else {
-            row.parent_card_id.map(ElementId::Card)
-        };
-        Ok((
-            parent,
-            FractionalIndex::from_bytes(row.position).expect("Invalid fractional index"),
-        ))
-    }
-
     async fn move_to(
         &self,
         id: ElementId,
@@ -92,29 +58,40 @@ impl MetaRepository for SqliteMetaRepository {
         new_position: FractionalIndex,
     ) -> Result<(), RepositoryError> {
         let uuid = id.id();
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match new_parent {
-                None => (None, None, None, None),
-                Some(ElementId::Folder(pid)) => (Some(pid), None, None, None),
-                Some(ElementId::Reading(pid)) => (None, Some(pid), None, None),
-                Some(ElementId::Extract(pid)) => (None, None, Some(pid), None),
-                Some(ElementId::Card(pid)) => (None, None, None, Some(pid)),
-            };
+        let (parent_id, parent_type): (Option<uuid::Uuid>, Option<&str>) = match new_parent {
+            None => (None, None),
+            Some(ElementId::Folder(pid)) => (Some(pid), Some("folder")),
+            Some(ElementId::Reading(pid)) => (Some(pid), Some("reading")),
+            Some(ElementId::Extract(pid)) => (Some(pid), Some("extract")),
+            Some(ElementId::Card(pid)) => (Some(pid), Some("card")),
+        };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            r#"UPDATE meta
-               SET parent_folder_id = $1, parent_reading_id = $2, parent_extract_id = $3, parent_card_id = $4, position = $5
-               WHERE id = $6"#,
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
+            r#"UPDATE meta SET parent_id = $1, parent_type = $2, position = $3 WHERE id = $4"#,
+            parent_id,
+            parent_type,
             new_position.as_bytes(),
             uuid
         )
         .execute(&mut *tx)
         .await?;
         Ok(())
+    }
+
+    async fn get_last_position(
+        &self,
+        parent: Option<ElementId>,
+    ) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let parent_id = parent.map(|p| p.id());
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT position as "position: Vec<u8>" FROM meta WHERE parent_id IS $1 ORDER BY position DESC LIMIT 1"#,
+            parent_id
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.position).expect("Invalid fractional index")))
     }
 }

@@ -25,6 +25,7 @@ pub async fn create_sqlite_pool(url: &str) -> Result<SqlitePool, sqlx::Error> {
         .synchronous(SqliteSynchronous::Normal)
         .pragma("cache_size", "-65536")
         .pragma("temp_store", "memory")
+        .pragma("recursive_triggers", "true")
         .create_if_missing(true);
     let pool = SqlitePoolOptions::new().connect_with(options).await?;
     sqlx::migrate!("./migrations/").run(&pool).await?;

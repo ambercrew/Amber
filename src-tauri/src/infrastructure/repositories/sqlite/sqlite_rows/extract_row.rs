@@ -2,17 +2,16 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::elements::entities::extract::Extract;
-use crate::elements::value_objects::{element_id::ElementId, meta::Meta};
+use crate::elements::extensions::into_element_id_ext::IntoOptionalElementIdExt;
+use crate::elements::value_objects::meta::Meta;
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct ExtractRow {
     pub id: Uuid,
     pub name: String,
     pub position: Vec<u8>,
-    pub parent_reading_id: Option<Uuid>,
-    pub parent_extract_id: Option<Uuid>,
-    pub parent_folder_id: Option<Uuid>,
-    pub parent_card_id: Option<Uuid>,
+    pub parent_id: Option<Uuid>,
+    pub parent_type: Option<String>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
     pub text: String,
@@ -20,20 +19,11 @@ pub struct ExtractRow {
 
 impl From<ExtractRow> for Extract {
     fn from(row: ExtractRow) -> Self {
-        let parent = if let Some(id) = row.parent_reading_id {
-            Some(ElementId::Reading(id))
-        } else if let Some(id) = row.parent_extract_id {
-            Some(ElementId::Extract(id))
-        } else if let Some(id) = row.parent_folder_id {
-            Some(ElementId::Folder(id))
-        } else {
-            row.parent_card_id.map(ElementId::Card)
-        };
         Extract {
             meta: Meta {
                 id: row.id,
                 name: row.name,
-                parent,
+                parent: (row.parent_id, row.parent_type).into_element_id(),
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
                 tags: vec![],

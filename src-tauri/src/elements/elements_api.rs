@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use chrono::Utc;
-use fractional_index::FractionalIndex;
 use tauri::State;
 use uuid::Uuid;
 
@@ -21,6 +20,7 @@ use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
@@ -78,14 +78,19 @@ pub async fn create_folder(
     dto: CreateFolderDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
+    let parent = dto.meta.parent;
+    let position = scope
+        .resolve::<dyn ElementIndexService>()
+        .await
+        .get_new_last_index(parent)
+        .await?;
     let now = Utc::now();
     let folder = Folder {
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.meta.name,
-            parent: dto.meta.parent,
-            // TODO:
-            position: FractionalIndex::default(),
+            parent,
+            position,
             tags: vec![],
             created_at: now,
             modified_at: now,
@@ -106,14 +111,19 @@ pub async fn create_reading(
     dto: CreateReadingDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
+    let parent = dto.meta.parent;
+    let position = scope
+        .resolve::<dyn ElementIndexService>()
+        .await
+        .get_new_last_index(parent)
+        .await?;
     let now = Utc::now();
     let reading = Reading {
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.meta.name,
-            parent: dto.meta.parent,
-            // TODO:
-            position: FractionalIndex::default(),
+            parent,
+            position,
             tags: vec![],
             created_at: now,
             modified_at: now,
@@ -136,14 +146,19 @@ pub async fn create_extract(
     dto: CreateExtractDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
+    let parent = dto.meta.parent;
+    let position = scope
+        .resolve::<dyn ElementIndexService>()
+        .await
+        .get_new_last_index(parent)
+        .await?;
     let now = Utc::now();
     let extract = Extract {
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.meta.name,
-            parent: dto.meta.parent,
-            // TODO:
-            position: FractionalIndex::default(),
+            parent,
+            position,
             tags: vec![],
             created_at: now,
             modified_at: now,
@@ -179,14 +194,19 @@ pub async fn create_card(
     dto: CreateCardDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
+    let parent = dto.meta.parent;
+    let position = scope
+        .resolve::<dyn ElementIndexService>()
+        .await
+        .get_new_last_index(parent)
+        .await?;
     let now = Utc::now();
     let card = Card {
         meta: Meta {
             id: Uuid::new_v4(),
             name: dto.meta.name,
-            parent: dto.meta.parent,
-            // TODO:
-            position: FractionalIndex::default(),
+            parent,
+            position,
             tags: vec![],
             created_at: now,
             modified_at: now,

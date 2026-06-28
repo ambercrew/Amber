@@ -17,8 +17,10 @@ use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
+use crate::elements::services::implementations::default_element_index_service::DefaultElementIndexService;
 use crate::elements::services::implementations::default_element_move_service::DefaultElementMoveService;
 use crate::elements::services::implementations::default_element_tree_service::DefaultElementTreeService;
 use crate::fsrs::entities::fsrs_profile::FsrsProfile;
@@ -145,6 +147,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     register_scope!(injector, dyn CardRepository, SqliteCardRepository);
     register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
 
+    register_scope!(
+        injector,
+        dyn ElementIndexService,
+        DefaultElementIndexService
+    );
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);
 

@@ -8,7 +8,6 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::card::Card;
 use crate::elements::repositories::card_repository::CardRepository;
-use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::card_row::CardRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -20,25 +19,16 @@ pub struct SqliteCardRepository {
 #[async_trait]
 impl CardRepository for SqliteCardRepository {
     async fn create(&self, card: Card) -> Result<(), RepositoryError> {
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match card.meta.parent.expect("cards must have a parent") {
-                ElementId::Folder(pid) => (Some(pid), None, None, None),
-                ElementId::Reading(pid) => (None, Some(pid), None, None),
-                ElementId::Extract(pid) => (None, None, Some(pid), None),
-                ElementId::Card(pid) => (None, None, None, Some(pid)),
-            };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
+            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
             card.meta.id,
             card.meta.name,
             card.meta.position.as_bytes(),
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
+            card.meta.parent.map(|p| p.id()),
+            card.meta.parent.map(|p| p.element_name()),
             card.meta.created_at,
             card.meta.modified_at,
         )
@@ -65,10 +55,8 @@ impl CardRepository for SqliteCardRepository {
                 m.id as "id: _",
                 m.name,
                 m.position as "position: _",
-                m.parent_reading_id as "parent_reading_id: _",
-                m.parent_extract_id as "parent_extract_id: _",
-                m.parent_folder_id as "parent_folder_id: _",
-                m.parent_card_id as "parent_card_id: _",
+                m.parent_id as "parent_id: _",
+                m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 c.front,

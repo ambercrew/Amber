@@ -22,4 +22,13 @@ impl ElementId {
             | ElementId::Card(id) => *id,
         }
     }
+
+    pub fn element_name(&self) -> &'static str {
+        match self {
+            ElementId::Folder(_) => "folder",
+            ElementId::Reading(_) => "reading",
+            ElementId::Extract(_) => "extract",
+            ElementId::Card(_) => "card",
+        }
+    }
 }

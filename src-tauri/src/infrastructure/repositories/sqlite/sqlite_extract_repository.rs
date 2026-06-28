@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::extract::Extract;
 use crate::elements::repositories::extract_repository::ExtractRepository;
-use crate::elements::value_objects::element_id::ElementId;
+use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
@@ -18,25 +19,16 @@ pub struct SqliteExtractRepository {
 #[async_trait]
 impl ExtractRepository for SqliteExtractRepository {
     async fn create(&self, extract: Extract) -> Result<(), RepositoryError> {
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match extract.meta.parent.expect("extracts must have a parent") {
-                ElementId::Folder(pid) => (Some(pid), None, None, None),
-                ElementId::Reading(pid) => (None, Some(pid), None, None),
-                ElementId::Extract(pid) => (None, None, Some(pid), None),
-                ElementId::Card(pid) => (None, None, None, Some(pid)),
-            };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
+            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
             extract.meta.id,
             extract.meta.name,
             extract.meta.position.as_bytes(),
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
+            extract.meta.parent.map(|p| p.id()),
+            extract.meta.parent.map(|p| p.element_name()),
             extract.meta.created_at,
             extract.meta.modified_at,
         )
@@ -62,10 +54,8 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.id as "id: _",
                 m.name,
                 m.position as "position: _",
-                m.parent_reading_id as "parent_reading_id: _",
-                m.parent_extract_id as "parent_extract_id: _",
-                m.parent_folder_id as "parent_folder_id: _",
-                m.parent_card_id as "parent_card_id: _",
+                m.parent_id as "parent_id: _",
+                m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 e.text

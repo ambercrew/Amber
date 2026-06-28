@@ -10,12 +10,18 @@ function nodeToTreeNode(node: NodeDto, type: ElementNodeType): TreeNodeData {
 		...node.children.extracts.map(e => nodeToTreeNode(e, "extract")),
 		...node.children.cards.map(c => nodeToTreeNode(c, "card")),
 	];
+	children.sort((a, b) => {
+		return (a.nodeProps as ElementNodeProps).position.localeCompare(
+			(b.nodeProps as ElementNodeProps).position,
+		);
+	});
 	return {
 		label: node.meta.name,
 		value: node.meta.id,
 		nodeProps: {
 			type,
 			childrenCount: children.length,
+			position: node.meta.position,
 		} satisfies ElementNodeProps,
 		children,
 	};

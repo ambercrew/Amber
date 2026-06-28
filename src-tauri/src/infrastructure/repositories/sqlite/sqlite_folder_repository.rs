@@ -8,7 +8,6 @@ use uuid::Uuid;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::folder::Folder;
 use crate::elements::repositories::folder_repository::FolderRepository;
-use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::folder_row::FolderRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -20,27 +19,17 @@ pub struct SqliteFolderRepository {
 #[async_trait]
 impl FolderRepository for SqliteFolderRepository {
     async fn create(&self, folder: Folder) -> Result<(), RepositoryError> {
-        let (parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id) =
-            match folder.meta.parent {
-                None => (None, None, None, None),
-                Some(ElementId::Folder(id)) => (Some(id), None, None, None),
-                Some(ElementId::Reading(id)) => (None, Some(id), None, None),
-                Some(ElementId::Extract(id)) => (None, None, Some(id), None),
-                Some(ElementId::Card(id)) => (None, None, None, Some(id)),
-            };
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
         sqlx::query!(
-            "INSERT INTO meta (id, name, position, parent_folder_id, parent_reading_id, parent_extract_id, parent_card_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
+            "INSERT INTO meta (id, name, position, parent_id, parent_type, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, datetime($6), datetime($7))",
             folder.meta.id,
             folder.meta.name,
             folder.meta.position.as_bytes(),
-            parent_folder_id,
-            parent_reading_id,
-            parent_extract_id,
-            parent_card_id,
+            folder.meta.parent.map(|p| p.id()),
+            folder.meta.parent.map(|p| p.element_name()),
             folder.meta.created_at,
             folder.meta.modified_at,
         )
@@ -64,10 +53,8 @@ impl FolderRepository for SqliteFolderRepository {
                 m.id as "id: _",
                 m.name,
                 m.position as "position: _",
-                m.parent_reading_id as "parent_reading_id: _",
-                m.parent_extract_id as "parent_extract_id: _",
-                m.parent_folder_id as "parent_folder_id: _",
-                m.parent_card_id as "parent_card_id: _",
+                m.parent_id as "parent_id: _",
+                m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _"
             FROM folders f
