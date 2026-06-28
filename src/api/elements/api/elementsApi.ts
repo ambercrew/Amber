@@ -36,3 +36,7 @@ export function createExtract(dto: CreateExtractDto): Promise<void> {
 export function createCard(dto: CreateCardDto): Promise<void> {
 	return invoke("create_card", { dto });
 }
+
+export function elementExists(elementId: ElementId): Promise<boolean> {
+	return invoke("element_exists", { elementId });
+}

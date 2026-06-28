@@ -124,6 +124,19 @@ impl ElementRepository for SqliteReadingRepository {
         .await?;
         Ok(())
     }
+
+    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(SELECT 1 FROM readings WHERE id = $1) as "exists: bool""#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.exists)
+    }
 }
 
 #[cfg(test)]
@@ -314,5 +327,61 @@ mod tests {
             .find(|r| r.meta.id == reading.meta.id)
             .unwrap();
         assert_eq!("renamed", updated.meta.name);
+    }
+
+    #[tokio::test]
+    async fn exists_reading_present_returns_true() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading.clone()).await.unwrap();
+
+        // Act
+
+        let actual = reading_repo
+            .exists(ElementId::Reading(reading.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(actual);
+    }
+
+    #[tokio::test]
+    async fn exists_reading_absent_returns_false() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        // Act
+
+        let actual = reading_repo
+            .exists(ElementId::Reading(Uuid::new_v4()))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(!actual);
     }
 }

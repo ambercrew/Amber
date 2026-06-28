@@ -38,4 +38,13 @@ impl ElementRepository for SqliteElementRepository {
             ElementId::Card(_) => self.card_repo.rename(id, new_name).await,
         }
     }
+
+    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
+        match id {
+            ElementId::Folder(_) => self.folder_repo.exists(id).await,
+            ElementId::Reading(_) => self.reading_repo.exists(id).await,
+            ElementId::Extract(_) => self.extract_repo.exists(id).await,
+            ElementId::Card(_) => self.card_repo.exists(id).await,
+        }
+    }
 }

@@ -154,6 +154,20 @@ pub async fn create_extract(
 }
 
 #[tauri::command]
+pub async fn element_exists(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<bool, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ElementRepository>()
+        .await
+        .exists(element_id)
+        .await?;
+    Ok(result)
+}
+
+#[tauri::command]
 pub async fn create_card(
     injector: State<'_, Arc<Injector>>,
     dto: CreateCardDto,

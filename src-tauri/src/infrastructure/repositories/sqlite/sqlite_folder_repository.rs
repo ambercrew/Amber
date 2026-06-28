@@ -113,6 +113,19 @@ impl ElementRepository for SqliteFolderRepository {
         .await?;
         Ok(())
     }
+
+    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(SELECT 1 FROM folders WHERE id = $1) as "exists: bool""#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.exists)
+    }
 }
 
 #[cfg(test)]
@@ -341,5 +354,52 @@ mod tests {
             .find(|f| f.meta.id == folder.meta.id)
             .unwrap();
         assert_eq!("renamed", updated.meta.name);
+    }
+
+    #[tokio::test]
+    async fn exists_folder_present_returns_true() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        folder_repo.create(folder.clone()).await.unwrap();
+
+        // Act
+
+        let actual = folder_repo
+            .exists(ElementId::Folder(folder.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(actual);
+    }
+
+    #[tokio::test]
+    async fn exists_folder_absent_returns_false() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        // Act
+
+        let actual = folder_repo
+            .exists(ElementId::Folder(Uuid::new_v4()))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(!actual);
     }
 }

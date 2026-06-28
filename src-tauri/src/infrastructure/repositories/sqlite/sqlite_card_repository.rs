@@ -123,6 +123,19 @@ impl ElementRepository for SqliteCardRepository {
         .await?;
         Ok(())
     }
+
+    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(SELECT 1 FROM cards WHERE id = $1) as "exists: bool""#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.exists)
+    }
 }
 
 #[cfg(test)]
@@ -272,5 +285,70 @@ mod tests {
             .find(|c| c.meta.id == card.meta.id)
             .unwrap();
         assert_eq!("renamed", updated.meta.name);
+    }
+
+    #[tokio::test]
+    async fn exists_card_present_returns_true() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let card_repo = scope.resolve::<dyn CardRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let card = Card {
+            meta: make_meta(),
+            parent: CardParent::Reading(reading.meta.id),
+            tags: vec![],
+            front: String::new(),
+            back: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading).await.unwrap();
+        card_repo.create(card.clone()).await.unwrap();
+
+        // Act
+
+        let actual = card_repo
+            .exists(ElementId::Card(card.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(actual);
+    }
+
+    #[tokio::test]
+    async fn exists_card_absent_returns_false() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let card_repo = scope.resolve::<dyn CardRepository>().await;
+
+        // Act
+
+        let actual = card_repo
+            .exists(ElementId::Card(Uuid::new_v4()))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(!actual);
     }
 }

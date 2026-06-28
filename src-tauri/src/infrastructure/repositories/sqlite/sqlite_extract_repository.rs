@@ -124,6 +124,19 @@ impl ElementRepository for SqliteExtractRepository {
         .await?;
         Ok(())
     }
+
+    async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(SELECT 1 FROM extracts WHERE id = $1) as "exists: bool""#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.exists)
+    }
 }
 
 #[cfg(test)]
@@ -337,5 +350,69 @@ mod tests {
             .find(|e| e.meta.id == extract.meta.id)
             .unwrap();
         assert_eq!("renamed", updated.meta.name);
+    }
+
+    #[tokio::test]
+    async fn exists_extract_present_returns_true() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        let extract = Extract {
+            meta: make_meta(),
+            parent: ExtractParent::Reading(reading.meta.id),
+            tags: vec![],
+            text: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading).await.unwrap();
+        extract_repo.create(extract.clone()).await.unwrap();
+
+        // Act
+
+        let actual = extract_repo
+            .exists(ElementId::Extract(extract.meta.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(actual);
+    }
+
+    #[tokio::test]
+    async fn exists_extract_absent_returns_false() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
+
+        // Act
+
+        let actual = extract_repo
+            .exists(ElementId::Extract(Uuid::new_v4()))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(!actual);
     }
 }

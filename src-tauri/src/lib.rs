@@ -157,6 +157,7 @@ pub async fn run() -> Result<(), String> {
             get_element_tree,
             delete_element,
             rename_element,
+            element_exists,
             create_folder,
             create_reading,
             create_extract,
