@@ -310,4 +310,36 @@ mod tests {
         let remaining = card_repo.get_all().await.unwrap();
         assert!(!remaining.iter().any(|c| c.meta.id == card.meta.id));
     }
+
+    #[tokio::test]
+    async fn rename_folder_valid_name_updates_name() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        folder_repo.create(folder.clone()).await.unwrap();
+
+        // Act
+
+        folder_repo
+            .rename(ElementId::Folder(folder.meta.id), "renamed".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let remaining = folder_repo.get_all().await.unwrap();
+        let updated = remaining
+            .iter()
+            .find(|f| f.meta.id == folder.meta.id)
+            .unwrap();
+        assert_eq!("renamed", updated.meta.name);
+    }
 }

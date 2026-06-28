@@ -273,4 +273,46 @@ mod tests {
         let remaining = card_repo.get_all().await.unwrap();
         assert!(!remaining.iter().any(|c| c.meta.id == card.meta.id));
     }
+
+    #[tokio::test]
+    async fn rename_reading_valid_name_updates_name() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let element_repo = scope.resolve::<dyn ElementRepository>().await;
+
+        let folder = Folder {
+            meta: make_meta(),
+            parent_folder_id: None,
+            tags: vec![],
+        };
+        let reading = Reading {
+            meta: make_meta(),
+            folder_id: folder.meta.id,
+            tags: vec![],
+            source: ReadingSource::Clipboard,
+            body: String::new(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo.create(reading.clone()).await.unwrap();
+
+        // Act
+
+        element_repo
+            .rename(ElementId::Reading(reading.meta.id), "renamed".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let remaining = reading_repo.get_all().await.unwrap();
+        let updated = remaining
+            .iter()
+            .find(|r| r.meta.id == reading.meta.id)
+            .unwrap();
+        assert_eq!("renamed", updated.meta.name);
+    }
 }
