@@ -85,7 +85,7 @@ function App() {
 				<AppHeader onToggleSidebar={() => splitter.toggleCollapse(0)} />
 			</AppShell.Header>
 
-			<AppShell.Navbar bg="var(--mantine-color-gray-light)">
+			<AppShell.Navbar bg="var(--mantine-color-gray-0)">
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isMobileViewport && (
 					<Box

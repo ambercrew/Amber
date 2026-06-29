@@ -1,40 +1,29 @@
-import { useState } from "react";
-import { AppShell, Group, ActionIcon } from "@mantine/core";
+import { AppShell, Tabs, Group, ActionIcon } from "@mantine/core";
 import ElementTreePanel from "./ElementTreePanel";
 import PriorityQueuePanel from "./PriorityQueuePanel";
 import { TreeViewIcon, QueueIcon, XIcon } from "@phosphor-icons/react";
-
-type Tab = "tree" | "priority queue";
 
 interface SidebarProps {
 	onCollapse: () => void;
 }
 
 function Sidebar({ onCollapse }: SidebarProps) {
-	const [activeTab, setActiveTab] = useState<Tab>("tree");
-
 	return (
-		<>
-			<AppShell.Section p="sm" grow style={{ overflowY: "auto" }}>
+		<AppShell.Section py="sm" grow style={{ overflowY: "auto" }}>
+			<Tabs defaultValue="tree" variant="pills">
 				<Group justify="center" style={{ position: "relative" }}>
-					<Group gap="xs">
-						<ActionIcon
-							variant={activeTab === "tree" ? "filled" : "subtle"}
-							onClick={() => setActiveTab("tree")}
+					<Tabs.List>
+						<Tabs.Tab
+							value="tree"
 							title="Element Tree - used for managing your learning materials">
-							<TreeViewIcon size={20} />
-						</ActionIcon>
-						<ActionIcon
-							variant={
-								activeTab === "priority queue"
-									? "filled"
-									: "subtle"
-							}
-							onClick={() => setActiveTab("priority queue")}
+							<TreeViewIcon size={16} />
+						</Tabs.Tab>
+						<Tabs.Tab
+							value="priority-queue"
 							title="Priority queue - used for reviewing your learning materials">
-							<QueueIcon size={20} />
-						</ActionIcon>
-					</Group>
+							<QueueIcon size={16} />
+						</Tabs.Tab>
+					</Tabs.List>
 					<ActionIcon
 						variant="subtle"
 						onClick={onCollapse}
@@ -44,13 +33,14 @@ function Sidebar({ onCollapse }: SidebarProps) {
 					</ActionIcon>
 				</Group>
 
-				{activeTab === "tree" ? (
+				<Tabs.Panel value="tree">
 					<ElementTreePanel />
-				) : (
+				</Tabs.Panel>
+				<Tabs.Panel value="priority-queue">
 					<PriorityQueuePanel />
-				)}
-			</AppShell.Section>
-		</>
+				</Tabs.Panel>
+			</Tabs>
+		</AppShell.Section>
 	);
 }
 
