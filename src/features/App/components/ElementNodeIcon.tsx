@@ -9,7 +9,7 @@ import { ElementNodeType } from "../../../types/elements/elementNodeType";
 
 interface ElementNodeIconProps {
 	type: ElementNodeType;
-	expanded: boolean;
+	expanded?: boolean;
 	size: number;
 }
 

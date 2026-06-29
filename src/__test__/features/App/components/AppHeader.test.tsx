@@ -1,128 +1,73 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AppHeader from "../../../../features/App/components/AppHeader";
-import { useElementParams } from "../../../../hooks/useElementParams";
-import {
-	LOCATION_DISPLAY_TEST_ID,
-	renderWithProviders,
-} from "../../../test-utils/renderWithProviders";
-import { NodeDto } from "../../../../api/elements/dto/nodeDto";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
+import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
 
-vi.mock(import("../../../../hooks/useElementParams"));
-
-const TREE: NodeDto[] = [
-	{
+const folderElement: AnyElementDto = {
+	type: "folder",
+	data: {
 		meta: {
 			id: { type: "folder", id: "folder-science" },
 			name: "Science",
 			position: "0",
+			parent: null,
 			tags: [],
-		},
-		children: {
-			folders: [],
-			readings: [
-				{
-					meta: {
-						id: { type: "reading", id: "reading-biology" },
-						name: "Biology Basics",
-						position: "0",
-						tags: [],
-					},
-					children: {
-						folders: [],
-						readings: [],
-						extracts: [],
-						cards: [],
-					},
-				},
-			],
-			extracts: [],
-			cards: [],
+			createdAt: "2024-01-01T00:00:00Z",
+			modifiedAt: "2024-01-01T00:00:00Z",
 		},
 	},
-];
-
-const PRELOADED_STATE = {
-	elements: { tree: TREE, isLoading: false, error: null },
 };
 
-describe("AppHeader breadcrumbs", () => {
-	it("Should show no breadcrumbs when no element is selected", () => {
-		// Arrange
+const BASE_STATE = {
+	elements: { tree: [], isLoading: false, error: null, currentElement: null },
+};
 
-		vi.mocked(useElementParams).mockReturnValue(null);
-
-		// Act
+describe("AppHeader", () => {
+	it("Should show no element name when no element is selected", () => {
+		// Arrange & Act
 
 		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
-			preloadedState: PRELOADED_STATE,
+			preloadedState: BASE_STATE,
 		});
 
 		// Assert
 
-		expect(screen.queryByRole("link")).toBeNull();
+		expect(screen.getAllByRole("button")).toHaveLength(1);
 	});
 
-	it("Should show the element name in the breadcrumbs when it is selected", () => {
-		// Arrange
-
-		vi.mocked(useElementParams).mockReturnValue({
-			type: "folder",
-			id: "folder-science",
-		});
-
-		// Act
+	it("Should show element name when an element is selected", () => {
+		// Arrange & Act
 
 		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
-			preloadedState: PRELOADED_STATE,
-		});
-
-		// Assert
-
-		expect(screen.getByText("Science")).toBeInTheDocument();
-	});
-
-	it("Should show the full ancestor path when a nested element is selected", () => {
-		// Arrange
-
-		vi.mocked(useElementParams).mockReturnValue({
-			type: "reading",
-			id: "reading-biology",
-		});
-
-		// Act
-
-		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
-			preloadedState: PRELOADED_STATE,
+			preloadedState: {
+				elements: {
+					...BASE_STATE.elements,
+					currentElement: folderElement,
+				},
+			},
 		});
 
 		// Assert
 
 		expect(screen.getByText("Science")).toBeInTheDocument();
-		expect(screen.getByText("Biology Basics")).toBeInTheDocument();
 	});
 
-	it("Should navigate to the element when a breadcrumb item is clicked", async () => {
+	it("Should call onToggleSidebar when sidebar button is clicked", async () => {
 		// Arrange
 
-		vi.mocked(useElementParams).mockReturnValue({
-			type: "reading",
-			id: "reading-biology",
-		});
-
+		const onToggleSidebar = vi.fn();
 		const user = userEvent.setup();
-		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
-			preloadedState: PRELOADED_STATE,
-		});
 
 		// Act
 
-		await user.click(screen.getByText("Science"));
+		renderWithProviders(<AppHeader onToggleSidebar={onToggleSidebar} />, {
+			preloadedState: BASE_STATE,
+		});
+		await user.click(screen.getByRole("button"));
 
 		// Assert
 
-		expect(screen.getByTestId(LOCATION_DISPLAY_TEST_ID)).toHaveTextContent(
-			"/folder/folder-science",
-		);
+		expect(onToggleSidebar).toHaveBeenCalledOnce();
 	});
 });

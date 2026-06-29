@@ -9,6 +9,7 @@ import {
 	MoveElementDto,
 	renameElement,
 } from "../../api/elements/api/elementsApi";
+import { NodeDto } from "../../api/elements/dto/nodeDto";
 import { CreateCardDto } from "../../types/elements/createCardDto";
 import { CreateExtractDto } from "../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../types/elements/createFolderDto";
@@ -51,7 +52,7 @@ export function moveElementAction(dto: MoveElementDto) {
 }
 
 function withTreeRefresh(operation: () => Promise<void>) {
-	return async function (dispatch: AppDispatch) {
+	return async (dispatch: AppDispatch) => {
 		dispatch(setTreeLoading());
 		try {
 			await operation();
@@ -61,4 +62,23 @@ function withTreeRefresh(operation: () => Promise<void>) {
 			dispatch(setTreeError(errorToString(error)));
 		}
 	};
+}
+
+export function existsInTree(
+	nodes: NodeDto[],
+	target: { type: string; id: string },
+): boolean {
+	for (const node of nodes) {
+		if (node.meta.id.type === target.type && node.meta.id.id === target.id)
+			return true;
+		const { folders, readings, extracts, cards } = node.children;
+		if (
+			existsInTree(
+				[...folders, ...readings, ...extracts, ...cards],
+				target,
+			)
+		)
+			return true;
+	}
+	return false;
 }

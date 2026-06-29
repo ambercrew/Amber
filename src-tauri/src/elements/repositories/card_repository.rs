@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::card::Card;
@@ -6,5 +7,6 @@ use crate::elements::entities::card::Card;
 #[async_trait]
 pub trait CardRepository: Send + Sync {
     async fn get_all(&self) -> Result<Vec<Card>, RepositoryError>;
+    async fn get_by_id(&self, id: Uuid) -> Result<Card, RepositoryError>;
     async fn create(&self, card: Card) -> Result<(), RepositoryError>;
 }

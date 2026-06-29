@@ -119,7 +119,6 @@ fn make_meta(element: &impl Element) -> MetaNodeDto {
         id: meta.id,
         name: meta.name.clone(),
         position: meta.position.to_string(),
-        tags: meta.tags.iter().map(|t| t.to_string()).collect(),
     }
 }
 

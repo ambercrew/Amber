@@ -20,14 +20,18 @@ const TREE: NodeDto[] = [
 			},
 			name: "Science",
 			position: "0",
-			tags: [],
 		},
 		children: { folders: [], readings: [], extracts: [], cards: [] },
 	},
 ];
 
 const PRELOADED_STATE = {
-	elements: { tree: TREE, isLoading: false, error: null },
+	elements: {
+		tree: TREE,
+		isLoading: false,
+		error: null,
+		currentElement: null,
+	},
 };
 
 function HookWrapper() {

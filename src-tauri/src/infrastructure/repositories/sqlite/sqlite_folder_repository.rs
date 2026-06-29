@@ -82,6 +82,40 @@ impl FolderRepository for SqliteFolderRepository {
             })
             .collect())
     }
+
+    async fn get_by_id(&self, id: Uuid) -> Result<Folder, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            FolderRow,
+            r#"SELECT
+                m.id as "id: _",
+                m.name,
+                m.position as "position: _",
+                m.parent_id as "parent_id: _",
+                m.parent_type,
+                m.created_at as "created_at: _",
+                m.modified_at as "modified_at: _"
+            FROM folders f
+            INNER JOIN meta m ON f.id = m.id
+            WHERE f.id = $1"#,
+            id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        let tag_rows = sqlx::query!(
+            r#"SELECT tag_id as "tag_id: Uuid" FROM element_tags WHERE element_id = $1"#,
+            id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        let mut entity: Folder = row.into();
+        entity.meta.tags = tag_rows.into_iter().map(|r| r.tag_id).collect();
+        Ok(entity)
+    }
 }
 
 #[cfg(test)]

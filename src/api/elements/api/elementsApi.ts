@@ -4,6 +4,7 @@ import { CreateExtractDto } from "../../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../../types/elements/createFolderDto";
 import { CreateReadingDto } from "../../../types/elements/createReadingDto";
 import { ElementId } from "../../../types/elements/elementId";
+import { AnyElementDto } from "../dto/anyElementDto";
 import { NodeDto } from "../dto/nodeDto";
 
 export function getElementTree(): Promise<NodeDto[]> {
@@ -39,6 +40,10 @@ export function createCard(dto: CreateCardDto): Promise<void> {
 
 export function elementExists(elementId: ElementId): Promise<boolean> {
 	return invoke("element_exists", { elementId });
+}
+
+export function getElementById(elementId: ElementId): Promise<AnyElementDto> {
+	return invoke("get_element_by_id", { elementId });
 }
 
 export type DropPosition = "before" | "after" | "inside";

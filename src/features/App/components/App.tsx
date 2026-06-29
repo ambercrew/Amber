@@ -9,6 +9,7 @@ import {
 import { useSplitter, useMediaQuery } from "@mantine/hooks";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useRedirectIfElementMissing } from "../../../hooks/useRedirectIfElementMissing";
+import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
 import Updater from "../../Updater/components/Updater";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
@@ -47,6 +48,7 @@ function App() {
 	});
 
 	useRedirectIfElementMissing();
+	useCurrentElementSync();
 
 	const navbarWidth =
 		parseFloat(String(splitter.sizes[0])) || SIDEBAR_DEFAULT;

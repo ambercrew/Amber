@@ -155,6 +155,7 @@ pub async fn run() -> Result<(), String> {
             update_profile,
             // Elements
             get_element_tree,
+            get_element_by_id,
             delete_element,
             rename_element,
             element_exists,

@@ -9,7 +9,6 @@ export interface MetaNodeDto {
 	id: ElementId;
 	name: string;
 	position: string;
-	tags: string[];
 }
 
 export interface NodeChildrenDto {

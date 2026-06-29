@@ -8,7 +8,6 @@ pub struct MetaNodeDto {
     pub id: ElementId,
     pub name: String,
     pub position: String,
-    pub tags: Vec<String>,
 }
 
 #[derive(Serialize)]

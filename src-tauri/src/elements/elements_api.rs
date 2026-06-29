@@ -5,6 +5,7 @@ use tauri::State;
 use uuid::Uuid;
 
 use crate::common::api_error::ApiError;
+use crate::elements::dto::any_element_dto::AnyElementDto;
 use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
@@ -236,4 +237,39 @@ pub async fn move_element(
         .await?;
     scope.save_changes().await?;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_element_by_id(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<AnyElementDto, ApiError> {
+    let scope = injector.start_scope();
+    let dto = match element_id {
+        ElementId::Folder(_) => scope
+            .resolve::<dyn FolderRepository>()
+            .await
+            .get_by_id(element_id.id())
+            .await?
+            .into(),
+        ElementId::Reading(_) => scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .get_by_id(element_id.id())
+            .await?
+            .into(),
+        ElementId::Extract(_) => scope
+            .resolve::<dyn ExtractRepository>()
+            .await
+            .get_by_id(element_id.id())
+            .await?
+            .into(),
+        ElementId::Card(_) => scope
+            .resolve::<dyn CardRepository>()
+            .await
+            .get_by_id(element_id.id())
+            .await?
+            .into(),
+    };
+    Ok(dto)
 }
