@@ -28,8 +28,9 @@ function Sidebar({ onCollapse }: SidebarProps) {
 						variant="subtle"
 						onClick={onCollapse}
 						hiddenFrom="sm"
+						mx="md"
 						style={{ position: "absolute", right: 0 }}>
-						<XIcon size={20} />
+						<XIcon size={18} />
 					</ActionIcon>
 				</Group>
 
