@@ -32,10 +32,8 @@ describe("Sidebar", () => {
 
 		// Assert
 
-		expect(screen.getByText("ElementTreePanel")).toBeInTheDocument();
-		expect(
-			screen.queryByText("PriorityQueuePanel"),
-		).not.toBeInTheDocument();
+		expect(screen.getByText("ElementTreePanel")).toBeVisible();
+		expect(screen.queryByText("PriorityQueuePanel")).not.toBeVisible();
 	});
 
 	it("Should show PriorityQueuePanel when priority queue tab is active", () => {
@@ -49,8 +47,8 @@ describe("Sidebar", () => {
 
 		// Assert
 
-		expect(screen.getByText("PriorityQueuePanel")).toBeInTheDocument();
-		expect(screen.queryByText("ElementTreePanel")).not.toBeInTheDocument();
+		expect(screen.getByText("PriorityQueuePanel")).toBeVisible();
+		expect(screen.queryByText("ElementTreePanel")).not.toBeVisible();
 	});
 
 	it("Should show ElementTreePanel by default", () => {
@@ -62,9 +60,7 @@ describe("Sidebar", () => {
 
 		// Assert
 
-		expect(screen.getByText("ElementTreePanel")).toBeInTheDocument();
-		expect(
-			screen.queryByText("PriorityQueuePanel"),
-		).not.toBeInTheDocument();
+		expect(screen.getByText("ElementTreePanel")).toBeVisible();
+		expect(screen.queryByText("PriorityQueuePanel")).not.toBeVisible();
 	});
 });
