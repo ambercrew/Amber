@@ -69,7 +69,10 @@ export function existsInTree(
 	target: { type: string; id: string },
 ): boolean {
 	for (const node of nodes) {
-		if (node.meta.id.type === target.type && node.meta.id.id === target.id)
+		if (
+			node.meta.elementId.type === target.type &&
+			node.meta.elementId.id === target.id
+		)
 			return true;
 		const { folders, readings, extracts, cards } = node.children;
 		if (

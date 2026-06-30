@@ -45,7 +45,7 @@ impl ElementTreeService for DefaultElementTreeService {
                 f.meta().position.clone(),
                 build_node(
                     f,
-                    Some(f.meta().id),
+                    Some(f.meta().element_id),
                     &folders_by_parent,
                     &readings_by_parent,
                     &extracts_by_parent,
@@ -58,7 +58,7 @@ impl ElementTreeService for DefaultElementTreeService {
                 r.meta().position.clone(),
                 build_node(
                     r,
-                    Some(r.meta().id),
+                    Some(r.meta().element_id),
                     &folders_by_parent,
                     &readings_by_parent,
                     &extracts_by_parent,
@@ -71,7 +71,7 @@ impl ElementTreeService for DefaultElementTreeService {
                 e.meta().position.clone(),
                 build_node(
                     e,
-                    Some(e.meta().id),
+                    Some(e.meta().element_id),
                     &folders_by_parent,
                     &readings_by_parent,
                     &extracts_by_parent,
@@ -84,7 +84,7 @@ impl ElementTreeService for DefaultElementTreeService {
                 c.meta().position.clone(),
                 build_node(
                     c,
-                    Some(c.meta().id),
+                    Some(c.meta().element_id),
                     &folders_by_parent,
                     &readings_by_parent,
                     &extracts_by_parent,
@@ -116,7 +116,7 @@ where
 fn make_meta(element: &impl Element) -> MetaNodeDto {
     let meta = element.meta();
     MetaNodeDto {
-        id: meta.id,
+        element_id: meta.element_id,
         name: meta.name.clone(),
         position: meta.position.to_string(),
     }
@@ -140,7 +140,7 @@ fn build_node(
                         .map(|f| {
                             build_node(
                                 f,
-                                Some(f.meta().id),
+                                Some(f.meta().element_id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -157,7 +157,7 @@ fn build_node(
                         .map(|r| {
                             build_node(
                                 r,
-                                Some(r.meta().id),
+                                Some(r.meta().element_id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -174,7 +174,7 @@ fn build_node(
                         .map(|e| {
                             build_node(
                                 e,
-                                Some(e.meta().id),
+                                Some(e.meta().element_id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -191,7 +191,7 @@ fn build_node(
                         .map(|c| {
                             build_node(
                                 c,
-                                Some(c.meta().id),
+                                Some(c.meta().element_id),
                                 folders_by_parent,
                                 readings_by_parent,
                                 extracts_by_parent,
@@ -258,11 +258,10 @@ mod tests {
 
     fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id,
+            element_id: id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
-            tags: vec![],
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -312,7 +311,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -327,7 +326,7 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(folder_id, actual[0].meta.id);
+        assert_eq!(folder_id, actual[0].meta.element_id);
         assert_eq!("Science", actual[0].meta.name);
     }
 
@@ -345,7 +344,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let parent_id = parent.meta.id;
+        let parent_id = parent.meta.element_id;
         let child = Folder {
             meta: Meta {
                 name: "Biology".to_string(),
@@ -353,7 +352,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let child_id = child.meta.id;
+        let child_id = child.meta.element_id;
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         folder_repo.create(parent).await.unwrap();
         folder_repo.create(child).await.unwrap();
@@ -365,9 +364,9 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(parent_id, actual[0].meta.id);
+        assert_eq!(parent_id, actual[0].meta.element_id);
         assert_eq!(1, actual[0].children.folders.len());
-        assert_eq!(child_id, actual[0].children.folders[0].meta.id);
+        assert_eq!(child_id, actual[0].children.folders[0].meta.element_id);
         assert_eq!("Biology", actual[0].children.folders[0].meta.name);
     }
 
@@ -385,7 +384,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         let reading = Reading {
             meta: Meta {
                 name: "Photosynthesis".to_string(),
@@ -395,7 +394,7 @@ mod tests {
             source: ReadingSource::Website { url: String::new() },
             body: "body text".to_string(),
         };
-        let reading_id = reading.meta.id;
+        let reading_id = reading.meta.element_id;
         let extract = Extract {
             meta: Meta {
                 name: "Key passage".to_string(),
@@ -404,7 +403,7 @@ mod tests {
             },
             text: "Plants convert sunlight".to_string(),
         };
-        let extract_id = extract.meta.id;
+        let extract_id = extract.meta.element_id;
         let card = Card {
             meta: Meta {
                 name: "Card 1".to_string(),
@@ -414,7 +413,7 @@ mod tests {
             front: "What do plants convert?".to_string(),
             back: "Sunlight".to_string(),
         };
-        let card_id = card.meta.id;
+        let card_id = card.meta.element_id;
 
         scope
             .resolve::<dyn FolderRepository>()
@@ -451,12 +450,12 @@ mod tests {
         let folder = &actual[0];
         assert_eq!(1, folder.children.readings.len());
         let reading = &folder.children.readings[0];
-        assert_eq!(reading_id, reading.meta.id);
+        assert_eq!(reading_id, reading.meta.element_id);
         assert_eq!(1, reading.children.extracts.len());
         let extract = &reading.children.extracts[0];
-        assert_eq!(extract_id, extract.meta.id);
+        assert_eq!(extract_id, extract.meta.element_id);
         assert_eq!(1, extract.children.cards.len());
-        assert_eq!(card_id, extract.children.cards[0].meta.id);
+        assert_eq!(card_id, extract.children.cards[0].meta.element_id);
     }
 
     #[tokio::test]
@@ -473,7 +472,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -503,8 +502,8 @@ mod tests {
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
-        let reading_first_id = reading_first.meta.id;
-        let reading_second_id = reading_second.meta.id;
+        let reading_first_id = reading_first.meta.element_id;
+        let reading_second_id = reading_second.meta.element_id;
 
         // Insert in reverse position order to verify sorting
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
@@ -519,8 +518,8 @@ mod tests {
 
         let readings = &actual[0].children.readings;
         assert_eq!(2, readings.len());
-        assert_eq!(reading_first_id, readings[0].meta.id);
-        assert_eq!(reading_second_id, readings[1].meta.id);
+        assert_eq!(reading_first_id, readings[0].meta.element_id);
+        assert_eq!(reading_second_id, readings[1].meta.element_id);
     }
 
     #[tokio::test]
@@ -545,8 +544,8 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let active_id = active.meta.id;
-        let removed_id = removed.meta.id.id();
+        let active_id = active.meta.element_id;
+        let removed_id = removed.meta.element_id.id();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
         folder_repo.create(active).await.unwrap();
         folder_repo.create(removed).await.unwrap();
@@ -567,7 +566,7 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(active_id, actual[0].meta.id);
+        assert_eq!(active_id, actual[0].meta.element_id);
     }
 
     #[tokio::test]
@@ -586,7 +585,7 @@ mod tests {
             source: ReadingSource::Clipboard,
             body: String::new(),
         };
-        let reading_id = reading.meta.id;
+        let reading_id = reading.meta.element_id;
         scope
             .resolve::<dyn ReadingRepository>()
             .await
@@ -601,7 +600,7 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(reading_id, actual[0].meta.id);
+        assert_eq!(reading_id, actual[0].meta.element_id);
         assert_eq!("Orphan Reading", actual[0].meta.name);
     }
 
@@ -641,9 +640,9 @@ mod tests {
             },
             text: "Some text".to_string(),
         };
-        let reading_id = reading.meta.id;
-        let folder_id = folder.meta.id;
-        let extract_id = extract.meta.id;
+        let reading_id = reading.meta.element_id;
+        let folder_id = folder.meta.element_id;
+        let extract_id = extract.meta.element_id;
 
         scope
             .resolve::<dyn ReadingRepository>()
@@ -671,9 +670,9 @@ mod tests {
         // Assert
 
         assert_eq!(3, actual.len());
-        assert_eq!(reading_id, actual[0].meta.id);
-        assert_eq!(folder_id, actual[1].meta.id);
-        assert_eq!(extract_id, actual[2].meta.id);
+        assert_eq!(reading_id, actual[0].meta.element_id);
+        assert_eq!(folder_id, actual[1].meta.element_id);
+        assert_eq!(extract_id, actual[2].meta.element_id);
     }
 
     #[tokio::test]
@@ -690,7 +689,7 @@ mod tests {
                 ..folder_meta()
             },
         };
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         let extract = Extract {
             meta: Meta {
                 name: "Direct extract".to_string(),
@@ -699,7 +698,7 @@ mod tests {
             },
             text: "Some text".to_string(),
         };
-        let extract_id = extract.meta.id;
+        let extract_id = extract.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -722,6 +721,6 @@ mod tests {
         let folder = &actual[0];
         assert!(folder.children.readings.is_empty());
         assert_eq!(1, folder.children.extracts.len());
-        assert_eq!(extract_id, folder.children.extracts[0].meta.id);
+        assert_eq!(extract_id, folder.children.extracts[0].meta.element_id);
     }
 }

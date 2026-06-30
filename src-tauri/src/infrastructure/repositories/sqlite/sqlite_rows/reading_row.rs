@@ -31,12 +31,11 @@ impl From<ReadingRow> for Reading {
         };
         Reading {
             meta: Meta {
-                id: ElementId::Reading(row.id),
+                element_id: ElementId::Reading(row.id),
                 name: row.name,
                 parent: (row.parent_id, row.parent_type).into_element_id(),
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
-                tags: vec![],
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },

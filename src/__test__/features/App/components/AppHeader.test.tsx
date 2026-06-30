@@ -8,7 +8,7 @@ const folderElement: AnyElementDto = {
 	type: "folder",
 	data: {
 		meta: {
-			id: { type: "folder", id: "folder-science" },
+			elementId: { type: "folder", id: "folder-science" },
 			name: "Science",
 			position: "0",
 			parent: null,

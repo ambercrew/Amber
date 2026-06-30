@@ -14,7 +14,7 @@ vi.mock(import("../../api/elements/api/elementsApi.ts"));
 const TREE: NodeDto[] = [
 	{
 		meta: {
-			id: {
+			elementId: {
 				type: "folder",
 				id: "folder-1",
 			},

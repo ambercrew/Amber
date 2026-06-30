@@ -10,13 +10,19 @@ import {
 	Text,
 	TextInput,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { CaretDoubleDownIcon, SidebarSimpleIcon } from "@phosphor-icons/react";
-import { useState } from "react";
-import { MetaResponseDto } from "../../../api/elements/dto/anyElementDto";
+import { useDisclosure, useDebouncedCallback } from "@mantine/hooks";
+import {
+	CaretDoubleDownIcon,
+	CaretDoubleUpIcon,
+	SidebarSimpleIcon,
+} from "@phosphor-icons/react";
 import ElementNodeIcon from "./ElementNodeIcon";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
+import { updateElementTags } from "../../../api/elements/api/elementsApi";
+import { ElementId } from "../../../types/elements/elementId";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import { renameElementAction } from "../../../stores/elements/elementsActions";
 
 interface AppHeaderProps {
 	onToggleSidebar: () => void;
@@ -35,10 +41,21 @@ function formatDate(iso: string): string {
 function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const storedMeta = currentElement?.data.meta ?? null;
-	const [localMeta, setLocalMeta] = useState<MetaResponseDto | null>(null);
 	const [opened, { toggle }] = useDisclosure(false);
+	const dispatch = useAppDispatch();
 
-	const meta = localMeta ?? storedMeta;
+	const debouncedRename = useDebouncedCallback(
+		async (id: ElementId, name: string) => {
+			if (!name) return;
+			await dispatch(renameElementAction(id, name));
+		},
+		500,
+	);
+
+	const debouncedUpdateTags = useDebouncedCallback(
+		(id: ElementId, tags: string[]) => updateElementTags(id, tags),
+		500,
+	);
 
 	return (
 		<Stack gap={0}>
@@ -50,25 +67,34 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 					<SidebarSimpleIcon size={18} />
 				</ActionIcon>
 
-				{meta && (
+				{storedMeta && (
 					<Button
 						variant="subtle"
 						color="gray"
 						size="sm"
 						px="xs"
-						rightSection={<CaretDoubleDownIcon size={14} />}
+						rightSection={
+							opened ? (
+								<CaretDoubleUpIcon size={14} />
+							) : (
+								<CaretDoubleDownIcon size={14} />
+							)
+						}
 						leftSection={
-							<ElementNodeIcon type={meta.id.type} size={16} />
+							<ElementNodeIcon
+								type={storedMeta.elementId.type}
+								size={16}
+							/>
 						}
 						title="Show element metadata"
 						onClick={toggle}>
-						<Text truncate="end">{meta.name}</Text>
+						<Text truncate="end">{storedMeta.name}</Text>
 					</Button>
 				)}
 			</Group>
 
-			<Collapse expanded={opened && meta != null}>
-				{meta && (
+			<Collapse expanded={opened && storedMeta != null}>
+				{storedMeta && (
 					<>
 						<Divider />
 						<SimpleGrid
@@ -81,18 +107,14 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 									Name
 								</Text>
 								<TextInput
+									key={`name-${storedMeta.elementId.id}`}
 									variant="unstyled"
 									size="sm"
-									value={meta.name}
+									defaultValue={storedMeta.name}
 									onChange={e =>
-										setLocalMeta(prev =>
-											(prev ?? meta)
-												? {
-														...(prev ?? meta)!,
-														name: e.currentTarget
-															.value,
-													}
-												: prev,
+										debouncedRename(
+											storedMeta.elementId,
+											e.currentTarget.value,
 										)
 									}
 								/>
@@ -100,14 +122,18 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 									Tags
 								</Text>
 								<TagsInput
+									key={`tags-${storedMeta.elementId.id}`}
+									placeholder="Enter tag"
 									variant="unstyled"
 									size="sm"
-									value={meta.tags}
+									defaultValue={storedMeta.tags.map(
+										t => t.name,
+									)}
 									onChange={tags =>
-										setLocalMeta(prev => ({
-											...(prev ?? meta),
+										debouncedUpdateTags(
+											storedMeta.elementId,
 											tags,
-										}))
+										)
 									}
 								/>
 							</Stack>
@@ -117,13 +143,13 @@ function AppHeader({ onToggleSidebar }: AppHeaderProps) {
 									Created
 								</Text>
 								<Text size="sm" py={6}>
-									{formatDate(meta.createdAt)}
+									{formatDate(storedMeta.createdAt)}
 								</Text>
 								<Text size="xs" c="dimmed" fw={500}>
 									Modified
 								</Text>
 								<Text size="sm" py={6}>
-									{formatDate(meta.modifiedAt)}
+									{formatDate(storedMeta.modifiedAt)}
 								</Text>
 							</Stack>
 						</SimpleGrid>

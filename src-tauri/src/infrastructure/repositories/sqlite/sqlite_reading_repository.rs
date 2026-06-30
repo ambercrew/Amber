@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -30,7 +29,7 @@ impl ReadingRepository for SqliteReadingRepository {
 
         self.meta_repository.create_meta(&reading.meta).await?;
 
-        let uuid = reading.meta.id.id();
+        let uuid = reading.meta.element_id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
@@ -52,7 +51,7 @@ impl ReadingRepository for SqliteReadingRepository {
         let rows = sqlx::query_as!(
             ReadingRow,
             r#"SELECT
-                m.id as "id: _",
+                m.element_id as "id: _",
                 m.name,
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
@@ -63,39 +62,13 @@ impl ReadingRepository for SqliteReadingRepository {
                 r.source_url,
                 r.body
             FROM readings r
-            INNER JOIN meta m ON r.id = m.id
+            INNER JOIN meta m ON r.id = m.element_id
             ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)
         .await?;
 
-        let tag_rows = sqlx::query!(
-            r#"SELECT
-                et.element_id as "element_id: Uuid",
-                et.tag_id as "tag_id: Uuid"
-            FROM element_tags et
-            INNER JOIN readings r ON et.element_id = r.id"#
-        )
-        .fetch_all(&mut *tx)
-        .await?;
-
-        let mut tags_by_id: HashMap<Uuid, Vec<Uuid>> = HashMap::new();
-        for row in tag_rows {
-            tags_by_id
-                .entry(row.element_id)
-                .or_default()
-                .push(row.tag_id);
-        }
-
-        Ok(rows
-            .into_iter()
-            .map(|row| {
-                let id = row.id;
-                let mut entity: Reading = row.into();
-                entity.meta.tags = tags_by_id.remove(&id).unwrap_or_default();
-                entity
-            })
-            .collect())
+        Ok(rows.into_iter().map(|row| row.into()).collect())
     }
 
     async fn get_by_id(&self, id: Uuid) -> Result<Reading, RepositoryError> {
@@ -105,7 +78,7 @@ impl ReadingRepository for SqliteReadingRepository {
         let row = sqlx::query_as!(
             ReadingRow,
             r#"SELECT
-                m.id as "id: _",
+                m.element_id as "id: _",
                 m.name,
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
@@ -116,23 +89,14 @@ impl ReadingRepository for SqliteReadingRepository {
                 r.source_url,
                 r.body
             FROM readings r
-            INNER JOIN meta m ON r.id = m.id
+            INNER JOIN meta m ON r.id = m.element_id
             WHERE r.id = $1"#,
             id
         )
         .fetch_one(&mut *tx)
         .await?;
 
-        let tag_rows = sqlx::query!(
-            r#"SELECT tag_id as "tag_id: Uuid" FROM element_tags WHERE element_id = $1"#,
-            id
-        )
-        .fetch_all(&mut *tx)
-        .await?;
-
-        let mut entity: Reading = row.into();
-        entity.meta.tags = tag_rows.into_iter().map(|r| r.tag_id).collect();
-        Ok(entity)
+        Ok(row.into())
     }
 }
 
@@ -181,11 +145,10 @@ mod tests {
 
     fn make_meta(id: ElementId) -> Meta {
         Meta {
-            id,
+            element_id: id,
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
-            tags: vec![],
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -220,7 +183,7 @@ mod tests {
         };
         let reading = Reading {
             meta: Meta {
-                parent: Some(folder.meta.id),
+                parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
@@ -228,7 +191,7 @@ mod tests {
         };
         let extract = Extract {
             meta: Meta {
-                parent: Some(reading.meta.id),
+                parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
             text: String::new(),
@@ -239,12 +202,16 @@ mod tests {
 
         // Act
 
-        meta_repo.delete(reading.meta.id).await.unwrap();
+        meta_repo.delete(reading.meta.element_id).await.unwrap();
 
         // Assert
 
         let remaining = extract_repo.get_all().await.unwrap();
-        assert!(!remaining.iter().any(|e| e.meta.id == extract.meta.id));
+        assert!(
+            !remaining
+                .iter()
+                .any(|e| e.meta.element_id == extract.meta.element_id)
+        );
     }
 
     #[tokio::test]
@@ -263,7 +230,7 @@ mod tests {
         };
         let reading = Reading {
             meta: Meta {
-                parent: Some(folder.meta.id),
+                parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
@@ -271,7 +238,7 @@ mod tests {
         };
         let card = Card {
             meta: Meta {
-                parent: Some(reading.meta.id),
+                parent: Some(reading.meta.element_id),
                 ..card_meta()
             },
             front: String::new(),
@@ -283,12 +250,16 @@ mod tests {
 
         // Act
 
-        meta_repo.delete(reading.meta.id).await.unwrap();
+        meta_repo.delete(reading.meta.element_id).await.unwrap();
 
         // Assert
 
         let remaining = card_repo.get_all().await.unwrap();
-        assert!(!remaining.iter().any(|c| c.meta.id == card.meta.id));
+        assert!(
+            !remaining
+                .iter()
+                .any(|c| c.meta.element_id == card.meta.element_id)
+        );
     }
 
     #[tokio::test]
@@ -306,7 +277,7 @@ mod tests {
         };
         let reading = Reading {
             meta: Meta {
-                parent: Some(folder.meta.id),
+                parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
@@ -318,7 +289,7 @@ mod tests {
         // Act
 
         meta_repo
-            .rename(reading.meta.id, "renamed".into())
+            .rename(reading.meta.element_id, "renamed".into())
             .await
             .unwrap();
 
@@ -327,7 +298,7 @@ mod tests {
         let remaining = reading_repo.get_all().await.unwrap();
         let updated = remaining
             .iter()
-            .find(|r| r.meta.id == reading.meta.id)
+            .find(|r| r.meta.element_id == reading.meta.element_id)
             .unwrap();
         assert_eq!("renamed", updated.meta.name);
     }
@@ -347,7 +318,7 @@ mod tests {
         };
         let reading = Reading {
             meta: Meta {
-                parent: Some(folder.meta.id),
+                parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
@@ -358,7 +329,7 @@ mod tests {
 
         // Act
 
-        let actual = meta_repo.exists(reading.meta.id).await.unwrap();
+        let actual = meta_repo.exists(reading.meta.element_id).await.unwrap();
 
         // Assert
 

@@ -271,12 +271,12 @@ impl DefaultSyncer {
 
         let mut synced_entities = Vec::<SyncEntityDto>::new();
         synced_entities.extend(
-            self.fsrs_profile_strategy
+            self.deleted_entity_strategy
                 .get_sync_dtos_modified_since(last_sync_date)
                 .await?,
         );
         synced_entities.extend(
-            self.deleted_entity_strategy
+            self.fsrs_profile_strategy
                 .get_sync_dtos_modified_since(last_sync_date)
                 .await?,
         );

@@ -21,20 +21,18 @@ vi.mock(
 const TREE: NodeDto[] = [
 	{
 		meta: {
-			id: { type: "folder", id: "folder-science" },
+			elementId: { type: "folder", id: "folder-science" },
 			name: "Science",
 			position: "0",
-			tags: [],
 		},
 		children: {
 			folders: [],
 			readings: [
 				{
 					meta: {
-						id: { type: "reading", id: "reading-biology" },
+						elementId: { type: "reading", id: "reading-biology" },
 						name: "Biology Basics",
 						position: "0",
-						tags: [],
 					},
 					children: {
 						folders: [],

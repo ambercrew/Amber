@@ -5,7 +5,7 @@ use crate::elements::value_objects::element_id::ElementId;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetaNodeDto {
-    pub id: ElementId,
+    pub element_id: ElementId,
     pub name: String,
     pub position: String,
 }

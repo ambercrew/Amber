@@ -160,6 +160,7 @@ pub async fn run() -> Result<(), String> {
             rename_element,
             element_exists,
             move_element,
+            update_element_tags,
             create_folder,
             create_reading,
             create_extract,

@@ -11,6 +11,7 @@ use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
+use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
@@ -88,11 +89,10 @@ pub async fn create_folder(
     let now = Utc::now();
     let folder = Folder {
         meta: Meta {
-            id: ElementId::Folder(Uuid::new_v4()),
+            element_id: ElementId::Folder(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
-            tags: vec![],
             created_at: now,
             modified_at: now,
         },
@@ -121,11 +121,10 @@ pub async fn create_reading(
     let now = Utc::now();
     let reading = Reading {
         meta: Meta {
-            id: ElementId::Reading(Uuid::new_v4()),
+            element_id: ElementId::Reading(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
-            tags: vec![],
             created_at: now,
             modified_at: now,
         },
@@ -156,11 +155,10 @@ pub async fn create_extract(
     let now = Utc::now();
     let extract = Extract {
         meta: Meta {
-            id: ElementId::Extract(Uuid::new_v4()),
+            element_id: ElementId::Extract(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
-            tags: vec![],
             created_at: now,
             modified_at: now,
         },
@@ -204,11 +202,10 @@ pub async fn create_card(
     let now = Utc::now();
     let card = Card {
         meta: Meta {
-            id: ElementId::Card(Uuid::new_v4()),
+            element_id: ElementId::Card(Uuid::new_v4()),
             name: dto.meta.name,
             parent,
             position,
-            tags: vec![],
             created_at: now,
             modified_at: now,
         },
@@ -219,6 +216,22 @@ pub async fn create_card(
         .resolve::<dyn CardRepository>()
         .await
         .create(card)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_element_tags(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+    tags: Vec<String>,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn MetaRepository>()
+        .await
+        .update_tags(element_id, tags)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -245,7 +258,7 @@ pub async fn get_element_by_id(
     element_id: ElementId,
 ) -> Result<AnyElementDto, ApiError> {
     let scope = injector.start_scope();
-    let dto = match element_id {
+    let mut dto: AnyElementDto = match element_id {
         ElementId::Folder(_) => scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -271,5 +284,17 @@ pub async fn get_element_by_id(
             .await?
             .into(),
     };
+
+    let tags = scope
+        .resolve::<dyn MetaRepository>()
+        .await
+        .get_tags(element_id)
+        .await?
+        .into_iter()
+        .map(TagResponseDto::from)
+        .collect();
+
+    dto.meta_mut().tags = tags;
+
     Ok(dto)
 }

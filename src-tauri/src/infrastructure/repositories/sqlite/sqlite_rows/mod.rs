@@ -5,3 +5,4 @@ pub mod fsrs_profile_row;
 pub mod local_configuration_row;
 pub mod meta_row;
 pub mod reading_row;
+pub mod tag_row;

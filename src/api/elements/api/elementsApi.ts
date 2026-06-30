@@ -57,3 +57,10 @@ export interface MoveElementDto {
 export function moveElement(dto: MoveElementDto): Promise<void> {
 	return invoke("move_element", { dto });
 }
+
+export function updateElementTags(
+	elementId: ElementId,
+	tags: string[],
+): Promise<void> {
+	return invoke("update_element_tags", { elementId, tags });
+}

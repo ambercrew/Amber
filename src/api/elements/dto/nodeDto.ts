@@ -6,7 +6,7 @@ export interface NodeDto {
 }
 
 export interface MetaNodeDto {
-	id: ElementId;
+	elementId: ElementId;
 	name: string;
 	position: string;
 }

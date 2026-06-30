@@ -1,6 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
 
+use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
@@ -11,11 +12,11 @@ use crate::elements::value_objects::meta::Meta;
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MetaResponseDto {
-    pub id: ElementId,
+    pub element_id: ElementId,
     pub name: String,
     pub parent: Option<ElementId>,
     pub position: String,
-    pub tags: Vec<String>,
+    pub tags: Vec<TagResponseDto>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
 }
@@ -23,11 +24,11 @@ pub struct MetaResponseDto {
 impl From<Meta> for MetaResponseDto {
     fn from(meta: Meta) -> Self {
         MetaResponseDto {
-            id: meta.id,
+            element_id: meta.element_id,
             name: meta.name,
             parent: meta.parent,
             position: meta.position.to_string(),
-            tags: meta.tags.iter().map(|t| t.to_string()).collect(),
+            tags: Vec::new(),
             created_at: meta.created_at,
             modified_at: meta.modified_at,
         }
@@ -70,6 +71,17 @@ pub enum AnyElementDto {
     Reading(ReadingResponseDto),
     Extract(ExtractResponseDto),
     Card(CardResponseDto),
+}
+
+impl AnyElementDto {
+    pub fn meta_mut(&mut self) -> &mut MetaResponseDto {
+        match self {
+            AnyElementDto::Folder(d) => &mut d.meta,
+            AnyElementDto::Reading(d) => &mut d.meta,
+            AnyElementDto::Extract(d) => &mut d.meta,
+            AnyElementDto::Card(d) => &mut d.meta,
+        }
+    }
 }
 
 impl From<Folder> for AnyElementDto {

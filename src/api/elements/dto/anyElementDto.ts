@@ -1,12 +1,13 @@
 import { ElementId } from "../../../types/elements/elementId";
+import { Tag } from "../../../types/elements/tag";
 import { ReadingSource } from "../../../types/elements/reading";
 
 export interface MetaResponseDto {
-	id: ElementId;
+	elementId: ElementId;
 	name: string;
 	parent: ElementId | null;
 	position: string;
-	tags: string[];
+	tags: Tag[];
 	createdAt: string;
 	modifiedAt: string;
 }

@@ -6,10 +6,12 @@ use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
+use crate::elements::entities::tag::Tag;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::meta_row::MetaRow;
+use crate::infrastructure::repositories::sqlite::sqlite_rows::tag_row::TagRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[derive(ScopeInjectable)]
@@ -20,12 +22,12 @@ pub struct SqliteMetaRepository {
 #[async_trait]
 impl MetaRepository for SqliteMetaRepository {
     async fn create_meta(&self, meta: &Meta) -> Result<(), RepositoryError> {
-        let uuid = meta.id.id();
-        let element_type = meta.id.element_name();
+        let uuid = meta.element_id.id();
+        let element_type = meta.element_id.element_name();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (id, element_type, name, position, parent_id, parent_type, created_at, modified_at)
+            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, created_at, modified_at)
              VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8))",
             uuid,
             element_type,
@@ -48,7 +50,7 @@ impl MetaRepository for SqliteMetaRepository {
         let row = sqlx::query_as!(
             MetaRow,
             r#"SELECT
-                id as "id: _",
+                element_id as "element_id: _",
                 element_type,
                 name,
                 position as "position: _",
@@ -57,7 +59,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE id = $1"#,
+            WHERE element_id = $1"#,
             id
         )
         .fetch_one(&mut *tx)
@@ -71,9 +73,61 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        sqlx::query!(r#"DELETE FROM meta WHERE id = $1"#, uuid)
+        sqlx::query!(r#"DELETE FROM meta WHERE element_id = $1"#, uuid)
             .execute(&mut *tx)
             .await?;
+
+        Ok(())
+    }
+
+    async fn get_tags(&self, id: ElementId) -> Result<Vec<Tag>, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let rows = sqlx::query_as!(
+            TagRow,
+            r#"SELECT
+                t.name,
+                t.created_at as "created_at: _",
+                t.modified_at as "modified_at: _"
+            FROM tags t
+            JOIN element_tags et ON et.tag_id = t.name
+            WHERE et.element_id = $1
+            ORDER BY et.sort_index"#,
+            uuid
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        Ok(rows.into_iter().map(Tag::from).collect())
+    }
+
+    async fn update_tags(&self, id: ElementId, tags: Vec<String>) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        sqlx::query!("DELETE FROM element_tags WHERE element_id = $1", uuid)
+            .execute(&mut *tx)
+            .await?;
+
+        for (sort_index, tag_name) in tags.iter().enumerate() {
+            let sort_index = sort_index as i64;
+
+            sqlx::query!("INSERT OR IGNORE INTO tags (name) VALUES ($1)", tag_name,)
+                .execute(&mut *tx)
+                .await?;
+
+            sqlx::query!(
+                "INSERT INTO element_tags (element_id, tag_id, sort_index) VALUES ($1, $2, $3)",
+                uuid,
+                tag_name,
+                sort_index,
+            )
+            .execute(&mut *tx)
+            .await?;
+        }
 
         Ok(())
     }
@@ -82,9 +136,13 @@ impl MetaRepository for SqliteMetaRepository {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
-        sqlx::query!(r#"UPDATE meta SET name = $1 WHERE id = $2"#, new_name, uuid)
-            .execute(&mut *tx)
-            .await?;
+        sqlx::query!(
+            r#"UPDATE meta SET name = $1 WHERE element_id = $2"#,
+            new_name,
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
         Ok(())
     }
 
@@ -93,7 +151,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            r#"SELECT EXISTS(SELECT 1 FROM meta WHERE id = $1) as "exists: bool""#,
+            r#"SELECT EXISTS(SELECT 1 FROM meta WHERE element_id = $1) as "exists: bool""#,
             uuid
         )
         .fetch_one(&mut *tx)
@@ -111,7 +169,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            r#"UPDATE meta SET parent_id = $1, parent_type = $2, position = $3 WHERE id = $4"#,
+            r#"UPDATE meta SET parent_id = $1, parent_type = $2, position = $3 WHERE element_id = $4"#,
             new_parent.map(|p| p.id()),
             new_parent.map(|p| p.element_name()),
             new_position.as_bytes(),
@@ -145,7 +203,7 @@ impl MetaRepository for SqliteMetaRepository {
         let row = sqlx::query_as!(
             MetaRow,
             r#"SELECT
-                id as "id: _",
+                element_id as "element_id: _",
                 element_type,
                 name,
                 position as "position: _",
@@ -173,7 +231,7 @@ impl MetaRepository for SqliteMetaRepository {
         let row = sqlx::query_as!(
             MetaRow,
             r#"SELECT
-                id as "id: _",
+                element_id as "element_id: _",
                 element_type,
                 name,
                 position as "position: _",
@@ -204,7 +262,7 @@ impl MetaRepository for SqliteMetaRepository {
         let rows = sqlx::query_as!(
             MetaRow,
             r#"SELECT
-                id as "id: _",
+                element_id as "element_id: _",
                 element_type,
                 name,
                 position as "position: _",

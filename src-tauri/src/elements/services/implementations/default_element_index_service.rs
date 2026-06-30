@@ -92,11 +92,10 @@ mod tests {
     fn make_folder(position: FractionalIndex) -> Folder {
         Folder {
             meta: Meta {
-                id: ElementId::Folder(Uuid::new_v4()),
+                element_id: ElementId::Folder(Uuid::new_v4()),
                 name: "test".into(),
                 parent: None,
                 position,
-                tags: vec![],
                 created_at: Utc::now(),
                 modified_at: Utc::now(),
             },
@@ -152,7 +151,7 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
 
         let folder = make_folder(FractionalIndex::default());
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         let folder_pos = folder.meta.position.clone();
         folder_repo.create(folder).await.unwrap();
 
@@ -178,7 +177,7 @@ mod tests {
         let pos_second = FractionalIndex::new_after(&pos_first);
         let first = make_folder(pos_first.clone());
         let second = make_folder(pos_second.clone());
-        let second_id = second.meta.id;
+        let second_id = second.meta.element_id;
         folder_repo.create(first).await.unwrap();
         folder_repo.create(second).await.unwrap();
 
@@ -202,7 +201,7 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
 
         let folder = make_folder(FractionalIndex::default());
-        let folder_id = folder.meta.id;
+        let folder_id = folder.meta.element_id;
         let folder_pos = folder.meta.position.clone();
         folder_repo.create(folder).await.unwrap();
 
@@ -228,7 +227,7 @@ mod tests {
         let pos_second = FractionalIndex::new_after(&pos_first);
         let first = make_folder(pos_first.clone());
         let second = make_folder(pos_second.clone());
-        let first_id = first.meta.id;
+        let first_id = first.meta.element_id;
         folder_repo.create(first).await.unwrap();
         folder_repo.create(second).await.unwrap();
 

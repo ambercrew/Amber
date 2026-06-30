@@ -21,9 +21,9 @@ function nodeToTreeNode(node: NodeDto): TreeNodeData {
 	});
 	return {
 		label: node.meta.name,
-		value: node.meta.id.id,
+		value: node.meta.elementId.id,
 		nodeProps: {
-			type: node.meta.id.type,
+			type: node.meta.elementId.type,
 			childrenCount: children.length,
 			position: node.meta.position,
 		} satisfies ElementNodeProps,

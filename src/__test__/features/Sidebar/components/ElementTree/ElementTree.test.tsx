@@ -29,7 +29,7 @@ function makeNode(
 	position = "0",
 ): NodeDto {
 	return {
-		meta: { id, name, position, tags: [] },
+		meta: { elementId: id, name, position },
 		children: {
 			folders: [],
 			readings: [],
@@ -259,10 +259,9 @@ describe("ElementTree sorting", () => {
 		const tree: NodeDto[] = [
 			{
 				meta: {
-					id: { type: "folder", id: "root" },
+					elementId: { type: "folder", id: "root" },
 					name: "Root",
 					position: "0",
-					tags: [],
 				},
 				children: {
 					folders: [

@@ -70,7 +70,7 @@ impl DefaultElementMoveService {
         let mut pos = FractionalIndex::default();
         for child in children {
             self.meta_repository
-                .move_to(child.id, child.parent, pos.clone())
+                .move_to(child.element_id, child.parent, pos.clone())
                 .await?;
             pos = FractionalIndex::new_after(&pos);
         }
@@ -124,11 +124,10 @@ mod tests {
     fn make_folder(parent: Option<ElementId>, position: FractionalIndex) -> Folder {
         Folder {
             meta: Meta {
-                id: ElementId::Folder(Uuid::new_v4()),
+                element_id: ElementId::Folder(Uuid::new_v4()),
                 name: "test".into(),
                 parent,
                 position,
-                tags: vec![],
                 created_at: Utc::now(),
                 modified_at: Utc::now(),
             },
@@ -150,8 +149,8 @@ mod tests {
             None,
             FractionalIndex::new_after(&FractionalIndex::default()),
         );
-        let parent_id = parent.meta.id;
-        let child_id = child.meta.id;
+        let parent_id = parent.meta.element_id;
+        let child_id = child.meta.element_id;
         folder_repo.create(parent).await.unwrap();
         folder_repo.create(child).await.unwrap();
 
@@ -186,8 +185,8 @@ mod tests {
         let pos_b = FractionalIndex::new_after(&pos_a);
         let a = make_folder(None, pos_a);
         let b = make_folder(None, pos_b.clone());
-        let a_id = a.meta.id;
-        let b_id = b.meta.id;
+        let a_id = a.meta.element_id;
+        let b_id = b.meta.element_id;
         folder_repo.create(a).await.unwrap();
         folder_repo.create(b).await.unwrap();
 
@@ -202,7 +201,7 @@ mod tests {
             .unwrap();
 
         let c = make_folder(None, FractionalIndex::new_after(&pos_b));
-        let c_id = c.meta.id;
+        let c_id = c.meta.element_id;
         folder_repo.create(c).await.unwrap();
 
         service
@@ -238,9 +237,9 @@ mod tests {
         let a = make_folder(None, pos_a.clone());
         let b = make_folder(None, pos_b);
         let c = make_folder(None, pos_c);
-        let a_id = a.meta.id;
-        let b_id = b.meta.id;
-        let c_id = c.meta.id;
+        let a_id = a.meta.element_id;
+        let b_id = b.meta.element_id;
+        let c_id = c.meta.element_id;
         folder_repo.create(a).await.unwrap();
         folder_repo.create(b).await.unwrap();
         folder_repo.create(c).await.unwrap();
@@ -276,14 +275,14 @@ mod tests {
         let service = scope.resolve::<dyn ElementMoveService>().await;
 
         let parent = make_folder(None, FractionalIndex::default());
-        let parent_id = parent.meta.id;
+        let parent_id = parent.meta.element_id;
         let target = make_folder(Some(parent_id), FractionalIndex::default());
-        let target_id = target.meta.id;
+        let target_id = target.meta.element_id;
         let dragged = make_folder(
             None,
             FractionalIndex::new_after(&FractionalIndex::default()),
         );
-        let dragged_id = dragged.meta.id;
+        let dragged_id = dragged.meta.element_id;
         folder_repo.create(parent).await.unwrap();
         folder_repo.create(target).await.unwrap();
         folder_repo.create(dragged).await.unwrap();
@@ -327,9 +326,9 @@ mod tests {
             None,
             FractionalIndex::new_after(&FractionalIndex::new_after(&FractionalIndex::default())),
         );
-        let first_id = first.meta.id.id();
-        let second_id = second.meta.id;
-        let third_id = third.meta.id;
+        let first_id = first.meta.element_id.id();
+        let second_id = second.meta.element_id;
+        let third_id = third.meta.element_id;
         folder_repo.create(first).await.unwrap();
         folder_repo.create(second).await.unwrap();
         folder_repo.create(third).await.unwrap();
@@ -347,7 +346,7 @@ mod tests {
             let mut guard = tx.lock().await;
             let tx_ref = guard.as_mut();
             sqlx::query!(
-                "UPDATE meta SET position = $1 WHERE id = $2",
+                "UPDATE meta SET position = $1 WHERE element_id = $2",
                 adjacent_before.as_bytes(),
                 first_id
             )
@@ -355,7 +354,7 @@ mod tests {
             .await
             .unwrap();
             sqlx::query!(
-                "UPDATE meta SET position = $1 WHERE id = $2",
+                "UPDATE meta SET position = $1 WHERE element_id = $2",
                 adjacent_after.as_bytes(),
                 second_id.id()
             )

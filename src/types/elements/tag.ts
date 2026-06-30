@@ -1,6 +1,5 @@
-import { Meta } from "./meta";
-
 export interface Tag {
-	meta: Meta;
-	parentTagIds: string[];
+	name: string;
+	createdAt: string;
+	modifiedAt: string;
 }

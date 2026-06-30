@@ -5,6 +5,10 @@ export const router = createBrowserRouter([
 	{
 		path: "/",
 		element: <App />,
-		children: [{ path: ":type/:id" }],
+		children: [
+			{
+				path: ":type/:id",
+			},
+		],
 	},
 ]);

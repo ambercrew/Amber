@@ -18,7 +18,7 @@ vi.mock(import("../../api/elements/api/elementsApi"));
 
 const FOLDER_NODE: NodeDto = {
 	meta: {
-		id: { type: "folder", id: "folder-1" },
+		elementId: { type: "folder", id: "folder-1" },
 		name: "Science",
 		position: "0",
 	},
@@ -29,7 +29,7 @@ const FOLDER_ELEMENT: AnyElementDto = {
 	type: "folder",
 	data: {
 		meta: {
-			id: { type: "folder", id: "folder-1" },
+			elementId: { type: "folder", id: "folder-1" },
 			name: "Science",
 			position: "0",
 			parent: null,

@@ -106,9 +106,7 @@ function App() {
 				)}
 			</AppShell.Navbar>
 
-			<AppShell.Main>
-				<Outlet />
-			</AppShell.Main>
+			<AppShell.Main></AppShell.Main>
 		</AppShell>
 	);
 }
