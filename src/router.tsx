@@ -8,6 +8,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: ":type/:id",
+				element: <p>Element</p>,
 			},
 		],
 	},

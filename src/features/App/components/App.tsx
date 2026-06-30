@@ -5,8 +5,10 @@ import {
 	Box,
 	useMantineTheme,
 	MantineBreakpoint,
+	Text,
+	rem,
 } from "@mantine/core";
-import { useSplitter, useMediaQuery } from "@mantine/hooks";
+import { useSplitter, useMediaQuery, useHeadroom } from "@mantine/hooks";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useRedirectIfElementMissing } from "../../../hooks/useRedirectIfElementMissing";
 import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
@@ -22,7 +24,12 @@ import { isMobile } from "../../../utils/tauriUtils.ts";
 const SIDEBAR_DEFAULT = 320;
 const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 
+const lorem =
+	"Lorem ipsum dolor sit amet consectetur adipisicing elit. Eos ullam, ex cum repellat alias ea nemo. Ducimus ex nesciunt hic ad saepe molestiae nobis necessitatibus laboriosam officia, reprehenderit, earum fugiat?";
+
 function App() {
+	const { pinned } = useHeadroom({ fixedAt: 120 });
+
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
 	const { callApi } = useApi();
 	const dispatch = useAppDispatch();
@@ -80,11 +87,15 @@ function App() {
 					mobile: !sidebarExpanded,
 				},
 			}}
+			header={{ height: 60, collapsed: !pinned, offset: false }}
 			padding="md">
 			{!isMobile() && <Updater callApi={callApi} />}
 
 			<AppShell.Header>
-				<AppHeader onToggleSidebar={() => splitter.toggleCollapse(0)} />
+				<AppHeader
+					onToggleSidebar={() => splitter.toggleCollapse(0)}
+					pinned={pinned}
+				/>
 			</AppShell.Header>
 
 			<AppShell.Navbar bg="var(--mantine-color-gray-0)">
@@ -106,7 +117,16 @@ function App() {
 				)}
 			</AppShell.Navbar>
 
-			<AppShell.Main></AppShell.Main>
+			<AppShell.Main pt={`calc(${rem(60)} + var(--mantine-spacing-md))`}>
+				<Outlet />
+				{Array(40)
+					.fill(0)
+					.map((_, index) => (
+						<Text size="lg" key={index} my="md" maw={600} mx="auto">
+							{lorem}
+						</Text>
+					))}
+			</AppShell.Main>
 		</AppShell>
 	);
 }
