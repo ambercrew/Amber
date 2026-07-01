@@ -26,9 +26,9 @@ impl ReadingRepository for SqliteReadingRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO readings (id, body) VALUES ($1, $2)",
+            "INSERT INTO readings (id, content) VALUES ($1, $2)",
             uuid,
-            reading.body,
+            reading.content,
         )
         .execute(&mut *tx)
         .await?;
@@ -49,7 +49,7 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.body
+                r.content
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             ORDER BY m.position"#
@@ -74,7 +74,7 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.body
+                r.content
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             WHERE r.id = $1"#,
@@ -168,14 +168,14 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let extract = Extract {
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();
@@ -214,7 +214,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let card = Card {
             meta: Meta {
@@ -260,7 +260,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();
@@ -300,7 +300,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();

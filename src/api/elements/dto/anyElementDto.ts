@@ -17,12 +17,12 @@ export interface FolderResponseDto {
 
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
-	body: string;
+	content: string;
 }
 
 export interface ExtractResponseDto {
 	meta: MetaResponseDto;
-	text: string;
+	content: string;
 }
 
 export interface CardResponseDto {

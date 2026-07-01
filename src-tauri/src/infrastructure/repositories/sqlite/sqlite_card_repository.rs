@@ -173,7 +173,7 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let card = Card {
             meta: Meta {
@@ -221,7 +221,7 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let card = Card {
             meta: Meta {
@@ -272,7 +272,7 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let card = Card {
             meta: Meta {

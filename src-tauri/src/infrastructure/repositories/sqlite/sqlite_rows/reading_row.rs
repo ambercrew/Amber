@@ -15,7 +15,7 @@ pub struct ReadingRow {
     pub parent_type: Option<String>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub body: String,
+    pub content: String,
 }
 
 impl From<ReadingRow> for Reading {
@@ -30,7 +30,7 @@ impl From<ReadingRow> for Reading {
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            body: row.body,
+            content: row.content,
         }
     }
 }

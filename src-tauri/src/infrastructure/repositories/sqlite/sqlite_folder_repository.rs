@@ -203,7 +203,7 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder.clone()).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();
@@ -240,7 +240,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder.clone()).await.unwrap();
         extract_repo.create(extract.clone()).await.unwrap();

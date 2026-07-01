@@ -2,5 +2,5 @@ import { CreateMetaDto } from "./createMetaDto";
 
 export interface CreateReadingDto {
 	meta: CreateMetaDto;
-	body: string;
+	content: string;
 }

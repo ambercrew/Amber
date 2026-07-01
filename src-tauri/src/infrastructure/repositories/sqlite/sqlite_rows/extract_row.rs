@@ -15,7 +15,7 @@ pub struct ExtractRow {
     pub parent_type: Option<String>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub text: String,
+    pub content: String,
 }
 
 impl From<ExtractRow> for Extract {
@@ -30,7 +30,7 @@ impl From<ExtractRow> for Extract {
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            text: row.text,
+            content: row.content,
         }
     }
 }

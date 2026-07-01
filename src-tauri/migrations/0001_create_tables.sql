@@ -148,13 +148,12 @@ CREATE TABLE folders(
 
 CREATE TABLE readings(
     id          TEXT NOT NULL PRIMARY KEY,
-    body        TEXT NOT NULL
+    content     TEXT NOT NULL
 );
 
 CREATE TABLE extracts(
-    id   TEXT NOT NULL PRIMARY KEY,
-    -- TODO: rename to body or something else like readings
-    text TEXT NOT NULL
+    id      TEXT NOT NULL PRIMARY KEY,
+    content TEXT NOT NULL
 );
 
 CREATE TABLE cards(

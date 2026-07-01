@@ -42,8 +42,7 @@ function useCreateHandlers(
 						name: defaultElementName("Reading"),
 						parent: elementId,
 					},
-					source: { type: "clipboard" },
-					body: "",
+					content: "",
 				}),
 			),
 		extract: () =>
@@ -53,7 +52,7 @@ function useCreateHandlers(
 						name: defaultElementName("Extract"),
 						parent: elementId,
 					},
-					text: "",
+					content: "",
 				}),
 			),
 		card: () =>

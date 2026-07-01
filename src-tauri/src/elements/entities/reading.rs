@@ -4,7 +4,7 @@ use crate::elements::value_objects::meta::Meta;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Reading {
     pub meta: Meta,
-    pub body: String,
+    pub content: String,
 }
 
 impl Element for Reading {

@@ -6,5 +6,5 @@ use super::create_meta_dto::CreateMetaDto;
 #[serde(rename_all = "camelCase")]
 pub struct CreateExtractDto {
     pub meta: CreateMetaDto,
-    pub text: String,
+    pub content: String,
 }

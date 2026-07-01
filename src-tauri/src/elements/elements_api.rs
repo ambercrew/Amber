@@ -128,7 +128,7 @@ pub async fn create_reading(
             created_at: now,
             modified_at: now,
         },
-        body: dto.body,
+        content: dto.content,
     };
     scope
         .resolve::<dyn ReadingRepository>()
@@ -161,7 +161,7 @@ pub async fn create_extract(
             created_at: now,
             modified_at: now,
         },
-        text: dto.text,
+        content: dto.content,
     };
     scope
         .resolve::<dyn ExtractRepository>()

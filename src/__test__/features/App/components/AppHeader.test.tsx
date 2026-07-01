@@ -27,7 +27,7 @@ describe("AppHeader", () => {
 	it("Should show no element name when no element is selected", () => {
 		// Arrange & Act
 
-		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
+		renderWithProviders(<AppHeader pinned onToggleSidebar={vi.fn()} />, {
 			preloadedState: BASE_STATE,
 		});
 
@@ -39,7 +39,7 @@ describe("AppHeader", () => {
 	it("Should show element name when an element is selected", () => {
 		// Arrange & Act
 
-		renderWithProviders(<AppHeader onToggleSidebar={vi.fn()} />, {
+		renderWithProviders(<AppHeader pinned onToggleSidebar={vi.fn()} />, {
 			preloadedState: {
 				elements: {
 					...BASE_STATE.elements,
@@ -61,9 +61,12 @@ describe("AppHeader", () => {
 
 		// Act
 
-		renderWithProviders(<AppHeader onToggleSidebar={onToggleSidebar} />, {
-			preloadedState: BASE_STATE,
-		});
+		renderWithProviders(
+			<AppHeader pinned onToggleSidebar={onToggleSidebar} />,
+			{
+				preloadedState: BASE_STATE,
+			},
+		);
 		await user.click(screen.getByRole("button"));
 
 		// Assert

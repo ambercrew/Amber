@@ -26,9 +26,9 @@ impl ExtractRepository for SqliteExtractRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO extracts (id, text) VALUES ($1, $2)",
+            "INSERT INTO extracts (id, content) VALUES ($1, $2)",
             uuid,
-            extract.text,
+            extract.content,
         )
         .execute(&mut *tx)
         .await?;
@@ -49,7 +49,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                e.text
+                e.content
             FROM extracts e
             INNER JOIN meta m ON e.id = m.element_id
             ORDER BY m.position"#
@@ -74,7 +74,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                e.text
+                e.content
             FROM extracts e
             INNER JOIN meta m ON e.id = m.element_id
             WHERE e.id = $1"#,
@@ -174,21 +174,21 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let parent_extract = Extract {
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         let child_extract = Extract {
             meta: Meta {
                 parent: Some(parent_extract.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading).await.unwrap();
@@ -233,14 +233,14 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let extract = Extract {
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         let card = Card {
             meta: Meta {
@@ -289,14 +289,14 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let extract = Extract {
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading).await.unwrap();
@@ -339,14 +339,14 @@ mod tests {
                 ..reading_meta()
             },
             source: ReadingSource::Clipboard,
-            body: String::new(),
+            content: String::new(),
         };
         let extract = Extract {
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
             },
-            text: String::new(),
+            content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading).await.unwrap();

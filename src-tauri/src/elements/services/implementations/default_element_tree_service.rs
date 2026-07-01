@@ -386,7 +386,7 @@ mod tests {
                 parent: Some(folder_id),
                 ..reading_meta()
             },
-            body: "body text".to_string(),
+            content: "content".to_string(),
         };
         let reading_id = reading.meta.element_id;
         let extract = Extract {
@@ -395,7 +395,7 @@ mod tests {
                 parent: Some(reading_id),
                 ..extract_meta()
             },
-            text: "Plants convert sunlight".to_string(),
+            content: "Plants convert sunlight".to_string(),
         };
         let extract_id = extract.meta.element_id;
         let card = Card {
@@ -481,7 +481,7 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let reading_second = Reading {
             meta: Meta {
@@ -492,7 +492,7 @@ mod tests {
                 )),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let reading_first_id = reading_first.meta.element_id;
         let reading_second_id = reading_second.meta.element_id;
@@ -574,7 +574,7 @@ mod tests {
                 name: "Orphan Reading".to_string(),
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let reading_id = reading.meta.element_id;
         scope
@@ -613,7 +613,7 @@ mod tests {
                 position: pos_first,
                 ..reading_meta()
             },
-            body: String::new(),
+            content: String::new(),
         };
         let folder = Folder {
             meta: Meta {
@@ -628,7 +628,7 @@ mod tests {
                 position: pos_third,
                 ..extract_meta()
             },
-            text: "Some text".to_string(),
+            content: "Some text".to_string(),
         };
         let reading_id = reading.meta.element_id;
         let folder_id = folder.meta.element_id;
@@ -686,7 +686,7 @@ mod tests {
                 parent: Some(folder_id),
                 ..extract_meta()
             },
-            text: "Some text".to_string(),
+            content: "Some text".to_string(),
         };
         let extract_id = extract.meta.element_id;
         scope

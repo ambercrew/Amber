@@ -45,14 +45,14 @@ pub struct FolderResponseDto {
 #[serde(rename_all = "camelCase")]
 pub struct ReadingResponseDto {
     pub meta: MetaResponseDto,
-    pub body: String,
+    pub content: String,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExtractResponseDto {
     pub meta: MetaResponseDto,
-    pub text: String,
+    pub content: String,
 }
 
 #[derive(Serialize)]
@@ -95,7 +95,7 @@ impl From<Reading> for AnyElementDto {
     fn from(reading: Reading) -> Self {
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
-            body: reading.body,
+            content: reading.content,
         })
     }
 }
@@ -104,7 +104,7 @@ impl From<Extract> for AnyElementDto {
     fn from(extract: Extract) -> Self {
         AnyElementDto::Extract(ExtractResponseDto {
             meta: extract.meta.into(),
-            text: extract.text,
+            content: extract.content,
         })
     }
 }
