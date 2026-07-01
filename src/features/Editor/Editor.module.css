@@ -64,7 +64,7 @@
 }
 
 .editor-code {
-	border-radius: var(--mantine-radius-xs);
+	border-radius: var(--mantine-radius-default);
 	background: var(--mantine-color-default-hover);
 	padding: 0.1em 0.3em;
 	font-family: var(--mantine-font-family-monospace);
@@ -107,6 +107,13 @@
 
 .slash-menu-option-active {
 	background-color: var(--mantine-color-default-hover) !important;
+}
+
+.floating-menu {
+	position: absolute;
+	transition: opacity 0.1s ease;
+	/* Equals the app shell header. */
+	z-index: 100;
 }
 
 .drag-handle {
