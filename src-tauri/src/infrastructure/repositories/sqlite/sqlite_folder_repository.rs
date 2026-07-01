@@ -91,12 +91,7 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{
-                card::Card,
-                extract::Extract,
-                folder::Folder,
-                reading::{Reading, ReadingSource},
-            },
+            entities::{card::Card, extract::Extract, folder::Folder, reading::Reading},
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
                 folder_repository::FolderRepository, meta_repository::MetaRepository,
@@ -202,7 +197,6 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             content: String::new(),
         };
         folder_repo.create(folder.clone()).await.unwrap();

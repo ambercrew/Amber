@@ -15,7 +15,7 @@ name = "brainy_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-prost-build = "0.14.3"
+prost-build = "0.14.4"
 tauri-build = { version = "2.6.2", features = [] }
 sqlx = { version = "0.9.0", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite" ] }
 tokio = { version = "1.52.3", features = ["full"] }
@@ -24,25 +24,25 @@ tokio = { version = "1.52.3", features = ["full"] }
 async-stream = "0.3.6"
 async-trait = "0.1.89"
 base64 = "0.22.1"
-chrono = { version = "0.4.44", features = ["serde"] }
+chrono = { version = "0.4.45", features = ["serde"] }
 cookie_store = "0.22.1"
 injector = { path = "./injector" }
 injector_derive = { path="./injector_derive" }
-log = "0.4.30"
+log = "0.4.33"
 markdown = "1.0.0"
-prost = "0.14.3"
-prost-types = "0.14.3"
-regex = "1.12.3"
+prost = "0.14.4"
+prost-types = "0.14.4"
+regex = "1.12.4"
 tauri-plugin-http = "2.5.9"
-reqwest-middleware = { version = "0.4.0", features = ["json"] }
-reqwest-retry = "0.8.0"
-reqwest_cookie_store = "0.9.0"
+reqwest-middleware = { version = "0.4", features = ["json"] }
+reqwest-retry = "0.7"
+reqwest_cookie_store = "0.9"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 serde_repr = "0.1.20"
 tauri-plugin-log = "2"
 sqlx = { version = "0.9.0", features = [ "runtime-tokio", "tls-native-tls", "macros", "sqlite", "chrono", "uuid" ] }
-tauri = { version = "2.11.2", features = ["test"] }
+tauri = { version = "2.11.5", features = ["test"] }
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-dialog = "2.7.1"
 tauri-plugin-opener = "2.5.4"
@@ -51,11 +51,11 @@ tauri-plugin-process = "2.3.1"
 thiserror = "2.0.18"
 tokio = { version = "1.51.0", features = ["full"] }
 tokio-stream = "0.1.18"
-uuid = { version = "1.23.1", features = [ "v4", "serde" ] }
+uuid = { version = "1.23.4", features = [ "v4", "serde" ] }
 fractional_index = "2.0.2"
 
 [dev-dependencies]
-mockall = "0.14.0"
+mockall = "0.15.0"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-single-instance = "2.4.2"
