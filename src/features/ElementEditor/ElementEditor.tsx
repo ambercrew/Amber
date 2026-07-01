@@ -2,11 +2,11 @@ import { useMemo } from "react";
 import { Container } from "@mantine/core";
 import { $getSelection, $isRangeSelection } from "lexical";
 import { CardsIcon, ScissorsIcon } from "@phosphor-icons/react";
-import Editor from "../Editor/Editor";
+import Editor from "../../components/Editor/Editor";
 import {
 	FloatingMenuButton,
 	FloatingMenuPlugin,
-} from "../Editor/plugins/FloatingMenuPlugin";
+} from "../../components/Editor/plugins/FloatingMenuPlugin";
 import { useElementParams } from "../../hooks/useElementParams";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { createExtractAction } from "../../stores/elements/elementsActions";
