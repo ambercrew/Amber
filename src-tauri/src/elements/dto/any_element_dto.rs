@@ -5,7 +5,7 @@ use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
-use crate::elements::entities::reading::{Reading, ReadingSource};
+use crate::elements::entities::reading::Reading;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 
@@ -45,7 +45,6 @@ pub struct FolderResponseDto {
 #[serde(rename_all = "camelCase")]
 pub struct ReadingResponseDto {
     pub meta: MetaResponseDto,
-    pub source: ReadingSource,
     pub body: String,
 }
 
@@ -96,7 +95,6 @@ impl From<Reading> for AnyElementDto {
     fn from(reading: Reading) -> Self {
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
-            source: reading.source,
             body: reading.body,
         })
     }

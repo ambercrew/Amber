@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import App from "./features/App/components/App";
+import ElementEditor from "./features/ElementEditor/ElementEditor";
 
 export const router = createBrowserRouter([
 	{
@@ -8,7 +9,7 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: ":type/:id",
-				element: <></>,
+				element: <ElementEditor />,
 			},
 		],
 	},

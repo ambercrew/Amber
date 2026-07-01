@@ -1,6 +1,5 @@
 import { ElementId } from "../../../types/elements/elementId";
 import { Tag } from "../../../types/elements/tag";
-import { ReadingSource } from "../../../types/elements/reading";
 
 export interface MetaResponseDto {
 	elementId: ElementId;
@@ -18,7 +17,6 @@ export interface FolderResponseDto {
 
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
-	source: ReadingSource;
 	body: string;
 }
 

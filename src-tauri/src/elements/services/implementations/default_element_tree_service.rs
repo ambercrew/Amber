@@ -214,12 +214,7 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{
-                card::Card,
-                extract::Extract,
-                folder::Folder,
-                reading::{Reading, ReadingSource},
-            },
+            entities::{card::Card, extract::Extract, folder::Folder, reading::Reading},
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
                 folder_repository::FolderRepository, meta_repository::MetaRepository,
@@ -391,7 +386,6 @@ mod tests {
                 parent: Some(folder_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Website { url: String::new() },
             body: "body text".to_string(),
         };
         let reading_id = reading.meta.element_id;
@@ -487,7 +481,6 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let reading_second = Reading {
@@ -499,7 +492,6 @@ mod tests {
                 )),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let reading_first_id = reading_first.meta.element_id;
@@ -582,7 +574,6 @@ mod tests {
                 name: "Orphan Reading".to_string(),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let reading_id = reading.meta.element_id;
@@ -622,7 +613,6 @@ mod tests {
                 position: pos_first,
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let folder = Folder {

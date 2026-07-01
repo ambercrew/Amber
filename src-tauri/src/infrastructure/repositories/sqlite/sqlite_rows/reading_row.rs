@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::elements::entities::reading::{Reading, ReadingSource};
+use crate::elements::entities::reading::Reading;
 use crate::elements::extensions::into_element_id_ext::IntoOptionalElementIdExt;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
@@ -15,20 +15,11 @@ pub struct ReadingRow {
     pub parent_type: Option<String>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub source_type: String,
-    pub source_url: Option<String>,
     pub body: String,
 }
 
 impl From<ReadingRow> for Reading {
     fn from(row: ReadingRow) -> Self {
-        let source = match row.source_type.as_str() {
-            "website" => ReadingSource::Website {
-                url: row.source_url.unwrap_or_default(),
-            },
-            "pdf" => ReadingSource::Pdf,
-            _ => ReadingSource::Clipboard,
-        };
         Reading {
             meta: Meta {
                 element_id: ElementId::Reading(row.id),
@@ -39,7 +30,6 @@ impl From<ReadingRow> for Reading {
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            source,
             body: row.body,
         }
     }

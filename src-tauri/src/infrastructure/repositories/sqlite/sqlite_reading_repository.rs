@@ -6,7 +6,6 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::Reading;
-use crate::elements::entities::reading::ReadingSource;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
@@ -21,22 +20,14 @@ pub struct SqliteReadingRepository {
 #[async_trait]
 impl ReadingRepository for SqliteReadingRepository {
     async fn create(&self, reading: Reading) -> Result<(), RepositoryError> {
-        let (source_type, source_url) = match reading.source {
-            ReadingSource::Website { url } => ("website".to_string(), Some(url)),
-            ReadingSource::Clipboard => ("clipboard".to_string(), None),
-            ReadingSource::Pdf => ("pdf".to_string(), None),
-        };
-
         self.meta_repository.create_meta(&reading.meta).await?;
 
         let uuid = reading.meta.element_id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO readings (id, source_type, source_url, body) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO readings (id, body) VALUES ($1, $2)",
             uuid,
-            source_type,
-            source_url,
             reading.body,
         )
         .execute(&mut *tx)
@@ -58,8 +49,6 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.source_type,
-                r.source_url,
                 r.body
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -85,8 +74,6 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.parent_type,
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.source_type,
-                r.source_url,
                 r.body
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -109,12 +96,7 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{
-                card::Card,
-                extract::Extract,
-                folder::Folder,
-                reading::{Reading, ReadingSource},
-            },
+            entities::{card::Card, extract::Extract, folder::Folder, reading::Reading},
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
                 folder_repository::FolderRepository, meta_repository::MetaRepository,
@@ -186,7 +168,6 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let extract = Extract {
@@ -233,7 +214,6 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         let card = Card {
@@ -280,7 +260,6 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
@@ -321,7 +300,6 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            source: ReadingSource::Clipboard,
             body: String::new(),
         };
         folder_repo.create(folder).await.unwrap();

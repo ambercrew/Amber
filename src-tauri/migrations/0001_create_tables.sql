@@ -148,13 +148,12 @@ CREATE TABLE folders(
 
 CREATE TABLE readings(
     id          TEXT NOT NULL PRIMARY KEY,
-    source_type TEXT NOT NULL,
-    source_url  TEXT,
     body        TEXT NOT NULL
 );
 
 CREATE TABLE extracts(
     id   TEXT NOT NULL PRIMARY KEY,
+    -- TODO: rename to body or something else like readings
     text TEXT NOT NULL
 );
 

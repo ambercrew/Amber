@@ -6,7 +6,6 @@ import {
 	useMantineTheme,
 	MantineBreakpoint,
 	rem,
-	Container,
 } from "@mantine/core";
 import { useSplitter, useMediaQuery, useHeadroom } from "@mantine/hooks";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -20,7 +19,6 @@ import useApi from "../../../hooks/useApi.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
-import Editor from "../../Editor/Editor.tsx";
 
 const HEADER_HEIGHT = 60;
 const SIDEBAR_DEFAULT = 320;
@@ -123,9 +121,6 @@ function App() {
 			{/* The padding of top is the height of the header */}
 			<AppShell.Main pt={`${rem(HEADER_HEIGHT)}`}>
 				<Outlet />
-				<Container size="sm">
-					<Editor />
-				</Container>
 			</AppShell.Main>
 		</AppShell>
 	);

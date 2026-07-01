@@ -128,7 +128,6 @@ pub async fn create_reading(
             created_at: now,
             modified_at: now,
         },
-        source: dto.source,
         body: dto.body,
     };
     scope
