@@ -47,20 +47,43 @@ function render(initialEntries = ["/folder/folder-1"]) {
 }
 
 describe("useRedirectIfElementMissing", () => {
-	it("Should not navigate when no element is selected", () => {
+	it("Should navigate back when params are null", async () => {
 		// Arrange
 
 		vi.mocked(useElementParams).mockReturnValue(null);
 
 		// Act
 
-		render();
+		render(["/", "/folder/folder-1"]);
 
 		// Assert
 
-		expect(screen.getByTestId(LOCATION_DISPLAY_TEST_ID)).toHaveTextContent(
-			"/folder/folder-1",
-		);
+		await waitFor(() => {
+			expect(
+				screen.getByTestId(LOCATION_DISPLAY_TEST_ID),
+			).toHaveTextContent("/");
+		});
+	});
+
+	it("Should navigate back when params are incomplete", async () => {
+		// Arrange
+
+		vi.mocked(useElementParams).mockReturnValue({
+			type: "folder",
+			id: "",
+		} as never);
+
+		// Act
+
+		render(["/", "/folder/"]);
+
+		// Assert
+
+		await waitFor(() => {
+			expect(
+				screen.getByTestId(LOCATION_DISPLAY_TEST_ID),
+			).toHaveTextContent("/");
+		});
 	});
 
 	it("Should not navigate when the element exists in the tree", () => {

@@ -12,7 +12,6 @@ export function useRedirectIfElementMissing() {
 
 	useEffect(() => {
 		if (!params?.type || !params.id) {
-			// TODO: update unit test
 			void navigate(-1);
 			return;
 		}
