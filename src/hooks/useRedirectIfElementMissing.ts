@@ -11,7 +11,11 @@ export function useRedirectIfElementMissing() {
 	const navigate = useNavigate();
 
 	useEffect(() => {
-		if (!params?.type || !params.id) return;
+		if (!params?.type || !params.id) {
+			// TODO: update unit test
+			void navigate(-1);
+			return;
+		}
 		void elementExists({ type: params.type, id: params.id }).then(
 			exists => {
 				if (!exists) void navigate(-1);

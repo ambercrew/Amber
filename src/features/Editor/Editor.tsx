@@ -49,7 +49,11 @@ const editorExtension = defineExtension({
 	theme: editorTheme,
 });
 
-export default function Editor() {
+interface EditorProps {
+	children?: React.ReactNode;
+}
+
+export default function Editor({ children }: EditorProps) {
 	const [anchorElem, setAnchorElem] = useState<HTMLElement | null>(null);
 
 	return (
@@ -69,6 +73,7 @@ export default function Editor() {
 				/>
 				<SlashMenuPlugin />
 				{anchorElem ? <DragPlugin anchorElem={anchorElem} /> : null}
+				{children}
 			</Box>
 		</LexicalExtensionComposer>
 	);

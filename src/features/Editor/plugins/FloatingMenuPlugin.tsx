@@ -51,7 +51,6 @@ function usePointerInteractions() {
 	return { isPointerDown, isPointerReleased };
 }
 
-// TODO: add to element editor
 export function FloatingMenuPlugin({ buttons }: Props) {
 	const [editor] = useLexicalComposerContext();
 	const [coords, setCoords] = useState<{ x: number; y: number } | null>(null);
