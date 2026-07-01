@@ -32,11 +32,6 @@ export default defineConfig({
 		}),
 		injectDevTools(),
 	],
-	css: {
-		modules: {
-			localsConvention: "camelCase",
-		},
-	},
 
 	// Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
 	//

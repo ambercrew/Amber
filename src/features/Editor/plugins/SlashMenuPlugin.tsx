@@ -1,0 +1,103 @@
+import { useCallback, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import {
+	LexicalTypeaheadMenuPlugin,
+	useBasicTypeaheadTriggerMatch,
+} from "@lexical/react/LexicalTypeaheadMenuPlugin";
+import { TextNode } from "lexical";
+import { Group, Paper, Text, UnstyledButton } from "@mantine/core";
+import { BlockOption, getBlockOptions } from "./blockOptions";
+import styles from "../Editor.module.css";
+
+export function SlashMenuPlugin() {
+	const [editor] = useLexicalComposerContext();
+	const [queryString, setQueryString] = useState<string | null>(null);
+
+	const allOptions = useMemo(() => getBlockOptions(editor), [editor]);
+
+	const options = useMemo(
+		() =>
+			queryString ? filterOptions(allOptions, queryString) : allOptions,
+		[allOptions, queryString],
+	);
+
+	const onSelectOption = useCallback(
+		(
+			selectedOption: BlockOption,
+			nodeToRemove: TextNode | null,
+			closeMenu: () => void,
+		) => {
+			editor.update(() => {
+				nodeToRemove?.remove();
+				selectedOption.onSelect();
+			});
+			closeMenu();
+		},
+		[editor],
+	);
+
+	const checkForTriggerMatch = useBasicTypeaheadTriggerMatch("/", {
+		minLength: 0,
+		allowWhitespace: false,
+	});
+
+	return (
+		<LexicalTypeaheadMenuPlugin<BlockOption>
+			onQueryChange={setQueryString}
+			onSelectOption={onSelectOption}
+			triggerFn={checkForTriggerMatch}
+			options={options}
+			menuRenderFn={(
+				anchorElementRef,
+				{ selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
+			) => {
+				if (!anchorElementRef.current || options.length === 0)
+					return null;
+				return createPortal(
+					<Paper
+						withBorder
+						shadow="lg"
+						radius="md"
+						p={4}
+						className={styles["slash-menu"]}>
+						{options.map((option, i) => (
+							<UnstyledButton
+								key={option.key}
+								// eslint-disable-next-line @typescript-eslint/unbound-method
+								ref={
+									option.setRefElement as React.Ref<HTMLButtonElement>
+								}
+								w="100%"
+								p="xs"
+								className={[
+									styles["slash-menu-option"],
+									i === selectedIndex &&
+										styles["slash-menu-option-active"],
+								]
+									.filter(Boolean)
+									.join(" ")}
+								onClick={() => selectOptionAndCleanUp(option)}
+								onMouseEnter={() => setHighlightedIndex(i)}>
+								<Group gap="xs">
+									<option.Icon size={18} />
+									<Text>{option.title}</Text>
+								</Group>
+							</UnstyledButton>
+						))}
+					</Paper>,
+					anchorElementRef.current,
+				);
+			}}
+		/>
+	);
+}
+
+function filterOptions(options: BlockOption[], query: string): BlockOption[] {
+	const lower = query.toLowerCase();
+	return options.filter(
+		opt =>
+			opt.title.toLowerCase().includes(lower) ||
+			opt.keywords.some(k => k.toLowerCase().includes(lower)),
+	);
+}

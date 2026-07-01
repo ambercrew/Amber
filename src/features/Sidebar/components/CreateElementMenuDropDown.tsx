@@ -1,10 +1,4 @@
 import { Menu } from "@mantine/core";
-import {
-	BookOpenIcon,
-	CardsIcon,
-	FolderPlusIcon,
-	QuotesIcon,
-} from "@phosphor-icons/react";
 
 import { useDispatch } from "react-redux";
 import {
@@ -16,6 +10,7 @@ import {
 import { AppDispatch } from "../../../stores/store";
 import { ElementId } from "../../../types/elements/elementId";
 import { defaultElementName } from "./ElementTree/elementTreeUtils";
+import ElementNodeIcon from "../../App/components/ElementNodeIcon";
 
 function useCreateHandlers(
 	elementId: ElementId | null,
@@ -87,22 +82,22 @@ export default function CreateElementDropDown({
 	return (
 		<Menu.Dropdown>
 			<Menu.Item
-				leftSection={<FolderPlusIcon size={16} />}
+				leftSection={<ElementNodeIcon type="folder" size={16} />}
 				onClick={handlers.folder}>
 				Folder
 			</Menu.Item>
 			<Menu.Item
-				leftSection={<BookOpenIcon size={16} />}
+				leftSection={<ElementNodeIcon type="reading" size={16} />}
 				onClick={handlers.reading}>
 				Reading
 			</Menu.Item>
 			<Menu.Item
-				leftSection={<QuotesIcon size={16} />}
+				leftSection={<ElementNodeIcon type="extract" size={16} />}
 				onClick={handlers.extract}>
 				Extract
 			</Menu.Item>
 			<Menu.Item
-				leftSection={<CardsIcon size={16} />}
+				leftSection={<ElementNodeIcon type="card" size={16} />}
 				onClick={handlers.card}>
 				Card
 			</Menu.Item>

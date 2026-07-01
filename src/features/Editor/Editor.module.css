@@ -1,0 +1,139 @@
+/* Built-in elements style */
+.editor-h1 {
+	margin: var(--mantine-spacing-xs) 0 calc(var(--mantine-spacing-xs) / 2);
+	font-size: var(--mantine-h1-font-size);
+	font-weight: var(--mantine-h1-font-weight);
+	line-height: var(--mantine-h1-line-height);
+	font-family: var(--mantine-font-family-headings);
+}
+
+.editor-h2 {
+	margin: var(--mantine-spacing-xs) 0 calc(var(--mantine-spacing-xs) / 4);
+	font-size: var(--mantine-h2-font-size);
+	font-weight: var(--mantine-h2-font-weight);
+	line-height: var(--mantine-h2-line-height);
+	font-family: var(--mantine-font-family-headings);
+}
+
+.editor-h3 {
+	margin: calc(var(--mantine-spacing-xs) / 2) 0
+		calc(var(--mantine-spacing-xs) / 4);
+	font-size: var(--mantine-h3-font-size);
+	font-weight: var(--mantine-h3-font-weight);
+	line-height: var(--mantine-h3-line-height);
+	font-family: var(--mantine-font-family-headings);
+}
+
+.editor-paragraph {
+	margin: 0;
+	padding: 2px 0;
+	line-height: var(--mantine-line-height);
+}
+
+.editor-listitem {
+	margin: 2px 0;
+	line-height: var(--mantine-line-height);
+}
+
+.editor-ol {
+	margin: calc(var(--mantine-spacing-xs) / 2) 0;
+	padding-left: var(--mantine-spacing-lg);
+	list-style-type: decimal;
+}
+
+.editor-ul {
+	margin: calc(var(--mantine-spacing-xs) / 2) 0;
+	padding-left: var(--mantine-spacing-lg);
+	list-style-type: disc;
+}
+
+.editor-quote {
+	margin: calc(var(--mantine-spacing-xs) / 2) 0;
+	border-left: 3px solid var(--mantine-color-default-border);
+	padding-left: var(--mantine-spacing-sm);
+	font-style: italic;
+	color: var(--mantine-color-dimmed);
+}
+
+.editor-bold {
+	font-weight: var(--mantine-heading-font-weight);
+}
+
+.editor-italic {
+	font-style: italic;
+}
+
+.editor-code {
+	border-radius: var(--mantine-radius-xs);
+	background: var(--mantine-color-default-hover);
+	padding: 0.1em 0.3em;
+	font-family: var(--mantine-font-family-monospace);
+	font-size: var(--mantine-font-size-sm);
+}
+
+/* Custom components style */
+
+.anchor {
+	--editor-padding-x: var(--mantine-spacing-md);
+	padding: 0 var(--editor-padding-x);
+	position: relative;
+}
+
+.content-editable {
+	overflow-y: auto;
+	padding: var(--mantine-spacing-lg) var(--mantine-spacing-xl);
+	line-height: var(--mantine-line-height);
+	outline: none;
+}
+
+.placeholder {
+	pointer-events: none;
+	position: absolute;
+	top: calc(var(--mantine-spacing-lg) + 2px);
+	/* Padding of content-editable + anchor. */
+	left: calc(var(--mantine-spacing-xl) + var(--editor-padding-x));
+	user-select: none;
+}
+
+.slash-menu {
+	min-width: 220px;
+	max-height: 300px;
+	overflow-y: auto;
+}
+
+.slash-menu-option {
+	border-radius: var(--mantine-radius-default);
+}
+
+.slash-menu-option-active {
+	background-color: var(--mantine-color-default-hover) !important;
+}
+
+.drag-handle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: rem(32px);
+	height: rem(32px);
+	cursor: grab;
+	border-radius: var(--mantine-radius-default);
+}
+
+.drag-handle:hover {
+	background: var(--mantine-color-default-hover);
+}
+
+.drag-target-line {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 2px;
+	margin: 0 var(--editor-padding-x);
+	background: var(--mantine-primary-color-filled);
+	border-radius: var(--mantine-radius-xs);
+	pointer-events: none;
+	opacity: 0;
+}

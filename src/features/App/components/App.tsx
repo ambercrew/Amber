@@ -5,8 +5,8 @@ import {
 	Box,
 	useMantineTheme,
 	MantineBreakpoint,
-	Text,
 	rem,
+	Container,
 } from "@mantine/core";
 import { useSplitter, useMediaQuery, useHeadroom } from "@mantine/hooks";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -20,12 +20,11 @@ import useApi from "../../../hooks/useApi.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
+import Editor from "../../Editor/Editor.tsx";
 
+const HEADER_HEIGHT = 60;
 const SIDEBAR_DEFAULT = 320;
-const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
-
-const lorem =
-	"Lorem ipsum dolor sit amet consectetur adipisicing elit. Eos ullam, ex cum repellat alias ea nemo. Ducimus ex nesciunt hic ad saepe molestiae nobis necessitatibus laboriosam officia, reprehenderit, earum fugiat?";
+const SIDEBAR_BREAKPOINT: MantineBreakpoint = "xs";
 
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
@@ -87,7 +86,11 @@ function App() {
 					mobile: !sidebarExpanded,
 				},
 			}}
-			header={{ height: 60, collapsed: !pinned, offset: false }}
+			header={{
+				height: HEADER_HEIGHT,
+				collapsed: !pinned,
+				offset: false,
+			}}
 			padding="md">
 			{!isMobile() && <Updater callApi={callApi} />}
 
@@ -117,15 +120,12 @@ function App() {
 				)}
 			</AppShell.Navbar>
 
-			<AppShell.Main pt={`calc(${rem(60)} + var(--mantine-spacing-md))`}>
+			{/* The padding of top is the height of the header */}
+			<AppShell.Main pt={`${rem(HEADER_HEIGHT)}`}>
 				<Outlet />
-				{Array(40)
-					.fill(0)
-					.map((_, index) => (
-						<Text size="lg" key={index} my="md" maw={600} mx="auto">
-							{lorem}
-						</Text>
-					))}
+				<Container size="sm">
+					<Editor />
+				</Container>
 			</AppShell.Main>
 		</AppShell>
 	);
