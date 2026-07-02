@@ -165,6 +165,9 @@ pub async fn run() -> Result<(), String> {
             create_reading,
             create_extract,
             create_card,
+            update_reading,
+            update_extract,
+            update_card,
             // App Info
             is_store_installed,
         ])

@@ -85,6 +85,19 @@ impl ExtractRepository for SqliteExtractRepository {
 
         Ok(row.into())
     }
+
+    async fn update_content(&self, id: Uuid, content: String) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "UPDATE extracts SET content = $1 WHERE id = $2",
+            content,
+            id,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

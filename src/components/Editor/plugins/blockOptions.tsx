@@ -19,8 +19,8 @@ import {
 	TextHOneIcon,
 	TextHThreeIcon,
 	TextHTwoIcon,
+	type Icon,
 } from "@phosphor-icons/react";
-import type { Icon } from "@phosphor-icons/react";
 
 export type BlockIcon = Icon;
 

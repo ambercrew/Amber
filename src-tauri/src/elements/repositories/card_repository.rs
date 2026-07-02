@@ -9,4 +9,10 @@ pub trait CardRepository: Send + Sync {
     async fn get_all(&self) -> Result<Vec<Card>, RepositoryError>;
     async fn get_by_id(&self, id: Uuid) -> Result<Card, RepositoryError>;
     async fn create(&self, card: Card) -> Result<(), RepositoryError>;
+    async fn update_content(
+        &self,
+        id: Uuid,
+        front: String,
+        back: String,
+    ) -> Result<(), RepositoryError>;
 }

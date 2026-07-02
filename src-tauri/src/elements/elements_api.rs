@@ -13,6 +13,9 @@ use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
 use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
+use crate::elements::dto::update_card_dto::UpdateCardDto;
+use crate::elements::dto::update_extract_dto::UpdateExtractDto;
+use crate::elements::dto::update_reading_dto::UpdateReadingDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
@@ -215,6 +218,51 @@ pub async fn create_card(
         .resolve::<dyn CardRepository>()
         .await
         .create(card)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_reading(
+    injector: State<'_, Arc<Injector>>,
+    dto: UpdateReadingDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .update_content(dto.id, dto.content)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_extract(
+    injector: State<'_, Arc<Injector>>,
+    dto: UpdateExtractDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ExtractRepository>()
+        .await
+        .update_content(dto.id, dto.content)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn update_card(
+    injector: State<'_, Arc<Injector>>,
+    dto: UpdateCardDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn CardRepository>()
+        .await
+        .update_content(dto.id, dto.front, dto.back)
         .await?;
     scope.save_changes().await?;
     Ok(())

@@ -9,4 +9,5 @@ pub trait ReadingRepository: Send + Sync {
     async fn get_all(&self) -> Result<Vec<Reading>, RepositoryError>;
     async fn get_by_id(&self, id: Uuid) -> Result<Reading, RepositoryError>;
     async fn create(&self, reading: Reading) -> Result<(), RepositoryError>;
+    async fn update_content(&self, id: Uuid, content: String) -> Result<(), RepositoryError>;
 }

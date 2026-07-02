@@ -88,6 +88,25 @@ impl CardRepository for SqliteCardRepository {
 
         Ok(row.into())
     }
+
+    async fn update_content(
+        &self,
+        id: Uuid,
+        front: String,
+        back: String,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "UPDATE cards SET front = $1, back = $2 WHERE id = $3",
+            front,
+            back,
+            id,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

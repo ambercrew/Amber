@@ -4,6 +4,9 @@ import { CreateExtractDto } from "../../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../../types/elements/createFolderDto";
 import { CreateReadingDto } from "../../../types/elements/createReadingDto";
 import { ElementId } from "../../../types/elements/elementId";
+import { UpdateCardDto } from "../../../types/elements/updateCardDto";
+import { UpdateExtractDto } from "../../../types/elements/updateExtractDto";
+import { UpdateReadingDto } from "../../../types/elements/updateReadingDto";
 import { AnyElementDto } from "../dto/anyElementDto";
 import { NodeDto } from "../dto/nodeDto";
 
@@ -36,6 +39,18 @@ export function createExtract(dto: CreateExtractDto): Promise<void> {
 
 export function createCard(dto: CreateCardDto): Promise<void> {
 	return invoke("create_card", { dto });
+}
+
+export function updateReading(dto: UpdateReadingDto): Promise<void> {
+	return invoke("update_reading", { dto });
+}
+
+export function updateExtract(dto: UpdateExtractDto): Promise<void> {
+	return invoke("update_extract", { dto });
+}
+
+export function updateCard(dto: UpdateCardDto): Promise<void> {
+	return invoke("update_card", { dto });
 }
 
 export function elementExists(elementId: ElementId): Promise<boolean> {
