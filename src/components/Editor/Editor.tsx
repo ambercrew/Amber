@@ -5,6 +5,7 @@ import {
 	SelectBlockExtension,
 	TabIndentationExtension,
 } from "@lexical/extension";
+import { CodeShikiExtension } from "@lexical/code-shiki";
 import { $generateNodesFromDOM } from "@lexical/html";
 import { HistoryExtension } from "@lexical/history";
 import { ListExtension } from "@lexical/list";
@@ -110,6 +111,7 @@ export default function Editor({
 					TabIndentationExtension,
 					ClickAfterLastBlockExtension,
 					SelectBlockExtension,
+					CodeShikiExtension,
 					configExtension(AutoFocusExtension, {
 						disabled: !autoFocus,
 					}),

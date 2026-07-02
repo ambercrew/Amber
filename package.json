@@ -25,6 +25,7 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/noto-sans": "^5.2.10",
+		"@lexical/code-shiki": "^0.46.0",
 		"@lexical/html": "0.46.0",
 		"@lexical/link": "0.46.0",
 		"@lexical/list": "0.46.0",
@@ -54,7 +55,8 @@
 		"react": "19.2.7",
 		"react-dom": "19.2.7",
 		"react-redux": "9.3.0",
-		"react-router": "8.1.0"
+		"react-router": "8.1.0",
+		"shiki": "^4.3.0"
 	},
 	"devDependencies": {
 		"@choochmeque/tauri-windows-bundle": "^0.1.28",
