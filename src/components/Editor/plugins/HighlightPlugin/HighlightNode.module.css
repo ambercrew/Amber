@@ -1,0 +1,11 @@
+.highlight {
+	color: var(--mantine-color-black);
+}
+
+[data-mantine-color-scheme="light"] .highlight {
+	background-color: var(--highlight-bg-light);
+}
+
+[data-mantine-color-scheme="dark"] .highlight {
+	background-color: var(--highlight-bg-dark);
+}

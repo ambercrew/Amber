@@ -48,6 +48,7 @@ function useCreateHandlers(
 		extract: () =>
 			run(
 				createExtractAction({
+					id: crypto.randomUUID(),
 					meta: {
 						name: defaultElementName("Extract"),
 						parent: elementId,
@@ -58,6 +59,7 @@ function useCreateHandlers(
 		card: () =>
 			run(
 				createCardAction({
+					id: crypto.randomUUID(),
 					meta: {
 						name: defaultElementName("Card"),
 						parent: elementId,

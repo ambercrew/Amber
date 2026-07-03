@@ -157,7 +157,7 @@ pub async fn create_extract(
     let now = Utc::now();
     let extract = Extract {
         meta: Meta {
-            element_id: ElementId::Extract(Uuid::new_v4()),
+            element_id: ElementId::Extract(dto.id),
             name: dto.meta.name,
             parent,
             position,
@@ -204,7 +204,7 @@ pub async fn create_card(
     let now = Utc::now();
     let card = Card {
         meta: Meta {
-            element_id: ElementId::Card(Uuid::new_v4()),
+            element_id: ElementId::Card(dto.id),
             name: dto.meta.name,
             parent,
             position,

@@ -1,29 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Container, Divider, Group, Stack, Text } from "@mantine/core";
-import { $getSelection, $isRangeSelection } from "lexical";
-import {
-	QuestionIcon,
-	CheckCircleIcon,
-	CardsIcon,
-	ScissorsIcon,
-} from "@phosphor-icons/react";
-import { FloatingMenuButton } from "../../components/Editor/plugins/FloatingMenuPlugin";
+import { QuestionIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import ElementEditor from "./ElementEditor";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { createExtractAction } from "../../stores/elements/elementsActions";
-import { defaultElementName } from "../Sidebar/components/ElementTree/elementTreeUtils";
 import {
 	updateCard,
 	updateExtract,
 	updateReading,
 } from "../../api/elements/api/elementsApi";
+import { useElementViewerButtons } from "./useElementViewerButtons";
+import { useHighlightCreatedHandler } from "./useHighlightCreatedHandler";
 
 export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const elementId = currentElement?.data?.meta?.elementId;
-	const dispatch = useAppDispatch();
+	const buttons = useElementViewerButtons();
+	const handleHighlightCreated = useHighlightCreatedHandler(elementId);
 
 	const frontContentRef = useRef("");
 	const backContentRef = useRef("");
@@ -34,47 +27,6 @@ export default function ElementViewer() {
 		backContentRef.current = currentElement.data.back;
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- only reset refs when navigating to a different card
 	}, [elementId?.id]);
-
-	const buttons = useMemo<FloatingMenuButton[]>(
-		() => [
-			{
-				name: "extract",
-				title: "Create Extract",
-				Icon: ScissorsIcon,
-				showLabel: true,
-				isActive: () => false,
-				onClick: editor => {
-					editor.getEditorState().read(() => {
-						const selection = $getSelection();
-						if (!$isRangeSelection(selection)) return;
-						const text = selection.getTextContent();
-						if (!text) return;
-						// TODO:
-						void dispatch(
-							createExtractAction({
-								meta: {
-									name: defaultElementName("Extract"),
-									parent: elementId!,
-								},
-								content: text,
-							}),
-						);
-					});
-				},
-			},
-			{
-				name: "cloze",
-				title: "Create Cloze",
-				Icon: CardsIcon,
-				showLabel: true,
-				isActive: () => false,
-				onClick: () => {
-					// TODO:
-				},
-			},
-		],
-		[dispatch, elementId],
-	);
 
 	const handleChange = useCallback(
 		async (content: string) => {
@@ -134,6 +86,7 @@ export default function ElementViewer() {
 							initialContent={currentElement.data.front}
 							buttons={buttons}
 							onChange={handleFrontChange}
+							onHighlightCreated={handleHighlightCreated}
 							autoFocus
 						/>
 					</Stack>
@@ -149,6 +102,7 @@ export default function ElementViewer() {
 							initialContent={currentElement.data.back}
 							buttons={buttons}
 							onChange={handleBackChange}
+							onHighlightCreated={handleHighlightCreated}
 						/>
 					</Stack>
 				</Stack>
@@ -168,6 +122,7 @@ export default function ElementViewer() {
 				initialContent={initialContent}
 				buttons={buttons}
 				onChange={handleChange}
+				onHighlightCreated={handleHighlightCreated}
 				autoFocus
 			/>
 		</Container>

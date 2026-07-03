@@ -7,6 +7,7 @@ import {
 	FloatingMenuButton,
 	FloatingMenuPlugin,
 } from "../../components/Editor/plugins/FloatingMenuPlugin";
+import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import useApi from "../../hooks/useApi";
 import useAutoSave from "./hooks/useAutoSave";
 
@@ -14,6 +15,7 @@ interface ElementEditorProps {
 	initialContent: string;
 	buttons: FloatingMenuButton[];
 	autoFocus?: boolean;
+	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onChange: (content: string) => Promise<void>;
 }
 
@@ -21,6 +23,7 @@ export default function ElementEditor({
 	initialContent,
 	buttons,
 	autoFocus,
+	onHighlightCreated,
 	onChange,
 }: ElementEditorProps) {
 	// TODO: show error message
@@ -41,7 +44,10 @@ export default function ElementEditor({
 	);
 
 	return (
-		<Editor initialContent={initialContent} autoFocus={autoFocus}>
+		<Editor
+			initialContent={initialContent}
+			autoFocus={autoFocus}
+			onHighlightCreated={onHighlightCreated}>
 			<FloatingMenuPlugin buttons={buttons} />
 			<OnChangePlugin
 				onChange={handleChange}

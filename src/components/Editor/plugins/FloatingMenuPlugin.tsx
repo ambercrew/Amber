@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
 	$getSelection,
@@ -58,7 +64,43 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 	const [visibleState, setVisibleState] = useState<Record<string, boolean>>(
 		{},
 	);
-	const [isEditorFocused, setIsEditorFocused] = useState(false);
+	const subscribeToFocus = useCallback(
+		(onStoreChange: () => void) => {
+			const unregisterBlur = editor.registerCommand(
+				BLUR_COMMAND,
+				() => {
+					onStoreChange();
+					return false;
+				},
+				COMMAND_PRIORITY_LOW,
+			);
+			const unregisterFocus = editor.registerCommand(
+				FOCUS_COMMAND,
+				() => {
+					onStoreChange();
+					return false;
+				},
+				COMMAND_PRIORITY_LOW,
+			);
+			return () => {
+				unregisterBlur();
+				unregisterFocus();
+			};
+		},
+		[editor],
+	);
+	const getFocusSnapshot = useCallback(
+		() => editor.getRootElement() === document.activeElement,
+		[editor],
+	);
+	// Extensions like AutoFocus can focus the root element (and fire
+	// FOCUS_COMMAND) synchronously while the editor is being built, before
+	// this subscription is registered. useSyncExternalStore re-checks the
+	// snapshot right after commit, so that initial case isn't missed.
+	const isEditorFocused = useSyncExternalStore(
+		subscribeToFocus,
+		getFocusSnapshot,
+	);
 	const [isMenuFocused, setIsMenuFocused] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 	const escapedRef = useRef(false);
@@ -156,29 +198,6 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 	}, [isPointerReleased, $handleSelectionChange, editor]);
 
 	useEffect(() => {
-		const unregisterBlur = editor.registerCommand(
-			BLUR_COMMAND,
-			() => {
-				setIsEditorFocused(false);
-				return false;
-			},
-			COMMAND_PRIORITY_LOW,
-		);
-		const unregisterFocus = editor.registerCommand(
-			FOCUS_COMMAND,
-			() => {
-				setIsEditorFocused(true);
-				return false;
-			},
-			COMMAND_PRIORITY_LOW,
-		);
-		return () => {
-			unregisterBlur();
-			unregisterFocus();
-		};
-	}, [editor]);
-
-	useEffect(() => {
 		return editor.registerCommand(
 			KEY_DOWN_COMMAND,
 			e => {
@@ -228,7 +247,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 								activeState[btn.name] ? "filled" : "subtle"
 							}
 							size="sm"
-							leftSection={<btn.Icon size={18} />}
+							leftSection={<btn.Icon size={22} />}
 							title={btn.title}
 							aria-label={btn.title}
 							onMouseDown={(e: React.MouseEvent) =>
@@ -260,7 +279,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 									activeState[btn.name] ?? false,
 								)
 							}>
-							<btn.Icon size={18} />
+							<btn.Icon size={22} />
 						</ActionIcon>
 					),
 				)}

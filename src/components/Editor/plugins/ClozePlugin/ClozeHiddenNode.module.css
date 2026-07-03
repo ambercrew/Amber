@@ -1,0 +1,23 @@
+/* See HighlightNode.module.css for why the color-scheme attribute isn't
+wrapped in `:where()`: it must out-specify Mantine's Typography default for
+bare `mark` elements. */
+.cloze-hidden {
+	border-radius: var(--mantine-radius-sm);
+	padding: 0 0.35em;
+	user-select: none;
+}
+
+/* Mantine's Typography default also sets `color: inherit` on bare `mark`
+elements at specificity (0,1,0), same as an unqualified `.cloze-hidden`
+would be — the `mark` type selector here breaks that tie. */
+mark.cloze-hidden {
+	color: transparent;
+}
+
+[data-mantine-color-scheme="light"] .cloze-hidden {
+	background-color: var(--mantine-color-blue-2);
+}
+
+[data-mantine-color-scheme="dark"] .cloze-hidden {
+	background-color: var(--mantine-color-blue-8);
+}

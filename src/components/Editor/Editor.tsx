@@ -27,6 +27,10 @@ import { DragPlugin } from "./plugins/DragPlugin";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
+import { HighlightNode } from "./plugins/HighlightPlugin/HighlightNode";
+import { HighlightPlugin } from "./plugins/HighlightPlugin/HighlightPlugin";
+import { HighlightCreatedPayload } from "./plugins/HighlightPlugin/highlightCommands";
+import { ClozeHiddenNode } from "./plugins/ClozePlugin/ClozeHiddenNode";
 import styles from "./Editor.module.css";
 
 const blockTags = new Set([
@@ -91,12 +95,14 @@ interface EditorProps {
 	initialContent?: string;
 	autoFocus?: boolean;
 	children?: React.ReactNode;
+	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 }
 
 export default function Editor({
 	initialContent,
 	autoFocus = false,
 	children,
+	onHighlightCreated,
 }: EditorProps) {
 	const [anchorElem, setAnchorElem] = useState<HTMLElement | null>(null);
 
@@ -116,9 +122,12 @@ export default function Editor({
 						disabled: !autoFocus,
 					}),
 				],
+				theme: {
+					tableScrollableWrapper: styles["table-scrollable-wrapper"],
+				},
 				name: "editor",
 				namespace: "editor",
-				nodes: [EquationNode],
+				nodes: [EquationNode, HighlightNode, ClozeHiddenNode],
 				$initialEditorState: initialContent
 					? htmlToEditorState(initialContent)
 					: undefined,
@@ -145,6 +154,7 @@ export default function Editor({
 					/>
 					<SlashMenuPlugin />
 					<EquationPlugin />
+					<HighlightPlugin onHighlightCreated={onHighlightCreated} />
 					{anchorElem ? <DragPlugin anchorElem={anchorElem} /> : null}
 					{children}
 				</Box>
