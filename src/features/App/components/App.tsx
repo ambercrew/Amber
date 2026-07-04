@@ -12,6 +12,7 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useRedirectIfElementMissing } from "../../../hooks/useRedirectIfElementMissing";
 import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
 import Updater from "../../Updater/components/Updater";
+import CommandPalette from "../../../commands/CommandPalette";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
@@ -89,6 +90,7 @@ function App() {
 			}}
 			padding="md">
 			{!isMobile() && <Updater />}
+			<CommandPalette />
 
 			<AppShell.Header>
 				<AppHeader

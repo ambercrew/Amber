@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AppHeader from "../../../../features/App/components/AppHeader";
+import CommandPalette from "../../../../commands/CommandPalette";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
 
@@ -33,7 +34,7 @@ describe("AppHeader", () => {
 
 		// Assert
 
-		expect(screen.getAllByRole("button")).toHaveLength(1);
+		expect(screen.getAllByRole("button")).toHaveLength(2);
 	});
 
 	it("Should show element name when an element is selected", () => {
@@ -67,10 +68,33 @@ describe("AppHeader", () => {
 				preloadedState: BASE_STATE,
 			},
 		);
-		await user.click(screen.getByRole("button"));
+		await user.click(screen.getByTitle("Toggle sidebar"));
 
 		// Assert
 
 		expect(onToggleSidebar).toHaveBeenCalledOnce();
+	});
+
+	it("Should open the command palette when the command button is clicked", async () => {
+		// Arrange
+
+		const user = userEvent.setup();
+
+		// Act
+
+		renderWithProviders(
+			<>
+				<AppHeader pinned onToggleSidebar={vi.fn()} />
+				<CommandPalette />
+			</>,
+			{ preloadedState: BASE_STATE },
+		);
+		await user.click(screen.getByTitle("Open command palette (Ctrl+K)"));
+
+		// Assert
+
+		expect(
+			await screen.findByPlaceholderText("Search commands..."),
+		).toBeInTheDocument();
 	});
 });

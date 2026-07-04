@@ -13,8 +13,10 @@ import { useDisclosure, useDebouncedCallback } from "@mantine/hooks";
 import {
 	CaretDoubleDownIcon,
 	CaretDoubleUpIcon,
+	CommandIcon,
 	SidebarSimpleIcon,
 } from "@phosphor-icons/react";
+import { spotlight } from "@mantine/spotlight";
 import ElementNodeIcon from "./ElementNodeIcon";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
@@ -22,6 +24,8 @@ import { updateElementTags } from "../../../api/elements/api/elementsApi";
 import { ElementId } from "../../../types/elements/elementId";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { renameElementAction } from "../../../stores/elements/elementsActions";
+import { formatShortcut } from "../../../commands/formatShortcut";
+import { SPOTLIGHT_SHORTCUT } from "../../../commands/commands";
 
 interface AppHeaderProps {
 	pinned: boolean;
@@ -59,38 +63,55 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 
 	return (
 		<Stack gap={0}>
-			<Group h="100%" p="xs" gap={0} align="center" wrap="nowrap">
+			<Group
+				h="100%"
+				p="xs"
+				gap={0}
+				align="center"
+				wrap="nowrap"
+				justify="space-between">
+				<Group gap={0} align="center" wrap="nowrap">
+					<ActionIcon
+						variant="subtle"
+						size="lg"
+						title="Toggle sidebar"
+						onClick={onToggleSidebar}>
+						<SidebarSimpleIcon size={18} />
+					</ActionIcon>
+
+					{storedMeta && (
+						<Button
+							variant="subtle"
+							color="gray"
+							size="sm"
+							px="xs"
+							rightSection={
+								opened ? (
+									<CaretDoubleUpIcon size={14} />
+								) : (
+									<CaretDoubleDownIcon size={14} />
+								)
+							}
+							leftSection={
+								<ElementNodeIcon
+									type={storedMeta.elementId.type}
+									size={16}
+								/>
+							}
+							title="Show element metadata"
+							onClick={toggle}>
+							<Text truncate="end">{storedMeta.name}</Text>
+						</Button>
+					)}
+				</Group>
+
 				<ActionIcon
 					variant="subtle"
 					size="lg"
-					onClick={onToggleSidebar}>
-					<SidebarSimpleIcon size={18} />
+					title={`Open command palette (${formatShortcut(SPOTLIGHT_SHORTCUT)})`}
+					onClick={() => spotlight.open()}>
+					<CommandIcon size={18} />
 				</ActionIcon>
-
-				{storedMeta && (
-					<Button
-						variant="subtle"
-						color="gray"
-						size="sm"
-						px="xs"
-						rightSection={
-							opened ? (
-								<CaretDoubleUpIcon size={14} />
-							) : (
-								<CaretDoubleDownIcon size={14} />
-							)
-						}
-						leftSection={
-							<ElementNodeIcon
-								type={storedMeta.elementId.type}
-								size={16}
-							/>
-						}
-						title="Show element metadata"
-						onClick={toggle}>
-						<Text truncate="end">{storedMeta.name}</Text>
-					</Button>
-				)}
 			</Group>
 
 			<Collapse expanded={opened && pinned && storedMeta != null}>
