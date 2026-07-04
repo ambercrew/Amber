@@ -41,7 +41,6 @@ describe("useHighlightCreatedHandler", () => {
 		handleHighlightCreated({
 			id: "new-id",
 			html: "New Text",
-			text: "New Text",
 			fullHtml,
 			color: "blue",
 		});
@@ -70,7 +69,6 @@ describe("useHighlightCreatedHandler", () => {
 		handleHighlightCreated({
 			id: "new-id",
 			html: "the answer",
-			text: "the answer",
 			fullHtml,
 			color: "blue",
 		});
@@ -97,7 +95,6 @@ describe("useHighlightCreatedHandler", () => {
 		handleHighlightCreated({
 			id: "new-id",
 			html: longText,
-			text: longText,
 			fullHtml: `<p><mark data-highlight-id="new-id" data-highlight-color="blue">${longText}</mark></p>`,
 			color: "blue",
 		});
@@ -123,7 +120,6 @@ describe("useHighlightCreatedHandler", () => {
 		handleHighlightCreated({
 			id: "new-id",
 			html: '<mark data-highlight-id="other-id" data-highlight-color="yellow">Nested</mark> Rest',
-			text: "Nested Rest",
 			fullHtml: "<p>irrelevant</p>",
 			color: "yellow",
 		});
@@ -155,7 +151,6 @@ describe("useHighlightCreatedHandler", () => {
 		handleHighlightCreated({
 			id: "new-id",
 			html,
-			text: "New Text",
 			fullHtml,
 			color: "blue",
 		});
@@ -186,7 +181,6 @@ describe("useHighlightCreatedHandler", () => {
 				'<mark data-highlight-id="other-id-1" data-highlight-color="yellow">First</mark> ' +
 				"Middle " +
 				'<mark data-highlight-id="other-id-2" data-highlight-color="blue">Second</mark>',
-			text: "First Middle Second",
 			fullHtml: "<p>irrelevant</p>",
 			color: "yellow",
 		});

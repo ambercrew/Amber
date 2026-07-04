@@ -47,14 +47,14 @@ function render(initialEntries = ["/folder/folder-1"]) {
 }
 
 describe("useRedirectIfElementMissing", () => {
-	it("Should navigate back when params are null", async () => {
+	it("Should navigate to root when params are null", async () => {
 		// Arrange
 
 		vi.mocked(useElementParams).mockReturnValue(null);
 
 		// Act
 
-		render(["/", "/folder/folder-1"]);
+		render(["/folder/folder-1"]);
 
 		// Assert
 
@@ -65,7 +65,7 @@ describe("useRedirectIfElementMissing", () => {
 		});
 	});
 
-	it("Should navigate back when params are incomplete", async () => {
+	it("Should navigate to root when params are incomplete", async () => {
 		// Arrange
 
 		vi.mocked(useElementParams).mockReturnValue({
@@ -75,7 +75,7 @@ describe("useRedirectIfElementMissing", () => {
 
 		// Act
 
-		render(["/", "/folder/"]);
+		render(["/folder/"]);
 
 		// Assert
 
@@ -106,7 +106,7 @@ describe("useRedirectIfElementMissing", () => {
 		);
 	});
 
-	it("Should navigate back when the element is not in the tree", async () => {
+	it("Should navigate to root when the element is not in the tree, even with no prior history to go back to", async () => {
 		// Arrange
 
 		vi.mocked(elementExists).mockResolvedValue(false);
@@ -117,7 +117,34 @@ describe("useRedirectIfElementMissing", () => {
 
 		// Act
 
-		render(["/", "/folder/folder-missing"]);
+		render(["/folder/folder-missing"]);
+
+		// Assert
+
+		await waitFor(() => {
+			expect(
+				screen.getByTestId(LOCATION_DISPLAY_TEST_ID),
+			).toHaveTextContent("/");
+		});
+	});
+
+	it("Should navigate to root when the element is not in the tree, even with a long history of other missing elements", async () => {
+		// Arrange
+
+		vi.mocked(elementExists).mockResolvedValue(false);
+		vi.mocked(useElementParams).mockReturnValue({
+			type: "folder",
+			id: "folder-missing",
+		});
+
+		// Act
+
+		render([
+			"/folder/also-missing-1",
+			"/folder/also-missing-2",
+			"/folder/also-missing-3",
+			"/folder/folder-missing",
+		]);
 
 		// Assert
 
