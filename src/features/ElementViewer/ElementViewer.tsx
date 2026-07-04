@@ -12,7 +12,6 @@ import {
 import { useElementViewerButtons } from "./useElementViewerButtons";
 import { useHighlightCreatedHandler } from "./useHighlightCreatedHandler";
 
-// TODO: when creating an extract/cloze expand children of current
 export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const elementId = currentElement?.data?.meta?.elementId;

@@ -15,6 +15,10 @@ import { CreateExtractDto } from "../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../types/elements/createFolderDto";
 import { CreateReadingDto } from "../../types/elements/createReadingDto";
 import { ElementId } from "../../types/elements/elementId";
+import {
+	ELEMENT_CREATED,
+	ElementCreatedPayload,
+} from "../../types/events/elementCreatedEvent";
 import errorToString from "../../utils/errorToString";
 import { AppDispatch } from "../store";
 import { setTree, setTreeError, setTreeLoading } from "./elementsReducer";
@@ -40,15 +44,30 @@ export function createReadingAction(dto: CreateReadingDto) {
 }
 
 export function createExtractAction(dto: CreateExtractDto) {
-	return withTreeRefresh(() => createExtract(dto));
+	return withTreeRefresh(async () => {
+		await createExtract(dto);
+		dispatchElementCreated(dto.meta.parent?.id);
+	});
 }
 
 export function createCardAction(dto: CreateCardDto) {
-	return withTreeRefresh(() => createCard(dto));
+	return withTreeRefresh(async () => {
+		await createCard(dto);
+		dispatchElementCreated(dto.meta.parent?.id);
+	});
 }
 
 export function moveElementAction(dto: MoveElementDto) {
 	return withTreeRefresh(() => moveElement(dto));
+}
+
+function dispatchElementCreated(parentId: string | undefined) {
+	if (!parentId) return;
+	window.dispatchEvent(
+		new CustomEvent<ElementCreatedPayload>(ELEMENT_CREATED, {
+			detail: { parentId },
+		}),
+	);
 }
 
 function withTreeRefresh(operation: () => Promise<void>) {

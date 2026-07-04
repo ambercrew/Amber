@@ -5,6 +5,7 @@ import {
 	TextInput,
 	Tree,
 } from "@mantine/core";
+import { useWindowEvent } from "@mantine/hooks";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -25,6 +26,7 @@ import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import ElementTreeNode from "./ElementTreeNode";
 import useAppDispatch from "../../../../hooks/useAppDispatch";
 import { moveElementAction } from "../../../../stores/elements/elementsActions";
+import { ELEMENT_CREATED } from "../../../../types/events/elementCreatedEvent";
 
 interface ElementTreeProps {
 	tree: NodeDto[];
@@ -46,6 +48,10 @@ function ElementTree({ tree }: ElementTreeProps) {
 
 	const { treeController, filteredData, search, handleSearchChange } =
 		useElementTreeExpansion(data, selected?.id ?? null);
+
+	useWindowEvent(ELEMENT_CREATED, event => {
+		treeController.expand(event.detail.parentId);
+	});
 
 	function renderNode(payload: RenderTreeNodePayload) {
 		const { node } = payload;

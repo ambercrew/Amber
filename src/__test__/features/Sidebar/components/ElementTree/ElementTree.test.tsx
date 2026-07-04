@@ -1,9 +1,10 @@
 import { MantineProvider } from "@mantine/core";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
 import { ElementId } from "../../../../../types/elements/elementId";
+import { ELEMENT_CREATED } from "../../../../../types/events/elementCreatedEvent";
 import {
 	LOCATION_DISPLAY_TEST_ID,
 	renderWithProviders,
@@ -221,6 +222,28 @@ describe("ElementTree search", () => {
 		await waitFor(() => {
 			expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
 		});
+	});
+
+	it("Should expand a folder when an element is created under it", () => {
+		// Arrange
+
+		render();
+
+		expect(screen.queryByTitle("Biology Basics")).not.toBeInTheDocument();
+
+		// Act — simulate an extract/cloze being created under Science while
+		// the tree is collapsed.
+
+		fireEvent(
+			window,
+			new CustomEvent(ELEMENT_CREATED, {
+				detail: { parentId: "folder-science" },
+			}),
+		);
+
+		// Assert — Science is expanded, revealing its child
+
+		expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
 	});
 
 	it("Should show correct child count on a folder label", () => {
