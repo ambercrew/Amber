@@ -16,22 +16,45 @@ import {
 	LexicalEditor,
 	RangeSelection,
 } from "lexical";
-import { ActionIcon, Button, Group, Paper } from "@mantine/core";
+import {
+	ActionIcon,
+	Button,
+	Divider,
+	Group,
+	MantineColor,
+	Paper,
+} from "@mantine/core";
 import { isMobile } from "../../../utils/tauriUtils";
 import styles from "../Editor.module.css";
 
 export interface FloatingMenuButton {
+	divider?: false;
 	name: string;
 	title: string;
+	label?: string;
 	showLabel?: boolean;
+	color?: MantineColor;
 	Icon: React.ComponentType<{ size?: number }>;
 	onClick: (editor: LexicalEditor, isActive: boolean) => void;
 	isActive: (selection: RangeSelection) => boolean;
 	isVisible?: (selection: RangeSelection) => boolean;
 }
 
+export interface FloatingMenuDivider {
+	divider: true;
+	name: string;
+}
+
+export type FloatingMenuItem = FloatingMenuButton | FloatingMenuDivider;
+
+function isFloatingMenuDivider(
+	item: FloatingMenuItem,
+): item is FloatingMenuDivider {
+	return !!item.divider;
+}
+
 interface Props {
-	buttons: FloatingMenuButton[];
+	buttons: FloatingMenuItem[];
 }
 
 function usePointerInteractions() {
@@ -179,6 +202,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 				const newActive: Record<string, boolean> = {};
 				const newVisible: Record<string, boolean> = {};
 				for (const btn of buttons) {
+					if (isFloatingMenuDivider(btn)) continue;
 					newActive[btn.name] = btn.isActive(selection);
 					newVisible[btn.name] = btn.isVisible
 						? btn.isVisible(selection)
@@ -215,6 +239,24 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 
 	const shouldShow = (isEditorFocused || isMenuFocused) && coords !== null;
 
+	// Only render a divider when it has a visible button on both sides,
+	// otherwise it would dangle at the start/end or next to another divider.
+	const candidates = buttons.filter(
+		item =>
+			isFloatingMenuDivider(item) || visibleState[item.name] !== false,
+	);
+	const visibleItems = candidates.filter((item, index) => {
+		if (!isFloatingMenuDivider(item)) return true;
+		const prev = candidates[index - 1];
+		const next = candidates[index + 1];
+		return (
+			!!prev &&
+			!!next &&
+			!isFloatingMenuDivider(prev) &&
+			!isFloatingMenuDivider(next)
+		);
+	});
+
 	return (
 		<Paper
 			ref={menuRef}
@@ -239,14 +281,18 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 				}
 			}}>
 			<Group gap={2}>
-				{buttons.map(btn =>
-					visibleState[btn.name] === false ? null : btn.showLabel ? (
+				{visibleItems.map(btn =>
+					isFloatingMenuDivider(btn) ? (
+						<Divider key={btn.name} mx={4} orientation="vertical" />
+					) : btn.showLabel ? (
 						<Button
 							key={btn.name}
 							variant={
 								activeState[btn.name] ? "filled" : "subtle"
 							}
+							color={btn.color}
 							size="sm"
+							px="xs"
 							leftSection={<btn.Icon size={22} />}
 							title={btn.title}
 							aria-label={btn.title}
@@ -259,7 +305,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 									activeState[btn.name] ?? false,
 								)
 							}>
-							{btn.title}
+							{btn.label ?? btn.title}
 						</Button>
 					) : (
 						<ActionIcon
@@ -267,7 +313,8 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 							variant={
 								activeState[btn.name] ? "filled" : "subtle"
 							}
-							size="md"
+							color={btn.color}
+							size="lg"
 							title={btn.title}
 							aria-label={btn.title}
 							onMouseDown={(e: React.MouseEvent) =>

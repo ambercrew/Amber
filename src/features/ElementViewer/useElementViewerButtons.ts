@@ -13,7 +13,7 @@ import {
 	RangeSelection,
 } from "lexical";
 import { $unwrapMarkNode } from "@lexical/mark";
-import { FloatingMenuButton } from "../../components/Editor/plugins/FloatingMenuPlugin";
+import { FloatingMenuItem } from "../../components/Editor/plugins/FloatingMenuPlugin";
 import { CREATE_HIGHLIGHT_COMMAND } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import {
 	$isHighlightNode,
@@ -55,29 +55,70 @@ function $isClozeHighlight(selection: RangeSelection): boolean {
 	);
 }
 
-function $isExtractHighlight(selection: RangeSelection): boolean {
-	const highlightNode = $getHighlightNodeFromSelection(selection);
-	return !!highlightNode && highlightNode.getColor() !== CLOZE_COLOR;
-}
-
-export function useElementViewerButtons(): FloatingMenuButton[] {
+export function useElementViewerButtons(): FloatingMenuItem[] {
 	const navigate = useNavigate();
 
-	return useMemo<FloatingMenuButton[]>(
+	return useMemo<FloatingMenuItem[]>(
 		() => [
+			// Create a yellow (extract) or blue (cloze) highlight.
 			{
 				name: "extract",
 				title: "Create Extract",
+				label: "Extract",
 				Icon: ScissorsIcon,
+				showLabel: true,
 				isActive: () => false,
 				onClick: editor => {
 					editor.dispatchCommand(CREATE_HIGHLIGHT_COMMAND, "yellow");
 				},
 			},
 			{
+				name: "cloze",
+				title: "Create Cloze",
+				label: "Cloze",
+				showLabel: true,
+				Icon: CardsIcon,
+				isActive: () => false,
+				onClick: editor => {
+					editor.dispatchCommand(
+						CREATE_HIGHLIGHT_COMMAND,
+						CLOZE_COLOR,
+					);
+				},
+			},
+			{ name: "create-highlight-divider", divider: true },
+			// Acts on the highlight (if any) under the current selection.
+			{
+				name: "open-highlight",
+				title: "Open",
+				Icon: ArrowSquareOutIcon,
+				isActive: () => false,
+				isVisible: selection =>
+					!!$getHighlightNodeFromSelection(selection),
+				onClick: editor => {
+					editor.getEditorState().read(() => {
+						const selection = $getSelection();
+						if (!$isRangeSelection(selection)) return;
+						const highlightNode =
+							$getHighlightNodeFromSelection(selection);
+						if (highlightNode) {
+							void navigate(
+								paths.element(
+									$isClozeHighlight(selection)
+										? "card"
+										: "extract",
+									highlightNode.getHighlightId(),
+								),
+							);
+						}
+					});
+				},
+			},
+			{
 				name: "remove-highlight",
 				title: "Remove Highlight",
 				Icon: EraserIcon,
+				color: "red",
 				isActive: () => false,
 				isVisible: selection =>
 					!!$getHighlightNodeFromSelection(selection),
@@ -89,64 +130,6 @@ export function useElementViewerButtons(): FloatingMenuButton[] {
 							selection,
 						)) {
 							$unwrapMarkNode(highlightNode);
-						}
-					});
-				},
-			},
-			{
-				name: "open-extract",
-				title: "Open Extract",
-				Icon: ArrowSquareOutIcon,
-				isActive: () => false,
-				isVisible: selection => $isExtractHighlight(selection),
-				onClick: editor => {
-					editor.getEditorState().read(() => {
-						const selection = $getSelection();
-						if (!$isRangeSelection(selection)) return;
-						const highlightNode =
-							$getHighlightNodeFromSelection(selection);
-						if (highlightNode) {
-							void navigate(
-								paths.element(
-									"extract",
-									highlightNode.getHighlightId(),
-								),
-							);
-						}
-					});
-				},
-			},
-			{
-				name: "cloze",
-				title: "Create Cloze",
-				Icon: CardsIcon,
-				isActive: () => false,
-				onClick: editor => {
-					editor.dispatchCommand(
-						CREATE_HIGHLIGHT_COMMAND,
-						CLOZE_COLOR,
-					);
-				},
-			},
-			{
-				name: "open-cloze",
-				title: "Open Cloze",
-				Icon: ArrowSquareOutIcon,
-				isActive: () => false,
-				isVisible: selection => $isClozeHighlight(selection),
-				onClick: editor => {
-					editor.getEditorState().read(() => {
-						const selection = $getSelection();
-						if (!$isRangeSelection(selection)) return;
-						const highlightNode =
-							$getHighlightNodeFromSelection(selection);
-						if (highlightNode) {
-							void navigate(
-								paths.element(
-									"card",
-									highlightNode.getHighlightId(),
-								),
-							);
 						}
 					});
 				},

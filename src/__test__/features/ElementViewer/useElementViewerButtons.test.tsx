@@ -24,6 +24,7 @@ import {
 } from "../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
 import { CREATE_HIGHLIGHT_COMMAND } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { useElementViewerButtons } from "../../../features/ElementViewer/useElementViewerButtons";
+import { FloatingMenuButton } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 
 const { mockNavigate } = vi.hoisted(() => ({ mockNavigate: vi.fn() }));
 
@@ -44,9 +45,11 @@ function renderButtons() {
 	return result.current;
 }
 
-function getButton(name: string) {
+function getButton(name: string): FloatingMenuButton {
 	const buttons = renderButtons();
-	const button = buttons.find(b => b.name === name);
+	const button = buttons.find(
+		(b): b is FloatingMenuButton => !("divider" in b) && b.name === name,
+	);
 	if (!button) throw new Error(`Button "${name}" not found`);
 	return button;
 }
@@ -309,34 +312,13 @@ describe("useElementViewerButtons", () => {
 		});
 	});
 
-	describe("open-extract button", () => {
+	describe("open-highlight button", () => {
 		it("Should not be visible when selection has no highlight", () => {
 			// Arrange
 
-			const button = getButton("open-extract");
+			const button = getButton("open-highlight");
 			const editor = createTestEditor();
 			setContent(editor, [{ text: "Plain text" }]);
-			selectSegments(editor, 0, 0);
-
-			// Act
-
-			const isVisible = withSelection(editor, sel =>
-				button.isVisible!(sel),
-			);
-
-			// Assert
-
-			expect(isVisible).toBe(false);
-		});
-
-		it("Should not be visible when the highlight under selection is a cloze", () => {
-			// Arrange
-
-			const button = getButton("open-extract");
-			const editor = createTestEditor();
-			setContent(editor, [
-				{ text: "Alpha", highlight: { id: "id-1", color: "blue" } },
-			]);
 			selectSegments(editor, 0, 0);
 
 			// Act
@@ -353,7 +335,7 @@ describe("useElementViewerButtons", () => {
 		it("Should be visible when the highlight under selection is an extract", () => {
 			// Arrange
 
-			const button = getButton("open-extract");
+			const button = getButton("open-highlight");
 			const editor = createTestEditor();
 			setContent(editor, [
 				{ text: "Alpha", highlight: { id: "id-1", color: "yellow" } },
@@ -371,10 +353,31 @@ describe("useElementViewerButtons", () => {
 			expect(isVisible).toBe(true);
 		});
 
-		it("Should navigate to the extract when clicked", () => {
+		it("Should be visible when the highlight under selection is a cloze", () => {
 			// Arrange
 
-			const button = getButton("open-extract");
+			const button = getButton("open-highlight");
+			const editor = createTestEditor();
+			setContent(editor, [
+				{ text: "Alpha", highlight: { id: "id-1", color: "blue" } },
+			]);
+			selectSegments(editor, 0, 0);
+
+			// Act
+
+			const isVisible = withSelection(editor, sel =>
+				button.isVisible!(sel),
+			);
+
+			// Assert
+
+			expect(isVisible).toBe(true);
+		});
+
+		it("Should navigate to the extract when clicked on an extract highlight", () => {
+			// Arrange
+
+			const button = getButton("open-highlight");
 			const editor = createTestEditor();
 			setContent(editor, [
 				{
@@ -392,55 +395,11 @@ describe("useElementViewerButtons", () => {
 
 			expect(mockNavigate).toHaveBeenCalledWith("/extract/extract-id");
 		});
-	});
 
-	describe("open-cloze button", () => {
-		it("Should not be visible when the highlight under selection is an extract", () => {
+		it("Should navigate to the card when clicked on a cloze highlight", () => {
 			// Arrange
 
-			const button = getButton("open-cloze");
-			const editor = createTestEditor();
-			setContent(editor, [
-				{ text: "Alpha", highlight: { id: "id-1", color: "yellow" } },
-			]);
-			selectSegments(editor, 0, 0);
-
-			// Act
-
-			const isVisible = withSelection(editor, sel =>
-				button.isVisible!(sel),
-			);
-
-			// Assert
-
-			expect(isVisible).toBe(false);
-		});
-
-		it("Should be visible when the highlight under selection is a cloze", () => {
-			// Arrange
-
-			const button = getButton("open-cloze");
-			const editor = createTestEditor();
-			setContent(editor, [
-				{ text: "Alpha", highlight: { id: "id-1", color: "blue" } },
-			]);
-			selectSegments(editor, 0, 0);
-
-			// Act
-
-			const isVisible = withSelection(editor, sel =>
-				button.isVisible!(sel),
-			);
-
-			// Assert
-
-			expect(isVisible).toBe(true);
-		});
-
-		it("Should navigate to the card when clicked", () => {
-			// Arrange
-
-			const button = getButton("open-cloze");
+			const button = getButton("open-highlight");
 			const editor = createTestEditor();
 			setContent(editor, [
 				{ text: "Alpha", highlight: { id: "cloze-id", color: "blue" } },

@@ -5,7 +5,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { EditorState, LexicalEditor } from "lexical";
 import Editor from "../../components/Editor/Editor";
 import {
-	FloatingMenuButton,
+	FloatingMenuItem,
 	FloatingMenuPlugin,
 } from "../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
@@ -14,7 +14,7 @@ import useAutoSave from "./hooks/useAutoSave";
 
 interface ElementEditorProps {
 	initialContent: string;
-	buttons: FloatingMenuButton[];
+	buttons: FloatingMenuItem[];
 	autoFocus?: boolean;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onChange: (content: string) => Promise<void>;
