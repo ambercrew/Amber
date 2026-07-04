@@ -122,6 +122,15 @@ The `useApi` hook standardizes async calls.
 
 The editor uses **Lexical**. Cell content is stored and transferred as Lexical JSON.
 
+### Command Palette (`src/commands/`)
+
+A single command registry in `commands.ts` drives the Spotlight palette (`mod+K`), global keyboard shortcuts, and any in-app buttons — each command is declared once and consumed everywhere.
+
+- To add a command, look at `commands.ts` (`commandIds`, `commandGroups`, `commands`) and follow the shape of existing entries.
+- To trigger a command from a component, use `useRunCommand()` rather than dispatching the underlying action directly.
+- For displaying a shortcut, use `formatShortcut()`; the palette's own open shortcut is `SPOTLIGHT_SHORTCUT`, both in `commands.ts`.
+- `CommandPalette` is mounted once in `App.tsx`. To open it elsewhere, call `spotlight.open()` from `@mantine/spotlight` — don't mount a second `<Spotlight>`.
+
 ### CSS Naming Conventions
 
 CSS Modules are used throughout the frontend. Class names use kebab-case in `.module.css` files and camelCase when referenced in TypeScript/TSX:
