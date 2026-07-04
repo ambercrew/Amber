@@ -30,6 +30,7 @@ interface ElementTreeProps {
 	tree: NodeDto[];
 }
 
+// TODO: when navigating into an element inside a collapsed node , open it with all its parents
 function ElementTree({ tree }: ElementTreeProps) {
 	const navigate = useNavigate();
 	const selected = useElementParams();

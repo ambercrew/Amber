@@ -31,6 +31,8 @@ import { HighlightNode } from "./plugins/HighlightPlugin/HighlightNode";
 import { HighlightPlugin } from "./plugins/HighlightPlugin/HighlightPlugin";
 import { HighlightCreatedPayload } from "./plugins/HighlightPlugin/highlightCommands";
 import { ClozeHiddenNode } from "./plugins/ClozePlugin/ClozeHiddenNode";
+import { ImageNode } from "./plugins/ImagePlugin/ImageNode";
+import { ImagePlugin } from "./plugins/ImagePlugin/ImagePlugin";
 import styles from "./Editor.module.css";
 
 const blockTags = new Set([
@@ -127,7 +129,12 @@ export default function Editor({
 				},
 				name: "editor",
 				namespace: "editor",
-				nodes: [EquationNode, HighlightNode, ClozeHiddenNode],
+				nodes: [
+					EquationNode,
+					HighlightNode,
+					ClozeHiddenNode,
+					ImageNode,
+				],
 				$initialEditorState: initialContent
 					? htmlToEditorState(initialContent)
 					: undefined,
@@ -156,6 +163,7 @@ export default function Editor({
 					</ScrollArea>
 					<SlashMenuPlugin />
 					<EquationPlugin />
+					<ImagePlugin />
 					<HighlightPlugin onHighlightCreated={onHighlightCreated} />
 					{anchorElem ? <DragPlugin anchorElem={anchorElem} /> : null}
 					{children}
