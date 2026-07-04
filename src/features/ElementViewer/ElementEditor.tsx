@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { Alert } from "@mantine/core";
 import { $generateHtmlFromNodes } from "@lexical/html";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { EditorState, LexicalEditor } from "lexical";
@@ -26,8 +27,7 @@ export default function ElementEditor({
 	onHighlightCreated,
 	onChange,
 }: ElementEditorProps) {
-	// TODO: show error message
-	const { callApi } = useApi();
+	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const { onContentUpdate } = useAutoSave({
 		onSave: onChange,
 		callApi,
@@ -44,16 +44,27 @@ export default function ElementEditor({
 	);
 
 	return (
-		<Editor
-			initialContent={initialContent}
-			autoFocus={autoFocus}
-			onHighlightCreated={onHighlightCreated}>
-			<FloatingMenuPlugin buttons={buttons} />
-			<OnChangePlugin
-				onChange={handleChange}
-				ignoreSelectionChange
-				ignoreHistoryMergeTagChange
-			/>
-		</Editor>
+		<>
+			{errorMessage && (
+				<Alert
+					color="red"
+					title={errorMessage}
+					withCloseButton
+					onClose={clearErrorMessage}
+					mb="sm"
+				/>
+			)}
+			<Editor
+				initialContent={initialContent}
+				autoFocus={autoFocus}
+				onHighlightCreated={onHighlightCreated}>
+				<FloatingMenuPlugin buttons={buttons} />
+				<OnChangePlugin
+					onChange={handleChange}
+					ignoreSelectionChange
+					ignoreHistoryMergeTagChange
+				/>
+			</Editor>
+		</>
 	);
 }
