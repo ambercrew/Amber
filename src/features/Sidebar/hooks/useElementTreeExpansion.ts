@@ -37,6 +37,20 @@ export function useElementTreeExpansion(
 		}
 	}, [data, persistedExpandedState, treeController]);
 
+	// Reveal the selected element by expanding its ancestors whenever navigation changes it.
+	useEffect(() => {
+		if (!selectedId || data.length === 0) return;
+		const ancestors = getAncestorsOf(data, selectedId) ?? [];
+		if (ancestors.length === 0) return;
+		const extra = Object.fromEntries(ancestors.map(id => [id, true]));
+		setPersistedExpandedState(prev => ({ ...prev, ...extra }));
+		treeController.setExpandedState({
+			...treeController.expandedState,
+			...extra,
+		});
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- The rest are not important.
+	}, [selectedId, data]);
+
 	const [search, setSearch] = useState("");
 	const preSearchExpandedState = useRef<Record<string, boolean> | null>(null);
 

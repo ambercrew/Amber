@@ -162,4 +162,59 @@ describe("useElementTreeExpansion", () => {
 
 		expect(result.current.treeController.expandedState).toEqual({});
 	});
+
+	it("Should expand ancestors of the selected node on initial render", () => {
+		// Arrange / Act — cell-card is selected from the very first render, no search involved
+
+		const { result } = renderHook(() =>
+			useElementTreeExpansion(DATA, "cell-card"),
+		);
+
+		// Assert — the path to cell-card is opened automatically
+
+		expect(
+			result.current.treeController.expandedState["science-folder"],
+		).toBe(true);
+		expect(
+			result.current.treeController.expandedState["biology-reading"],
+		).toBe(true);
+	});
+
+	it("Should expand ancestors of the newly selected node when navigating without searching", () => {
+		// Arrange — nothing selected initially
+
+		const { result, rerender } = renderHook<
+			ReturnType<typeof useElementTreeExpansion>,
+			{ selectedId: string | null }
+		>(({ selectedId }) => useElementTreeExpansion(DATA, selectedId), {
+			initialProps: { selectedId: null },
+		});
+
+		expect(result.current.treeController.expandedState).toEqual({});
+
+		// Act — simulate navigating to cell-card
+
+		rerender({ selectedId: "cell-card" });
+
+		// Assert — the path to cell-card is revealed
+
+		expect(
+			result.current.treeController.expandedState["science-folder"],
+		).toBe(true);
+		expect(
+			result.current.treeController.expandedState["biology-reading"],
+		).toBe(true);
+	});
+
+	it("Should not expand anything when the selected node has no ancestors", () => {
+		// Arrange / Act — art-folder is a top-level node with no parents
+
+		const { result } = renderHook(() =>
+			useElementTreeExpansion(DATA, "art-folder"),
+		);
+
+		// Assert
+
+		expect(result.current.treeController.expandedState).toEqual({});
+	});
 });

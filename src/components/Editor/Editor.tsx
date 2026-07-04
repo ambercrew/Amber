@@ -121,6 +121,7 @@ export default function Editor({
 					SelectBlockExtension,
 					CodeShikiExtension,
 					configExtension(AutoFocusExtension, {
+						defaultSelection: "rootStart",
 						disabled: !autoFocus,
 					}),
 				],
