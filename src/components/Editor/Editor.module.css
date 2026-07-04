@@ -13,7 +13,6 @@
 }
 
 .content-editable {
-	overflow-y: auto;
 	padding-left: var(--editor-padding-x);
 	line-height: var(--mantine-line-height);
 	outline: none;
@@ -25,12 +24,6 @@
 	top: 0;
 	left: var(--editor-padding-x);
 	user-select: none;
-}
-
-.slash-menu {
-	min-width: 220px;
-	max-height: 300px;
-	overflow-y: auto;
 }
 
 .slash-menu-option {

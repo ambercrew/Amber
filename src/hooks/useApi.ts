@@ -16,6 +16,7 @@ export default function useApi() {
 		try {
 			return await cb();
 		} catch (e) {
+			// eslint-disable-next-line no-console
 			console.error(e);
 			setErrorMessage(errorToString(e));
 		} finally {

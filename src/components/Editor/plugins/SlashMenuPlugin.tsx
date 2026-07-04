@@ -6,7 +6,7 @@ import {
 	useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
 import { TextNode } from "lexical";
-import { Group, Paper, Text, UnstyledButton } from "@mantine/core";
+import { Group, Paper, ScrollArea, Text, UnstyledButton } from "@mantine/core";
 import { BlockOption, getBlockOptions } from "./blockOptions";
 import styles from "../Editor.module.css";
 
@@ -55,36 +55,35 @@ export function SlashMenuPlugin() {
 				if (!anchorElementRef.current || options.length === 0)
 					return null;
 				return createPortal(
-					<Paper
-						withBorder
-						shadow="lg"
-						radius="md"
-						p={4}
-						className={styles["slash-menu"]}>
-						{options.map((option, i) => (
-							<UnstyledButton
-								key={option.key}
-								// eslint-disable-next-line @typescript-eslint/unbound-method
-								ref={
-									option.setRefElement as React.Ref<HTMLButtonElement>
-								}
-								w="100%"
-								p="xs"
-								className={[
-									styles["slash-menu-option"],
-									i === selectedIndex &&
-										styles["slash-menu-option-active"],
-								]
-									.filter(Boolean)
-									.join(" ")}
-								onClick={() => selectOptionAndCleanUp(option)}
-								onMouseEnter={() => setHighlightedIndex(i)}>
-								<Group gap="xs">
-									<option.Icon size={18} />
-									<Text>{option.title}</Text>
-								</Group>
-							</UnstyledButton>
-						))}
+					<Paper withBorder shadow="lg" radius="md" p={4} miw={220}>
+						<ScrollArea.Autosize mah={300}>
+							{options.map((option, i) => (
+								<UnstyledButton
+									key={option.key}
+									ref={
+										// eslint-disable-next-line @typescript-eslint/unbound-method
+										option.setRefElement as React.Ref<HTMLButtonElement>
+									}
+									w="100%"
+									p="xs"
+									className={[
+										styles["slash-menu-option"],
+										i === selectedIndex &&
+											styles["slash-menu-option-active"],
+									]
+										.filter(Boolean)
+										.join(" ")}
+									onClick={() =>
+										selectOptionAndCleanUp(option)
+									}
+									onMouseEnter={() => setHighlightedIndex(i)}>
+									<Group gap="xs">
+										<option.Icon size={18} />
+										<Text>{option.title}</Text>
+									</Group>
+								</UnstyledButton>
+							))}
+						</ScrollArea.Autosize>
 					</Paper>,
 					anchorElementRef.current,
 				);

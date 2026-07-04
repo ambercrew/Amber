@@ -15,7 +15,6 @@ import Updater from "../../Updater/components/Updater";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
-import useApi from "../../../hooks/useApi.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
@@ -28,7 +27,6 @@ function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
 
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
-	const { callApi } = useApi();
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const theme = useMantineTheme();
@@ -90,7 +88,7 @@ function App() {
 				offset: false,
 			}}
 			padding="md">
-			{!isMobile() && <Updater callApi={callApi} />}
+			{!isMobile() && <Updater />}
 
 			<AppShell.Header>
 				<AppHeader

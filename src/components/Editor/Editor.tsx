@@ -22,7 +22,7 @@ import {
 	defineExtension,
 	LexicalEditor,
 } from "lexical";
-import { Box, Text, Typography } from "@mantine/core";
+import { Box, ScrollArea, Text, Typography } from "@mantine/core";
 import { DragPlugin } from "./plugins/DragPlugin";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
@@ -142,16 +142,18 @@ export default function Editor({
 				extension={editorExtension}
 				contentEditable={null}>
 				<Box className={styles.anchor} ref={setAnchorElem}>
-					<ContentEditable
-						className={styles["content-editable"]}
-						aria-label="Rich text editor"
-						aria-placeholder="Type '/' for commands..."
-						placeholder={
-							<Text className={styles.placeholder} c="dimmed">
-								Type &apos;/&apos; for commands...
-							</Text>
-						}
-					/>
+					<ScrollArea h="100%">
+						<ContentEditable
+							className={styles["content-editable"]}
+							aria-label="Rich text editor"
+							aria-placeholder="Type '/' for commands..."
+							placeholder={
+								<Text className={styles.placeholder} c="dimmed">
+									Type &apos;/&apos; for commands...
+								</Text>
+							}
+						/>
+					</ScrollArea>
 					<SlashMenuPlugin />
 					<EquationPlugin />
 					<HighlightPlugin onHighlightCreated={onHighlightCreated} />

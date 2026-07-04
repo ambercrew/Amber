@@ -3,14 +3,12 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { Loader, Modal, Stack, Text } from "@mantine/core";
-import { CallApiFn } from "../../../hooks/useApi";
 import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
+import useApi from "../../../hooks/useApi";
 
-interface Props {
-	callApi: CallApiFn;
-}
+function Updater() {
+	const { callApi, errorMessage, clearErrorMessage } = useApi();
 
-function Updater({ callApi }: Props) {
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [updatePercentage, setUpdatePercentage] = useState("0");
 
@@ -59,23 +57,33 @@ function Updater({ callApi }: Props) {
 	}, [callApi]);
 
 	return (
-		<Modal
-			opened={isUpdating}
-			onClose={() => {
-				/* Empty */
-			}}
-			withCloseButton={false}
-			closeOnClickOutside={false}
-			closeOnEscape={false}
-			centered>
-			<Stack align="center">
-				<Loader size="lg" />
-				<Text>
-					Updating the application ({updatePercentage}%), please
-					wait...
-				</Text>
-			</Stack>
-		</Modal>
+		<>
+			<Modal
+				opened={isUpdating}
+				onClose={() => {
+					/* Empty */
+				}}
+				withCloseButton={false}
+				closeOnClickOutside={false}
+				closeOnEscape={false}
+				centered>
+				<Stack align="center">
+					<Loader size="lg" />
+					<Text>
+						Updating the application ({updatePercentage}%), please
+						wait...
+					</Text>
+				</Stack>
+			</Modal>
+
+			<Modal
+				opened={!!errorMessage}
+				onClose={clearErrorMessage}
+				title="Update failed"
+				centered>
+				<Text>{errorMessage}</Text>
+			</Modal>
+		</>
 	);
 }
 
