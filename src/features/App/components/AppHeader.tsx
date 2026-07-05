@@ -70,7 +70,7 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 				align="center"
 				wrap="nowrap"
 				justify="space-between">
-				<Group gap={0} align="center" wrap="nowrap">
+				<Group gap={0} align="center" wrap="nowrap" miw={0}>
 					<ActionIcon
 						variant="subtle"
 						size="lg"
