@@ -5,13 +5,14 @@ import { useSpotlightActions } from "./useSpotlightActions";
 import { SPOTLIGHT_SHORTCUT } from "./commands";
 
 function CommandPalette() {
-	const actions = useSpotlightActions();
+	const { actions, refresh } = useSpotlightActions();
 
 	return (
 		<>
 			<GlobalHotkeys />
 			<Spotlight
 				actions={actions}
+				onSpotlightOpen={refresh}
 				shortcut={SPOTLIGHT_SHORTCUT}
 				nothingFound="No matching commands"
 				searchProps={{
