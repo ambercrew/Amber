@@ -1,4 +1,4 @@
-import * as mupdf from "mupdf";
+const mupdfReady = import("mupdf");
 
 interface WorkerRequest {
 	id: number;
@@ -14,14 +14,15 @@ type WorkerResponse =
 	| { id: number; error: string };
 
 const ctx = self as unknown as {
-	onmessage: ((e: MessageEvent<WorkerRequest>) => void) | null;
+	onmessage: ((e: MessageEvent<WorkerRequest>) => Promise<void>) | null;
 	postMessage: (message: WorkerResponse) => void;
 };
 
-ctx.onmessage = e => {
+ctx.onmessage = async e => {
 	const { id, bytes } = e.data;
 
 	try {
+		const mupdf = await mupdfReady;
 		const doc = mupdf.Document.openDocument(bytes, "application/pdf");
 		const pageCount = doc.countPages();
 		let html = "";
