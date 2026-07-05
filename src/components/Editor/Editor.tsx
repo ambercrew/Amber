@@ -127,6 +127,10 @@ export default function Editor({
 				],
 				theme: {
 					tableScrollableWrapper: styles["table-scrollable-wrapper"],
+					text: {
+						code: styles["inline-code"],
+					},
+					code: styles["inline-code"],
 				},
 				name: "editor",
 				namespace: "editor",

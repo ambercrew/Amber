@@ -18,6 +18,10 @@
 	outline: none;
 }
 
+.inline-code {
+	display: inline-block !important;
+}
+
 .placeholder {
 	pointer-events: none;
 	position: absolute;

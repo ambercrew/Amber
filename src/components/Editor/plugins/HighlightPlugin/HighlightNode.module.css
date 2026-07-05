@@ -1,5 +1,9 @@
 .highlight {
 	color: var(--mantine-color-black);
+
+	& * {
+		background-color: transparent;
+	}
 }
 
 [data-mantine-color-scheme="light"] .highlight {

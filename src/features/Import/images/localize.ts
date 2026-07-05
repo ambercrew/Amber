@@ -3,7 +3,7 @@ import { fetchImage } from "../../../api/import/api/importApi";
 export type LocalizedImage =
 	{ ok: true; src: string } | { ok: false; originalUrl: string };
 
-const MAX_DATA_URI_BYTES = 10 * 1024 * 1024;
+const MAX_DATA_URI_BYTES = 2 * 1024 * 1024;
 
 /** The only module that knows how imported images are stored — swap this to
  * write into a content-addressed file store instead of inlining data URIs. */
