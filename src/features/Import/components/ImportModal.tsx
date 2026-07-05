@@ -1,9 +1,12 @@
-import { useRef, useState } from "react";
+import { ClipboardEvent, SyntheticEvent, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import {
 	Anchor,
 	Button,
 	Group,
+	Loader,
 	Modal,
+	Progress,
 	Stack,
 	Text,
 	TextInput,
@@ -12,35 +15,179 @@ import { Dropzone, PDF_MIME_TYPE } from "@mantine/dropzone";
 import { ArrowsInSimpleIcon } from "@phosphor-icons/react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import useApi from "../../../hooks/useApi";
+import errorToString from "../../../utils/errorToString";
 import { selectIsImportModalOpened } from "../../../stores/app/appSelectors";
+import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import { closeImportModal } from "../../../stores/app/appReducer";
+import { asUrl, classifyPaste } from "../classify";
+import { PastedContent, runContentImport } from "../flows/content";
+import { importRawPage, runUrlImport, UrlImportError } from "../flows/url";
+import { FileImportError, runFileImport } from "../flows/file";
+import { PdfProgress } from "../pdf/extract";
+import { ImportContext } from "../importContext";
 
 const CLICKABLE_STYLE = { pointerEvents: "all" as const };
 
+type Phase =
+	| { kind: "idle" }
+	| { kind: "importing"; label: string; progress?: PdfProgress }
+	| { kind: "error"; message: string; rawHtml?: string; sourceUrl?: string };
+
+function describeError(error: UrlImportError | FileImportError): {
+	message: string;
+	rawHtml?: string;
+	sourceUrl?: string;
+} {
+	switch (error.kind) {
+		case "fetch-failed":
+			return { message: error.message };
+		case "no-article":
+			return {
+				message: "Couldn't extract an article from this page.",
+				rawHtml: error.rawHtml,
+				sourceUrl: error.sourceUrl,
+			};
+		case "unsupported-file":
+			return { message: "Only PDF files are supported." };
+		case "no-text-layer":
+			return { message: "This PDF has no selectable text." };
+		case "pdf-failed":
+			return { message: error.message };
+	}
+}
+
 function ImportModal() {
 	const opened = useAppSelector(selectIsImportModalOpened);
+	const currentElement = useAppSelector(selectCurrentElement);
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	const [value, setValue] = useState("");
-	const { errorMessage, callApi, clearErrorMessage } = useApi();
+	const [phase, setPhase] = useState<Phase>({ kind: "idle" });
 	const openRef = useRef<() => void>(null);
+	const cancelledRef = useRef(false);
+
+	function context(): ImportContext {
+		return {
+			dispatch,
+			navigate,
+			parent: currentElement?.data.meta.elementId ?? null,
+		};
+	}
 
 	function reset() {
 		setValue("");
-		clearErrorMessage();
+		setPhase({ kind: "idle" });
 	}
 
 	function handleClose() {
+		cancelledRef.current = true;
 		reset();
 		dispatch(closeImportModal());
 	}
 
-	async function handleReject() {
-		await callApi(() => {
-			throw new Error("Only PDF files are supported.");
-		});
+	function handleCancel() {
+		cancelledRef.current = true;
+		setPhase({ kind: "idle" });
 	}
+
+	function handleSuccess() {
+		reset();
+		dispatch(closeImportModal());
+	}
+
+	async function startUrlImport(url: string) {
+		cancelledRef.current = false;
+		setPhase({ kind: "importing", label: "Fetching…" });
+
+		const error = await runUrlImport(url, context());
+		if (cancelledRef.current) return;
+
+		if (error) {
+			setPhase({ kind: "error", ...describeError(error) });
+			return;
+		}
+
+		handleSuccess();
+	}
+
+	async function startContentImport(input: PastedContent) {
+		cancelledRef.current = false;
+		setPhase({ kind: "importing", label: "Importing…" });
+
+		try {
+			await runContentImport(input, context());
+			if (cancelledRef.current) return;
+			handleSuccess();
+		} catch (err) {
+			if (cancelledRef.current) return;
+			setPhase({ kind: "error", message: errorToString(err) });
+		}
+	}
+
+	async function startFileImport(files: File[]) {
+		cancelledRef.current = false;
+		setPhase({ kind: "importing", label: "Extracting PDF…" });
+
+		const error = await runFileImport(files, context(), progress => {
+			if (cancelledRef.current) return;
+			setPhase({ kind: "importing", label: "Extracting PDF…", progress });
+		});
+		if (cancelledRef.current) return;
+
+		if (error) {
+			setPhase({ kind: "error", ...describeError(error) });
+			return;
+		}
+
+		handleSuccess();
+	}
+
+	async function startRawImport(rawHtml: string, sourceUrl: string) {
+		cancelledRef.current = false;
+		setPhase({ kind: "importing", label: "Importing…" });
+
+		try {
+			await importRawPage(rawHtml, sourceUrl, context());
+			if (cancelledRef.current) return;
+			handleSuccess();
+		} catch (err) {
+			if (cancelledRef.current) return;
+			setPhase({ kind: "error", message: errorToString(err) });
+		}
+	}
+
+	function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
+		e.preventDefault();
+		const trimmed = value.trim();
+		if (!trimmed) return;
+
+		const url = asUrl(trimmed);
+		if (url === null) {
+			setPhase({ kind: "error", message: "Enter a link." });
+			return;
+		}
+
+		void startUrlImport(url);
+	}
+
+	function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
+		const input = classifyPaste(e.clipboardData);
+		switch (input.kind) {
+			case "url":
+			case "ambiguous":
+				return;
+			case "file":
+				e.preventDefault();
+				void startFileImport(input.files);
+				return;
+			case "content":
+				e.preventDefault();
+				void startContentImport(input);
+		}
+	}
+
+	const isImporting = phase.kind === "importing";
 
 	return (
 		<Modal
@@ -48,47 +195,108 @@ function ImportModal() {
 			onClose={handleClose}
 			title="Import"
 			centered
-			size="md">
+			size="md"
+			withCloseButton={!isImporting}
+			closeOnClickOutside={!isImporting}
+			closeOnEscape={!isImporting}>
 			<Dropzone
 				accept={PDF_MIME_TYPE}
 				activateOnClick={false}
+				disabled={isImporting}
 				openRef={openRef}
-				onDrop={() => clearErrorMessage()}
-				onReject={() => void handleReject()}
+				onDrop={files => void startFileImport(files)}
+				onReject={() =>
+					setPhase({
+						kind: "error",
+						message: "Only PDF files are supported.",
+					})
+				}
 				p={0}
 				style={{ border: "none" }}>
-				<Stack gap="xs">
-					<TextInput
-						placeholder="Paste a link or content"
-						autoFocus
-						value={value}
-						error={errorMessage}
-						style={CLICKABLE_STYLE}
-						onChange={e => {
-							setValue(e.currentTarget.value);
-							clearErrorMessage();
-						}}
-					/>
-					<Text size="sm" c="dimmed">
-						or drop a PDF anywhere here —{" "}
-						<Anchor
-							size="sm"
-							component="button"
-							type="button"
-							style={CLICKABLE_STYLE}
-							onClick={() => openRef.current?.()}>
-							browse
-						</Anchor>
-					</Text>
-					<Group justify="flex-end">
+				{phase.kind === "importing" ? (
+					<Stack align="center" gap="sm" py="md">
+						<Loader size="sm" />
+						<Text size="sm" c="dimmed">
+							{phase.label}
+							{phase.progress
+								? ` ${phase.progress.done}/${phase.progress.total}`
+								: ""}
+						</Text>
+						{phase.progress && (
+							<Progress
+								w="100%"
+								value={
+									(phase.progress.done /
+										phase.progress.total) *
+									100
+								}
+							/>
+						)}
 						<Button
-							disabled={!value.trim()}
-							onClick={handleClose}
-							style={CLICKABLE_STYLE}>
-							Import
+							variant="subtle"
+							size="xs"
+							onClick={handleCancel}>
+							Cancel
 						</Button>
-					</Group>
-				</Stack>
+					</Stack>
+				) : (
+					<form onSubmit={handleSubmit}>
+						<Stack gap="xs">
+							<TextInput
+								placeholder="Paste a link or content"
+								data-autofocus
+								value={value}
+								error={
+									phase.kind === "error"
+										? phase.message
+										: null
+								}
+								style={CLICKABLE_STYLE}
+								onPaste={handlePaste}
+								onChange={e => {
+									setValue(e.currentTarget.value);
+									setPhase({ kind: "idle" });
+								}}
+							/>
+							{phase.kind === "error" &&
+								phase.rawHtml &&
+								phase.sourceUrl && (
+									<Anchor
+										size="sm"
+										component="button"
+										type="button"
+										style={CLICKABLE_STYLE}
+										onClick={() =>
+											void startRawImport(
+												phase.rawHtml!,
+												phase.sourceUrl!,
+											)
+										}>
+										Import raw page
+									</Anchor>
+								)}
+							<Text size="sm" c="dimmed">
+								or drop a PDF anywhere here —{" "}
+								<Anchor
+									size="sm"
+									component="button"
+									type="button"
+									style={CLICKABLE_STYLE}
+									onClick={() => openRef.current?.()}>
+									browse
+								</Anchor>
+							</Text>
+							<Group justify="flex-end">
+								<Button
+									type="submit"
+									disabled={!value.trim()}
+									style={CLICKABLE_STYLE}>
+									Import
+								</Button>
+							</Group>
+						</Stack>
+					</form>
+				)}
 
 				<Dropzone.Accept>
 					<Stack

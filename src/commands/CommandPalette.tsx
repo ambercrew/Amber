@@ -18,6 +18,8 @@ function CommandPalette() {
 					leftSection: <MagnifyingGlassIcon size={18} />,
 					placeholder: "Search commands...",
 				}}
+				tagsToIgnore={[]}
+				triggerOnContentEditable
 			/>
 		</>
 	);

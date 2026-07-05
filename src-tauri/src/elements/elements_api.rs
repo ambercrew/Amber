@@ -124,7 +124,7 @@ pub async fn create_reading(
     let now = Utc::now();
     let reading = Reading {
         meta: Meta {
-            element_id: ElementId::Reading(Uuid::new_v4()),
+            element_id: ElementId::Reading(dto.id),
             name: dto.meta.name,
             parent,
             position,

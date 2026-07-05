@@ -38,6 +38,7 @@ function useCreateHandlers(
 		reading: () =>
 			run(
 				createReadingAction({
+					id: crypto.randomUUID(),
 					meta: {
 						name: defaultElementName("Reading"),
 						parent: elementId,

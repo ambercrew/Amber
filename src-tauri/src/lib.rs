@@ -5,6 +5,7 @@ mod common;
 mod database;
 mod elements;
 mod fsrs;
+mod import;
 mod infrastructure;
 mod local_configurations;
 mod secrets;
@@ -23,6 +24,7 @@ use backend::api::auth_api::*;
 use backend::api::user_api::*;
 use elements::elements_api::*;
 use fsrs::fsrs_api::*;
+use import::import_api::*;
 use settings::settings_api::*;
 
 pub use sync::sync_api::sync;
@@ -168,6 +170,9 @@ pub async fn run() -> Result<(), String> {
             update_reading,
             update_extract,
             update_card,
+            // Import
+            fetch_page,
+            fetch_image,
             // App Info
             is_store_installed,
         ])

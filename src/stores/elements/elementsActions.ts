@@ -40,7 +40,10 @@ export function createFolderAction(dto: CreateFolderDto) {
 }
 
 export function createReadingAction(dto: CreateReadingDto) {
-	return withTreeRefresh(() => createReading(dto));
+	return withTreeRefresh(async () => {
+		await createReading(dto);
+		dispatchElementCreated(dto.meta.parent?.id);
+	});
 }
 
 export function createExtractAction(dto: CreateExtractDto) {

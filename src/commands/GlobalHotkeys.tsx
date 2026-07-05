@@ -9,6 +9,8 @@ function GlobalHotkeys() {
 		commands
 			.filter(c => c.shortcut)
 			.map(c => [c.shortcut!, () => run(c.id)] as [string, () => void]),
+		[],
+		true,
 	);
 
 	return null;
