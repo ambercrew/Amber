@@ -7,7 +7,6 @@ export interface NormalizeOptions {
 	baseUrl: string | null;
 }
 
-// TODO: unit test
 /** Sanitizes HTML and localizes its images. The result is stored directly as
  * a Reading's content — the editor already knows how to load HTML. */
 export async function normalize(

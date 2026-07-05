@@ -6,7 +6,6 @@ export type ClassifiedInput =
 
 const CONTENT_MIN_LENGTH = 200;
 
-// TODO: unit test
 export function classifyPaste(dt: DataTransfer): ClassifiedInput {
 	if (dt.files.length > 0) return { kind: "file", files: [...dt.files] };
 

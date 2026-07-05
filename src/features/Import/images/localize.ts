@@ -5,7 +5,6 @@ export type LocalizedImage =
 
 const MAX_DATA_URI_BYTES = 10 * 1024 * 1024;
 
-// TODO: Unit test
 /** The only module that knows how imported images are stored — swap this to
  * write into a content-addressed file store instead of inlining data URIs. */
 export async function localizeImage(
