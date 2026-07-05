@@ -17,6 +17,7 @@ import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
+import ImportModal from "../../Import/components/ImportModal.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
@@ -91,6 +92,7 @@ function App() {
 			padding="md">
 			{!isMobile() && <Updater />}
 			<CommandPalette />
+			<ImportModal />
 
 			<AppShell.Header>
 				<AppHeader

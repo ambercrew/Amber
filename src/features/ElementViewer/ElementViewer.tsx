@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Container, Divider, Group, Stack, Text } from "@mantine/core";
 import { QuestionIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import ElementEditor from "./ElementEditor";
+import FolderView from "./FolderView";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
 import {
@@ -67,9 +68,9 @@ export default function ElementViewer() {
 		[elementId],
 	);
 
-	if (!currentElement || !elementId) return;
-
-	if (currentElement.type === "folder") return;
+	if (!currentElement || !elementId || currentElement.type === "folder") {
+		return <FolderView />;
+	}
 
 	if (currentElement.type === "card") {
 		return (

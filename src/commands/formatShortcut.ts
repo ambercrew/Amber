@@ -20,5 +20,5 @@ export function formatShortcut(shortcut: string): string {
 		const key = p.trim().toLowerCase();
 		return KEY_SYMBOLS[key] ?? SPECIAL[key] ?? key.toUpperCase();
 	});
-	return isMac ? parts.join("") : parts.join("+");
+	return isMac ? parts.join("") : parts.join(" + ");
 }

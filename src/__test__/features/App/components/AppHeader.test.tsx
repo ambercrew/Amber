@@ -89,7 +89,7 @@ describe("AppHeader", () => {
 			</>,
 			{ preloadedState: BASE_STATE },
 		);
-		await user.click(screen.getByTitle("Open command palette (Ctrl+K)"));
+		await user.click(screen.getByTitle("Open command palette (Ctrl + K)"));
 
 		// Assert
 

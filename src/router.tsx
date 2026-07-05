@@ -8,6 +8,10 @@ export const router = createBrowserRouter([
 		element: <App />,
 		children: [
 			{
+				index: true,
+				element: <ElementViewer />,
+			},
+			{
 				path: ":type/:id",
 				element: <ElementViewer />,
 			},
