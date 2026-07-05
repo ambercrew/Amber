@@ -38,6 +38,26 @@ class ResizeObserver {
 
 window.ResizeObserver = ResizeObserver;
 
+// jsdom has no layout engine, so IntersectionObserver isn't implemented.
+// Report everything as intersecting so components relying on useInViewport
+// (e.g. lazy-rendered images) behave as if visible during tests.
+class IntersectionObserver {
+	constructor(
+		private callback: (
+			entries: Pick<IntersectionObserverEntry, "isIntersecting">[],
+		) => void,
+	) {}
+	observe(target: Element) {
+		this.callback([{ isIntersecting: true } as IntersectionObserverEntry]);
+		void target;
+	}
+	unobserve() {}
+	disconnect() {}
+}
+
+window.IntersectionObserver =
+	IntersectionObserver as unknown as typeof window.IntersectionObserver;
+
 // Local storage
 const localStorageMock = (() => {
 	let store: Record<string, string> = {};

@@ -3,6 +3,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection";
 import { useLexicalEditable } from "@lexical/react/useLexicalEditable";
 import { calculateZoomLevel } from "@lexical/utils";
+import { useInViewport } from "@mantine/hooks";
 import { Box, Image } from "@mantine/core";
 import {
 	$getNodeByKey,
@@ -55,6 +56,7 @@ export default function ImageComponent({
 	const [isResizing, setIsResizing] = useState(false);
 	const isEditable = useLexicalEditable();
 	const imageRef = useRef<HTMLImageElement | null>(null);
+	const { ref: viewportRef, inViewport } = useInViewport<HTMLSpanElement>();
 
 	const onClick = useCallback(
 		(event: MouseEvent) => {
@@ -115,31 +117,44 @@ export default function ImageComponent({
 
 	return (
 		<Box
+			ref={viewportRef}
 			component="span"
 			pos="relative"
 			display="inline-block"
 			// Subtracting the image resizer from max width to not have x-scroll.
 			maw="calc(100% - 8px)"
 			style={{ cursor: "default" }}>
-			<Image
-				ref={imageRef}
-				src={src}
-				alt={altText}
-				draggable={isSelected}
-				w={width}
-				h={height}
-				m={0}
-				fit="fill"
-				radius={0}
-				style={{
-					cursor: isSelected ? "grab" : undefined,
-					outline: isFocused
-						? "2px solid var(--mantine-color-blue-5)"
-						: undefined,
-					userSelect: isFocused ? "none" : undefined,
-				}}
-			/>
-			{isEditable && isFocused && (
+			{inViewport ? (
+				<Image
+					ref={imageRef}
+					src={src}
+					alt={altText}
+					draggable={isSelected}
+					w={width}
+					h={height}
+					m={0}
+					fit="fill"
+					radius={0}
+					style={{
+						cursor: isSelected ? "grab" : undefined,
+						outline: isFocused
+							? "2px solid var(--mantine-color-blue-5)"
+							: undefined,
+						userSelect: isFocused ? "none" : undefined,
+					}}
+				/>
+			) : (
+				<Box
+					component="span"
+					display="inline-block"
+					bg="white"
+					w={width}
+					h={height}
+					miw={width === "inherit" ? "100%" : undefined}
+					mih={height === "inherit" ? 100 : undefined}
+				/>
+			)}
+			{isEditable && isFocused && inViewport && (
 				<ImageResizer
 					imageRef={imageRef}
 					onResizeStart={onResizeStart}

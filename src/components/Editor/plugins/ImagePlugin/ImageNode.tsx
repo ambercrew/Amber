@@ -106,12 +106,8 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 		const element = document.createElement("img");
 		element.setAttribute("src", this.__src);
 		element.setAttribute("alt", this.__altText);
-		if (this.__width !== "inherit") {
-			element.setAttribute("width", this.__width.toString());
-		}
-		if (this.__height !== "inherit") {
-			element.setAttribute("height", this.__height.toString());
-		}
+		element.setAttribute("width", this.__width.toString());
+		element.setAttribute("height", this.__height.toString());
 		return { element };
 	}
 
