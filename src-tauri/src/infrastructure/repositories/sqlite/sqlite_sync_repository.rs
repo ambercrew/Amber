@@ -135,7 +135,6 @@ impl SyncRepository for SqliteSyncRepository {
 
 fn get_entity_table_name(entity_type: EntityType) -> &'static str {
     match entity_type {
-        EntityType::FsrsProfile => "fsrs_profiles",
         EntityType::DeletedEntity => "deleted_entities",
     }
 }

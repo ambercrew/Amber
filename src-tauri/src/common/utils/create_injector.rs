@@ -23,8 +23,6 @@ use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::services::implementations::default_element_index_service::DefaultElementIndexService;
 use crate::elements::services::implementations::default_element_move_service::DefaultElementMoveService;
 use crate::elements::services::implementations::default_element_tree_service::DefaultElementTreeService;
-use crate::fsrs::entities::fsrs_profile::FsrsProfile;
-use crate::fsrs::repositories::fsrs_repository::FsrsRepository;
 use crate::generated_code;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
@@ -33,7 +31,6 @@ use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSet
 use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_extract_repository::SqliteExtractRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
-use crate::infrastructure::repositories::sqlite::sqlite_fsrs_repository::SqliteFsrsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteMetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
@@ -69,10 +66,7 @@ use crate::{
             syncer::{SyncLock, Syncer},
         },
         strategies::{
-            implementations::{
-                deleted_entity_strategy::DefaultDeletedEntityStrategy,
-                fsrs_profile_strategy::DefaultFsrsProfileStrategy,
-            },
+            implementations::deleted_entity_strategy::DefaultDeletedEntityStrategy,
             sync_entity_strategy::SyncEntityStrategy,
         },
     },
@@ -155,10 +149,6 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);
 
-    // FSRS
-
-    register_scope!(injector, dyn FsrsRepository, SqliteFsrsRepository);
-
     // Settings
 
     injector.register_singleton(Arc::new(Mutex::new(settings)));
@@ -174,11 +164,6 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     injector.register_singleton(Arc::new(SyncLock(Mutex::new(()))));
     register_scope!(injector, dyn SyncRepository, SqliteSyncRepository);
-    register_scope!(
-        injector,
-        dyn SyncEntityStrategy<Input = generated_code::FsrsProfile, Entity = FsrsProfile>,
-        DefaultFsrsProfileStrategy
-    );
     register_scope!(
         injector,
         dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,

@@ -4,7 +4,6 @@ mod backup;
 mod common;
 mod database;
 mod elements;
-mod fsrs;
 mod import;
 mod infrastructure;
 mod local_configurations;
@@ -23,7 +22,6 @@ use app_info::app_info_api::*;
 use backend::api::auth_api::*;
 use backend::api::user_api::*;
 use elements::elements_api::*;
-use fsrs::fsrs_api::*;
 use import::import_api::*;
 use settings::settings_api::*;
 
@@ -38,7 +36,6 @@ use crate::common::utils::create_injector::create_injector;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 
-pub use common::constants::DEFAULT_FSRS_PROFILE_ID;
 pub use common::types::SourceError;
 
 pub mod generated_code {
@@ -150,11 +147,6 @@ pub async fn run() -> Result<(), String> {
             update_user_information,
             // Sync
             sync,
-            // FSRS
-            create_profile,
-            delete_fsrs_profile,
-            get_all_fsrs_profiles,
-            update_profile,
             // Elements
             get_element_tree,
             get_element_by_id,

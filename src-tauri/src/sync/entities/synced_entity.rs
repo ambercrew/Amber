@@ -20,5 +20,4 @@ pub struct SyncedEntity {
 pub enum EntityType {
     // NOTE: do not change the number as they are synced to the server.
     DeletedEntity = 1,
-    FsrsProfile = 2,
 }

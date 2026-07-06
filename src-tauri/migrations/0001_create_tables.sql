@@ -17,47 +17,6 @@ CREATE TABLE local_configurations(
 
 -------------------------------------------------------------------------
 
-CREATE TABLE fsrs_profiles(
-    id                          TEXT        NOT NULL        PRIMARY KEY,
-    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
-    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
-    name                        TEXT        NOT NULL,
-    request_retention           REAL        NOT NULL,
-    maximum_interval            REAL        NOT NULL,
-    weights                     TEXT        NOT NULL
-);
-
--- The id of root is 00000000-0000-0000-0000-000000000002
-INSERT INTO fsrs_profiles(
-    id,
-    name,
-    request_retention,
-    maximum_interval,
-    weights) VALUES (
-    X'00000000000000000000000000000002',
-    'Default',
-    0.9,
-    36500,
-    '0.212 1.2931 2.3065 8.2956 6.4133 0.8334 3.0194 0.001 1.8722 0.1666 0.796 1.4835 0.0614 0.2629 1.6483 0.6014 1.8729 0.5425 0.0912 0.0658 0.1542'
-);
-
-CREATE TRIGGER fsrs_profiles_update_modified_at_after_update
-    AFTER UPDATE OF name, request_retention, maximum_interval, weights ON fsrs_profiles
-BEGIN
-    UPDATE fsrs_profiles
-    SET modified_at = datetime('now')
-    WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER fsrs_profiles_add_to_deleted_entities_after_delete
-    AFTER DELETE ON fsrs_profiles
-BEGIN
-    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
-    VALUES ('fsrs_profiles', OLD.id, OLD.created_at, datetime('now'));
-END;
-
--------------------------------------------------------------------------
-
 CREATE TABLE tags(
     name                        TEXT        NOT NULL        PRIMARY KEY,
     created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
