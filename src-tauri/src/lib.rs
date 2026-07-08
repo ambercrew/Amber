@@ -9,6 +9,7 @@ mod infrastructure;
 mod local_configurations;
 mod secrets;
 mod settings;
+mod study;
 mod sync;
 #[cfg(test)]
 mod test_utils;
@@ -24,6 +25,8 @@ use backend::api::user_api::*;
 use elements::elements_api::*;
 use import::import_api::*;
 use settings::settings_api::*;
+use study::study_api::*;
+use study::study_profile_api::*;
 
 pub use sync::sync_api::sync;
 
@@ -162,6 +165,23 @@ pub async fn run() -> Result<(), String> {
             update_reading,
             update_extract,
             update_card,
+            // Study
+            get_card_review,
+            get_reading_review,
+            get_due_elements,
+            grade_card,
+            next_reading,
+            finish_reading,
+            unfinish_reading,
+            // Study profiles
+            list_study_profiles,
+            create_study_profile,
+            update_study_profile,
+            delete_study_profile,
+            clone_study_profile,
+            set_default_study_profile,
+            assign_study_profile,
+            get_effective_study_profile,
             // Import
             fetch_page,
             fetch_image,

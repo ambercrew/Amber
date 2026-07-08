@@ -9,6 +9,7 @@ import { warn, debug, trace, info, error } from "@tauri-apps/plugin-log";
 import "@mantine/core/styles.css";
 import "@mantine/spotlight/styles.css";
 import "@mantine/dropzone/styles.css";
+import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
 import theme from "./theme.ts";
 

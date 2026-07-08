@@ -4,6 +4,11 @@ import AppHeader from "../../../../features/App/components/AppHeader";
 import CommandPalette from "../../../../commands/CommandPalette";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
+import { getDueElements } from "../../../../api/study/api/studyApi";
+
+vi.mock(import("../../../../api/study/api/studyApi.ts"));
+
+vi.mocked(getDueElements).mockResolvedValue([]);
 
 const folderElement: AnyElementDto = {
 	type: "folder",
@@ -35,6 +40,7 @@ describe("AppHeader", () => {
 		// Assert
 
 		expect(screen.getAllByRole("button")).toHaveLength(2);
+		expect(screen.getByRole("switch")).toBeInTheDocument();
 	});
 
 	it("Should show element name when an element is selected", () => {

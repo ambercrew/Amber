@@ -36,6 +36,7 @@
 		"@mantine/form": "^9.4.1",
 		"@mantine/hooks": "^9.4.1",
 		"@mantine/modals": "^9.4.1",
+		"@mantine/notifications": "^9.4.1",
 		"@mantine/spotlight": "^9.4.1",
 		"@mdi/js": "7.4.47",
 		"@mdi/react": "1.6.1",

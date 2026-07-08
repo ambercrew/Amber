@@ -257,6 +257,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            study_profile_id: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -387,6 +388,7 @@ mod tests {
                 ..reading_meta()
             },
             content: "content".to_string(),
+            position_block_index: 0,
         };
         let reading_id = reading.meta.element_id;
         let extract = Extract {
@@ -482,6 +484,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let reading_second = Reading {
             meta: Meta {
@@ -493,6 +496,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let reading_first_id = reading_first.meta.element_id;
         let reading_second_id = reading_second.meta.element_id;
@@ -575,6 +579,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let reading_id = reading.meta.element_id;
         scope
@@ -614,6 +619,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let folder = Folder {
             meta: Meta {

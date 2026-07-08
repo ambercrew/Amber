@@ -1,8 +1,13 @@
 pub mod sqlite_card_repository;
+pub mod sqlite_card_review_log_repository;
+pub mod sqlite_card_review_repository;
 pub mod sqlite_extract_repository;
 pub mod sqlite_folder_repository;
 pub mod sqlite_local_configuration_repository;
 pub mod sqlite_meta_repository;
 pub mod sqlite_reading_repository;
+pub mod sqlite_reading_review_log_repository;
+pub mod sqlite_reading_review_repository;
 pub mod sqlite_rows;
+pub mod sqlite_study_profile_repository;
 pub mod sqlite_sync_repository;

@@ -44,6 +44,7 @@ impl FolderRepository for SqliteFolderRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _"
             FROM folders f
@@ -68,6 +69,7 @@ impl FolderRepository for SqliteFolderRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _"
             FROM folders f
@@ -126,6 +128,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            study_profile_id: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -198,6 +201,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         folder_repo.create(folder.clone()).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();

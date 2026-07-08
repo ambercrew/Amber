@@ -1,0 +1,29 @@
+import { ElementId } from "../../../types/elements/elementId";
+
+export interface StudyProfileDto {
+	id: string;
+	createdAt: string;
+	modifiedAt: string;
+	name: string;
+	isDefault: boolean;
+	desiredRetention: number;
+	defaultAFactor: number;
+	initialIntervalDays: number;
+	minIntervalDays: number;
+}
+
+export interface StudyProfileRequestDto {
+	name: string;
+	desiredRetention: number;
+	defaultAFactor: number;
+	initialIntervalDays: number;
+	minIntervalDays: number;
+}
+
+export type ProfileSource = "direct" | "inherited" | "default";
+
+export interface EffectiveProfileDto {
+	profile: StudyProfileDto;
+	source: ProfileSource;
+	inheritedFrom: ElementId | null;
+}

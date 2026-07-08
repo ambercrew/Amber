@@ -1,0 +1,120 @@
+use std::sync::Arc;
+
+use tauri::State;
+use uuid::Uuid;
+
+use crate::common::api_error::ApiError;
+use crate::elements::value_objects::element_id::ElementId;
+use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
+use crate::study::dto::card_review_dto::CardReviewResponseDto;
+use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
+use crate::study::repositories::card_review_repository::CardReviewRepository;
+use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::services::card_grading_service::CardGradingService;
+use crate::study::services::due_elements_service::DueElementsService;
+use crate::study::services::reading_scheduling_service::ReadingSchedulingService;
+use crate::study::value_objects::rating::Rating;
+use injector::injector::Injector;
+
+#[tauri::command]
+pub async fn get_card_review(
+    injector: State<'_, Arc<Injector>>,
+    card_id: Uuid,
+) -> Result<Option<CardReviewResponseDto>, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn CardReviewRepository>()
+        .await
+        .get_by_card_id(card_id)
+        .await?;
+    Ok(result.map(|review| review.into()))
+}
+
+#[tauri::command]
+pub async fn get_reading_review(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<Option<ReadingReviewResponseDto>, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ReadingReviewRepository>()
+        .await
+        .get_by_element_id(element_id.id())
+        .await?;
+    Ok(result.map(|review| review.into()))
+}
+
+#[tauri::command]
+pub async fn get_due_elements(
+    injector: State<'_, Arc<Injector>>,
+) -> Result<Vec<ElementId>, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn DueElementsService>()
+        .await
+        .get_due_elements()
+        .await?;
+    Ok(result)
+}
+
+#[tauri::command]
+pub async fn grade_card(
+    injector: State<'_, Arc<Injector>>,
+    card_id: Uuid,
+    rating: Rating,
+    duration_ms: Option<u32>,
+) -> Result<CardReviewResponseDto, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn CardGradingService>()
+        .await
+        .grade_card(card_id, rating, duration_ms)
+        .await?;
+    scope.save_changes().await?;
+    Ok(result.into())
+}
+
+#[tauri::command]
+pub async fn next_reading(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<ReadingReviewResponseDto, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ReadingSchedulingService>()
+        .await
+        .next(element_id)
+        .await?;
+    scope.save_changes().await?;
+    Ok(result.into())
+}
+
+#[tauri::command]
+pub async fn finish_reading(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<ReadingReviewResponseDto, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ReadingSchedulingService>()
+        .await
+        .finish(element_id)
+        .await?;
+    scope.save_changes().await?;
+    Ok(result.into())
+}
+
+#[tauri::command]
+pub async fn unfinish_reading(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<ReadingReviewResponseDto, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ReadingSchedulingService>()
+        .await
+        .unfinish(element_id)
+        .await?;
+    scope.save_changes().await?;
+    Ok(result.into())
+}

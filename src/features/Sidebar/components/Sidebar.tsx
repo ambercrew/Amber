@@ -2,6 +2,7 @@ import { AppShell, Tabs, Group, ActionIcon, ScrollArea } from "@mantine/core";
 import ElementTreePanel from "./ElementTreePanel";
 import PriorityQueuePanel from "./PriorityQueuePanel";
 import { TreeViewIcon, QueueIcon, XIcon } from "@phosphor-icons/react";
+import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
 
 interface SidebarProps {
 	onCollapse: () => void;
@@ -28,7 +29,7 @@ function Sidebar({ onCollapse }: SidebarProps) {
 						<ActionIcon
 							variant="subtle"
 							onClick={onCollapse}
-							hiddenFrom="sm"
+							hiddenFrom={SIDEBAR_BREAKPOINT}
 							mx="md"
 							style={{ position: "absolute", right: 0 }}>
 							<XIcon size={18} />

@@ -97,6 +97,38 @@ END;
 
 -------------------------------------------------------------------------
 
+CREATE TABLE study_profiles(
+    id                          TEXT        NOT NULL        PRIMARY KEY,
+    created_at                  TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_at                 TEXT        NOT NULL        DEFAULT (datetime('now')),
+    name                        TEXT        NOT NULL,
+    is_default                  INTEGER     NOT NULL        DEFAULT 0,
+    -- FSRS (cards)
+    desired_retention           REAL        NOT NULL,
+    fsrs_params                 TEXT,
+    -- Incremental reading (readings/extracts)
+    default_a_factor            REAL        NOT NULL,
+    initial_interval_days       REAL        NOT NULL,
+    min_interval_days           REAL        NOT NULL
+);
+
+CREATE TRIGGER study_profiles_update_modified_at_after_update
+    AFTER UPDATE OF name, is_default, desired_retention, fsrs_params, default_a_factor, initial_interval_days, min_interval_days ON study_profiles
+BEGIN
+    UPDATE study_profiles
+    SET modified_at = datetime('now')
+    WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER study_profiles_add_to_deleted_entities_after_delete
+    AFTER DELETE ON study_profiles
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
+    VALUES ('study_profiles', OLD.id, OLD.created_at, datetime('now'));
+END;
+
+-------------------------------------------------------------------------
+
 -- Element tables are created before meta (no FK to meta) so that meta can
 -- reference them. The reverse constraint (element must have a meta row)
 -- is enforced by the application inserting meta before the element row.
@@ -106,8 +138,9 @@ CREATE TABLE folders(
 );
 
 CREATE TABLE readings(
-    id          TEXT NOT NULL PRIMARY KEY,
-    content     TEXT NOT NULL
+    id                     TEXT    NOT NULL PRIMARY KEY,
+    content                TEXT    NOT NULL,
+    position_block_index   INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE extracts(
@@ -124,14 +157,16 @@ CREATE TABLE cards(
 -------------------------------------------------------------------------
 
 CREATE TABLE meta(
-    element_id   TEXT    NOT NULL PRIMARY KEY,
-    element_type TEXT    NOT NULL,
-    name         TEXT    NOT NULL,
-    position     BLOB    NOT NULL,
-    parent_id    TEXT,
-    parent_type  TEXT,
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-    modified_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+    element_id        TEXT    NOT NULL PRIMARY KEY,
+    element_type      TEXT    NOT NULL,
+    name              TEXT    NOT NULL,
+    position          BLOB    NOT NULL,
+    parent_id         TEXT,
+    parent_type       TEXT,
+    study_profile_id  TEXT,
+    created_at        TEXT    NOT NULL DEFAULT (datetime('now')),
+    modified_at       TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (study_profile_id) REFERENCES study_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX meta_parent_id_index ON meta(parent_id);
@@ -267,3 +302,80 @@ CREATE TRIGGER cards_delete_meta_after_delete
 BEGIN
     DELETE FROM meta WHERE element_id = OLD.id;
 END;
+
+-------------------------------------------------------------------------
+
+CREATE TABLE card_reviews(
+    card_id         TEXT        NOT NULL        PRIMARY KEY,
+    due             TEXT        NOT NULL,
+    stability       REAL        NOT NULL,
+    difficulty      REAL        NOT NULL,
+    reps            INTEGER     NOT NULL        DEFAULT 0,
+    lapses          INTEGER     NOT NULL        DEFAULT 0,
+    state           TEXT        NOT NULL,
+    last_reviewed   TEXT,
+    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Keep the card's meta modified_at in sync whenever its review state changes.
+CREATE TRIGGER card_reviews_update_meta_modified_at_after_update
+    AFTER UPDATE ON card_reviews
+BEGIN
+    UPDATE meta
+    SET modified_at = datetime('now')
+    WHERE element_id = NEW.card_id;
+END;
+
+-------------------------------------------------------------------------
+
+-- Shared by readings and extracts, so it references meta(element_id) rather
+-- than either element table directly.
+CREATE TABLE reading_reviews(
+    element_id      TEXT        NOT NULL        PRIMARY KEY,
+    due             TEXT        NOT NULL,
+    interval_days   REAL        NOT NULL,
+    last_reviewed   TEXT,
+    finished_at     TEXT,
+    FOREIGN KEY (element_id) REFERENCES meta(element_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Keep the element's meta modified_at in sync whenever its review state changes.
+CREATE TRIGGER reading_reviews_update_meta_modified_at_after_update
+    AFTER UPDATE ON reading_reviews
+BEGIN
+    UPDATE meta
+    SET modified_at = datetime('now')
+    WHERE element_id = NEW.element_id;
+END;
+
+-------------------------------------------------------------------------
+
+-- History is kept even after the card is deleted, so the FK only clears the
+-- reference rather than removing the log row.
+CREATE TABLE card_review_logs(
+    id              TEXT        NOT NULL        PRIMARY KEY,
+    card_id         TEXT,
+    reviewed_at     TEXT        NOT NULL,
+    rating          TEXT        NOT NULL,
+    duration_ms     INTEGER,
+    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE INDEX card_review_logs_card_id_index ON card_review_logs(card_id);
+CREATE INDEX card_review_logs_reviewed_at_index ON card_review_logs(reviewed_at);
+
+-------------------------------------------------------------------------
+
+-- History is kept even after the element is deleted, so the FK only clears
+-- the reference rather than removing the log row. References meta(element_id)
+-- since it is shared by readings and extracts.
+CREATE TABLE reading_review_logs(
+    id              TEXT        NOT NULL        PRIMARY KEY,
+    element_id      TEXT,
+    reviewed_at     TEXT        NOT NULL,
+    action          TEXT        NOT NULL,
+    FOREIGN KEY (element_id) REFERENCES meta(element_id) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+CREATE INDEX reading_review_logs_element_id_index ON reading_review_logs(element_id);
+CREATE INDEX reading_review_logs_reviewed_at_index ON reading_review_logs(reviewed_at);

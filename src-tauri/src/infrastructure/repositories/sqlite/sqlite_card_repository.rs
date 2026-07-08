@@ -48,6 +48,7 @@ impl CardRepository for SqliteCardRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 c.front,
@@ -74,6 +75,7 @@ impl CardRepository for SqliteCardRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 c.front,
@@ -153,6 +155,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            study_profile_id: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -188,6 +191,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let card = Card {
             meta: Meta {
@@ -235,6 +239,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let card = Card {
             meta: Meta {
@@ -285,6 +290,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let card = Card {
             meta: Meta {

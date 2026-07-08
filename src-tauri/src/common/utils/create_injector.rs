@@ -29,11 +29,16 @@ use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager:
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_card_review_log_repository::SqliteCardReviewLogRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_card_review_repository::SqliteCardReviewRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_extract_repository::SqliteExtractRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteMetaRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repository::SqliteReadingReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::infrastructure::value_objects::db_pool::DbPool;
@@ -44,6 +49,21 @@ use crate::settings::entities::settings::Settings;
 use crate::settings::repositories::settings_repository::SettingsRepository;
 #[cfg(not(test))]
 use crate::settings::value_objects::settings_profile::SettingsProfile;
+use crate::study::repositories::card_review_log_repository::CardReviewLogRepository;
+use crate::study::repositories::card_review_repository::CardReviewRepository;
+use crate::study::repositories::reading_review_log_repository::ReadingReviewLogRepository;
+use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::study_profile_repository::StudyProfileRepository;
+use crate::study::services::card_grading_service::CardGradingService;
+use crate::study::services::due_elements_service::DueElementsService;
+use crate::study::services::implementations::default_card_grading_service::DefaultCardGradingService;
+use crate::study::services::implementations::default_due_elements_service::DefaultDueElementsService;
+use crate::study::services::implementations::default_profile_resolution_service::DefaultProfileResolutionService;
+use crate::study::services::implementations::default_reading_scheduling_service::DefaultReadingSchedulingService;
+use crate::study::services::implementations::default_study_profile_service::DefaultStudyProfileService;
+use crate::study::services::profile_resolution_service::ProfileResolutionService;
+use crate::study::services::reading_scheduling_service::ReadingSchedulingService;
+use crate::study::services::study_profile_service::StudyProfileService;
 use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
     backend::clients::brainy_backend_client::BrainyBackendClient,
@@ -148,6 +168,51 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     );
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);
+
+    // Study
+
+    register_scope!(
+        injector,
+        dyn StudyProfileRepository,
+        SqliteStudyProfileRepository
+    );
+    register_scope!(
+        injector,
+        dyn ProfileResolutionService,
+        DefaultProfileResolutionService
+    );
+    register_scope!(
+        injector,
+        dyn CardReviewRepository,
+        SqliteCardReviewRepository
+    );
+    register_scope!(
+        injector,
+        dyn CardReviewLogRepository,
+        SqliteCardReviewLogRepository
+    );
+    register_scope!(
+        injector,
+        dyn ReadingReviewRepository,
+        SqliteReadingReviewRepository
+    );
+    register_scope!(
+        injector,
+        dyn ReadingReviewLogRepository,
+        SqliteReadingReviewLogRepository
+    );
+    register_scope!(injector, dyn DueElementsService, DefaultDueElementsService);
+    register_scope!(injector, dyn CardGradingService, DefaultCardGradingService);
+    register_scope!(
+        injector,
+        dyn ReadingSchedulingService,
+        DefaultReadingSchedulingService
+    );
+    register_scope!(
+        injector,
+        dyn StudyProfileService,
+        DefaultStudyProfileService
+    );
 
     // Settings
 

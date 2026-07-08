@@ -19,6 +19,14 @@ pub trait MetaRepository: Send + Sync {
     async fn rename(&self, id: ElementId, new_name: String) -> Result<(), RepositoryError>;
     async fn exists(&self, id: ElementId) -> Result<bool, RepositoryError>;
 
+    /// Sets or clears (`None`) the element's own study profile. `None` makes
+    /// the element inherit from its parent chain.
+    async fn set_study_profile(
+        &self,
+        id: ElementId,
+        study_profile_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError>;
+
     /// Changes the parent and position of the given element.
     async fn move_to(
         &self,

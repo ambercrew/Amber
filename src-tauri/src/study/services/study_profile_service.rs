@@ -1,0 +1,46 @@
+use async_trait::async_trait;
+use uuid::Uuid;
+
+use crate::common::repository_error::RepositoryError;
+use crate::elements::value_objects::element_id::ElementId;
+use crate::study::entities::study_profile::StudyProfile;
+
+/// Fields editable through the Profile modal. `fsrs_params` and `is_default`
+/// are intentionally excluded: FSRS weight editing waits for the optimizer,
+/// and default status only changes via `set_default`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StudyProfileFields {
+    pub name: String,
+    pub desired_retention: f32,
+    pub default_a_factor: f32,
+    pub initial_interval_days: f32,
+    pub min_interval_days: f32,
+}
+
+#[async_trait]
+pub trait StudyProfileService: Send + Sync {
+    async fn list_profiles(&self) -> Result<Vec<StudyProfile>, RepositoryError>;
+    async fn create_profile(
+        &self,
+        fields: StudyProfileFields,
+    ) -> Result<StudyProfile, RepositoryError>;
+    async fn update_profile(
+        &self,
+        id: Uuid,
+        fields: StudyProfileFields,
+    ) -> Result<StudyProfile, RepositoryError>;
+    async fn delete_profile(&self, id: Uuid) -> Result<(), RepositoryError>;
+    async fn clone_profile(&self, id: Uuid) -> Result<StudyProfile, RepositoryError>;
+
+    /// One-way: makes `id` the default profile, clearing the flag on
+    /// whichever profile held it before.
+    async fn set_default_profile(&self, id: Uuid) -> Result<StudyProfile, RepositoryError>;
+
+    /// Sets (`Some`) or clears (`None`, i.e. inherit from parent) the
+    /// element's own study profile.
+    async fn assign_profile(
+        &self,
+        element_id: ElementId,
+        profile_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError>;
+}

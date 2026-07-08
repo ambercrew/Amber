@@ -5,3 +5,6 @@ export const selectStartedInitialStateLoading = (state: RootState) =>
 
 export const selectIsImportModalOpened = (state: RootState) =>
 	state.app.importModalOpened;
+
+export const selectIsStudyProfileModalOpened = (state: RootState) =>
+	state.app.studyProfileModalOpened;

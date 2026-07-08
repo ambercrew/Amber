@@ -13,6 +13,7 @@ pub struct CardRow {
     pub position: Vec<u8>,
     pub parent_id: Option<Uuid>,
     pub parent_type: Option<String>,
+    pub study_profile_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
     pub front: String,
@@ -26,6 +27,7 @@ impl From<CardRow> for Card {
                 element_id: ElementId::Card(row.id),
                 name: row.name,
                 parent: (row.parent_id, row.parent_type).into_element_id(),
+                study_profile_id: row.study_profile_id,
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
                 created_at: row.created_at,

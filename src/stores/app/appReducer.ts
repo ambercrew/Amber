@@ -3,11 +3,13 @@ import { createSlice } from "@reduxjs/toolkit";
 export interface AppState {
 	startedInitialStateLoading: boolean;
 	importModalOpened: boolean;
+	studyProfileModalOpened: boolean;
 }
 
 const initialState: AppState = {
 	startedInitialStateLoading: false,
 	importModalOpened: false,
+	studyProfileModalOpened: false,
 };
 
 const appSlice = createSlice({
@@ -23,6 +25,12 @@ const appSlice = createSlice({
 		closeImportModal: state => {
 			state.importModalOpened = false;
 		},
+		openStudyProfileModal: state => {
+			state.studyProfileModalOpened = true;
+		},
+		closeStudyProfileModal: state => {
+			state.studyProfileModalOpened = false;
+		},
 	},
 });
 
@@ -32,4 +40,6 @@ export const {
 	markStartLoadingOfInitialState,
 	openImportModal,
 	closeImportModal,
+	openStudyProfileModal,
+	closeStudyProfileModal,
 } = appSlice.actions;

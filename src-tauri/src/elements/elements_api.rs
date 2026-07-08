@@ -96,6 +96,7 @@ pub async fn create_folder(
             name: dto.meta.name,
             parent,
             position,
+            study_profile_id: None,
             created_at: now,
             modified_at: now,
         },
@@ -128,10 +129,12 @@ pub async fn create_reading(
             name: dto.meta.name,
             parent,
             position,
+            study_profile_id: None,
             created_at: now,
             modified_at: now,
         },
         content: dto.content,
+        position_block_index: 0,
     };
     scope
         .resolve::<dyn ReadingRepository>()
@@ -161,6 +164,7 @@ pub async fn create_extract(
             name: dto.meta.name,
             parent,
             position,
+            study_profile_id: None,
             created_at: now,
             modified_at: now,
         },
@@ -208,6 +212,7 @@ pub async fn create_card(
             name: dto.meta.name,
             parent,
             position,
+            study_profile_id: None,
             created_at: now,
             modified_at: now,
         },

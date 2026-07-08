@@ -26,9 +26,10 @@ impl ReadingRepository for SqliteReadingRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO readings (id, content) VALUES ($1, $2)",
+            "INSERT INTO readings (id, content, position_block_index) VALUES ($1, $2, $3)",
             uuid,
             reading.content,
+            reading.position_block_index,
         )
         .execute(&mut *tx)
         .await?;
@@ -47,9 +48,11 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.content
+                r.content,
+                r.position_block_index
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             ORDER BY m.position"#
@@ -72,9 +75,11 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.content
+                r.content,
+                r.position_block_index
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             WHERE r.id = $1"#,
@@ -144,6 +149,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            study_profile_id: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -182,6 +188,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let extract = Extract {
             meta: Meta {
@@ -228,6 +235,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let card = Card {
             meta: Meta {
@@ -274,6 +282,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();
@@ -314,6 +323,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo.create(reading.clone()).await.unwrap();

@@ -1,0 +1,286 @@
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use chrono::Utc;
+use injector_derive::ScopeInjectable;
+use uuid::Uuid;
+
+use crate::common::repository_error::RepositoryError;
+use crate::elements::repositories::meta_repository::MetaRepository;
+use crate::elements::value_objects::element_id::ElementId;
+use crate::study::entities::study_profile::StudyProfile;
+use crate::study::repositories::study_profile_repository::StudyProfileRepository;
+use crate::study::services::study_profile_service::{StudyProfileFields, StudyProfileService};
+
+#[derive(ScopeInjectable)]
+pub struct DefaultStudyProfileService {
+    study_profile_repository: Arc<dyn StudyProfileRepository>,
+    meta_repository: Arc<dyn MetaRepository>,
+}
+
+#[async_trait]
+impl StudyProfileService for DefaultStudyProfileService {
+    async fn list_profiles(&self) -> Result<Vec<StudyProfile>, RepositoryError> {
+        self.study_profile_repository.get_all().await
+    }
+
+    async fn create_profile(
+        &self,
+        fields: StudyProfileFields,
+    ) -> Result<StudyProfile, RepositoryError> {
+        let now = Utc::now();
+        let profile = StudyProfile {
+            id: Uuid::new_v4(),
+            created_at: now,
+            modified_at: now,
+            name: fields.name,
+            is_default: false,
+            desired_retention: fields.desired_retention,
+            fsrs_params: Some(fsrs::DEFAULT_PARAMETERS.to_vec()),
+            default_a_factor: fields.default_a_factor,
+            initial_interval_days: fields.initial_interval_days,
+            min_interval_days: fields.min_interval_days,
+        };
+        self.study_profile_repository.create(&profile).await?;
+        Ok(profile)
+    }
+
+    async fn update_profile(
+        &self,
+        id: Uuid,
+        fields: StudyProfileFields,
+    ) -> Result<StudyProfile, RepositoryError> {
+        let existing = self.study_profile_repository.get_by_id(id).await?;
+        let profile = StudyProfile {
+            name: fields.name,
+            desired_retention: fields.desired_retention,
+            default_a_factor: fields.default_a_factor,
+            initial_interval_days: fields.initial_interval_days,
+            min_interval_days: fields.min_interval_days,
+            ..existing
+        };
+        self.study_profile_repository.update(&profile).await?;
+        Ok(profile)
+    }
+
+    async fn delete_profile(&self, id: Uuid) -> Result<(), RepositoryError> {
+        self.study_profile_repository.delete(id).await
+    }
+
+    async fn clone_profile(&self, id: Uuid) -> Result<StudyProfile, RepositoryError> {
+        let existing = self.study_profile_repository.get_by_id(id).await?;
+        let now = Utc::now();
+        let clone = StudyProfile {
+            id: Uuid::new_v4(),
+            created_at: now,
+            modified_at: now,
+            name: format!("{} (copy)", existing.name),
+            is_default: false,
+            ..existing
+        };
+        self.study_profile_repository.create(&clone).await?;
+        Ok(clone)
+    }
+
+    async fn set_default_profile(&self, id: Uuid) -> Result<StudyProfile, RepositoryError> {
+        self.study_profile_repository.clear_default().await?;
+        let profile = StudyProfile {
+            is_default: true,
+            ..self.study_profile_repository.get_by_id(id).await?
+        };
+        self.study_profile_repository.update(&profile).await?;
+        Ok(profile)
+    }
+
+    async fn assign_profile(
+        &self,
+        element_id: ElementId,
+        profile_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError> {
+        self.meta_repository
+            .set_study_profile(element_id, profile_id)
+            .await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use fractional_index::FractionalIndex;
+    use injector::{injector::Injector, register_scope};
+
+    use crate::{
+        elements::value_objects::meta::Meta,
+        infrastructure::repositories::sqlite::{
+            sqlite_meta_repository::SqliteMetaRepository,
+            sqlite_study_profile_repository::SqliteStudyProfileRepository,
+        },
+        test_utils::create_test_injector,
+    };
+
+    use super::*;
+
+    async fn initialize_test_injector() -> Injector {
+        let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
+        register_scope!(
+            injector,
+            dyn StudyProfileRepository,
+            SqliteStudyProfileRepository
+        );
+        register_scope!(
+            injector,
+            dyn StudyProfileService,
+            DefaultStudyProfileService
+        );
+        injector
+    }
+
+    fn make_fields(name: &str) -> StudyProfileFields {
+        StudyProfileFields {
+            name: name.into(),
+            desired_retention: 0.9,
+            default_a_factor: 1.2,
+            initial_interval_days: 1.0,
+            min_interval_days: 1.0,
+        }
+    }
+
+    #[tokio::test]
+    async fn create_profile_valid_fields_returns_non_default_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+
+        // Act
+
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        // Assert
+
+        assert_eq!("Custom", profile.name);
+        assert!(!profile.is_default);
+    }
+
+    #[tokio::test]
+    async fn update_profile_existing_profile_changes_fields() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        // Act
+
+        let updated = service
+            .update_profile(profile.id, make_fields("Renamed"))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!("Renamed", updated.name);
+    }
+
+    #[tokio::test]
+    async fn delete_profile_existing_profile_removes_it() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        // Act
+
+        service.delete_profile(profile.id).await.unwrap();
+        let remaining = service.list_profiles().await.unwrap();
+
+        // Assert
+
+        assert!(!remaining.iter().any(|p| p.id == profile.id));
+    }
+
+    #[tokio::test]
+    async fn clone_profile_existing_profile_creates_copy_with_new_id() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        // Act
+
+        let clone = service.clone_profile(profile.id).await.unwrap();
+
+        // Assert
+
+        assert_ne!(profile.id, clone.id);
+        assert_eq!("Custom (copy)", clone.name);
+        assert!(!clone.is_default);
+    }
+
+    #[tokio::test]
+    async fn set_default_profile_new_profile_clears_previous_default() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let first = service.create_profile(make_fields("First")).await.unwrap();
+        let second = service.create_profile(make_fields("Second")).await.unwrap();
+        service.set_default_profile(first.id).await.unwrap();
+
+        // Act
+
+        service.set_default_profile(second.id).await.unwrap();
+
+        // Assert
+
+        let profiles = service.list_profiles().await.unwrap();
+        let first = profiles.iter().find(|p| p.id == first.id).unwrap();
+        let second = profiles.iter().find(|p| p.id == second.id).unwrap();
+        assert!(!first.is_default);
+        assert!(second.is_default);
+    }
+
+    #[tokio::test]
+    async fn assign_profile_element_sets_direct_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        let folder_id = ElementId::Folder(Uuid::new_v4());
+        meta_repo
+            .create_meta(&Meta {
+                element_id: folder_id,
+                name: "test".into(),
+                parent: None,
+                position: FractionalIndex::default(),
+                study_profile_id: None,
+                created_at: Utc::now(),
+                modified_at: Utc::now(),
+            })
+            .await
+            .unwrap();
+
+        // Act
+
+        service
+            .assign_profile(folder_id, Some(profile.id))
+            .await
+            .unwrap();
+
+        // Assert
+
+        let meta = meta_repo.get_by_id(folder_id.id()).await.unwrap();
+        assert_eq!(Some(profile.id), meta.study_profile_id);
+    }
+}

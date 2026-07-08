@@ -128,6 +128,7 @@ mod tests {
                 name: "test".into(),
                 parent,
                 position,
+                study_profile_id: None,
                 created_at: Utc::now(),
                 modified_at: Utc::now(),
             },

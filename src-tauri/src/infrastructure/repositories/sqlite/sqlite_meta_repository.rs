@@ -27,14 +27,15 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, datetime($7), datetime($8))",
+            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, study_profile_id, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
             uuid,
             element_type,
             meta.name,
             meta.position.as_bytes(),
             meta.parent.map(|p| p.id()),
             meta.parent.map(|p| p.element_name()),
+            meta.study_profile_id,
             meta.created_at,
             meta.modified_at,
         )
@@ -56,6 +57,7 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                study_profile_id as "study_profile_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -159,6 +161,24 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(row.exists)
     }
 
+    async fn set_study_profile(
+        &self,
+        id: ElementId,
+        study_profile_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE meta SET study_profile_id = $1 WHERE element_id = $2"#,
+            study_profile_id,
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
     async fn move_to(
         &self,
         id: ElementId,
@@ -209,6 +229,7 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                study_profile_id as "study_profile_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -237,6 +258,7 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                study_profile_id as "study_profile_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -268,6 +290,7 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                study_profile_id as "study_profile_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta

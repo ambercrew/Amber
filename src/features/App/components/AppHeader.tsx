@@ -26,6 +26,8 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import { renameElementAction } from "../../../stores/elements/elementsActions";
 import { formatShortcut } from "../../../commands/formatShortcut";
 import { SPOTLIGHT_SHORTCUT } from "../../../commands/commands";
+import StudyModeToggle from "../../Study/components/StudyModeToggle";
+import ElementProfileRow from "../../Study/components/ElementProfileRow";
 
 interface AppHeaderProps {
 	pinned: boolean;
@@ -66,7 +68,7 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 			<Group
 				h="100%"
 				p="xs"
-				gap={0}
+				gap="sm"
 				align="center"
 				wrap="nowrap"
 				justify="space-between">
@@ -105,13 +107,16 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 					)}
 				</Group>
 
-				<ActionIcon
-					variant="subtle"
-					size="lg"
-					title={`Open command palette (${formatShortcut(SPOTLIGHT_SHORTCUT)})`}
-					onClick={() => spotlight.open()}>
-					<CommandIcon size={18} />
-				</ActionIcon>
+				<Group gap="xs" align="center" wrap="nowrap">
+					<StudyModeToggle />
+					<ActionIcon
+						variant="subtle"
+						size="lg"
+						title={`Open command palette (${formatShortcut(SPOTLIGHT_SHORTCUT)})`}
+						onClick={() => spotlight.open()}>
+						<CommandIcon size={18} />
+					</ActionIcon>
+				</Group>
 			</Group>
 
 			<Collapse expanded={opened && pinned && storedMeta != null}>
@@ -162,16 +167,16 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 
 						<Stack gap={2}>
 							<Text size="xs" c="dimmed" fw={500}>
+								Study profile
+							</Text>
+							<ElementProfileRow
+								elementId={storedMeta.elementId}
+							/>
+							<Text size="xs" c="dimmed" fw={500} mt={4}>
 								Created
 							</Text>
 							<Text size="sm" py={6}>
 								{formatDate(storedMeta.createdAt)}
-							</Text>
-							<Text size="xs" c="dimmed" fw={500}>
-								Modified
-							</Text>
-							<Text size="sm" py={6}>
-								{formatDate(storedMeta.modifiedAt)}
 							</Text>
 						</Stack>
 					</SimpleGrid>

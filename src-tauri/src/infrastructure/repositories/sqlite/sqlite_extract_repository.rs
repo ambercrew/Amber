@@ -47,6 +47,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 e.content
@@ -72,6 +73,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 e.content
@@ -144,6 +146,7 @@ mod tests {
             name: "test".into(),
             parent: None,
             position: FractionalIndex::default(),
+            study_profile_id: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
@@ -182,6 +185,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let parent_extract = Extract {
             meta: Meta {
@@ -240,6 +244,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let extract = Extract {
             meta: Meta {
@@ -295,6 +300,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let extract = Extract {
             meta: Meta {
@@ -344,6 +350,7 @@ mod tests {
                 ..reading_meta()
             },
             content: String::new(),
+            position_block_index: 0,
         };
         let extract = Extract {
             meta: Meta {

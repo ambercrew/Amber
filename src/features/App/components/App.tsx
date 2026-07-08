@@ -8,22 +8,29 @@ import {
 	rem,
 } from "@mantine/core";
 import { useSplitter, useMediaQuery, useHeadroom } from "@mantine/hooks";
+import { Notifications } from "@mantine/notifications";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useRedirectIfElementMissing } from "../../../hooks/useRedirectIfElementMissing";
 import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
+import { useStudySessionGuard } from "../../../hooks/useStudySessionGuard";
+import { useStudySessionSummaryToast } from "../../../hooks/useStudySessionSummaryToast";
 import Updater from "../../Updater/components/Updater";
 import CommandPalette from "../../../commands/CommandPalette";
+import StudySessionBar from "../../Study/components/StudySessionBar.tsx";
 import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
+import { selectStudyStatus } from "../../../stores/study/studySelectors.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import ImportModal from "../../Import/components/ImportModal.tsx";
+import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
 const HEADER_HEIGHT = 60;
+const BOTTOM_BAR_HEIGHT = 60;
 const SIDEBAR_DEFAULT = 320;
-const SIDEBAR_BREAKPOINT: MantineBreakpoint = "xs";
+export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "xs";
 
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
@@ -31,6 +38,7 @@ function App() {
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
+	const studyStatus = useAppSelector(selectStudyStatus);
 	const theme = useMantineTheme();
 	const isMobileViewport =
 		useMediaQuery(
@@ -53,6 +61,8 @@ function App() {
 
 	useRedirectIfElementMissing();
 	useCurrentElementSync();
+	useStudySessionGuard();
+	useStudySessionSummaryToast();
 
 	const navbarWidth =
 		parseFloat(String(splitter.sizes[0])) || SIDEBAR_DEFAULT;
@@ -89,10 +99,16 @@ function App() {
 				collapsed: !pinned,
 				offset: false,
 			}}
+			footer={{
+				height: BOTTOM_BAR_HEIGHT,
+				collapsed: studyStatus !== "studying" || !pinned,
+			}}
 			padding="md">
 			{!isMobile() && <Updater />}
 			<CommandPalette />
 			<ImportModal />
+			<StudyProfileModal />
+			<Notifications />
 
 			<AppShell.Header>
 				<AppHeader
@@ -100,6 +116,10 @@ function App() {
 					pinned={pinned}
 				/>
 			</AppShell.Header>
+
+			<AppShell.Footer>
+				<StudySessionBar />
+			</AppShell.Footer>
 
 			<AppShell.Navbar bg="var(--mantine-color-gray-0)">
 				<Sidebar onCollapse={() => splitter.collapse(0)} />

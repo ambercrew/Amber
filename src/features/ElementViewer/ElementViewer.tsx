@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Container, Divider, Group, Stack, Text } from "@mantine/core";
-import { QuestionIcon, CheckCircleIcon } from "@phosphor-icons/react";
+import { Container } from "@mantine/core";
+import CardElementViewer from "./CardElementViewer";
 import ElementEditor from "./ElementEditor";
 import FolderView from "./FolderView";
 import useAppSelector from "../../hooks/useAppSelector";
@@ -74,40 +74,14 @@ export default function ElementViewer() {
 
 	if (currentElement.type === "card") {
 		return (
-			<Container size="sm" py="lg">
-				<Stack key={`card-${elementId.id}`} gap="xl">
-					<Stack gap="md">
-						<Group gap="xs">
-							<QuestionIcon size={18} />
-							<Text size="sm" c="dimmed" tt="uppercase">
-								Front
-							</Text>
-						</Group>
-						<ElementEditor
-							initialContent={currentElement.data.front}
-							buttons={buttons}
-							onChange={handleFrontChange}
-							onHighlightCreated={handleHighlightCreated}
-							autoFocus
-						/>
-					</Stack>
-					<Divider />
-					<Stack gap="md">
-						<Group gap="xs">
-							<CheckCircleIcon size={18} />
-							<Text size="sm" c="dimmed" tt="uppercase">
-								Back
-							</Text>
-						</Group>
-						<ElementEditor
-							initialContent={currentElement.data.back}
-							buttons={buttons}
-							onChange={handleBackChange}
-							onHighlightCreated={handleHighlightCreated}
-						/>
-					</Stack>
-				</Stack>
-			</Container>
+			<CardElementViewer
+				elementId={elementId}
+				card={currentElement.data}
+				buttons={buttons}
+				onFrontChange={handleFrontChange}
+				onBackChange={handleBackChange}
+				onHighlightCreated={handleHighlightCreated}
+			/>
 		);
 	}
 

@@ -1,12 +1,15 @@
 import { createElement, ReactNode } from "react";
-import { UploadSimpleIcon } from "@phosphor-icons/react";
+import { FadersHorizontalIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { AppDispatch, RootState } from "../stores/store";
-import { openImportModal } from "../stores/app/appReducer";
+import {
+	openImportModal,
+	openStudyProfileModal,
+} from "../stores/app/appReducer";
 
 export const SPOTLIGHT_SHORTCUT = "mod+K";
 export const IMPORT_SHORTCUT = "mod+shift+N";
 
-export const commandIds = ["import"] as const;
+export const commandIds = ["import", "manage-study-profiles"] as const;
 export type CommandId = (typeof commandIds)[number];
 
 export const commandGroups = ["General"] as const;
@@ -28,7 +31,14 @@ export const commands: Command[] = [
 		group: "General",
 		label: "Import",
 		shortcut: IMPORT_SHORTCUT,
-		icon: createElement(UploadSimpleIcon, { size: 18 }),
+		icon: createElement(UploadSimpleIcon),
 		execute: dispatch => dispatch(openImportModal()),
+	},
+	{
+		id: "manage-study-profiles",
+		group: "General",
+		label: "Manage study profiles",
+		icon: createElement(FadersHorizontalIcon),
+		execute: dispatch => dispatch(openStudyProfileModal()),
 	},
 ];

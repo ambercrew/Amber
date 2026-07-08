@@ -4,6 +4,7 @@ import syncReducer from "./sync/syncReducer";
 import settingsReducer from "./settings/settingsReducer";
 import appReducer from "./app/appReducer.ts";
 import elementsReducer from "./elements/elementsReducer";
+import studyReducer from "./study/studyReducer";
 
 const reducers = combineReducers({
 	user: userReducer,
@@ -11,6 +12,7 @@ const reducers = combineReducers({
 	settings: settingsReducer,
 	app: appReducer,
 	elements: elementsReducer,
+	study: studyReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {
