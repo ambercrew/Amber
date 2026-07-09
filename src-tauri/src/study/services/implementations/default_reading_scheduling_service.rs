@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chrono::{Duration, Utc};
+use chrono::{DateTime, Duration, Utc};
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
@@ -27,28 +27,16 @@ pub struct DefaultReadingSchedulingService {
 #[async_trait]
 impl ReadingSchedulingService for DefaultReadingSchedulingService {
     async fn next(&self, element_id: ElementId) -> Result<ReadingReview, ReadingSchedulingError> {
-        let profile = self
-            .profile_resolution_service
-            .resolve_profile(element_id)
-            .await?;
         let existing = self
             .reading_review_repository
             .get_by_element_id(element_id.id())
             .await?;
-
-        let interval = match &existing {
-            Some(review) if review.interval_days > 0.0 => {
-                review.interval_days * profile.default_a_factor
-            }
-            _ => profile.initial_interval_days,
-        }
-        .max(profile.min_interval_days);
+        let interval = self.compute_next_interval(element_id, &existing).await?;
 
         let now = Utc::now();
         let review = ReadingReview {
             element_id,
-            due: start_of_today_utc()
-                + Duration::seconds((interval as f64 * 86400.0).round() as i64),
+            due: due_from_interval(interval),
             interval_days: interval,
             last_reviewed: Some(now),
             finished_at: existing.and_then(|review| review.finished_at),
@@ -59,6 +47,19 @@ impl ReadingSchedulingService for DefaultReadingSchedulingService {
             .await?;
 
         Ok(review)
+    }
+
+    async fn preview_next(
+        &self,
+        element_id: ElementId,
+    ) -> Result<DateTime<Utc>, ReadingSchedulingError> {
+        let existing = self
+            .reading_review_repository
+            .get_by_element_id(element_id.id())
+            .await?;
+        let interval = self.compute_next_interval(element_id, &existing).await?;
+
+        Ok(due_from_interval(interval))
     }
 
     async fn finish(&self, element_id: ElementId) -> Result<ReadingReview, ReadingSchedulingError> {
@@ -112,6 +113,25 @@ impl ReadingSchedulingService for DefaultReadingSchedulingService {
 }
 
 impl DefaultReadingSchedulingService {
+    async fn compute_next_interval(
+        &self,
+        element_id: ElementId,
+        existing: &Option<ReadingReview>,
+    ) -> Result<f32, ReadingSchedulingError> {
+        let profile = self
+            .profile_resolution_service
+            .resolve_profile(element_id)
+            .await?;
+
+        Ok(match existing {
+            Some(review) if review.interval_days > 0.0 => {
+                review.interval_days * profile.default_a_factor
+            }
+            _ => profile.initial_interval_days,
+        }
+        .max(profile.min_interval_days))
+    }
+
     async fn append_log(
         &self,
         element_id: ElementId,
@@ -128,6 +148,10 @@ impl DefaultReadingSchedulingService {
             .await?;
         Ok(())
     }
+}
+
+fn due_from_interval(interval_days: f32) -> DateTime<Utc> {
+    start_of_today_utc() + Duration::seconds((interval_days as f64 * 86400.0).round() as i64)
 }
 
 #[cfg(test)]

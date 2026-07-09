@@ -10,7 +10,6 @@ import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
 // TODO: the modal not good (also missing fsrs)
 // TODO: more front-end unit tests
-// TODO: show timer in footer and time on each button on footer
 // TODO: minimum days before next review
 // TODO: priority queue tab
 // TODO: delete all other cloze deletion from a cloze when making a new cloze

@@ -20,6 +20,7 @@ import { openStudyProfileModal } from "../../../stores/app/appReducer";
 import { selectStudyCounts } from "../../../stores/study/studySelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { commands } from "../../../commands/commands";
+import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 
 interface ElementProfileRowProps {
 	elementId: ElementId;
@@ -33,24 +34,7 @@ const INHERIT_VALUE = "__inherit__";
 function formatDueState(due: string | null, finished: boolean): string | null {
 	if (finished) return "Finished";
 	if (!due) return "New";
-	const dueDate = new Date(due);
-	const now = new Date();
-	const startOfDue = new Date(
-		dueDate.getFullYear(),
-		dueDate.getMonth(),
-		dueDate.getDate(),
-	);
-	const startOfToday = new Date(
-		now.getFullYear(),
-		now.getMonth(),
-		now.getDate(),
-	);
-	const diffDays = Math.round(
-		(startOfDue.getTime() - startOfToday.getTime()) / 86_400_000,
-	);
-	if (diffDays <= 0) return "Today";
-	if (diffDays === 1) return "Tomorrow";
-	return `In ${diffDays} days`;
+	return formatRelativeDueDate(due);
 }
 
 function ElementProfileRow({

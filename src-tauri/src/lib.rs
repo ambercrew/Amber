@@ -170,7 +170,9 @@ pub async fn run() -> Result<(), String> {
             get_reading_review,
             get_due_elements,
             grade_card,
+            preview_card_review,
             next_reading,
+            preview_next_reading,
             finish_reading,
             unfinish_reading,
             // Study profiles

@@ -3,9 +3,12 @@ use std::sync::Arc;
 use tauri::State;
 use uuid::Uuid;
 
+use chrono::{DateTime, Utc};
+
 use crate::common::api_error::ApiError;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
+use crate::study::dto::card_due_preview_dto::CardDuePreviewDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
 use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
@@ -75,6 +78,20 @@ pub async fn grade_card(
 }
 
 #[tauri::command]
+pub async fn preview_card_review(
+    injector: State<'_, Arc<Injector>>,
+    card_id: Uuid,
+) -> Result<CardDuePreviewDto, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn CardGradingService>()
+        .await
+        .preview_card(card_id)
+        .await?;
+    Ok(result.into())
+}
+
+#[tauri::command]
 pub async fn next_reading(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
@@ -87,6 +104,20 @@ pub async fn next_reading(
         .await?;
     scope.save_changes().await?;
     Ok(result.into())
+}
+
+#[tauri::command]
+pub async fn preview_next_reading(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<DateTime<Utc>, ApiError> {
+    let scope = injector.start_scope();
+    let result = scope
+        .resolve::<dyn ReadingSchedulingService>()
+        .await
+        .preview_next(element_id)
+        .await?;
+    Ok(result)
 }
 
 #[tauri::command]

@@ -1,7 +1,13 @@
+import { useEffect, useState } from "react";
 import { Box, Button, Group, Text, MantineColor } from "@mantine/core";
 import { EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
+import {
+	previewCardReview,
+	previewNextReading,
+} from "../../../api/study/api/studyApi";
+import { CardDuePreviewDto } from "../../../api/study/dto/cardDuePreviewDto";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { useElapsedSeconds } from "../../../hooks/useElapsedSeconds";
@@ -19,6 +25,7 @@ import {
 	selectStudyShownAt,
 } from "../../../stores/study/studySelectors";
 import { Rating } from "../../../types/study/rating";
+import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 
 const RATINGS: { rating: Rating; label: string; color: MantineColor }[] = [
 	{ rating: "again", label: "Again", color: "red" },
@@ -42,6 +49,27 @@ function StudySessionBar() {
 	const cardPhase = useAppSelector(selectStudyCardPhase);
 	const shownAt = useAppSelector(selectStudyShownAt);
 	const elapsedSeconds = useElapsedSeconds(shownAt);
+	const currentKey = current ? `${current.type}:${current.id}` : null;
+	const [trackedKey, setTrackedKey] = useState(currentKey);
+	const [cardDuePreview, setCardDuePreview] =
+		useState<CardDuePreviewDto | null>(null);
+	const [nextReadingDue, setNextReadingDue] = useState<string | null>(null);
+
+	if (currentKey !== trackedKey) {
+		setTrackedKey(currentKey);
+		setCardDuePreview(null);
+		setNextReadingDue(null);
+	}
+
+	useEffect(() => {
+		if (!current) return;
+
+		if (current.type === "card") {
+			void previewCardReview(current.id).then(setCardDuePreview);
+		} else {
+			void previewNextReading(current).then(setNextReadingDue);
+		}
+	}, [current]);
 
 	if (!current) return null;
 
@@ -65,46 +93,68 @@ function StudySessionBar() {
 					Show answer
 				</Button>
 			) : current.type === "card" ? (
-				<Group gap="xs" wrap="nowrap">
+				<Group gap="xs" wrap="nowrap" align="flex-start">
 					{RATINGS.map(({ rating, label, color }) => (
-						<Button
-							key={rating}
-							variant="light"
-							color={color}
-							size="sm"
-							onClick={() =>
-								void dispatch(
-									gradeCardAction(
-										current.id,
-										rating,
-										navigate,
-									),
-								)
-							}>
-							{label}
-						</Button>
+						<Box key={rating}>
+							<Button
+								variant="light"
+								color={color}
+								size="sm"
+								fullWidth
+								onClick={() =>
+									void dispatch(
+										gradeCardAction(
+											current.id,
+											rating,
+											navigate,
+										),
+									)
+								}>
+								{label}
+							</Button>
+							{cardDuePreview && (
+								<Text size="xs" c="dimmed" ta="center" mt={3}>
+									{formatRelativeDueDate(
+										cardDuePreview[rating],
+									)}
+								</Text>
+							)}
+						</Box>
 					))}
 				</Group>
 			) : (
-				<Group gap="xs" wrap="nowrap">
-					<Button
-						variant="default"
-						size="sm"
-						onClick={() =>
-							void dispatch(
-								finishReadingAction(current, navigate),
-							)
-						}>
-						Finish
-					</Button>
-					<Button
-						variant="filled"
-						size="sm"
-						onClick={() =>
-							void dispatch(nextReadingAction(current, navigate))
-						}>
-						Next
-					</Button>
+				<Group gap="xs" wrap="nowrap" align="flex-start">
+					<Box>
+						<Button
+							variant="default"
+							size="sm"
+							fullWidth
+							onClick={() =>
+								void dispatch(
+									finishReadingAction(current, navigate),
+								)
+							}>
+							Finish
+						</Button>
+					</Box>
+					<Box>
+						<Button
+							variant="filled"
+							size="sm"
+							fullWidth
+							onClick={() =>
+								void dispatch(
+									nextReadingAction(current, navigate),
+								)
+							}>
+							Next
+						</Button>
+						{nextReadingDue && (
+							<Text size="xs" c="dimmed" ta="center" mt={3}>
+								{formatRelativeDueDate(nextReadingDue)}
+							</Text>
+						)}
+					</Box>
 				</Group>
 			)}
 

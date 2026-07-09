@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use thiserror::Error;
 
 use crate::common::repository_error::RepositoryError;
@@ -12,6 +13,12 @@ pub trait ReadingSchedulingService: Send + Sync {
     /// `profile.initial_interval_days` on the first pass), floored by
     /// `profile.min_interval_days`.
     async fn next(&self, element_id: ElementId) -> Result<ReadingReview, ReadingSchedulingError>;
+
+    /// Computes the due date that `next` would produce, without persisting it.
+    async fn preview_next(
+        &self,
+        element_id: ElementId,
+    ) -> Result<DateTime<Utc>, ReadingSchedulingError>;
 
     /// Marks the element finished. Leaves `due` and `interval_days` untouched,
     /// which is what makes undo trivial.

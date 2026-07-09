@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use fsrs::FSRSError;
 use thiserror::Error;
 use uuid::Uuid;
@@ -16,6 +17,17 @@ pub trait CardGradingService: Send + Sync {
         rating: Rating,
         duration_ms: Option<u32>,
     ) -> Result<CardReview, GradeCardError>;
+
+    /// Computes the due date that grading `card_id` with each rating would
+    /// produce, without persisting a review.
+    async fn preview_card(&self, card_id: Uuid) -> Result<CardDuePreview, GradeCardError>;
+}
+
+pub struct CardDuePreview {
+    pub again: DateTime<Utc>,
+    pub hard: DateTime<Utc>,
+    pub good: DateTime<Utc>,
+    pub easy: DateTime<Utc>,
 }
 
 #[derive(Debug, Error)]

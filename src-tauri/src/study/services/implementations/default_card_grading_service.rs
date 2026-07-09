@@ -11,7 +11,9 @@ use crate::study::entities::card_review::CardReview;
 use crate::study::entities::card_review_log::CardReviewLog;
 use crate::study::repositories::card_review_log_repository::CardReviewLogRepository;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::services::card_grading_service::{CardGradingService, GradeCardError};
+use crate::study::services::card_grading_service::{
+    CardDuePreview, CardGradingService, GradeCardError,
+};
 use crate::study::services::profile_resolution_service::ProfileResolutionService;
 use crate::study::value_objects::card_state::CardState;
 use crate::study::value_objects::rating::Rating;
@@ -31,30 +33,8 @@ impl CardGradingService for DefaultCardGradingService {
         rating: Rating,
         duration_ms: Option<u32>,
     ) -> Result<CardReview, GradeCardError> {
-        let profile = self
-            .profile_resolution_service
-            .resolve_profile(ElementId::Card(card_id))
-            .await?;
-        let fsrs = FSRS::new(profile.fsrs_params.as_deref().unwrap_or(&[]))?;
-
-        let existing = self.card_review_repository.get_by_card_id(card_id).await?;
+        let (next_states, existing) = self.compute_next_states(card_id).await?;
         let now = Utc::now();
-
-        let current_memory_state = existing.as_ref().map(|review| MemoryState {
-            stability: review.stability,
-            difficulty: review.difficulty,
-        });
-        let elapsed_days = existing
-            .as_ref()
-            .and_then(|review| review.last_reviewed)
-            .map(|last_reviewed| elapsed_days_between(last_reviewed, now))
-            .unwrap_or(0);
-
-        let next_states = fsrs.next_states(
-            current_memory_state,
-            profile.desired_retention,
-            elapsed_days,
-        )?;
         let selected = select_state(&next_states, rating);
 
         let previous_state = existing
@@ -97,6 +77,52 @@ impl CardGradingService for DefaultCardGradingService {
             .await?;
 
         Ok(review)
+    }
+
+    async fn preview_card(&self, card_id: Uuid) -> Result<CardDuePreview, GradeCardError> {
+        let (next_states, _) = self.compute_next_states(card_id).await?;
+        let now = Utc::now();
+
+        Ok(CardDuePreview {
+            again: now + interval_to_duration(next_states.again.interval),
+            hard: now + interval_to_duration(next_states.hard.interval),
+            good: now + interval_to_duration(next_states.good.interval),
+            easy: now + interval_to_duration(next_states.easy.interval),
+        })
+    }
+}
+
+impl DefaultCardGradingService {
+    async fn compute_next_states(
+        &self,
+        card_id: Uuid,
+    ) -> Result<(NextStates, Option<CardReview>), GradeCardError> {
+        let profile = self
+            .profile_resolution_service
+            .resolve_profile(ElementId::Card(card_id))
+            .await?;
+        let fsrs = FSRS::new(profile.fsrs_params.as_deref().unwrap_or(&[]))?;
+
+        let existing = self.card_review_repository.get_by_card_id(card_id).await?;
+        let now = Utc::now();
+
+        let current_memory_state = existing.as_ref().map(|review| MemoryState {
+            stability: review.stability,
+            difficulty: review.difficulty,
+        });
+        let elapsed_days = existing
+            .as_ref()
+            .and_then(|review| review.last_reviewed)
+            .map(|last_reviewed| elapsed_days_between(last_reviewed, now))
+            .unwrap_or(0);
+
+        let next_states = fsrs.next_states(
+            current_memory_state,
+            profile.desired_retention,
+            elapsed_days,
+        )?;
+
+        Ok((next_states, existing))
     }
 }
 
