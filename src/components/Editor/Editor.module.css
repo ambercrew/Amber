@@ -14,12 +14,16 @@
 
 .content-editable {
 	padding-left: var(--editor-padding-x);
-	line-height: var(--mantine-line-height);
+	line-height: var(--mantine-line-height-xl);
 	outline: none;
 }
 
 .inline-code {
-	display: inline-block !important;
+	display: inline-block;
+}
+
+.code-block {
+	display: block;
 }
 
 .placeholder {

@@ -2,7 +2,7 @@
 	color: var(--mantine-color-black);
 
 	& * {
-		background-color: transparent;
+		background-color: transparent !important;
 	}
 }
 

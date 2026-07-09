@@ -130,7 +130,7 @@ export default function Editor({
 					text: {
 						code: styles["inline-code"],
 					},
-					code: styles["inline-code"],
+					code: styles["code-block"],
 				},
 				name: "editor",
 				namespace: "editor",
