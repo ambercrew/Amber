@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { DueElementDto } from "../../api/study/dto/dueElementDto";
 import { ElementId } from "../../types/elements/elementId";
 
 export type StudyStatus = "editing" | "studying";
@@ -12,8 +13,7 @@ export interface StudyCounts {
 
 export interface StudyState {
 	status: StudyStatus;
-	queue: ElementId[];
-	index: number;
+	queue: DueElementDto[];
 	cardPhase: CardPhase;
 	shownAt: number | null;
 	counts: StudyCounts;
@@ -27,21 +27,23 @@ const SESSION_REQUEUE_OFFSET = 8;
 const initialState: StudyState = {
 	status: "editing",
 	queue: [],
-	index: 0,
 	cardPhase: "question",
 	shownAt: null,
 	counts: { cards: 0, readings: 0, finished: 0 },
 	summary: null,
 };
 
+function isSameElement(a: ElementId, b: ElementId): boolean {
+	return a.type === b.type && a.id === b.id;
+}
+
 const studySlice = createSlice({
 	name: "study",
 	initialState,
 	reducers: {
-		sessionStarted: (state, action: PayloadAction<ElementId[]>) => {
+		sessionStarted: (state, action: PayloadAction<DueElementDto[]>) => {
 			state.status = "studying";
 			state.queue = action.payload;
-			state.index = 0;
 			state.cardPhase = "question";
 			state.shownAt = Date.now();
 			state.counts = { cards: 0, readings: 0, finished: 0 };
@@ -53,14 +55,22 @@ const studySlice = createSlice({
 		cardGraded: state => {
 			state.counts.cards += 1;
 		},
-		cardRequeued: state => {
-			const current = state.queue[state.index];
-			if (!current) return;
+		// Repositions a card that still needs revisiting later this session,
+		// rather than removing it from the pending queue.
+		cardRequeued: (
+			state,
+			action: PayloadAction<{ elementId: ElementId }>,
+		) => {
+			const currentIndex = state.queue.findIndex(item =>
+				isSameElement(item.elementId, action.payload.elementId),
+			);
+			if (currentIndex === -1) return;
+			const current = state.queue[currentIndex];
 			const insertAt = Math.min(
-				state.index + SESSION_REQUEUE_OFFSET,
+				currentIndex + SESSION_REQUEUE_OFFSET,
 				state.queue.length,
 			);
-			state.queue.splice(state.index, 1);
+			state.queue.splice(currentIndex, 1);
 			state.queue.splice(insertAt - 1, 0, current);
 		},
 		readingAdvanced: state => {
@@ -69,13 +79,26 @@ const studySlice = createSlice({
 		readingFinished: state => {
 			state.counts.finished += 1;
 		},
-		sessionAdvanced: state => {
-			const nextIndex = state.index + 1;
-			if (nextIndex >= state.queue.length) {
+		// Removes the reviewed element (if any — a requeued card isn't done
+		// yet, so it isn't passed here) and moves on to whichever pending
+		// element is now at the front of the queue, regardless of where the
+		// just-reviewed element used to sit.
+		sessionAdvanced: (
+			state,
+			action: PayloadAction<{ completedElementId: ElementId | null }>,
+		) => {
+			const { completedElementId } = action.payload;
+			if (completedElementId) {
+				const index = state.queue.findIndex(item =>
+					isSameElement(item.elementId, completedElementId),
+				);
+				if (index !== -1) state.queue.splice(index, 1);
+			}
+
+			if (state.queue.length === 0) {
 				state.summary = { ...state.counts };
 				resetSession(state);
 			} else {
-				state.index = nextIndex;
 				state.cardPhase = "question";
 				state.shownAt = Date.now();
 			}
@@ -90,7 +113,6 @@ const studySlice = createSlice({
 function resetSession(state: StudyState) {
 	state.status = "editing";
 	state.queue = [];
-	state.index = 0;
 	state.cardPhase = "question";
 	state.shownAt = null;
 }

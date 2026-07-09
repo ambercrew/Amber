@@ -18,6 +18,7 @@ import {
 	sessionAdvanced,
 	sessionStarted,
 } from "./studyReducer";
+import { selectStudyIndex } from "./studySelectors";
 
 // A same-day relearning card is re-queued rather than dropped until "later
 // today" only if its new due time still falls within the live session.
@@ -28,7 +29,7 @@ export function startStudySession(navigate: NavigateFunction) {
 		const queue = await getDueElements();
 		if (queue.length === 0) return false;
 		dispatch(sessionStarted(queue));
-		navigateToElement(queue[0], navigate);
+		navigateToElement(queue[0]?.elementId, navigate);
 		return true;
 	};
 }
@@ -41,16 +42,25 @@ export function gradeCardAction(
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const shownAt = getState().study.shownAt;
 		const durationMs = shownAt ? Date.now() - shownAt : null;
+		const elementId: ElementId = { type: "card", id: cardId };
+		const currentIndex = selectStudyIndex(getState());
 
 		const review = await gradeCard(cardId, rating, durationMs);
 		dispatch(cardGraded());
 
 		const dueInMs = new Date(review.due).getTime() - Date.now();
-		if (dueInMs <= SESSION_HORIZON_MS) {
-			dispatch(cardRequeued());
+		const needsRequeue = dueInMs <= SESSION_HORIZON_MS;
+		if (needsRequeue) {
+			dispatch(cardRequeued({ elementId }));
 		}
 
-		advanceSession(dispatch, getState, navigate);
+		advanceSession(
+			dispatch,
+			getState,
+			navigate,
+			needsRequeue ? null : elementId,
+			currentIndex,
+		);
 	};
 }
 
@@ -59,9 +69,10 @@ export function nextReadingAction(
 	navigate: NavigateFunction,
 ) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
 		await nextReading(elementId);
 		dispatch(readingAdvanced());
-		advanceSession(dispatch, getState, navigate);
+		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
 	};
 }
 
@@ -70,21 +81,31 @@ export function finishReadingAction(
 	navigate: NavigateFunction,
 ) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
 		await finishReading(elementId);
 		dispatch(readingFinished());
-		advanceSession(dispatch, getState, navigate);
+		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
 	};
 }
 
+// Moves forward to whichever pending element now sits where the next one
+// did — only wrapping back to the front of the queue once there's nothing
+// left ahead, cycling through the remaining elements rather than ending
+// the session while some are still unreviewed.
 function advanceSession(
 	dispatch: AppDispatch,
 	getState: () => RootState,
 	navigate: NavigateFunction,
+	completedElementId: ElementId | null,
+	currentIndex: number,
 ) {
-	const { queue, index } = getState().study;
-	const nextElement = queue[index + 1];
-	dispatch(sessionAdvanced());
-	if (nextElement) navigateToElement(nextElement, navigate);
+	dispatch(sessionAdvanced({ completedElementId }));
+
+	const { queue } = getState().study;
+	if (queue.length === 0) return;
+
+	const nextIndex = currentIndex >= queue.length ? 0 : currentIndex;
+	navigateToElement(queue[nextIndex]?.elementId, navigate);
 }
 
 function navigateToElement(

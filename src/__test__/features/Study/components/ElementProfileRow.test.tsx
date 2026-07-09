@@ -40,8 +40,7 @@ function makeReview(due: string): CardReviewDto {
 
 const BASE_STUDY_STATE = {
 	status: "studying" as const,
-	queue: [cardElementId],
-	index: 0,
+	queue: [{ elementId: cardElementId, title: "Card 1" }],
 	cardPhase: "question" as const,
 	shownAt: null,
 	summary: null,

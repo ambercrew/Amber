@@ -6,10 +6,12 @@ use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
 use crate::common::api_error::ApiError;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::study::dto::card_due_preview_dto::CardDuePreviewDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
+use crate::study::dto::due_element_dto::DueElementDto;
 use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
@@ -50,13 +52,23 @@ pub async fn get_reading_review(
 #[tauri::command]
 pub async fn get_due_elements(
     injector: State<'_, Arc<Injector>>,
-) -> Result<Vec<ElementId>, ApiError> {
+) -> Result<Vec<DueElementDto>, ApiError> {
     let scope = injector.start_scope();
-    let result = scope
+    let due_elements = scope
         .resolve::<dyn DueElementsService>()
         .await
         .get_due_elements()
         .await?;
+    let meta_repository = scope.resolve::<dyn MetaRepository>().await;
+
+    let mut result = Vec::with_capacity(due_elements.len());
+    for element_id in due_elements {
+        let meta = meta_repository.get_by_id(element_id.id()).await?;
+        result.push(DueElementDto {
+            element_id,
+            title: meta.name,
+        });
+    }
     Ok(result)
 }
 

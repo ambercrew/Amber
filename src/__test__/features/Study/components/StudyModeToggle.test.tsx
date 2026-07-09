@@ -29,8 +29,12 @@ describe("StudyModeToggle", () => {
 			preloadedState: {
 				study: {
 					status: "studying",
-					queue: [{ type: "card", id: "card-1" }],
-					index: 0,
+					queue: [
+						{
+							elementId: { type: "card", id: "card-1" },
+							title: "Card 1",
+						},
+					],
 					cardPhase: "question",
 					shownAt: null,
 					counts: { cards: 0, readings: 0, finished: 0 },
@@ -48,7 +52,7 @@ describe("StudyModeToggle", () => {
 		// Arrange
 
 		vi.mocked(getDueElements).mockResolvedValue([
-			{ type: "card", id: "card-1" },
+			{ elementId: { type: "card", id: "card-1" }, title: "Card 1" },
 		]);
 		const user = userEvent.setup();
 
@@ -97,8 +101,12 @@ describe("StudyModeToggle", () => {
 			preloadedState: {
 				study: {
 					status: "studying",
-					queue: [{ type: "card", id: "card-1" }],
-					index: 0,
+					queue: [
+						{
+							elementId: { type: "card", id: "card-1" },
+							title: "Card 1",
+						},
+					],
 					cardPhase: "question",
 					shownAt: null,
 					counts: { cards: 0, readings: 0, finished: 0 },

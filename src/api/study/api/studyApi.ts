@@ -3,9 +3,10 @@ import { ElementId } from "../../../types/elements/elementId";
 import { Rating } from "../../../types/study/rating";
 import { CardDuePreviewDto } from "../dto/cardDuePreviewDto";
 import { CardReviewDto } from "../dto/cardReviewDto";
+import { DueElementDto } from "../dto/dueElementDto";
 import { ReadingReviewDto } from "../dto/readingReviewDto";
 
-export function getDueElements(): Promise<ElementId[]> {
+export function getDueElements(): Promise<DueElementDto[]> {
 	return invoke("get_due_elements");
 }
 

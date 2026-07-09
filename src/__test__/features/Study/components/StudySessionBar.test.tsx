@@ -5,20 +5,55 @@ import {
 	previewCardReview,
 	previewNextReading,
 } from "../../../../api/study/api/studyApi";
+import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
 import { formatRelativeDueDate } from "../../../../utils/formatRelativeDueDate";
 
 vi.mock(import("../../../../api/study/api/studyApi.ts"));
 
 const cardElementId = { type: "card" as const, id: "card-1" };
 const readingElementId = { type: "reading" as const, id: "reading-1" };
+const cardQueueItem = { elementId: cardElementId, title: "Card 1" };
+const readingQueueItem = { elementId: readingElementId, title: "Reading 1" };
+
+const META_FIELDS = {
+	parent: null,
+	position: "0",
+	tags: [],
+	createdAt: "2024-01-01T00:00:00Z",
+	modifiedAt: "2024-01-01T00:00:00Z",
+};
+
+const cardCurrentElement: AnyElementDto = {
+	type: "card",
+	data: {
+		meta: { elementId: cardElementId, name: "Card 1", ...META_FIELDS },
+		front: "Front",
+		back: "Back",
+	},
+};
+
+const readingCurrentElement: AnyElementDto = {
+	type: "reading",
+	data: {
+		meta: {
+			elementId: readingElementId,
+			name: "Reading 1",
+			...META_FIELDS,
+		},
+		content: "",
+	},
+};
 
 const BASE_STUDY_STATE = {
 	status: "studying" as const,
-	index: 0,
 	shownAt: null,
 	counts: { cards: 0, readings: 0, finished: 0 },
 	summary: null,
 };
+
+function elementsStateFor(currentElement: AnyElementDto) {
+	return { tree: [], isLoading: false, error: null, currentElement };
+}
 
 function inMs(offsetMs: number): string {
 	return new Date(Date.now() + offsetMs).toISOString();
@@ -45,9 +80,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [cardElementId],
+					queue: [cardQueueItem],
 					cardPhase: "answer",
 				},
+				elements: elementsStateFor(cardCurrentElement),
 			},
 		});
 
@@ -82,9 +118,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [cardElementId],
+					queue: [cardQueueItem],
 					cardPhase: "answer",
 				},
+				elements: elementsStateFor(cardCurrentElement),
 			},
 		});
 
@@ -106,9 +143,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [readingElementId],
+					queue: [readingQueueItem],
 					cardPhase: "question",
 				},
+				elements: elementsStateFor(readingCurrentElement),
 			},
 		});
 
@@ -131,9 +169,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [readingElementId],
+					queue: [readingQueueItem],
 					cardPhase: "question",
 				},
+				elements: elementsStateFor(readingCurrentElement),
 			},
 		});
 		await screen.findByText(formatRelativeDueDate(due));
