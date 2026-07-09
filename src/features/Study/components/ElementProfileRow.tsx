@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActionIcon, Badge, Button, Group, Select } from "@mantine/core";
-import { GearSixIcon } from "@phosphor-icons/react";
+import { ActionIcon, Group, Select } from "@mantine/core";
 import {
 	assignStudyProfile,
 	getEffectiveStudyProfile,
@@ -13,25 +12,23 @@ import {
 import {
 	getCardReview,
 	getReadingReview,
-	unfinishReading,
 } from "../../../api/study/api/studyApi";
 import useApi from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
 import { openStudyProfileModal } from "../../../stores/app/appReducer";
+import { selectStudyCounts } from "../../../stores/study/studySelectors";
 import { ElementId } from "../../../types/elements/elementId";
+import { commands } from "../../../commands/commands";
 
 interface ElementProfileRowProps {
 	elementId: ElementId;
+	parentId: ElementId | null;
+	onDueChange?: (dueState: string | null, finished: boolean) => void;
 }
 
 const CREATE_PROFILE_VALUE = "__create__";
-const INHERIT_VALUE = "";
-
-const SOURCE_LABELS: Record<EffectiveProfileDto["source"], string> = {
-	direct: "Direct",
-	inherited: "Inherited",
-	default: "Default",
-};
+const INHERIT_VALUE = "__inherit__";
 
 function formatDueState(due: string | null, finished: boolean): string | null {
 	if (finished) return "Finished";
@@ -51,20 +48,25 @@ function formatDueState(due: string | null, finished: boolean): string | null {
 	const diffDays = Math.round(
 		(startOfDue.getTime() - startOfToday.getTime()) / 86_400_000,
 	);
-	if (diffDays <= 0) return "Due today";
-	if (diffDays === 1) return "Due tomorrow";
+	if (diffDays <= 0) return "Today";
+	if (diffDays === 1) return "Tomorrow";
 	return `In ${diffDays} days`;
 }
 
-function ElementProfileRow({ elementId }: ElementProfileRowProps) {
+function ElementProfileRow({
+	elementId,
+	parentId,
+	onDueChange,
+}: ElementProfileRowProps) {
 	const dispatch = useAppDispatch();
 	const { callApi } = useApi();
 	const [profiles, setProfiles] = useState<StudyProfileDto[]>([]);
 	const [effective, setEffective] = useState<EffectiveProfileDto | null>(
 		null,
 	);
-	const [dueState, setDueState] = useState<string | null>(null);
-	const [finished, setFinished] = useState(false);
+	const [inheritedName, setInheritedName] = useState<string | null>(null);
+	const counts = useAppSelector(selectStudyCounts);
+	const gradedCount = counts.cards + counts.readings;
 
 	async function loadStatus() {
 		const [profileList, effectiveProfile] = await Promise.all([
@@ -74,28 +76,51 @@ function ElementProfileRow({ elementId }: ElementProfileRowProps) {
 		setProfiles(profileList);
 		setEffective(effectiveProfile);
 
+		if (effectiveProfile.source === "direct") {
+			if (parentId) {
+				const parentEffective =
+					await getEffectiveStudyProfile(parentId);
+				setInheritedName(parentEffective.profile.name);
+			} else {
+				setInheritedName(
+					profileList.find(profile => profile.isDefault)?.name ??
+						null,
+				);
+			}
+		} else {
+			setInheritedName(effectiveProfile.profile.name);
+		}
+
 		if (elementId.type === "card") {
 			const review = await getCardReview(elementId.id);
-			setFinished(false);
-			setDueState(formatDueState(review?.due ?? null, false));
+			onDueChange?.(formatDueState(review?.due ?? null, false), false);
 		} else if (
 			elementId.type === "reading" ||
 			elementId.type === "extract"
 		) {
 			const review = await getReadingReview(elementId);
 			const isFinished = Boolean(review?.finishedAt);
-			setFinished(isFinished);
-			setDueState(formatDueState(review?.due ?? null, isFinished));
+			onDueChange?.(
+				formatDueState(review?.due ?? null, isFinished),
+				isFinished,
+			);
 		} else {
-			setDueState(null);
-			setFinished(false);
+			onDueChange?.(null, false);
 		}
 	}
 
 	useEffect(() => {
 		void callApi(loadStatus);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [elementId.type, elementId.id, callApi]);
+	}, [
+		elementId.type,
+		elementId.id,
+		parentId?.type,
+		parentId?.id,
+		gradedCount,
+		callApi,
+		onDueChange,
+	]);
 
 	function handleProfileChange(value: string | null) {
 		if (value === CREATE_PROFILE_VALUE) {
@@ -109,25 +134,24 @@ function ElementProfileRow({ elementId }: ElementProfileRowProps) {
 		});
 	}
 
-	function handleUnfinish() {
-		void callApi(async () => {
-			await unfinishReading(elementId);
-			await loadStatus();
-		});
-	}
-
 	const selectValue =
 		effective?.source === "direct" ? effective.profile.id : INHERIT_VALUE;
 
+	const inheritLabel = inheritedName
+		? `Inherit from parent (${inheritedName})`
+		: "Inherit from parent";
+
 	return (
-		<Group gap={6} wrap="wrap" align="center">
+		<Group gap={4} wrap="nowrap" align="center">
 			<Select
-				size="xs"
-				w={170}
+				size="sm"
 				variant="unstyled"
 				value={selectValue}
+				searchable
+				withAlignedLabels
+				flex={1}
 				data={[
-					{ value: INHERIT_VALUE, label: "Inherit from parent" },
+					{ value: INHERIT_VALUE, label: inheritLabel },
 					...profiles.map(profile => ({
 						value: profile.id,
 						label: profile.name,
@@ -137,37 +161,26 @@ function ElementProfileRow({ elementId }: ElementProfileRowProps) {
 						label: "Create new profile…",
 					},
 				]}
+				styles={{
+					input: {
+						textOverflow: "ellipsis",
+						whiteSpace: "nowrap",
+						overflow: "hidden",
+					},
+				}}
+				comboboxProps={{
+					offset: 0,
+				}}
+				nothingFoundMessage="Nothing found..."
 				onChange={handleProfileChange}
 			/>
-			{effective && (
-				<Badge size="xs" variant="light" color="gray">
-					{SOURCE_LABELS[effective.source]}
-				</Badge>
-			)}
 			<ActionIcon
-				size="xs"
+				size="sm"
 				variant="subtle"
 				title="Manage study profiles"
 				onClick={() => dispatch(openStudyProfileModal())}>
-				<GearSixIcon size={12} />
+				{commands.find(c => c.id === "manage-study-profiles")?.icon}
 			</ActionIcon>
-			{dueState && (
-				<Badge
-					size="xs"
-					variant="outline"
-					color={finished ? "green" : "blue"}>
-					{dueState}
-				</Badge>
-			)}
-			{finished && (
-				<Button
-					size="xs"
-					px={6}
-					variant="subtle"
-					onClick={handleUnfinish}>
-					Unfinish
-				</Button>
-			)}
 		</Group>
 	);
 }

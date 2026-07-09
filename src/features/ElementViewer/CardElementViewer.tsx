@@ -59,7 +59,7 @@ export default function CardElementViewer({
 						</Text>
 					</Group>
 					{answerHidden ? (
-						<Text size="sm" c="dimmed" fs="italic">
+						<Text size="md" c="dimmed" fs="italic">
 							Try to recall the answer, then reveal it below.
 						</Text>
 					) : (

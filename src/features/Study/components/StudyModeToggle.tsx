@@ -8,12 +8,12 @@ import { sessionStopped } from "../../../stores/study/studyReducer";
 import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
-// TODO: not being on the element does not start study session on toggle but only navigate me
-// TODO: the modal not good
+// TODO: the modal not good (also missing fsrs)
 // TODO: more front-end unit tests
-// TODO: answers are not hidden on cards
 // TODO: show timer in footer and time on each button on footer
-// TODO: on small screen on footer just show the buttons
+// TODO: minimum days before next review
+// TODO: priority queue tab
+// TODO: delete all other cloze deletion from a cloze when making a new cloze
 function StudyModeToggle() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();

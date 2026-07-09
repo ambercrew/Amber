@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
 	ActionIcon,
 	Button,
@@ -34,21 +35,12 @@ interface AppHeaderProps {
 	onToggleSidebar: () => void;
 }
 
-function formatDate(iso: string): string {
-	return new Date(iso).toLocaleString(undefined, {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-}
-
 function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const storedMeta = currentElement?.data.meta ?? null;
 	const [opened, { toggle }] = useDisclosure(false);
 	const dispatch = useAppDispatch();
+	const [dueState, setDueState] = useState<string | null>(null);
 
 	const debouncedRename = useDebouncedCallback(
 		async (id: ElementId, name: string) => {
@@ -171,12 +163,14 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 							</Text>
 							<ElementProfileRow
 								elementId={storedMeta.elementId}
+								parentId={storedMeta.parent}
+								onDueChange={setDueState}
 							/>
 							<Text size="xs" c="dimmed" fw={500} mt={4}>
-								Created
+								Due
 							</Text>
 							<Text size="sm" py={6}>
-								{formatDate(storedMeta.createdAt)}
+								{dueState ?? "—"}
 							</Text>
 						</Stack>
 					</SimpleGrid>

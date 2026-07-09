@@ -19,7 +19,6 @@ import {
 	sessionStarted,
 } from "./studyReducer";
 
-// TODO: review and fix everything ins this folder
 // A same-day relearning card is re-queued rather than dropped until "later
 // today" only if its new due time still falls within the live session.
 const SESSION_HORIZON_MS = 20 * 60 * 1000;

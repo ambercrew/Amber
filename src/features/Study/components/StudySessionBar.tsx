@@ -1,8 +1,10 @@
-import { Button, Group, Text, MantineColor } from "@mantine/core";
+import { Box, Button, Group, Text, MantineColor } from "@mantine/core";
 import { EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
+import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
+import { useElapsedSeconds } from "../../../hooks/useElapsedSeconds";
 import {
 	finishReadingAction,
 	gradeCardAction,
@@ -14,6 +16,7 @@ import {
 	selectStudyCurrentElement,
 	selectStudyIndex,
 	selectStudyQueue,
+	selectStudyShownAt,
 } from "../../../stores/study/studySelectors";
 import { Rating } from "../../../types/study/rating";
 
@@ -24,6 +27,12 @@ const RATINGS: { rating: Rating; label: string; color: MantineColor }[] = [
 	{ rating: "easy", label: "Easy", color: "blue" },
 ];
 
+function formatElapsed(totalSeconds: number): string {
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 function StudySessionBar() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -31,16 +40,20 @@ function StudySessionBar() {
 	const index = useAppSelector(selectStudyIndex);
 	const queue = useAppSelector(selectStudyQueue);
 	const cardPhase = useAppSelector(selectStudyCardPhase);
+	const shownAt = useAppSelector(selectStudyShownAt);
+	const elapsedSeconds = useElapsedSeconds(shownAt);
 
 	if (!current) return null;
 
 	const answerHidden = current.type === "card" && cardPhase === "question";
 
 	return (
-		<Group h="100%" px="md" justify="space-between" wrap="nowrap">
-			<Text size="sm" c="dimmed">
-				{index + 1} of {queue.length}
-			</Text>
+		<Group h="100%" px="sm" wrap="nowrap">
+			<Box flex={1}>
+				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
+					{index + 1}/{queue.length}
+				</Text>
+			</Box>
 
 			{answerHidden ? (
 				<Button
@@ -94,6 +107,14 @@ function StudySessionBar() {
 					</Button>
 				</Group>
 			)}
+
+			<Box
+				flex={1}
+				style={{ display: "flex", justifyContent: "flex-end" }}>
+				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
+					{formatElapsed(elapsedSeconds)}
+				</Text>
+			</Box>
 		</Group>
 	);
 }

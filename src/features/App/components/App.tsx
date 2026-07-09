@@ -30,7 +30,7 @@ import { isMobile } from "../../../utils/tauriUtils.ts";
 const HEADER_HEIGHT = 60;
 const BOTTOM_BAR_HEIGHT = 60;
 const SIDEBAR_DEFAULT = 320;
-export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "xs";
+export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
