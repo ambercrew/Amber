@@ -7,6 +7,10 @@ import {
 } from "../../stores/elements/elementsActions";
 import { ElementId } from "../../types/elements/elementId";
 import { CLOZE_COLOR } from "./useElementViewerButtons";
+import {
+	CLOZE_HIDDEN_ATTRIBUTE,
+	CLOZE_HIDDEN_TAG_NAME,
+} from "../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
 
 export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 	const dispatch = useAppDispatch();
@@ -72,7 +76,7 @@ function buildClozeFrontHtml(fullHtml: string, highlightId: string): string {
 	return dom.body.innerHTML;
 }
 
-// Unwraps every highlight other than the one just created, so a new extract
+// Unwraps every highlight and cloze other than the one just created, so a new extract
 // or cloze copied out of the document doesn't drag unrelated highlights
 // along with it. This only touches the HTML being copied into the new
 // element — the source document's own highlights are left untouched.
@@ -81,7 +85,9 @@ function stripOtherHighlights(
 	currentHighlightId: string,
 ): string {
 	const dom = new DOMParser().parseFromString(html, "text/html");
-	const marks = dom.querySelectorAll("mark[data-highlight-id]");
+	const marks = dom.querySelectorAll(
+		`mark[data-highlight-id], ${CLOZE_HIDDEN_TAG_NAME}[${CLOZE_HIDDEN_ATTRIBUTE}=true]`,
+	);
 	marks.forEach(mark => {
 		if (mark.getAttribute("data-highlight-id") === currentHighlightId)
 			return;

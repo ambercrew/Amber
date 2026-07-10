@@ -168,6 +168,56 @@ describe("useHighlightCreatedHandler", () => {
 		});
 	});
 
+	it("Should unwrap a pre-existing cloze-hidden marker from the front and back when creating a new cloze card", () => {
+		// Arrange
+
+		const handleHighlightCreated = renderHandler();
+		const fullHtml =
+			'<p><mark data-cloze-hidden="true">Old Cloze</mark> ' +
+			'<mark data-highlight-id="new-id" data-highlight-color="blue">New Text</mark></p>';
+
+		// Act
+
+		handleHighlightCreated({
+			id: "new-id",
+			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> New Text',
+			fullHtml,
+			color: "blue",
+		});
+
+		// Assert
+
+		expect(createCardAction).toHaveBeenCalledWith({
+			id: "new-id",
+			meta: { name: "Old Cloze New Text", parent: ELEMENT_ID },
+			front: '<p>Old Cloze <mark data-cloze-hidden="true">New Text</mark></p>',
+			back: "Before Old Cloze New Text",
+		});
+	});
+
+	it("Should unwrap a pre-existing cloze-hidden marker from the extract content when creating a new extract", () => {
+		// Arrange
+
+		const handleHighlightCreated = renderHandler();
+
+		// Act
+
+		handleHighlightCreated({
+			id: "new-id",
+			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> Rest',
+			fullHtml: "<p>irrelevant</p>",
+			color: "yellow",
+		});
+
+		// Assert
+
+		expect(createExtractAction).toHaveBeenCalledWith({
+			id: "new-id",
+			meta: { name: "Before Old Cloze Rest", parent: ELEMENT_ID },
+			content: "Before Old Cloze Rest",
+		});
+	});
+
 	it("Should strip every other highlight from the extract content when there is more than one", () => {
 		// Arrange
 

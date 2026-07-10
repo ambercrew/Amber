@@ -8,8 +8,8 @@ import {
 import { MarkNode, type SerializedMarkNode } from "@lexical/mark";
 import styles from "./ClozeHiddenNode.module.css";
 
-const CLOZE_HIDDEN_TAG_NAME = "mark";
-const CLOZE_HIDDEN_ATTRIBUTE = "data-cloze-hidden";
+export const CLOZE_HIDDEN_TAG_NAME = "mark";
+export const CLOZE_HIDDEN_ATTRIBUTE = "data-cloze-hidden";
 
 function applyClozeHiddenAttributes(element: HTMLElement) {
 	element.classList.add(styles["cloze-hidden"]);

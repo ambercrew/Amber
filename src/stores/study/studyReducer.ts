@@ -107,6 +107,11 @@ const studySlice = createSlice({
 		summaryDismissed: state => {
 			state.summary = null;
 		},
+		// Lets the sidebar preview due elements before a session starts,
+		// without affecting status/counts/etc.
+		queueLoaded: (state, action: PayloadAction<DueElementDto[]>) => {
+			state.queue = action.payload;
+		},
 	},
 });
 
@@ -129,4 +134,5 @@ export const {
 	sessionAdvanced,
 	sessionStopped,
 	summaryDismissed,
+	queueLoaded,
 } = studySlice.actions;

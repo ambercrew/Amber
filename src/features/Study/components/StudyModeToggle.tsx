@@ -11,7 +11,6 @@ import { selectStudyStatus } from "../../../stores/study/studySelectors";
 // TODO: the modal not good (also missing fsrs)
 // TODO: more front-end unit tests
 // TODO: minimum days before next review
-// TODO: delete all other cloze deletion from a cloze when making a new cloze
 // TODO: get due dates inside buttons
 // TODO: reset footer time when navigating between elements, and the queue must refresh on creating new elements
 function StudyModeToggle() {
