@@ -28,7 +28,7 @@ import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
 const HEADER_HEIGHT = 60;
-const BOTTOM_BAR_HEIGHT = 66;
+const BOTTOM_BAR_HEIGHT = 70;
 const SIDEBAR_DEFAULT = 320;
 export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 

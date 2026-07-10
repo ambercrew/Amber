@@ -76,7 +76,7 @@ function StudySessionBar() {
 	const answerHidden = current.type === "card" && cardPhase === "question";
 
 	return (
-		<Group h="100%" px="sm" wrap="nowrap">
+		<Group h="100%" px="sm" py="xs" wrap="nowrap" align="flex-end">
 			<Box flex={1}>
 				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
 					{index + 1}/{queue.length}
@@ -93,9 +93,16 @@ function StudySessionBar() {
 					Show answer
 				</Button>
 			) : current.type === "card" ? (
-				<Group gap="xs" wrap="nowrap" align="flex-start">
+				<Group gap="xs" wrap="nowrap" align="flex-end">
 					{RATINGS.map(({ rating, label, color }) => (
 						<Box key={rating}>
+							{cardDuePreview && (
+								<Text size="xs" c="dimmed" ta="center" mb={2}>
+									{formatRelativeDueDate(
+										cardDuePreview[rating],
+									)}
+								</Text>
+							)}
 							<Button
 								variant="light"
 								color={color}
@@ -112,19 +119,15 @@ function StudySessionBar() {
 								}>
 								{label}
 							</Button>
-							{cardDuePreview && (
-								<Text size="xs" c="dimmed" ta="center" mt={3}>
-									{formatRelativeDueDate(
-										cardDuePreview[rating],
-									)}
-								</Text>
-							)}
 						</Box>
 					))}
 				</Group>
 			) : (
-				<Group gap="xs" wrap="nowrap" align="flex-start">
+				<Group gap="xs" wrap="nowrap" align="flex-end">
 					<Box>
+						<Text size="xs" c="dimmed" ta="center" mb={2}>
+							Won&apos;t repeat
+						</Text>
 						<Button
 							variant="default"
 							size="sm"
@@ -138,6 +141,11 @@ function StudySessionBar() {
 						</Button>
 					</Box>
 					<Box>
+						{nextReadingDue && (
+							<Text size="xs" c="dimmed" ta="center" mb={2}>
+								{formatRelativeDueDate(nextReadingDue)}
+							</Text>
+						)}
 						<Button
 							variant="filled"
 							size="sm"
@@ -149,11 +157,6 @@ function StudySessionBar() {
 							}>
 							Next
 						</Button>
-						{nextReadingDue && (
-							<Text size="xs" c="dimmed" ta="center" mt={3}>
-								{formatRelativeDueDate(nextReadingDue)}
-							</Text>
-						)}
 					</Box>
 				</Group>
 			)}
