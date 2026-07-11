@@ -112,6 +112,7 @@ function StudyProfileModal() {
 						key={selectedId ?? "new"}
 						profile={selected}
 						onSaved={refresh}
+						onSubmitted={() => dispatch(closeStudyProfileModal())}
 					/>
 				</Box>
 			</Flex>

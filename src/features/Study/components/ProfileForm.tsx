@@ -25,6 +25,7 @@ import {
 interface ProfileFormProps {
 	profile: StudyProfileDto | null;
 	onSaved: () => void;
+	onSubmitted: () => void;
 }
 
 // Mirrors fsrs::DEFAULT_PARAMETERS (src-tauri) so a new profile starts with
@@ -57,7 +58,7 @@ function isValidFsrsParams(raw: string): boolean {
 	);
 }
 
-function ProfileForm({ profile, onSaved }: ProfileFormProps) {
+function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 	const form = useForm<ProfileFormValues>({
 		initialValues: {
 			name: profile?.name ?? "New profile",
@@ -86,6 +87,7 @@ function ProfileForm({ profile, onSaved }: ProfileFormProps) {
 			await createStudyProfile(payload);
 		}
 		onSaved();
+		onSubmitted();
 	}
 
 	async function handleClone() {

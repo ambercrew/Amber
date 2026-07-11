@@ -9,7 +9,7 @@ import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
 // TODO: the modal
-// Should close on save
+// Unit tests
 // Review at end
 // TODO: Update the study profile on the top (in files) when the manager is closed
 
