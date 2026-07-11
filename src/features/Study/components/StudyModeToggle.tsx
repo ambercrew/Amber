@@ -8,7 +8,6 @@ import { sessionStopped } from "../../../stores/study/studyReducer";
 import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
-// TODO: clicking study shows material many times even when it should not (try on a card)
 function StudyModeToggle() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();

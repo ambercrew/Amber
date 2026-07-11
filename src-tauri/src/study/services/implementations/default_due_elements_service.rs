@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chrono::Utc;
 use injector_derive::ScopeInjectable;
 
 use crate::common::repository_error::RepositoryError;
@@ -8,7 +9,6 @@ use crate::elements::value_objects::element_id::ElementId;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
 use crate::study::services::due_elements_service::DueElementsService;
-use crate::study::utils::day_boundary::end_of_today_utc;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultDueElementsService {
@@ -19,7 +19,7 @@ pub struct DefaultDueElementsService {
 #[async_trait]
 impl DueElementsService for DefaultDueElementsService {
     async fn get_due_elements(&self) -> Result<Vec<ElementId>, RepositoryError> {
-        let as_of = end_of_today_utc();
+        let as_of = Utc::now();
 
         let mut due: Vec<ElementId> = self
             .card_review_repository
