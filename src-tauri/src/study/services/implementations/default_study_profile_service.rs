@@ -10,7 +10,9 @@ use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::study::entities::study_profile::StudyProfile;
 use crate::study::repositories::study_profile_repository::StudyProfileRepository;
-use crate::study::services::study_profile_service::{StudyProfileFields, StudyProfileService};
+use crate::study::services::study_profile_service::{
+    FSRS_PARAM_COUNT, StudyProfileFields, StudyProfileService, StudyProfileServiceError,
+};
 
 #[derive(ScopeInjectable)]
 pub struct DefaultStudyProfileService {
@@ -27,7 +29,9 @@ impl StudyProfileService for DefaultStudyProfileService {
     async fn create_profile(
         &self,
         fields: StudyProfileFields,
-    ) -> Result<StudyProfile, RepositoryError> {
+    ) -> Result<StudyProfile, StudyProfileServiceError> {
+        let fsrs_params = validate_fsrs_params(fields.fsrs_params)?
+            .unwrap_or_else(|| fsrs::DEFAULT_PARAMETERS.to_vec());
         let now = Utc::now();
         let profile = StudyProfile {
             id: Uuid::new_v4(),
@@ -36,7 +40,7 @@ impl StudyProfileService for DefaultStudyProfileService {
             name: fields.name,
             is_default: false,
             desired_retention: fields.desired_retention,
-            fsrs_params: Some(fsrs::DEFAULT_PARAMETERS.to_vec()),
+            fsrs_params: Some(fsrs_params),
             default_a_factor: fields.default_a_factor,
             initial_interval_days: fields.initial_interval_days,
             min_interval_days: fields.min_interval_days,
@@ -49,11 +53,14 @@ impl StudyProfileService for DefaultStudyProfileService {
         &self,
         id: Uuid,
         fields: StudyProfileFields,
-    ) -> Result<StudyProfile, RepositoryError> {
+    ) -> Result<StudyProfile, StudyProfileServiceError> {
         let existing = self.study_profile_repository.get_by_id(id).await?;
+        let fsrs_params =
+            validate_fsrs_params(fields.fsrs_params)?.or_else(|| existing.fsrs_params.clone());
         let profile = StudyProfile {
             name: fields.name,
             desired_retention: fields.desired_retention,
+            fsrs_params,
             default_a_factor: fields.default_a_factor,
             initial_interval_days: fields.initial_interval_days,
             min_interval_days: fields.min_interval_days,
@@ -103,6 +110,19 @@ impl StudyProfileService for DefaultStudyProfileService {
     }
 }
 
+fn validate_fsrs_params(
+    params: Option<Vec<f32>>,
+) -> Result<Option<Vec<f32>>, StudyProfileServiceError> {
+    match params {
+        Some(params) if params.len() != FSRS_PARAM_COUNT => {
+            Err(StudyProfileServiceError::InvalidFsrsParamCount {
+                actual: params.len(),
+            })
+        }
+        params => Ok(params),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use fractional_index::FractionalIndex;
@@ -139,6 +159,7 @@ mod tests {
         StudyProfileFields {
             name: name.into(),
             desired_retention: 0.9,
+            fsrs_params: None,
             default_a_factor: 1.2,
             initial_interval_days: 1.0,
             min_interval_days: 1.0,
@@ -182,6 +203,71 @@ mod tests {
         // Assert
 
         assert_eq!("Renamed", updated.name);
+    }
+
+    #[tokio::test]
+    async fn update_profile_with_fsrs_params_replaces_weights() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+        let weights: Vec<f32> = (0..FSRS_PARAM_COUNT).map(|i| i as f32 * 0.1).collect();
+        let mut fields = make_fields("Custom");
+        fields.fsrs_params = Some(weights.clone());
+
+        // Act
+
+        let updated = service.update_profile(profile.id, fields).await.unwrap();
+
+        // Assert
+
+        assert_eq!(Some(weights), updated.fsrs_params);
+    }
+
+    #[tokio::test]
+    async fn update_profile_with_wrong_fsrs_param_count_returns_error() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+        let mut fields = make_fields("Custom");
+        fields.fsrs_params = Some(vec![0.1, 0.2, 0.3]);
+
+        // Act
+
+        let result = service.update_profile(profile.id, fields).await;
+
+        // Assert
+
+        assert!(matches!(
+            result,
+            Err(StudyProfileServiceError::InvalidFsrsParamCount { actual: 3 })
+        ));
+    }
+
+    #[tokio::test]
+    async fn update_profile_without_fsrs_params_keeps_existing_weights() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn StudyProfileService>().await;
+        let profile = service.create_profile(make_fields("Custom")).await.unwrap();
+
+        // Act
+
+        let updated = service
+            .update_profile(profile.id, make_fields("Renamed"))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(profile.fsrs_params, updated.fsrs_params);
     }
 
     #[tokio::test]

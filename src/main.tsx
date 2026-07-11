@@ -11,6 +11,7 @@ import "@mantine/spotlight/styles.css";
 import "@mantine/dropzone/styles.css";
 import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 import theme from "./theme.ts";
 
 function forwardConsole(
@@ -45,7 +46,9 @@ createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
 			<MantineProvider theme={theme}>
-				<RouterProvider router={router} />
+				<ModalsProvider>
+					<RouterProvider router={router} />
+				</ModalsProvider>
 			</MantineProvider>
 		</Provider>
 	</React.StrictMode>,

@@ -1,17 +1,23 @@
 use async_trait::async_trait;
+use thiserror::Error;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::study::entities::study_profile::StudyProfile;
 
-/// Fields editable through the Profile modal. `fsrs_params` and `is_default`
-/// are intentionally excluded: FSRS weight editing waits for the optimizer,
-/// and default status only changes via `set_default`.
+/// FSRS models are trained on exactly this many weights.
+pub const FSRS_PARAM_COUNT: usize = 21;
+
+/// Fields editable through the Profile modal. `is_default` is intentionally
+/// excluded: default status only changes via `set_default`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StudyProfileFields {
     pub name: String,
     pub desired_retention: f32,
+    /// `None` means "use the default weights" on create, or "leave
+    /// unchanged" on update.
+    pub fsrs_params: Option<Vec<f32>>,
     pub default_a_factor: f32,
     pub initial_interval_days: f32,
     pub min_interval_days: f32,
@@ -23,12 +29,12 @@ pub trait StudyProfileService: Send + Sync {
     async fn create_profile(
         &self,
         fields: StudyProfileFields,
-    ) -> Result<StudyProfile, RepositoryError>;
+    ) -> Result<StudyProfile, StudyProfileServiceError>;
     async fn update_profile(
         &self,
         id: Uuid,
         fields: StudyProfileFields,
-    ) -> Result<StudyProfile, RepositoryError>;
+    ) -> Result<StudyProfile, StudyProfileServiceError>;
     async fn delete_profile(&self, id: Uuid) -> Result<(), RepositoryError>;
     async fn clone_profile(&self, id: Uuid) -> Result<StudyProfile, RepositoryError>;
 
@@ -43,4 +49,13 @@ pub trait StudyProfileService: Send + Sync {
         element_id: ElementId,
         profile_id: Option<Uuid>,
     ) -> Result<(), RepositoryError>;
+}
+
+#[derive(Debug, Error)]
+pub enum StudyProfileServiceError {
+    #[error(transparent)]
+    Repository(#[from] RepositoryError),
+
+    #[error("expected {FSRS_PARAM_COUNT} FSRS parameters, got {actual}")]
+    InvalidFsrsParamCount { actual: usize },
 }

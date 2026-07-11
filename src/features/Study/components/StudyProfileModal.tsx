@@ -85,6 +85,7 @@ function StudyProfileModal() {
 			onClose={() => dispatch(closeStudyProfileModal())}
 			title="Study profiles"
 			fullScreen={isMobile}
+			centered
 			size="lg">
 			<Flex
 				direction={{ base: "column", sm: "row" }}

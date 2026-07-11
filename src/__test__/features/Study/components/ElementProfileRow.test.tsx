@@ -20,6 +20,7 @@ const profile: StudyProfileDto = {
 	name: "Default",
 	isDefault: true,
 	desiredRetention: 0.9,
+	fsrsParams: [],
 	defaultAFactor: 1.2,
 	initialIntervalDays: 1,
 	minIntervalDays: 1,

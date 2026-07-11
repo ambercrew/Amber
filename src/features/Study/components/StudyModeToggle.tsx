@@ -9,10 +9,9 @@ import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
 // TODO: the modal
-// Missing fsrs parameters
 // Should close on save
-// Delete should ask user for confirmation
 // Review at end
+// TODO: Update the study profile on the top (in files) when the manager is closed
 
 // TODO: more front-end unit tests
 function StudyModeToggle() {
