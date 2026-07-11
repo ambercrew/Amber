@@ -17,9 +17,11 @@ use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
+use crate::elements::services::implementations::default_element_creation_service::DefaultElementCreationService;
 use crate::elements::services::implementations::default_element_index_service::DefaultElementIndexService;
 use crate::elements::services::implementations::default_element_move_service::DefaultElementMoveService;
 use crate::elements::services::implementations::default_element_tree_service::DefaultElementTreeService;
@@ -212,6 +214,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         injector,
         dyn StudyProfileService,
         DefaultStudyProfileService
+    );
+    register_scope!(
+        injector,
+        dyn ElementCreationService,
+        DefaultElementCreationService
     );
 
     // Settings

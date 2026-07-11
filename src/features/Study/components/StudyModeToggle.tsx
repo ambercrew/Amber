@@ -10,8 +10,6 @@ import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
 // TODO: the modal not good (also missing fsrs)
 // TODO: more front-end unit tests
-// TODO: minimum days before next review
-// TODO: get due dates inside buttons
 function StudyModeToggle() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();

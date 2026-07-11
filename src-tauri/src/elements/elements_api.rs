@@ -16,15 +16,13 @@ use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::dto::update_card_dto::UpdateCardDto;
 use crate::elements::dto::update_extract_dto::UpdateExtractDto;
 use crate::elements::dto::update_reading_dto::UpdateReadingDto;
-use crate::elements::entities::card::Card;
-use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
-use crate::elements::entities::reading::Reading;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
@@ -116,30 +114,10 @@ pub async fn create_reading(
     dto: CreateReadingDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
-    let parent = dto.meta.parent;
-    let position = scope
-        .resolve::<dyn ElementIndexService>()
-        .await
-        .get_new_last_index(parent)
-        .await?;
-    let now = Utc::now();
-    let reading = Reading {
-        meta: Meta {
-            element_id: ElementId::Reading(dto.id),
-            name: dto.meta.name,
-            parent,
-            position,
-            study_profile_id: None,
-            created_at: now,
-            modified_at: now,
-        },
-        content: dto.content,
-        position_block_index: 0,
-    };
     scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn ElementCreationService>()
         .await
-        .create(reading)
+        .create_reading(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -151,29 +129,10 @@ pub async fn create_extract(
     dto: CreateExtractDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
-    let parent = dto.meta.parent;
-    let position = scope
-        .resolve::<dyn ElementIndexService>()
-        .await
-        .get_new_last_index(parent)
-        .await?;
-    let now = Utc::now();
-    let extract = Extract {
-        meta: Meta {
-            element_id: ElementId::Extract(dto.id),
-            name: dto.meta.name,
-            parent,
-            position,
-            study_profile_id: None,
-            created_at: now,
-            modified_at: now,
-        },
-        content: dto.content,
-    };
     scope
-        .resolve::<dyn ExtractRepository>()
+        .resolve::<dyn ElementCreationService>()
         .await
-        .create(extract)
+        .create_extract(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -199,30 +158,10 @@ pub async fn create_card(
     dto: CreateCardDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
-    let parent = dto.meta.parent;
-    let position = scope
-        .resolve::<dyn ElementIndexService>()
-        .await
-        .get_new_last_index(parent)
-        .await?;
-    let now = Utc::now();
-    let card = Card {
-        meta: Meta {
-            element_id: ElementId::Card(dto.id),
-            name: dto.meta.name,
-            parent,
-            position,
-            study_profile_id: None,
-            created_at: now,
-            modified_at: now,
-        },
-        front: dto.front,
-        back: dto.back,
-    };
     scope
-        .resolve::<dyn CardRepository>()
+        .resolve::<dyn ElementCreationService>()
         .await
-        .create(card)
+        .create_card(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())
