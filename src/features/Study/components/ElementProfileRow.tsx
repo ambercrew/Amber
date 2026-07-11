@@ -17,6 +17,7 @@ import useApi from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { openStudyProfileModal } from "../../../stores/app/appReducer";
+import { selectIsStudyProfileModalOpened } from "../../../stores/app/appSelectors";
 import { selectStudyCounts } from "../../../stores/study/studySelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { commands } from "../../../commands/commands";
@@ -51,6 +52,9 @@ function ElementProfileRow({
 	const [inheritedName, setInheritedName] = useState<string | null>(null);
 	const counts = useAppSelector(selectStudyCounts);
 	const gradedCount = counts.cards + counts.readings;
+	const isProfileModalOpened = useAppSelector(
+		selectIsStudyProfileModalOpened,
+	);
 
 	async function loadStatus() {
 		const [profileList, effectiveProfile] = await Promise.all([
@@ -102,6 +106,7 @@ function ElementProfileRow({
 		parentId?.type,
 		parentId?.id,
 		gradedCount,
+		isProfileModalOpened,
 		callApi,
 		onDueChange,
 	]);

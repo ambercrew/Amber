@@ -8,12 +8,7 @@ import { sessionStopped } from "../../../stores/study/studyReducer";
 import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
-// TODO: the modal
-// Unit tests
-// Review at end
-// TODO: Update the study profile on the top (in files) when the manager is closed
-
-// TODO: more front-end unit tests
+// TODO: clicking study shows material many times even when it should not (try on a card)
 function StudyModeToggle() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();

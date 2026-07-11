@@ -101,13 +101,14 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 		modals.openConfirmModal({
 			title: "Delete profile",
 			children: (
-				<Text size="sm">
+				<Text>
 					Are you sure you want to delete &quot;{profile.name}
 					&quot;? This cannot be undone.
 				</Text>
 			),
 			labels: { confirm: "Delete", cancel: "Cancel" },
 			confirmProps: { color: "red" },
+			centered: true,
 			onConfirm: () => {
 				void deleteStudyProfile(profile.id).then(onSaved);
 			},

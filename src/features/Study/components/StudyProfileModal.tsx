@@ -12,7 +12,7 @@ import {
 	Text,
 	useMantineTheme,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useResizeObserver } from "@mantine/hooks";
 import { PlusIcon } from "@phosphor-icons/react";
 import { listStudyProfiles } from "../../../api/study/api/studyProfileApi";
 import { StudyProfileDto } from "../../../api/study/dto/studyProfileDto";
@@ -30,6 +30,7 @@ function StudyProfileModal() {
 	const theme = useMantineTheme();
 	const isMobile =
 		useMediaQuery(`(max-width: ${theme.breakpoints.sm})`) ?? false;
+	const [formRef, formRect] = useResizeObserver();
 
 	function refresh() {
 		void listStudyProfiles().then(list => {
@@ -57,7 +58,8 @@ function StudyProfileModal() {
 					variant={profile.id === selectedId ? "light" : "subtle"}
 					color="gray"
 					justify="space-between"
-					fullWidth={!isMobile}
+					style={{ flexShrink: 0 }}
+					styles={{ label: { flex: 1, minWidth: 0 } }}
 					rightSection={
 						profile.isDefault ? (
 							<Badge size="xs" variant="light">
@@ -66,7 +68,9 @@ function StudyProfileModal() {
 						) : undefined
 					}
 					onClick={() => setSelectedId(profile.id)}>
-					<Text truncate="end">{profile.name}</Text>
+					<Text truncate="end" style={{ minWidth: 0 }}>
+						{profile.name}
+					</Text>
 				</Button>
 			))}
 			<Button
@@ -86,7 +90,8 @@ function StudyProfileModal() {
 			title="Study profiles"
 			fullScreen={isMobile}
 			centered
-			size="lg">
+			size="lg"
+			closeButtonProps={{ "aria-label": "Close" }}>
 			<Flex
 				direction={{ base: "column", sm: "row" }}
 				align={{ base: "stretch", sm: "flex-start" }}
@@ -99,15 +104,15 @@ function StudyProfileModal() {
 					</Scroller>
 				) : (
 					<ScrollArea.Autosize
-						mah={420}
-						w={180}
-						type="auto"
-						scrollbarSize={6}>
-						<Stack gap={6}>{profileButtons}</Stack>
+						mah={formRect.height || undefined}
+						offsetScrollbars>
+						<Stack gap={6} w={180}>
+							{profileButtons}
+						</Stack>
 					</ScrollArea.Autosize>
 				)}
 
-				<Box flex={1} w={{ base: "100%", sm: "auto" }}>
+				<Box ref={formRef} flex={1}>
 					<ProfileForm
 						key={selectedId ?? "new"}
 						profile={selected}
