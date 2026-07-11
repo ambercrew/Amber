@@ -112,6 +112,15 @@ const studySlice = createSlice({
 		queueLoaded: (state, action: PayloadAction<DueElementDto[]>) => {
 			state.queue = action.payload;
 		},
+		// Restarts the shown-answer/timer state whenever the displayed
+		// element changes for any reason (session advance, or an
+		// out-of-order jump via the priority queue), so the footer timer
+		// and the review-duration measurement never carry over from a
+		// previously viewed element.
+		elementShown: state => {
+			state.cardPhase = "question";
+			state.shownAt = Date.now();
+		},
 	},
 });
 
@@ -135,4 +144,5 @@ export const {
 	sessionStopped,
 	summaryDismissed,
 	queueLoaded,
+	elementShown,
 } = studySlice.actions;

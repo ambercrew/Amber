@@ -1,10 +1,10 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router";
-import { sessionStopped } from "../stores/study/studyReducer";
-import { selectStudyStatus } from "../stores/study/studySelectors";
-import { StudySessionLocationState } from "../types/study/studySessionLocationState";
-import useAppDispatch from "./useAppDispatch";
-import useAppSelector from "./useAppSelector";
+import { sessionStopped } from "../../../stores/study/studyReducer";
+import { selectStudyStatus } from "../../../stores/study/studySelectors";
+import { StudySessionLocationState } from "../../../types/study/studySessionLocationState";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
 
 // Any route change that isn't the session engine's own navigation (e.g. the
 // sidebar, back/forward, or the command palette) ends the active session.

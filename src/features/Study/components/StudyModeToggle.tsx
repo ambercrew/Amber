@@ -8,9 +8,6 @@ import { sessionStopped } from "../../../stores/study/studyReducer";
 import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
-// TODO: move all hooks for studying into study folder, and change the queue panel into custom hook and make them more cohesive
-// TODO: reset footer time when navigating between elements, and the queue must refresh on creating new elements
-
 // TODO: the modal not good (also missing fsrs)
 // TODO: more front-end unit tests
 // TODO: minimum days before next review

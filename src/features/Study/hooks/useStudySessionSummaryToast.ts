@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { notifications } from "@mantine/notifications";
-import { summaryDismissed } from "../stores/study/studyReducer";
-import { selectStudySummary } from "../stores/study/studySelectors";
-import useAppDispatch from "./useAppDispatch";
-import useAppSelector from "./useAppSelector";
+import { summaryDismissed } from "../../../stores/study/studyReducer";
+import { selectStudySummary } from "../../../stores/study/studySelectors";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
 
 // The session never ends silently: reaching the end of the queue always
 // surfaces a "Done for today" toast built from the session counters.

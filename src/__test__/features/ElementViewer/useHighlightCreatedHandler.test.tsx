@@ -1,30 +1,34 @@
-import { renderHook } from "@testing-library/react";
-import { Provider } from "react-redux";
-import { setupStore } from "../../../stores/store";
 import { useHighlightCreatedHandler } from "../../../features/ElementViewer/useHighlightCreatedHandler";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 import {
 	createCardAction,
 	createExtractAction,
 } from "../../../stores/elements/elementsActions";
 import { ElementId } from "../../../types/elements/elementId";
+import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 
 vi.mock(import("../../../stores/elements/elementsActions"));
 
 const ELEMENT_ID: ElementId = { type: "reading", id: "reading-1" };
 
+function HookWrapper({
+	capture,
+}: {
+	capture: (handler: (payload: HighlightCreatedPayload) => void) => void;
+}) {
+	capture(useHighlightCreatedHandler(ELEMENT_ID));
+	return null;
+}
+
 function renderHandler() {
 	vi.mocked(createCardAction).mockReturnValue(() => Promise.resolve());
 	vi.mocked(createExtractAction).mockReturnValue(() => Promise.resolve());
 
-	const { result } = renderHook(
-		() => useHighlightCreatedHandler(ELEMENT_ID),
-		{
-			wrapper: ({ children }) => (
-				<Provider store={setupStore()}>{children}</Provider>
-			),
-		},
+	let handleHighlightCreated!: (payload: HighlightCreatedPayload) => void;
+	renderWithProviders(
+		<HookWrapper capture={handler => (handleHighlightCreated = handler)} />,
 	);
-	return result.current;
+	return handleHighlightCreated;
 }
 
 describe("useHighlightCreatedHandler", () => {

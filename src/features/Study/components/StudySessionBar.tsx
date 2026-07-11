@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Box, Button, Group, Text, MantineColor } from "@mantine/core";
 import { EyeIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
@@ -10,13 +10,13 @@ import {
 import { CardDuePreviewDto } from "../../../api/study/dto/cardDuePreviewDto";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { useElapsedSeconds } from "../../../hooks/useElapsedSeconds";
+import { useElapsedSeconds } from "../hooks/useElapsedSeconds";
 import {
 	finishReadingAction,
 	gradeCardAction,
 	nextReadingAction,
 } from "../../../stores/study/studyActions";
-import { answerShown } from "../../../stores/study/studyReducer";
+import { answerShown, elementShown } from "../../../stores/study/studyReducer";
 import {
 	selectStudyCardPhase,
 	selectStudyCurrentElement,
@@ -54,6 +54,7 @@ function StudySessionBar() {
 	const [cardDuePreview, setCardDuePreview] =
 		useState<CardDuePreviewDto | null>(null);
 	const [nextReadingDue, setNextReadingDue] = useState<string | null>(null);
+	const isFirstRender = useRef(true);
 
 	if (currentKey !== trackedKey) {
 		setTrackedKey(currentKey);
@@ -64,12 +65,22 @@ function StudySessionBar() {
 	useEffect(() => {
 		if (!current) return;
 
+		// Skip the mount that lands on whichever element the session already
+		// started/advanced to — only reset the timer/phase for element
+		// changes that happen afterwards (e.g. a jump via the priority
+		// queue), which the session-advance actions don't already handle.
+		if (isFirstRender.current) {
+			isFirstRender.current = false;
+		} else {
+			dispatch(elementShown());
+		}
+
 		if (current.type === "card") {
 			void previewCardReview(current.id).then(setCardDuePreview);
 		} else {
 			void previewNextReading(current).then(setNextReadingDue);
 		}
-	}, [current]);
+	}, [current, dispatch]);
 
 	if (!current) return null;
 
