@@ -16,6 +16,10 @@
 	padding-left: var(--editor-padding-x);
 	line-height: var(--mantine-line-height-xl);
 	outline: none;
+
+	& * {
+		content-visibility: auto;
+	}
 }
 
 .inline-code {

@@ -8,7 +8,12 @@ import { sessionStopped } from "../../../stores/study/studyReducer";
 import { startStudySession } from "../../../stores/study/studyActions";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 
-// TODO: the modal not good (also missing fsrs)
+// TODO: the modal
+// Missing fsrs parameters
+// Should close on save
+// Delete should ask user for confirmation
+// Review at end
+
 // TODO: more front-end unit tests
 function StudyModeToggle() {
 	const dispatch = useAppDispatch();
