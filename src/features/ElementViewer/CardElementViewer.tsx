@@ -47,7 +47,7 @@ export default function CardElementViewer({
 						buttons={buttons}
 						onChange={onFrontChange}
 						onHighlightCreated={onHighlightCreated}
-						autoFocus
+						autoFocus={status === "editing"}
 					/>
 				</Stack>
 				<Divider />

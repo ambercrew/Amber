@@ -5,6 +5,7 @@ import ElementEditor from "./ElementEditor";
 import FolderView from "./FolderView";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
+import { selectStudyStatus } from "../../stores/study/studySelectors";
 import {
 	updateCard,
 	updateExtract,
@@ -15,6 +16,7 @@ import { useHighlightCreatedHandler } from "./useHighlightCreatedHandler";
 
 export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
+	const studyStatus = useAppSelector(selectStudyStatus);
 	const elementId = currentElement?.data?.meta?.elementId;
 	const buttons = useElementViewerButtons();
 	const handleHighlightCreated = useHighlightCreatedHandler(elementId);
@@ -98,7 +100,7 @@ export default function ElementViewer() {
 				buttons={buttons}
 				onChange={handleChange}
 				onHighlightCreated={handleHighlightCreated}
-				autoFocus
+				autoFocus={studyStatus === "editing"}
 			/>
 		</Container>
 	);
