@@ -8,12 +8,9 @@
 .anchor {
 	position: relative;
 	padding: 0;
-	--drag-size: var(--mantine-spacing-lg);
-	--editor-padding-x: calc(var(--drag-size) + var(--mantine-spacing-xs));
 }
 
 .content-editable {
-	padding-left: var(--editor-padding-x);
 	line-height: var(--mantine-line-height-xl);
 	outline: none;
 }
@@ -34,7 +31,7 @@
 	pointer-events: none;
 	position: absolute;
 	top: 0;
-	left: var(--editor-padding-x);
+	left: 0;
 	user-select: none;
 }
 
@@ -51,32 +48,4 @@
 	transition: opacity 0.1s ease;
 	/* Equals the app shell header. */
 	z-index: 100;
-}
-
-.drag-handle {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: var(--drag-size);
-	height: var(--drag-size);
-	cursor: grab;
-	border-radius: var(--mantine-radius-default);
-}
-
-.drag-handle:hover {
-	background: var(--mantine-color-default-hover);
-}
-
-.drag-target-line {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 2px;
-	background: var(--mantine-primary-color-filled);
-	border-radius: var(--mantine-radius-xs);
-	pointer-events: none;
-	opacity: 0;
 }

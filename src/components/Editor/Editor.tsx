@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
 	AutoFocusExtension,
 	ClickAfterLastBlockExtension,
@@ -23,7 +23,6 @@ import {
 	LexicalEditor,
 } from "lexical";
 import { Box, ScrollArea, Text, Typography } from "@mantine/core";
-import { DragPlugin } from "./plugins/DragPlugin";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
@@ -115,8 +114,6 @@ export default function Editor({
 	children,
 	onHighlightCreated,
 }: EditorProps) {
-	const [anchorElem, setAnchorElem] = useState<HTMLElement | null>(null);
-
 	const editorExtension = useMemo(
 		() =>
 			defineExtension({
@@ -164,7 +161,7 @@ export default function Editor({
 			<LexicalExtensionComposer
 				extension={editorExtension}
 				contentEditable={null}>
-				<Box className={styles.anchor} ref={setAnchorElem}>
+				<Box className={styles.anchor}>
 					<ScrollArea h="100%">
 						<ContentEditable
 							className={styles["content-editable"]}
@@ -181,7 +178,6 @@ export default function Editor({
 					<EquationPlugin />
 					<ImagePlugin />
 					<HighlightPlugin onHighlightCreated={onHighlightCreated} />
-					{anchorElem ? <DragPlugin anchorElem={anchorElem} /> : null}
 					{children}
 				</Box>
 			</LexicalExtensionComposer>
