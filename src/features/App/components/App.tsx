@@ -27,8 +27,8 @@ import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
-const HEADER_HEIGHT = 60;
-const BOTTOM_BAR_HEIGHT = 70;
+// Must be defined manually otherwise hiding header or footer when scrolling won't work.
+const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
 export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 
@@ -95,12 +95,12 @@ function App() {
 				},
 			}}
 			header={{
-				height: HEADER_HEIGHT,
+				height: HEADER_AND_FOOTER_HEIGHT,
 				collapsed: !pinned,
 				offset: false,
 			}}
 			footer={{
-				height: BOTTOM_BAR_HEIGHT,
+				height: HEADER_AND_FOOTER_HEIGHT,
 				collapsed: studyStatus !== "studying" || !pinned,
 			}}
 			padding="md">
@@ -140,8 +140,7 @@ function App() {
 				)}
 			</AppShell.Navbar>
 
-			{/* The padding of top is the height of the header */}
-			<AppShell.Main pt={`${rem(HEADER_HEIGHT)}`}>
+			<AppShell.Main pt={`${rem(HEADER_AND_FOOTER_HEIGHT)}`}>
 				<Outlet />
 			</AppShell.Main>
 		</AppShell>

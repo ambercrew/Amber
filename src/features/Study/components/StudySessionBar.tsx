@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Box, Button, Group, Text, MantineColor } from "@mantine/core";
-import { EyeIcon } from "@phosphor-icons/react";
+import { Box, Button, Group, Text, Tooltip } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
 import {
@@ -27,11 +26,11 @@ import {
 import { Rating } from "../../../types/study/rating";
 import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 
-const RATINGS: { rating: Rating; label: string; color: MantineColor }[] = [
-	{ rating: "again", label: "Again", color: "red" },
-	{ rating: "hard", label: "Hard", color: "orange" },
-	{ rating: "good", label: "Good", color: "green" },
-	{ rating: "easy", label: "Easy", color: "blue" },
+const RATINGS: { rating: Rating; label: string }[] = [
+	{ rating: "again", label: "Again" },
+	{ rating: "hard", label: "Hard" },
+	{ rating: "good", label: "Good" },
+	{ rating: "easy", label: "Easy" },
 ];
 
 function formatElapsed(totalSeconds: number): string {
@@ -87,7 +86,7 @@ function StudySessionBar() {
 	const answerHidden = current.type === "card" && cardPhase === "question";
 
 	return (
-		<Group h="100%" px="sm" py="xs" wrap="nowrap" align="flex-end">
+		<Group h="100%" px="sm" py="xs" wrap="nowrap" align="center">
 			<Box flex={1}>
 				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
 					{index + 1}/{queue.length}
@@ -96,29 +95,27 @@ function StudySessionBar() {
 
 			{answerHidden ? (
 				<Button
-					variant="light"
-					color="gray"
+					variant="default"
 					size="sm"
-					leftSection={<EyeIcon size={16} />}
 					onClick={() => dispatch(answerShown())}>
 					Show answer
 				</Button>
 			) : current.type === "card" ? (
 				<Group gap="xs" wrap="nowrap" align="flex-end">
-					{RATINGS.map(({ rating, label, color }) => (
-						<Box key={rating}>
-							{cardDuePreview && (
-								<Text size="xs" c="dimmed" ta="center" mb={2}>
-									{formatRelativeDueDate(
-										cardDuePreview[rating],
-									)}
-								</Text>
-							)}
+					{RATINGS.map(({ rating, label }) => (
+						<Tooltip
+							key={rating}
+							label={
+								cardDuePreview
+									? formatRelativeDueDate(
+											cardDuePreview[rating],
+										)
+									: ""
+							}
+							disabled={!cardDuePreview}>
 							<Button
-								variant="light"
-								color={color}
 								size="sm"
-								fullWidth
+								variant="default"
 								onClick={() =>
 									void dispatch(
 										gradeCardAction(
@@ -130,37 +127,21 @@ function StudySessionBar() {
 								}>
 								{label}
 							</Button>
-						</Box>
+						</Tooltip>
 					))}
 				</Group>
 			) : (
 				<Group gap="xs" wrap="nowrap" align="flex-end">
-					<Box>
-						<Text size="xs" c="dimmed" ta="center" mb={2}>
-							Won&apos;t repeat
-						</Text>
+					<Tooltip
+						label={
+							nextReadingDue
+								? formatRelativeDueDate(nextReadingDue)
+								: ""
+						}
+						disabled={!nextReadingDue}>
 						<Button
 							variant="default"
 							size="sm"
-							fullWidth
-							onClick={() =>
-								void dispatch(
-									finishReadingAction(current, navigate),
-								)
-							}>
-							Finish
-						</Button>
-					</Box>
-					<Box>
-						{nextReadingDue && (
-							<Text size="xs" c="dimmed" ta="center" mb={2}>
-								{formatRelativeDueDate(nextReadingDue)}
-							</Text>
-						)}
-						<Button
-							variant="filled"
-							size="sm"
-							fullWidth
 							onClick={() =>
 								void dispatch(
 									nextReadingAction(current, navigate),
@@ -168,7 +149,19 @@ function StudySessionBar() {
 							}>
 							Next
 						</Button>
-					</Box>
+					</Tooltip>
+					<Tooltip label="Won't repeat">
+						<Button
+							variant="default"
+							size="sm"
+							onClick={() =>
+								void dispatch(
+									finishReadingAction(current, navigate),
+								)
+							}>
+							Finish
+						</Button>
+					</Tooltip>
 				</Group>
 			)}
 
