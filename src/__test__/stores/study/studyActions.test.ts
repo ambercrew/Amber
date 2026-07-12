@@ -4,6 +4,7 @@ import {
 	finishReadingAction,
 	gradeCardAction,
 	nextReadingAction,
+	skipReadingAction,
 	startStudySession,
 } from "../../../stores/study/studyActions";
 import { StudyState } from "../../../stores/study/studyReducer";
@@ -295,6 +296,72 @@ describe("nextReadingAction", () => {
 		expect(state.queue.map(item => item.elementId.id)).toEqual(["2"]);
 		expect(navigate).toHaveBeenCalledWith(
 			"/reading/2",
+			expect.objectContaining({ state: { studySessionNav: true } }),
+		);
+	});
+});
+
+describe("skipReadingAction", () => {
+	it("Should move the skipped reading to the end of the queue and advance without incrementing any counts", () => {
+		// Arrange
+
+		const navigate = vi.fn() as unknown as NavigateFunction;
+		const store = setupStore({
+			study: {
+				...BASE_STUDY_STATE,
+				queue: [
+					readingQueueItem("1"),
+					readingQueueItem("2"),
+					readingQueueItem("3"),
+				],
+			},
+			elements: elementsStateFor(readingElement("1")),
+		});
+
+		// Act
+
+		store.dispatch(
+			skipReadingAction({ type: "reading", id: "1" }, navigate),
+		);
+
+		// Assert
+
+		const state = store.getState().study;
+		expect(state.queue.map(item => item.elementId.id)).toEqual([
+			"2",
+			"3",
+			"1",
+		]);
+		expect(state.counts.readings).toBe(0);
+		expect(state.counts.finished).toBe(0);
+		expect(navigate).toHaveBeenCalledWith(
+			"/reading/2",
+			expect.objectContaining({ state: { studySessionNav: true } }),
+		);
+	});
+
+	it("Should keep the session active and revisit the same element when skipping the only reading in the queue", () => {
+		// Arrange
+
+		const navigate = vi.fn() as unknown as NavigateFunction;
+		const store = setupStore({
+			study: { ...BASE_STUDY_STATE, queue: [readingQueueItem("1")] },
+			elements: elementsStateFor(readingElement("1")),
+		});
+
+		// Act
+
+		store.dispatch(
+			skipReadingAction({ type: "reading", id: "1" }, navigate),
+		);
+
+		// Assert
+
+		const state = store.getState().study;
+		expect(state.status).toBe("studying");
+		expect(state.queue.map(item => item.elementId.id)).toEqual(["1"]);
+		expect(navigate).toHaveBeenCalledWith(
+			"/reading/1",
 			expect.objectContaining({ state: { studySessionNav: true } }),
 		);
 	});
