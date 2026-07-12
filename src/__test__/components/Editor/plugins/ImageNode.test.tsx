@@ -55,9 +55,9 @@ function renderEditor() {
 	return capturedEditor as LexicalEditor;
 }
 
-// Editor.tsx's htmlToEditorState parses saved HTML through a detached
-// DOMParser document (never attached to the live DOM) to rebuild editor
-// state on load. This mirrors that exact parse path.
+// Simulates pasting HTML (e.g. an image) into the editor by parsing it
+// through a detached DOMParser document, mirroring Lexical's HTML paste
+// import path.
 function importHtmlIntoImageNode(editor: LexicalEditor, html: string) {
 	let imageNode: ImageNode | null = null;
 	act(() => {

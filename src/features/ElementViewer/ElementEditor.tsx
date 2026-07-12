@@ -1,8 +1,7 @@
 import { useCallback } from "react";
 import { Alert } from "@mantine/core";
-import { $generateHtmlFromNodes } from "@lexical/html";
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
-import { EditorState, LexicalEditor } from "lexical";
+import { EditorState } from "lexical";
 import Editor from "../../components/Editor/Editor";
 import {
 	FloatingMenuItem,
@@ -40,14 +39,12 @@ export default function ElementEditor({
 		callApi,
 	});
 
-	// Serializing the whole document to HTML is expensive on large
+	// Serializing the whole document to JSON is expensive on large
 	// documents, so it is deferred to save time instead of running on
 	// every editor update.
 	const handleChange = useCallback(
-		(editorState: EditorState, editor: LexicalEditor) => {
-			onContentUpdate(() =>
-				editorState.read(() => $generateHtmlFromNodes(editor)),
-			);
+		(editorState: EditorState) => {
+			onContentUpdate(() => JSON.stringify(editorState.toJSON()));
 		},
 		[onContentUpdate],
 	);

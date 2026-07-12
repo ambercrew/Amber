@@ -27,7 +27,7 @@ interface ReturnValue {
  */
 function useAutoSave({ onSave, onSaveComplete, callApi }: Props): ReturnValue {
 	// Holds a getter for the latest content that is not yet saved. Producing
-	// the content (e.g. serializing the editor state to HTML) can be
+	// the content (e.g. serializing the editor state to JSON) can be
 	// expensive on large documents, so it is deferred until a save actually
 	// happens instead of running on every update.
 	const pendingContent = useRef<(() => string) | null>(null);

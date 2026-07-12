@@ -56,6 +56,15 @@ const blockTags = new Set([
 	"FIGURE",
 ]);
 
+// Content saved by the editor itself is serialized Lexical JSON, but content
+// coming from the Import feature (`src/features/Import`) is sanitized HTML
+// stored directly on the element. Both are valid `initialContent` values, so
+// this tells them apart to pick the right parsing path.
+function isSerializedEditorState(content: string): boolean {
+	const isJson = content.startsWith("{") && content.endsWith("}");
+	return isJson;
+}
+
 function htmlToEditorState(html: string) {
 	return (editor: LexicalEditor) => {
 		const parser = new DOMParser();
@@ -140,9 +149,11 @@ export default function Editor({
 					ClozeHiddenNode,
 					ImageNode,
 				],
-				$initialEditorState: initialContent
-					? htmlToEditorState(initialContent)
-					: undefined,
+				$initialEditorState: !initialContent
+					? undefined
+					: isSerializedEditorState(initialContent)
+						? initialContent
+						: htmlToEditorState(initialContent),
 			}),
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- only apply initialContent once, at editor creation
 		[],
