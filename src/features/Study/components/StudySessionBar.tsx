@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Button, Group, Text, Tooltip } from "@mantine/core";
+import { useHotkeys } from "@mantine/hooks";
 import { useNavigate } from "react-router";
 import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
 import {
@@ -7,6 +8,7 @@ import {
 	previewNextReading,
 } from "../../../api/study/api/studyApi";
 import { CardDuePreviewDto } from "../../../api/study/dto/cardDuePreviewDto";
+import { formatShortcut } from "../../../commands/formatShortcut";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { useElapsedSeconds } from "../hooks/useElapsedSeconds";
@@ -27,12 +29,19 @@ import {
 import { Rating } from "../../../types/study/rating";
 import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 
-const RATINGS: { rating: Rating; label: string }[] = [
-	{ rating: "again", label: "Again" },
-	{ rating: "hard", label: "Hard" },
-	{ rating: "good", label: "Good" },
-	{ rating: "easy", label: "Easy" },
+const SHOW_ANSWER_SHORTCUT = "space";
+
+const RATINGS: { rating: Rating; label: string; shortcut: string }[] = [
+	{ rating: "again", label: "Again", shortcut: "1" },
+	{ rating: "hard", label: "Hard", shortcut: "2" },
+	{ rating: "good", label: "Good", shortcut: "3" },
+	{ rating: "easy", label: "Easy", shortcut: "4" },
 ];
+
+function withShortcut(text: string | null, shortcut: string): string {
+	const suffix = `(${formatShortcut(shortcut)})`;
+	return text ? `${text} ${suffix}` : suffix;
+}
 
 function formatElapsed(totalSeconds: number): string {
 	const minutes = Math.floor(totalSeconds / 60);
@@ -82,9 +91,44 @@ function StudySessionBar() {
 		}
 	}, [current, dispatch]);
 
-	if (!current) return null;
+	const answerHidden = current?.type === "card" && cardPhase === "question";
 
-	const answerHidden = current.type === "card" && cardPhase === "question";
+	const gradeShortcut = (rating: Rating) => () => {
+		if (current?.type !== "card" || answerHidden) return;
+		void dispatch(gradeCardAction(current.id, rating, navigate));
+	};
+	const readingShortcut = (action: (id: typeof current) => void) => () => {
+		if (!current || current.type === "card") return;
+		action(current);
+	};
+
+	useHotkeys([
+		[
+			SHOW_ANSWER_SHORTCUT,
+			() => {
+				if (answerHidden) dispatch(answerShown());
+			},
+		],
+		["1", gradeShortcut("again")],
+		["2", gradeShortcut("hard")],
+		["3", gradeShortcut("good")],
+		["4", gradeShortcut("easy")],
+		["1", readingShortcut(id => dispatch(skipReadingAction(id, navigate)))],
+		[
+			"2",
+			readingShortcut(
+				id => void dispatch(nextReadingAction(id, navigate)),
+			),
+		],
+		[
+			"3",
+			readingShortcut(
+				id => void dispatch(finishReadingAction(id, navigate)),
+			),
+		],
+	]);
+
+	if (!current) return null;
 
 	return (
 		<Group h="100%" px="sm" py="xs" wrap="nowrap" align="center">
@@ -95,25 +139,27 @@ function StudySessionBar() {
 			</Box>
 
 			{answerHidden ? (
-				<Button
-					variant="default"
-					size="sm"
-					onClick={() => dispatch(answerShown())}>
-					Show answer
-				</Button>
+				<Tooltip label={withShortcut(null, SHOW_ANSWER_SHORTCUT)}>
+					<Button
+						variant="default"
+						size="sm"
+						onClick={() => dispatch(answerShown())}>
+						Show answer
+					</Button>
+				</Tooltip>
 			) : current.type === "card" ? (
 				<Group gap="xs" wrap="nowrap" align="flex-end">
-					{RATINGS.map(({ rating, label }) => (
+					{RATINGS.map(({ rating, label, shortcut }) => (
 						<Tooltip
 							key={rating}
-							label={
+							label={withShortcut(
 								cardDuePreview
 									? formatRelativeDueDate(
 											cardDuePreview[rating],
 										)
-									: ""
-							}
-							disabled={!cardDuePreview}>
+									: null,
+								shortcut,
+							)}>
 							<Button
 								size="sm"
 								variant="default"
@@ -133,7 +179,11 @@ function StudySessionBar() {
 				</Group>
 			) : (
 				<Group gap="xs" wrap="nowrap" align="flex-end">
-					<Tooltip label="Move to the end of the queue">
+					<Tooltip
+						label={withShortcut(
+							"Move to the end of the queue",
+							"1",
+						)}>
 						<Button
 							variant="default"
 							size="sm"
@@ -144,12 +194,12 @@ function StudySessionBar() {
 						</Button>
 					</Tooltip>
 					<Tooltip
-						label={
+						label={withShortcut(
 							nextReadingDue
 								? formatRelativeDueDate(nextReadingDue)
-								: ""
-						}
-						disabled={!nextReadingDue}>
+								: null,
+							"2",
+						)}>
 						<Button
 							variant="default"
 							size="sm"
@@ -161,7 +211,7 @@ function StudySessionBar() {
 							Next
 						</Button>
 					</Tooltip>
-					<Tooltip label="Won't repeat">
+					<Tooltip label={withShortcut("Won't repeat", "3")}>
 						<Button
 							variant="default"
 							size="sm"

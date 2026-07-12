@@ -138,7 +138,6 @@ export default function Editor({
 					},
 					code: styles["code-block"],
 				},
-				// TODO: maybe add id here to solve the card issue
 				name: "editor",
 				namespace: "editor",
 				nodes: [
