@@ -15,6 +15,7 @@ import {
 	cardRequeued,
 	readingAdvanced,
 	readingFinished,
+	readingSkipped,
 	sessionAdvanced,
 	sessionStarted,
 } from "./studyReducer";
@@ -73,6 +74,17 @@ export function nextReadingAction(
 		await nextReading(elementId);
 		dispatch(readingAdvanced());
 		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
+	};
+}
+
+export function skipReadingAction(
+	elementId: ElementId,
+	navigate: NavigateFunction,
+) {
+	return (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
+		dispatch(readingSkipped({ elementId }));
+		advanceSession(dispatch, getState, navigate, null, currentIndex);
 	};
 }
 

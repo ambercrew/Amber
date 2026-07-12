@@ -76,6 +76,19 @@ const studySlice = createSlice({
 		readingAdvanced: state => {
 			state.counts.readings += 1;
 		},
+		// Moves a reading/extract to the end of the queue when the user
+		// isn't ready to review it yet, without marking it done.
+		readingSkipped: (
+			state,
+			action: PayloadAction<{ elementId: ElementId }>,
+		) => {
+			const currentIndex = state.queue.findIndex(item =>
+				isSameElement(item.elementId, action.payload.elementId),
+			);
+			if (currentIndex === -1) return;
+			const [current] = state.queue.splice(currentIndex, 1);
+			state.queue.push(current);
+		},
 		readingFinished: state => {
 			state.counts.finished += 1;
 		},
@@ -140,6 +153,7 @@ export const {
 	cardRequeued,
 	readingAdvanced,
 	readingFinished,
+	readingSkipped,
 	sessionAdvanced,
 	sessionStopped,
 	summaryDismissed,

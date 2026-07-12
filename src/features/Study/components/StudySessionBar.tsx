@@ -14,6 +14,7 @@ import {
 	finishReadingAction,
 	gradeCardAction,
 	nextReadingAction,
+	skipReadingAction,
 } from "../../../stores/study/studyActions";
 import { answerShown, elementShown } from "../../../stores/study/studyReducer";
 import {
@@ -132,6 +133,16 @@ function StudySessionBar() {
 				</Group>
 			) : (
 				<Group gap="xs" wrap="nowrap" align="flex-end">
+					<Tooltip label="Move to the end of the queue">
+						<Button
+							variant="default"
+							size="sm"
+							onClick={() =>
+								dispatch(skipReadingAction(current, navigate))
+							}>
+							Skip
+						</Button>
+					</Tooltip>
 					<Tooltip
 						label={
 							nextReadingDue
