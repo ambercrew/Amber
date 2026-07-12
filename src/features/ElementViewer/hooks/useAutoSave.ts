@@ -18,7 +18,7 @@ interface Props {
 
 interface ReturnValue {
 	saveChanges: () => Promise<void>;
-	onContentUpdate: (content: string) => void;
+	onContentUpdate: (getContent: () => string) => void;
 }
 
 /**
@@ -26,9 +26,11 @@ interface ReturnValue {
  * delay, after it gets updated.
  */
 function useAutoSave({ onSave, onSaveComplete, callApi }: Props): ReturnValue {
-	// This ref is only used for keeping the latest content that is not yet
-	// saved.
-	const pendingContent = useRef<string | null>(null);
+	// Holds a getter for the latest content that is not yet saved. Producing
+	// the content (e.g. serializing the editor state to HTML) can be
+	// expensive on large documents, so it is deferred until a save actually
+	// happens instead of running on every update.
+	const pendingContent = useRef<(() => string) | null>(null);
 	const autoSaveTimeoutId = useRef<number>(null);
 	// Multiple ElementEditor instances (e.g. a card's front and back) can be
 	// mounted at once, each with their own useAutoSave instance, so the
@@ -45,16 +47,16 @@ function useAutoSave({ onSave, onSaveComplete, callApi }: Props): ReturnValue {
 		if (pendingContent.current === null) return;
 
 		await callApi(async () => {
-			const content = pendingContent.current!;
+			const getContent = pendingContent.current!;
 			pendingContent.current = null;
 
-			await onSave(content);
+			await onSave(getContent());
 			await onSaveComplete?.();
 		});
 	}, [callApi, onSave, onSaveComplete]);
 
-	const handleContentUpdate = (content: string) => {
-		pendingContent.current = content;
+	const handleContentUpdate = (getContent: () => string) => {
+		pendingContent.current = getContent;
 
 		if (autoSaveTimeoutId.current !== null) {
 			clearTimeout(autoSaveTimeoutId.current);

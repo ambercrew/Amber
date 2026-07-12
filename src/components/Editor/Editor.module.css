@@ -18,6 +18,10 @@
 	outline: none;
 }
 
+.content-editable > * {
+	content-visibility: auto;
+}
+
 .inline-code {
 	display: inline-block;
 }

@@ -28,19 +28,28 @@ export default function ElementEditor({
 	onChange,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
+	const handleSave = useCallback(
+		async (content: string) => {
+			if (content === initialContent) return;
+			await onChange(content);
+		},
+		[onChange, initialContent],
+	);
 	const { onContentUpdate } = useAutoSave({
-		onSave: onChange,
+		onSave: handleSave,
 		callApi,
 	});
 
+	// Serializing the whole document to HTML is expensive on large
+	// documents, so it is deferred to save time instead of running on
+	// every editor update.
 	const handleChange = useCallback(
 		(editorState: EditorState, editor: LexicalEditor) => {
-			editorState.read(() => {
-				const content = $generateHtmlFromNodes(editor);
-				if (content !== initialContent) onContentUpdate(content);
-			});
+			onContentUpdate(() =>
+				editorState.read(() => $generateHtmlFromNodes(editor)),
+			);
 		},
-		[onContentUpdate, initialContent],
+		[onContentUpdate],
 	);
 
 	return (

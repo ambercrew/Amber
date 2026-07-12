@@ -41,7 +41,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb, onSaveCompleteCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 		await vi.runAllTimersAsync();
 
 		// Assert
@@ -56,7 +56,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 
 		// Assert
 
@@ -71,7 +71,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 		await vi.runAllTimersAsync();
 		await returnValue.result.current.saveChanges();
 
@@ -91,7 +91,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb, onSaveCompleteCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 		await act(() => fireEvent(window, event));
 
 		// Assert
@@ -112,7 +112,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb, onSaveCompleteCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 
 		// Assert
 
@@ -131,7 +131,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb, onSaveCompleteCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 		returnValue.unmount();
 		// Waiting for async callback to finish.
 		await act(async () => {
@@ -155,7 +155,7 @@ describe("useAutoSave", () => {
 		// Act
 
 		const { returnValue, onSaveCb, onSaveCompleteCb } = renderAutoSave();
-		returnValue.result.current.onContentUpdate("test");
+		returnValue.result.current.onContentUpdate(() => "test");
 		await addListenerSpy.mock.calls.find(
 			a => a[0] === ListenerType.PreSyncStart,
 		)![1]();
@@ -199,7 +199,7 @@ describe("useAutoSave", () => {
 		const { returnValue: firstReturnValue, onSaveCb: firstOnSaveCb } =
 			renderAutoSave();
 		const { onSaveCb: secondOnSaveCb } = renderAutoSave();
-		firstReturnValue.result.current.onContentUpdate("first");
+		firstReturnValue.result.current.onContentUpdate(() => "first");
 
 		// Assert
 
