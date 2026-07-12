@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import StudySessionBar from "../../../../features/Study/components/StudySessionBar";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
@@ -60,9 +61,10 @@ function inMs(offsetMs: number): string {
 }
 
 describe("StudySessionBar", () => {
-	it("Should show a due date preview under each rating button once the preview loads", async () => {
+	it("Should show a due date preview in each rating button's tooltip once the preview loads", async () => {
 		// Arrange
 
+		const user = userEvent.setup();
 		const again = inMs(30 * 60_000);
 		const hard = inMs(2 * 24 * 3_600_000);
 		const good = inMs(4 * 24 * 3_600_000);
@@ -89,23 +91,27 @@ describe("StudySessionBar", () => {
 
 		// Assert
 
-		expect(
-			await screen.findByText(formatRelativeDueDate(again)),
-		).toBeInTheDocument();
-		expect(
-			screen.getByText(formatRelativeDueDate(hard)),
-		).toBeInTheDocument();
-		expect(
-			screen.getByText(formatRelativeDueDate(good)),
-		).toBeInTheDocument();
-		expect(
-			screen.getByText(formatRelativeDueDate(easy)),
-		).toBeInTheDocument();
+		const dueByRating = {
+			Again: again,
+			Hard: hard,
+			Good: good,
+			Easy: easy,
+		};
+		for (const [name, due] of Object.entries(dueByRating)) {
+			await user.hover(screen.getByRole("button", { name }));
+			expect(
+				await screen.findByText(formatRelativeDueDate(due), {
+					exact: false,
+				}),
+			).toBeInTheDocument();
+			await user.unhover(screen.getByRole("button", { name }));
+		}
 	});
 
-	it("Should not show a due date preview under the rating buttons before the preview loads", () => {
+	it("Should not show a due date preview in the rating buttons' tooltips before the preview loads", async () => {
 		// Arrange
 
+		const user = userEvent.setup();
 		vi.mocked(previewCardReview).mockReturnValue(
 			new Promise(() => {
 				// Never resolves; asserting the pre-load state.
@@ -127,13 +133,17 @@ describe("StudySessionBar", () => {
 
 		// Assert
 
-		expect(screen.getByRole("button", { name: "Again" })).toBeVisible();
+		const againButton = screen.getByRole("button", { name: "Again" });
+		expect(againButton).toBeVisible();
+		await user.hover(againButton);
+		expect(await screen.findByRole("tooltip")).toHaveTextContent("(1)");
 		expect(screen.queryByText(/In \d/)).not.toBeInTheDocument();
 	});
 
-	it("Should show a due date preview under the Next button once the preview loads", async () => {
+	it("Should show a due date preview in the Next button's tooltip once the preview loads", async () => {
 		// Arrange
 
+		const user = userEvent.setup();
 		const due = inMs(2 * 24 * 3_600_000);
 		vi.mocked(previewNextReading).mockResolvedValue(due);
 
@@ -149,17 +159,21 @@ describe("StudySessionBar", () => {
 				elements: elementsStateFor(readingCurrentElement),
 			},
 		});
+		await user.hover(screen.getByRole("button", { name: "Next" }));
 
 		// Assert
 
 		expect(
-			await screen.findByText(formatRelativeDueDate(due)),
+			await screen.findByText(formatRelativeDueDate(due), {
+				exact: false,
+			}),
 		).toBeInTheDocument();
 	});
 
-	it("Should not show a due date preview under the Finish button", async () => {
+	it("Should not show a due date preview in the Finish button's tooltip", async () => {
 		// Arrange
 
+		const user = userEvent.setup();
 		const due = inMs(2 * 24 * 3_600_000);
 		vi.mocked(previewNextReading).mockResolvedValue(due);
 
@@ -175,11 +189,12 @@ describe("StudySessionBar", () => {
 				elements: elementsStateFor(readingCurrentElement),
 			},
 		});
-		await screen.findByText(formatRelativeDueDate(due));
+		await user.hover(screen.getByRole("button", { name: "Finish" }));
 
 		// Assert
 
-		const finishButton = screen.getByRole("button", { name: "Finish" });
-		expect(finishButton.parentElement).toHaveTextContent("Finish");
+		const tooltip = await screen.findByRole("tooltip");
+		expect(tooltip).not.toHaveTextContent(formatRelativeDueDate(due));
+		expect(tooltip).toHaveTextContent("Won't repeat (3)");
 	});
 });
