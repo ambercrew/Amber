@@ -4,10 +4,13 @@ import StudyProfileModal from "../../../../features/Study/components/StudyProfil
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	cloneStudyProfile,
+	getEffectiveStudyProfile,
 	listStudyProfiles,
 	updateStudyProfile,
 } from "../../../../api/study/api/studyProfileApi";
 import { StudyProfileDto } from "../../../../api/study/dto/studyProfileDto";
+import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
+import { ElementsState } from "../../../../stores/elements/elementsReducer";
 
 vi.mock(import("../../../../api/study/api/studyProfileApi.ts"));
 
@@ -25,6 +28,29 @@ function makeProfile(overrides: Partial<StudyProfileDto>): StudyProfileDto {
 		minIntervalDays: 1,
 		...overrides,
 	};
+}
+
+function cardElement(id: string): AnyElementDto {
+	return {
+		type: "card",
+		data: {
+			meta: {
+				elementId: { type: "card", id },
+				name: `Card ${id}`,
+				parent: null,
+				position: "0",
+				tags: [],
+				createdAt: "2024-01-01T00:00:00Z",
+				modifiedAt: "2024-01-01T00:00:00Z",
+			},
+			front: "Front",
+			back: "Back",
+		},
+	};
+}
+
+function elementsStateFor(currentElement: AnyElementDto | null): ElementsState {
+	return { tree: [], isLoading: false, error: null, currentElement };
 }
 
 const firstProfile = makeProfile({ id: "profile-1", name: "Default" });
@@ -79,6 +105,74 @@ describe("StudyProfileModal", () => {
 
 		// Assert
 
+		await waitFor(() => {
+			expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+				firstProfile.name,
+			);
+		});
+	});
+
+	it("Should select the current element's effective profile when opened with an element open", async () => {
+		// Arrange
+
+		vi.mocked(getEffectiveStudyProfile).mockResolvedValue({
+			profile: secondProfile,
+			source: "direct",
+			inheritedFrom: null,
+		});
+
+		// Act
+
+		renderWithProviders(<StudyProfileModal />, {
+			preloadedState: {
+				app: {
+					startedInitialStateLoading: false,
+					importModalOpened: false,
+					studyProfileModalOpened: true,
+				},
+				elements: elementsStateFor(cardElement("1")),
+			},
+		});
+
+		// Assert
+
+		await waitFor(() => {
+			expect(getEffectiveStudyProfile).toHaveBeenCalledWith({
+				type: "card",
+				id: "1",
+			});
+		});
+		await waitFor(() => {
+			expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+				secondProfile.name,
+			);
+		});
+	});
+
+	it("Should select the default profile when opened without an element open", async () => {
+		// Arrange
+
+		vi.mocked(listStudyProfiles).mockResolvedValue([
+			secondProfile,
+			firstProfile,
+		]);
+
+		// Act
+
+		renderWithProviders(<StudyProfileModal />, {
+			preloadedState: {
+				app: {
+					startedInitialStateLoading: false,
+					importModalOpened: false,
+					studyProfileModalOpened: true,
+				},
+				elements: elementsStateFor(null),
+			},
+		});
+
+		// Assert
+
+		expect(getEffectiveStudyProfile).not.toHaveBeenCalled();
 		await waitFor(() => {
 			expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
 				firstProfile.name,

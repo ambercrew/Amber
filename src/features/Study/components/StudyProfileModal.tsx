@@ -14,16 +14,21 @@ import {
 } from "@mantine/core";
 import { useMediaQuery, useResizeObserver } from "@mantine/hooks";
 import { PlusIcon } from "@phosphor-icons/react";
-import { listStudyProfiles } from "../../../api/study/api/studyProfileApi";
+import {
+	getEffectiveStudyProfile,
+	listStudyProfiles,
+} from "../../../api/study/api/studyProfileApi";
 import { StudyProfileDto } from "../../../api/study/dto/studyProfileDto";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { closeStudyProfileModal } from "../../../stores/app/appReducer";
 import { selectIsStudyProfileModalOpened } from "../../../stores/app/appSelectors";
+import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import ProfileForm from "./ProfileForm";
 
 function StudyProfileModal() {
 	const opened = useAppSelector(selectIsStudyProfileModalOpened);
+	const currentElement = useAppSelector(selectCurrentElement);
 	const dispatch = useAppDispatch();
 	const [profiles, setProfiles] = useState<StudyProfileDto[]>([]);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -32,19 +37,40 @@ function StudyProfileModal() {
 		useMediaQuery(`(max-width: ${theme.breakpoints.sm})`) ?? false;
 	const [formRef, formRect] = useResizeObserver();
 
-	function refresh() {
+	function refresh(
+		pickInitialId?: (list: StudyProfileDto[]) => string | null,
+	) {
 		void listStudyProfiles().then(list => {
 			setProfiles(list);
-			setSelectedId(prev =>
-				prev && list.some(profile => profile.id === prev)
-					? prev
-					: (list[0]?.id ?? null),
-			);
+			setSelectedId(prev => {
+				const initialId = pickInitialId?.(list);
+				if (initialId && list.some(profile => profile.id === initialId))
+					return initialId;
+				if (prev && list.some(profile => profile.id === prev))
+					return prev;
+				return list[0]?.id ?? null;
+			});
 		});
 	}
 
 	useEffect(() => {
-		if (opened) refresh();
+		if (!opened) return;
+
+		if (currentElement) {
+			void getEffectiveStudyProfile(currentElement.data.meta.elementId)
+				.then(effective => refresh(() => effective.profile.id))
+				.catch(() =>
+					refresh(
+						list =>
+							list.find(profile => profile.isDefault)?.id ?? null,
+					),
+				);
+		} else {
+			refresh(
+				list => list.find(profile => profile.isDefault)?.id ?? null,
+			);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [opened]);
 
 	const selected =
