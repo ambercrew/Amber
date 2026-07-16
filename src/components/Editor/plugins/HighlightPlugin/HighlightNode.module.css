@@ -1,4 +1,4 @@
-.highlight {
+mark.highlight {
 	background-color: light-dark(
 		var(--highlight-bg-light),
 		var(--highlight-bg-dark)

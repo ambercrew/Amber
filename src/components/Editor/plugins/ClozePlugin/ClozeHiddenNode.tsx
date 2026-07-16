@@ -1,49 +1,60 @@
+import type { JSX } from "react";
 import {
 	$applyNodeReplacement,
+	DecoratorNode,
 	type DOMConversionMap,
 	type DOMConversionOutput,
-	type EditorConfig,
+	type DOMExportOutput,
 	type LexicalNode,
+	type NodeKey,
+	type SerializedLexicalNode,
+	type Spread,
 } from "lexical";
-import { MarkNode, type SerializedMarkNode } from "@lexical/mark";
 import styles from "./ClozeHiddenNode.module.css";
+
+export type SerializedClozeHiddenNode = Spread<
+	{ text: string },
+	SerializedLexicalNode
+>;
 
 export const CLOZE_HIDDEN_TAG_NAME = "mark";
 export const CLOZE_HIDDEN_ATTRIBUTE = "data-cloze-hidden";
 
-function applyClozeHiddenAttributes(element: HTMLElement) {
-	element.classList.add(styles["cloze-hidden"]);
-	element.setAttribute(CLOZE_HIDDEN_ATTRIBUTE, "true");
-}
+// A cloze-hidden span renders as a literal, static "[...]" placeholder — the
+// real text is kept as node data (not as editable DOM text) purely so it can
+// be read back out for other purposes (e.g. seeding a nested cloze). Using a
+// DecoratorNode instead of an editable text/mark node makes the placeholder
+// a single atomic unit for the caret, clicks, and arrow keys, the same way
+// EquationNode/ImageNode behave.
+export class ClozeHiddenNode extends DecoratorNode<JSX.Element> {
+	__text: string;
 
-// MarkNode's static importDOM() is typed to always return null (it never
-// round-trips through HTML); ClozeHiddenNode intentionally returns a real
-// DOMConversionMap so cloze placeholders survive this app's HTML-based
-// persistence, mirroring HighlightNode.
-// @ts-expect-error -- static-side variance on importDOM(), see comment above
-export class ClozeHiddenNode extends MarkNode {
 	static getType(): string {
 		return "cloze-hidden";
 	}
 
 	static clone(node: ClozeHiddenNode): ClozeHiddenNode {
-		return new ClozeHiddenNode(node.__ids, node.__key);
+		return new ClozeHiddenNode(node.__text, node.__key);
 	}
 
-	createDOM(config: EditorConfig): HTMLElement {
-		const element = super.createDOM(config);
-		applyClozeHiddenAttributes(element);
-		return element;
+	constructor(text = "", key?: NodeKey) {
+		super(key);
+		this.__text = text;
 	}
 
-	updateDOM(
-		prevNode: this,
-		element: HTMLElement,
-		config: EditorConfig,
-	): boolean {
-		super.updateDOM(prevNode, element, config);
-		applyClozeHiddenAttributes(element);
+	createDOM(): HTMLElement {
+		return document.createElement("span");
+	}
+
+	updateDOM(): boolean {
 		return false;
+	}
+
+	exportDOM(): DOMExportOutput {
+		const element = document.createElement(CLOZE_HIDDEN_TAG_NAME);
+		element.setAttribute(CLOZE_HIDDEN_ATTRIBUTE, "true");
+		element.textContent = this.__text;
+		return { element };
 	}
 
 	static importDOM(): DOMConversionMap | null {
@@ -63,27 +74,36 @@ export class ClozeHiddenNode extends MarkNode {
 		};
 	}
 
-	static importJSON(serialized: SerializedMarkNode): ClozeHiddenNode {
-		return $createClozeHiddenNode(serialized.ids).updateFromJSON(
-			serialized,
-		);
+	exportJSON(): SerializedClozeHiddenNode {
+		return {
+			...super.exportJSON(),
+			text: this.__text,
+		};
 	}
 
-	excludeFromCopy(): boolean {
-		return false;
+	static importJSON(serialized: SerializedClozeHiddenNode): ClozeHiddenNode {
+		return $createClozeHiddenNode(serialized.text);
+	}
+
+	getTextContent(): string {
+		return this.getLatest().__text;
+	}
+
+	isInline(): boolean {
+		return true;
+	}
+
+	decorate(): JSX.Element {
+		return <span className={styles["cloze-hidden"]}>[...]</span>;
 	}
 }
 
-function $convertClozeHiddenElement(
-	_element: HTMLElement,
-): DOMConversionOutput {
-	return { node: $createClozeHiddenNode([]) };
+function $convertClozeHiddenElement(element: HTMLElement): DOMConversionOutput {
+	return { node: $createClozeHiddenNode(element.textContent ?? "") };
 }
 
-export function $createClozeHiddenNode(
-	ids: readonly string[],
-): ClozeHiddenNode {
-	return $applyNodeReplacement(new ClozeHiddenNode(ids));
+export function $createClozeHiddenNode(text = ""): ClozeHiddenNode {
+	return $applyNodeReplacement(new ClozeHiddenNode(text));
 }
 
 export function $isClozeHiddenNode(
