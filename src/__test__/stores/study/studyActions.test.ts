@@ -106,7 +106,7 @@ function inMs(offsetMs: number): string {
 }
 
 const IN_TWO_DAYS = () => inMs(2 * 24 * 3_600_000);
-const IN_FIVE_MINUTES = () => inMs(5 * 60_000);
+const IN_ONE_MINUTE = () => inMs(60_000);
 
 describe("startStudySession", () => {
 	it("Should not start a session when there are no due elements", async () => {
@@ -187,9 +187,7 @@ describe("gradeCardAction", () => {
 	it("Should requeue the card instead of removing it when due again within the session horizon", async () => {
 		// Arrange
 
-		vi.mocked(gradeCard).mockResolvedValue(
-			makeCardReview(IN_FIVE_MINUTES()),
-		);
+		vi.mocked(gradeCard).mockResolvedValue(makeCardReview(IN_ONE_MINUTE()));
 		const navigate = vi.fn() as unknown as NavigateFunction;
 		const queue = Array.from({ length: 10 }, (_, i) =>
 			cardQueueItem(`${i}`),
