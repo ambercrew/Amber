@@ -140,6 +140,16 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					/>
 				</Tooltip>
 				<Tooltip
+					label="Advanced: the FSRS model weights used to schedule cards. Leave as-is unless you know what you're doing."
+					multiline>
+					<Textarea
+						label="FSRS weights"
+						autosize
+						minRows={2}
+						{...form.getInputProps("fsrsParams")}
+					/>
+				</Tooltip>
+				<Tooltip
 					label="Multiplier applied to the interval each time an incremental reading or extract is revisited."
 					multiline>
 					<NumberInput
@@ -148,16 +158,6 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 						step={0.1}
 						decimalScale={2}
 						{...form.getInputProps("defaultAFactor")}
-					/>
-				</Tooltip>
-				<Tooltip
-					label="Advanced: the FSRS model weights used to schedule cards. Leave as-is unless you know what you're doing."
-					multiline>
-					<Textarea
-						label="FSRS weights"
-						autosize
-						minRows={2}
-						{...form.getInputProps("fsrsParams")}
 					/>
 				</Tooltip>
 				<Tooltip
