@@ -66,20 +66,24 @@ export function SlashMenuPlugin() {
 									}
 									w="100%"
 									p="xs"
-									className={[
-										styles["slash-menu-option"],
-										i === selectedIndex &&
-											styles["slash-menu-option-active"],
-									]
-										.filter(Boolean)
-										.join(" ")}
+									className={styles["slash-menu-option"]}
+									bg={
+										i === selectedIndex
+											? "primary"
+											: undefined
+									}
+									c={
+										i === selectedIndex
+											? "white"
+											: undefined
+									}
 									onClick={() =>
 										selectOptionAndCleanUp(option)
 									}
 									onMouseEnter={() => setHighlightedIndex(i)}>
 									<Group gap="xs">
-										<option.Icon size={18} />
-										<Text>{option.title}</Text>
+										<option.Icon size={16} />
+										<Text size="md">{option.title}</Text>
 									</Group>
 								</UnstyledButton>
 							))}

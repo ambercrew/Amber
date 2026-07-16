@@ -15,16 +15,24 @@
 	outline: none;
 }
 
-.content-editable > * {
-	content-visibility: auto;
-}
-
 .inline-code {
 	display: inline-block;
+	background-color: var(--editor-surface-bg) !important;
 }
 
 .code-block {
 	display: block;
+	/* Shiki sets its own inline background-color per theme; override it
+	   so code blocks match the app's warm palette instead of the
+	   'one-light' theme's stark white. */
+	background-color: var(--editor-surface-bg) !important;
+}
+
+.table-cell-header {
+	/* Lexical's TableCellNode bakes a hardcoded #f2f3f5 background-color
+	   into header cells (exportDOM/importDOM in @lexical/table); override
+	   it so headers match the app's warm palette instead. */
+	background-color: var(--editor-surface-bg) !important;
 }
 
 .placeholder {
@@ -37,10 +45,6 @@
 
 .slash-menu-option {
 	border-radius: var(--mantine-radius-default);
-}
-
-.slash-menu-option-active {
-	background-color: var(--mantine-color-default-hover) !important;
 }
 
 .floating-menu {

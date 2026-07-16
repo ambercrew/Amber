@@ -121,7 +121,7 @@ function App() {
 				<StudySessionBar />
 			</AppShell.Footer>
 
-			<AppShell.Navbar bg="var(--mantine-color-gray-0)">
+			<AppShell.Navbar>
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isMobileViewport && (
 					<Box

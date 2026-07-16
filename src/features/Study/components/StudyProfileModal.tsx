@@ -90,7 +90,7 @@ function StudyProfileModal() {
 			title="Study profiles"
 			fullScreen={isMobile}
 			centered
-			size="lg"
+			size="xl"
 			closeButtonProps={{ "aria-label": "Close" }}>
 			<Flex
 				direction={{ base: "column", sm: "row" }}

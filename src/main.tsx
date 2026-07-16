@@ -12,7 +12,7 @@ import "@mantine/dropzone/styles.css";
 import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
-import theme from "./theme.ts";
+import { theme, cssVariablesResolver } from "./theme.ts";
 
 function forwardConsole(
 	fnName: "log" | "debug" | "info" | "warn" | "error",
@@ -45,7 +45,9 @@ const store = setupStore();
 createRoot(document.getElementById("root")!).render(
 	<React.StrictMode>
 		<Provider store={store}>
-			<MantineProvider theme={theme}>
+			<MantineProvider
+				theme={theme}
+				cssVariablesResolver={cssVariablesResolver}>
 				<ModalsProvider>
 					<RouterProvider router={router} />
 				</ModalsProvider>

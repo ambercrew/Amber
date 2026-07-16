@@ -5,7 +5,7 @@ import {
 	SelectBlockExtension,
 	TabIndentationExtension,
 } from "@lexical/extension";
-import { CodeShikiExtension } from "@lexical/code-shiki";
+import { CodeShikiExtension, ShikiTokenizer } from "@lexical/code-shiki";
 import { $generateNodesFromDOM } from "@lexical/html";
 import { HistoryExtension } from "@lexical/history";
 import { ListExtension } from "@lexical/list";
@@ -22,7 +22,13 @@ import {
 	defineExtension,
 	LexicalEditor,
 } from "lexical";
-import { Box, ScrollArea, Text, Typography } from "@mantine/core";
+import {
+	Box,
+	ScrollArea,
+	Text,
+	Typography,
+	useComputedColorScheme,
+} from "@mantine/core";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
@@ -62,6 +68,19 @@ const blockTags = new Set([
 function isSerializedEditorState(content: string): boolean {
 	const isJson = content.startsWith("{") && content.endsWith("}");
 	return isJson;
+}
+
+// @lexical/code-shiki bakes the Shiki theme used at highlight time into
+// each CodeNode's serialized JSON, and only re-highlights with the
+// tokenizer's current `defaultTheme` when a node has none set. Without
+// this, code blocks saved under one color scheme would keep rendering
+// with that scheme's colors forever, even after switching themes.
+function stripCodeNodeThemes(json: string): string {
+	return JSON.stringify(
+		JSON.parse(json),
+		(key: string, value: unknown): unknown =>
+			key === "theme" ? undefined : value,
+	);
 }
 
 function htmlToEditorState(html: string) {
@@ -114,6 +133,8 @@ export default function Editor({
 	children,
 	onHighlightCreated,
 }: EditorProps) {
+	const colorScheme = useComputedColorScheme("light");
+
 	const editorExtension = useMemo(
 		() =>
 			defineExtension({
@@ -125,7 +146,15 @@ export default function Editor({
 					TabIndentationExtension,
 					ClickAfterLastBlockExtension,
 					SelectBlockExtension,
-					CodeShikiExtension,
+					configExtension(CodeShikiExtension, {
+						tokenizer: {
+							...ShikiTokenizer,
+							defaultTheme:
+								colorScheme === "dark"
+									? "gruvbox-dark-soft"
+									: "one-light",
+						},
+					}),
 					configExtension(AutoFocusExtension, {
 						defaultSelection: "rootStart",
 						disabled: !autoFocus,
@@ -133,6 +162,7 @@ export default function Editor({
 				],
 				theme: {
 					tableScrollableWrapper: styles["table-scrollable-wrapper"],
+					tableCellHeader: styles["table-cell-header"],
 					text: {
 						code: styles["inline-code"],
 					},
@@ -149,11 +179,11 @@ export default function Editor({
 				$initialEditorState: !initialContent
 					? undefined
 					: isSerializedEditorState(initialContent)
-						? initialContent
+						? stripCodeNodeThemes(initialContent)
 						: htmlToEditorState(initialContent),
 			}),
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- only apply initialContent once, at editor creation
-		[],
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- only apply initialContent/autoFocus once, at editor creation; colorScheme is the one prop allowed to rebuild the editor, so code blocks re-highlight with the matching Shiki theme
+		[colorScheme],
 	);
 
 	return (

@@ -119,7 +119,7 @@ function AppHeader({ pinned, onToggleSidebar }: AppHeaderProps) {
 						py="sm"
 						spacing="sm"
 						style={{
-							backgroundColor: "var(--mantine-color-white)",
+							backgroundColor: "var(--mantine-color-body)",
 							borderBottom:
 								"1px solid var(--mantine-color-default-border)",
 						}}>

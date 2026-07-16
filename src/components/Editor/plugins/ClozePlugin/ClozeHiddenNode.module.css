@@ -7,6 +7,11 @@ bare `mark` elements. */
 	user-select: none;
 }
 
+.cloze-hidden * {
+	background-color: inherit !important;
+	color: inherit !important;
+}
+
 /* Mantine's Typography default also sets `color: inherit` on bare `mark`
 elements at specificity (0,1,0), same as an unqualified `.cloze-hidden`
 would be — the `mark` type selector here breaks that tie. */

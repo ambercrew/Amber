@@ -136,11 +136,9 @@ export default function ImageComponent({
 					fit="fill"
 					radius={0}
 					style={{
-						cursor: isSelected ? "grab" : undefined,
 						outline: isFocused
-							? "2px solid var(--mantine-color-blue-5)"
+							? "2px solid var(--mantine-primary-color-filled)"
 							: undefined,
-						userSelect: isFocused ? "none" : undefined,
 					}}
 				/>
 			) : (
@@ -277,8 +275,8 @@ function ImageResizer({
 						pos="absolute"
 						w={8}
 						h={8}
-						bg="blue.5"
-						bd="1px solid var(--mantine-color-white)"
+						bg="var(--mantine-primary-color-filled)"
+						bd="1px solid var(--editor-surface-bg)"
 						bdrs={2}
 						top={top}
 						bottom={bottom}
