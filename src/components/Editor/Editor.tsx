@@ -147,13 +147,8 @@ export default function Editor({
 					ClickAfterLastBlockExtension,
 					SelectBlockExtension,
 					configExtension(CodeShikiExtension, {
-						tokenizer: {
-							...ShikiTokenizer,
-							defaultTheme:
-								colorScheme === "dark"
-									? "gruvbox-dark-soft"
-									: "one-light",
-						},
+						// Only keeping it to get code block background color.
+						disabled: true,
 					}),
 					configExtension(AutoFocusExtension, {
 						defaultSelection: "rootStart",
