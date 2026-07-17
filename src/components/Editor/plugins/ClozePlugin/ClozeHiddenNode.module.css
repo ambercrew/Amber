@@ -7,5 +7,5 @@
 		var(--mantine-color-blue-2),
 		var(--mantine-color-blue-8)
 	);
-	color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-6));
+	color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-3));
 }
