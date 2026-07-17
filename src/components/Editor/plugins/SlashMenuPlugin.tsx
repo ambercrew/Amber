@@ -69,7 +69,7 @@ export function SlashMenuPlugin() {
 									className={styles["slash-menu-option"]}
 									bg={
 										i === selectedIndex
-											? "primary"
+											? "var(--mantine-primary-color-filled)"
 											: undefined
 									}
 									c={
