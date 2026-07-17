@@ -84,6 +84,7 @@ mod tests {
         let element_id = Uuid::new_v4();
         reading_repo
             .create(Reading {
+                a_factor: 1.2,
                 meta: Meta {
                     element_id: ElementId::Reading(element_id),
                     name: "test".into(),

@@ -28,9 +28,12 @@ pub struct DefaultProfileResolutionService {
 impl ProfileResolutionService for DefaultProfileResolutionService {
     async fn resolve_profile(
         &self,
-        element_id: ElementId,
+        element_id: Option<ElementId>,
     ) -> Result<StudyProfile, ProfileResolutionError> {
-        Ok(self.resolve_effective_profile(element_id).await?.profile)
+        match element_id {
+            Some(element_id) => Ok(self.resolve_effective_profile(element_id).await?.profile),
+            None => self.resolve_default_profile().await,
+        }
     }
 
     async fn resolve_effective_profile(
@@ -42,27 +45,28 @@ impl ProfileResolutionService for DefaultProfileResolutionService {
             return Ok(EffectiveProfile { profile, source });
         }
 
-        if let Some(profile) = self
-            .study_profile_repository
-            .get_default_or_oldest()
-            .await?
-        {
-            return Ok(EffectiveProfile {
-                profile,
-                source: ProfileSource::Default,
-            });
-        }
-
-        let profile = Self::new_default_profile();
-        self.study_profile_repository.create(&profile).await?;
         Ok(EffectiveProfile {
-            profile,
+            profile: self.resolve_default_profile().await?,
             source: ProfileSource::Default,
         })
     }
 }
 
 impl DefaultProfileResolutionService {
+    async fn resolve_default_profile(&self) -> Result<StudyProfile, ProfileResolutionError> {
+        if let Some(profile) = self
+            .study_profile_repository
+            .get_default_or_oldest()
+            .await?
+        {
+            return Ok(profile);
+        }
+
+        let profile = Self::new_default_profile();
+        self.study_profile_repository.create(&profile).await?;
+        Ok(profile)
+    }
+
     async fn find_inherited_profile(
         &self,
         element_id: ElementId,
@@ -96,7 +100,7 @@ impl DefaultProfileResolutionService {
             is_default: true,
             desired_retention: DEFAULT_DESIRED_RETENTION,
             fsrs_params: Some(fsrs::DEFAULT_PARAMETERS.to_vec()),
-            default_a_factor: DEFAULT_A_FACTOR,
+            initial_a_factor: DEFAULT_A_FACTOR,
             initial_interval_days: DEFAULT_INITIAL_INTERVAL_DAYS,
             min_interval_days: DEFAULT_MIN_INTERVAL_DAYS,
         }
@@ -176,7 +180,7 @@ mod tests {
 
         // Act
 
-        let resolved = service.resolve_profile(folder_id).await.unwrap();
+        let resolved = service.resolve_profile(Some(folder_id)).await.unwrap();
 
         // Assert
 
@@ -213,7 +217,7 @@ mod tests {
 
         // Act
 
-        let resolved = service.resolve_profile(child_id).await.unwrap();
+        let resolved = service.resolve_profile(Some(child_id)).await.unwrap();
 
         // Assert
 
@@ -244,7 +248,7 @@ mod tests {
 
         // Act
 
-        let resolved = service.resolve_profile(folder_id).await.unwrap();
+        let resolved = service.resolve_profile(Some(folder_id)).await.unwrap();
 
         // Assert
 
@@ -268,12 +272,36 @@ mod tests {
 
         // Act
 
-        let resolved = service.resolve_profile(folder_id).await.unwrap();
+        let resolved = service.resolve_profile(Some(folder_id)).await.unwrap();
 
         // Assert
 
         assert!(resolved.is_default);
-        assert_eq!(DEFAULT_A_FACTOR, resolved.default_a_factor);
+        assert_eq!(DEFAULT_A_FACTOR, resolved.initial_a_factor);
+    }
+
+    #[tokio::test]
+    async fn resolve_profile_no_element_id_returns_default_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let profile_repo = scope.resolve::<dyn StudyProfileRepository>().await;
+        let service = scope.resolve::<dyn ProfileResolutionService>().await;
+
+        let default_profile = StudyProfile {
+            is_default: true,
+            ..DefaultProfileResolutionService::new_default_profile()
+        };
+        profile_repo.create(&default_profile).await.unwrap();
+
+        // Act
+
+        let resolved = service.resolve_profile(None).await.unwrap();
+
+        // Assert
+
+        assert_eq!(default_profile.id, resolved.id);
     }
 
     #[tokio::test]

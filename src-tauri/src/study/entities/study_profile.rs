@@ -12,7 +12,7 @@ pub struct StudyProfile {
     pub desired_retention: f32,
     pub fsrs_params: Option<Vec<f32>>,
     // Incremental reading (readings/extracts)
-    pub default_a_factor: f32,
+    pub initial_a_factor: f32,
     /// Days added to "today" to compute the due date the first time an element is
     /// scheduled: when it's created, and for its first incremental-reading pass.
     pub initial_interval_days: f32,

@@ -18,7 +18,7 @@ pub struct StudyProfileFields {
     /// `None` means "use the default weights" on create, or "leave
     /// unchanged" on update.
     pub fsrs_params: Option<Vec<f32>>,
-    pub default_a_factor: f32,
+    pub initial_a_factor: f32,
     pub initial_interval_days: f32,
     pub min_interval_days: f32,
 }

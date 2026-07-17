@@ -18,11 +18,13 @@ export interface FolderResponseDto {
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
 	content: string;
+	aFactor: number;
 }
 
 export interface ExtractResponseDto {
 	meta: MetaResponseDto;
 	content: string;
+	aFactor: number;
 }
 
 export interface CardResponseDto {

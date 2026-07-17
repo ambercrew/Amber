@@ -186,6 +186,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -234,6 +235,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -285,6 +287,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()

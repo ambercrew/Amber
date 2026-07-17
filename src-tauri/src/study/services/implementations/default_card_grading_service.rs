@@ -99,7 +99,7 @@ impl DefaultCardGradingService {
     ) -> Result<(NextStates, Option<CardReview>), GradeCardError> {
         let profile = self
             .profile_resolution_service
-            .resolve_profile(ElementId::Card(card_id))
+            .resolve_profile(Some(ElementId::Card(card_id)))
             .await?;
         let fsrs = FSRS::new(profile.fsrs_params.as_deref().unwrap_or(&[]))?;
 

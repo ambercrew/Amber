@@ -23,7 +23,7 @@ function makeProfile(overrides: Partial<StudyProfileDto>): StudyProfileDto {
 		isDefault: true,
 		desiredRetention: 0.9,
 		fsrsParams: Array.from({ length: 21 }, (_, index) => index * 0.1),
-		defaultAFactor: 1.2,
+		initialAFactor: 1.2,
 		initialIntervalDays: 1,
 		minIntervalDays: 1,
 		...overrides,

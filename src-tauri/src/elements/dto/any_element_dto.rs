@@ -46,6 +46,7 @@ pub struct FolderResponseDto {
 pub struct ReadingResponseDto {
     pub meta: MetaResponseDto,
     pub content: String,
+    pub a_factor: f32,
 }
 
 #[derive(Serialize)]
@@ -53,6 +54,7 @@ pub struct ReadingResponseDto {
 pub struct ExtractResponseDto {
     pub meta: MetaResponseDto,
     pub content: String,
+    pub a_factor: f32,
 }
 
 #[derive(Serialize)]
@@ -96,6 +98,7 @@ impl From<Reading> for AnyElementDto {
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
             content: reading.content,
+            a_factor: reading.a_factor,
         })
     }
 }
@@ -105,6 +108,7 @@ impl From<Extract> for AnyElementDto {
         AnyElementDto::Extract(ExtractResponseDto {
             meta: extract.meta.into(),
             content: extract.content,
+            a_factor: extract.a_factor,
         })
     }
 }

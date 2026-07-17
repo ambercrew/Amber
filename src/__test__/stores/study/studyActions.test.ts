@@ -63,6 +63,7 @@ function readingElement(id: string): AnyElementDto {
 				...META_FIELDS,
 			},
 			content: "",
+			aFactor: 1.2,
 		},
 	};
 }

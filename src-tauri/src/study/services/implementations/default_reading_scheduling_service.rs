@@ -5,6 +5,8 @@ use chrono::{DateTime, Duration, Utc};
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
+use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::study::entities::reading_review::ReadingReview;
 use crate::study::entities::reading_review_log::ReadingReviewLog;
@@ -22,6 +24,8 @@ pub struct DefaultReadingSchedulingService {
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
     reading_review_log_repository: Arc<dyn ReadingReviewLogRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
+    reading_repository: Arc<dyn ReadingRepository>,
+    extract_repository: Arc<dyn ExtractRepository>,
 }
 
 #[async_trait]
@@ -120,16 +124,25 @@ impl DefaultReadingSchedulingService {
     ) -> Result<f32, ReadingSchedulingError> {
         let profile = self
             .profile_resolution_service
-            .resolve_profile(element_id)
+            .resolve_profile(Some(element_id))
             .await?;
 
         Ok(match existing {
             Some(review) if review.interval_days > 0.0 => {
-                review.interval_days * profile.default_a_factor
+                let a_factor = self.a_factor_for(element_id).await?;
+                review.interval_days * a_factor
             }
             _ => profile.initial_interval_days,
         }
         .max(profile.min_interval_days))
+    }
+
+    async fn a_factor_for(&self, element_id: ElementId) -> Result<f32, ReadingSchedulingError> {
+        Ok(match element_id {
+            ElementId::Reading(id) => self.reading_repository.get_by_id(id).await?.a_factor,
+            ElementId::Extract(id) => self.extract_repository.get_by_id(id).await?.a_factor,
+            _ => unreachable!("reading scheduling only applies to readings and extracts"),
+        })
     }
 
     async fn append_log(
@@ -163,11 +176,13 @@ mod tests {
         elements::{
             entities::reading::Reading,
             repositories::{
-                meta_repository::MetaRepository, reading_repository::ReadingRepository,
+                extract_repository::ExtractRepository, meta_repository::MetaRepository,
+                reading_repository::ReadingRepository,
             },
             value_objects::meta::Meta,
         },
         infrastructure::repositories::sqlite::{
+            sqlite_extract_repository::SqliteExtractRepository,
             sqlite_meta_repository::SqliteMetaRepository,
             sqlite_reading_repository::SqliteReadingRepository,
             sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository,
@@ -184,6 +199,7 @@ mod tests {
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         register_scope!(
             injector,
@@ -214,10 +230,18 @@ mod tests {
     }
 
     async fn create_test_reading(scope: &injector::injector_scope::InjectorScope<'_>) -> ElementId {
+        create_test_reading_with_a_factor(scope, 1.2).await
+    }
+
+    async fn create_test_reading_with_a_factor(
+        scope: &injector::injector_scope::InjectorScope<'_>,
+        a_factor: f32,
+    ) -> ElementId {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let element_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
             .create(Reading {
+                a_factor,
                 meta: Meta {
                     element_id,
                     name: "test".into(),
@@ -270,6 +294,25 @@ mod tests {
         // Assert
 
         assert_eq!(1.2, review.interval_days);
+    }
+
+    #[tokio::test]
+    async fn next_second_pass_uses_readings_own_a_factor_not_profiles() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let element_id = create_test_reading_with_a_factor(&scope, 1.5).await;
+        let service = scope.resolve::<dyn ReadingSchedulingService>().await;
+        service.next(element_id).await.unwrap();
+
+        // Act
+
+        let review = service.next(element_id).await.unwrap();
+
+        // Assert
+
+        assert_eq!(1.5, review.interval_days);
     }
 
     #[tokio::test]

@@ -180,6 +180,7 @@ mod tests {
         let reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
             .create(Reading {
+                a_factor: 1.2,
                 meta: make_meta(reading_id),
                 content: String::new(),
                 position_block_index: 0,
@@ -216,6 +217,7 @@ mod tests {
         let new_reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
             .create(Reading {
+                a_factor: 1.2,
                 meta: make_meta(new_reading_id),
                 content: String::new(),
                 position_block_index: 0,
@@ -226,6 +228,7 @@ mod tests {
         let overdue_extract_id = ElementId::Extract(Uuid::new_v4());
         extract_repo
             .create(Extract {
+                a_factor: 1.2,
                 meta: make_meta(overdue_extract_id),
                 content: String::new(),
             })
@@ -241,6 +244,7 @@ mod tests {
         let finished_reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
             .create(Reading {
+                a_factor: 1.2,
                 meta: make_meta(finished_reading_id),
                 content: String::new(),
                 position_block_index: 0,

@@ -26,10 +26,11 @@ impl ReadingRepository for SqliteReadingRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO readings (id, content, position_block_index) VALUES ($1, $2, $3)",
+            "INSERT INTO readings (id, content, position_block_index, a_factor) VALUES ($1, $2, $3, $4)",
             uuid,
             reading.content,
             reading.position_block_index,
+            reading.a_factor,
         )
         .execute(&mut *tx)
         .await?;
@@ -52,7 +53,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 r.content,
-                r.position_block_index
+                r.position_block_index,
+                r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             ORDER BY m.position"#
@@ -79,7 +81,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 r.content,
-                r.position_block_index
+                r.position_block_index,
+                r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
             WHERE r.id = $1"#,
@@ -183,6 +186,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -191,6 +195,7 @@ mod tests {
             position_block_index: 0,
         };
         let extract = Extract {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
@@ -230,6 +235,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -277,6 +283,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -318,6 +325,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
+            a_factor: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()

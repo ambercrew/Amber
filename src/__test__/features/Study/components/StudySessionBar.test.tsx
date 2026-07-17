@@ -42,6 +42,7 @@ const readingCurrentElement: AnyElementDto = {
 			...META_FIELDS,
 		},
 		content: "",
+		aFactor: 1.2,
 	},
 };
 

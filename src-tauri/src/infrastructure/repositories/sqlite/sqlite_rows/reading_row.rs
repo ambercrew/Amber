@@ -18,6 +18,7 @@ pub struct ReadingRow {
     pub modified_at: DateTime<Utc>,
     pub content: String,
     pub position_block_index: i64,
+    pub a_factor: f64,
 }
 
 impl From<ReadingRow> for Reading {
@@ -35,6 +36,7 @@ impl From<ReadingRow> for Reading {
             },
             content: row.content,
             position_block_index: row.position_block_index as u32,
+            a_factor: row.a_factor as f32,
         }
     }
 }

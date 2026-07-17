@@ -41,7 +41,7 @@ impl StudyProfileService for DefaultStudyProfileService {
             is_default: false,
             desired_retention: fields.desired_retention,
             fsrs_params: Some(fsrs_params),
-            default_a_factor: fields.default_a_factor,
+            initial_a_factor: fields.initial_a_factor,
             initial_interval_days: fields.initial_interval_days,
             min_interval_days: fields.min_interval_days,
         };
@@ -61,7 +61,7 @@ impl StudyProfileService for DefaultStudyProfileService {
             name: fields.name,
             desired_retention: fields.desired_retention,
             fsrs_params,
-            default_a_factor: fields.default_a_factor,
+            initial_a_factor: fields.initial_a_factor,
             initial_interval_days: fields.initial_interval_days,
             min_interval_days: fields.min_interval_days,
             ..existing
@@ -160,7 +160,7 @@ mod tests {
             name: name.into(),
             desired_retention: 0.9,
             fsrs_params: None,
-            default_a_factor: 1.2,
+            initial_a_factor: 1.2,
             initial_interval_days: 1.0,
             min_interval_days: 1.0,
         }

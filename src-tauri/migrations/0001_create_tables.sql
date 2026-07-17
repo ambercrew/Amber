@@ -107,13 +107,13 @@ CREATE TABLE study_profiles(
     desired_retention           REAL        NOT NULL,
     fsrs_params                 TEXT,
     -- Incremental reading (readings/extracts)
-    default_a_factor            REAL        NOT NULL,
+    initial_a_factor            REAL        NOT NULL,
     initial_interval_days       REAL        NOT NULL,
     min_interval_days           REAL        NOT NULL
 );
 
 CREATE TRIGGER study_profiles_update_modified_at_after_update
-    AFTER UPDATE OF name, is_default, desired_retention, fsrs_params, default_a_factor, initial_interval_days, min_interval_days ON study_profiles
+    AFTER UPDATE OF name, is_default, desired_retention, fsrs_params, initial_a_factor, initial_interval_days, min_interval_days ON study_profiles
 BEGIN
     UPDATE study_profiles
     SET modified_at = datetime('now')
@@ -140,12 +140,14 @@ CREATE TABLE folders(
 CREATE TABLE readings(
     id                     TEXT    NOT NULL PRIMARY KEY,
     content                TEXT    NOT NULL,
-    position_block_index   INTEGER NOT NULL DEFAULT 0
+    position_block_index   INTEGER NOT NULL DEFAULT 0,
+    a_factor               REAL    NOT NULL DEFAULT 1.2
 );
 
 CREATE TABLE extracts(
-    id      TEXT NOT NULL PRIMARY KEY,
-    content TEXT NOT NULL
+    id       TEXT NOT NULL PRIMARY KEY,
+    content  TEXT NOT NULL,
+    a_factor REAL NOT NULL DEFAULT 1.2
 );
 
 CREATE TABLE cards(

@@ -22,6 +22,7 @@ use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 use crate::study::entities::card_review::CardReview;
 use crate::study::entities::reading_review::ReadingReview;
+use crate::study::entities::study_profile::StudyProfile;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
 use crate::study::services::profile_resolution_service::ProfileResolutionService;
@@ -46,6 +47,10 @@ impl ElementCreationService for DefaultElementCreationService {
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
         let now = Utc::now();
+        let profile = self
+            .profile_resolution_service
+            .resolve_profile(parent)
+            .await?;
 
         let reading = Reading {
             meta: Meta {
@@ -59,9 +64,10 @@ impl ElementCreationService for DefaultElementCreationService {
             },
             content: dto.content,
             position_block_index: 0,
+            a_factor: profile.initial_a_factor,
         };
         self.reading_repository.create(reading).await?;
-        self.ensure_reading_review(element_id).await
+        self.ensure_reading_review(element_id, profile).await
     }
 
     async fn create_extract(&self, dto: CreateExtractDto) -> Result<(), ElementCreationError> {
@@ -69,6 +75,10 @@ impl ElementCreationService for DefaultElementCreationService {
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
         let now = Utc::now();
+        let profile = self
+            .profile_resolution_service
+            .resolve_profile(parent)
+            .await?;
 
         let extract = Extract {
             meta: Meta {
@@ -81,10 +91,11 @@ impl ElementCreationService for DefaultElementCreationService {
                 modified_at: now,
             },
             content: dto.content,
+            a_factor: profile.initial_a_factor,
         };
         self.extract_repository.create(extract).await?;
         // Extracts are reviewed like readings.
-        self.ensure_reading_review(element_id).await
+        self.ensure_reading_review(element_id, profile).await
     }
 
     async fn create_card(&self, dto: CreateCardDto) -> Result<(), ElementCreationError> {
@@ -115,6 +126,7 @@ impl DefaultElementCreationService {
     async fn ensure_reading_review(
         &self,
         element_id: ElementId,
+        profile: StudyProfile,
     ) -> Result<(), ElementCreationError> {
         let exists = self
             .reading_review_repository
@@ -125,10 +137,6 @@ impl DefaultElementCreationService {
             return Ok(());
         }
 
-        let profile = self
-            .profile_resolution_service
-            .resolve_profile(element_id)
-            .await?;
         let review = ReadingReview {
             element_id,
             due: due_from_today(profile.initial_interval_days),
@@ -156,7 +164,7 @@ impl DefaultElementCreationService {
 
         let profile = self
             .profile_resolution_service
-            .resolve_profile(element_id)
+            .resolve_profile(Some(element_id))
             .await?;
         let review = CardReview {
             card_id,
@@ -256,7 +264,7 @@ mod tests {
             is_default: true,
             desired_retention: 0.9,
             fsrs_params: None,
-            default_a_factor: 1.2,
+            initial_a_factor: 1.2,
             initial_interval_days,
             min_interval_days: 1.0,
         };
@@ -380,5 +388,102 @@ mod tests {
             .await
             .unwrap();
         assert!(review.is_some());
+    }
+
+    async fn create_test_profile_with_a_factor(
+        scope: &injector::injector_scope::InjectorScope<'_>,
+        initial_a_factor: f32,
+    ) -> Uuid {
+        let profile_repo = scope.resolve::<dyn StudyProfileRepository>().await;
+        let profile = StudyProfile {
+            id: Uuid::new_v4(),
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+            name: "test".into(),
+            is_default: true,
+            desired_retention: 0.9,
+            fsrs_params: None,
+            initial_a_factor,
+            initial_interval_days: 1.0,
+            min_interval_days: 1.0,
+        };
+        profile_repo.create(&profile).await.unwrap();
+        profile.id
+    }
+
+    #[tokio::test]
+    async fn create_reading_valid_dto_seeds_a_factor_from_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        create_test_profile_with_a_factor(&scope, 1.5).await;
+        let service = DefaultElementCreationService {
+            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            extract_repository: scope.resolve::<dyn ExtractRepository>().await,
+            card_repository: scope.resolve::<dyn CardRepository>().await,
+            index_service: scope.resolve::<dyn ElementIndexService>().await,
+            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
+            profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+        };
+        let dto = CreateReadingDto {
+            id: Uuid::new_v4(),
+            meta: dto_meta(None),
+            content: String::new(),
+        };
+        let reading_id = dto.id;
+
+        // Act
+
+        service.create_reading(dto).await.unwrap();
+
+        // Assert
+
+        let reading = scope
+            .resolve::<dyn ReadingRepository>()
+            .await
+            .get_by_id(reading_id)
+            .await
+            .unwrap();
+        assert_eq!(1.5, reading.a_factor);
+    }
+
+    #[tokio::test]
+    async fn create_extract_valid_dto_seeds_a_factor_from_profile() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        create_test_profile_with_a_factor(&scope, 1.5).await;
+        let service = DefaultElementCreationService {
+            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            extract_repository: scope.resolve::<dyn ExtractRepository>().await,
+            card_repository: scope.resolve::<dyn CardRepository>().await,
+            index_service: scope.resolve::<dyn ElementIndexService>().await,
+            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
+            profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+        };
+        let dto = CreateExtractDto {
+            id: Uuid::new_v4(),
+            meta: dto_meta(None),
+            content: String::new(),
+        };
+        let extract_id = dto.id;
+
+        // Act
+
+        service.create_extract(dto).await.unwrap();
+
+        // Assert
+
+        let extract = scope
+            .resolve::<dyn ExtractRepository>()
+            .await
+            .get_by_id(extract_id)
+            .await
+            .unwrap();
+        assert_eq!(1.5, extract.a_factor);
     }
 }

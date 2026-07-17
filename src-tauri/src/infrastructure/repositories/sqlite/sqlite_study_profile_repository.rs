@@ -28,7 +28,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
 
         sqlx::query!(
             r#"INSERT INTO study_profiles
-                (id, created_at, modified_at, name, is_default, desired_retention, fsrs_params, default_a_factor, initial_interval_days, min_interval_days)
+                (id, created_at, modified_at, name, is_default, desired_retention, fsrs_params, initial_a_factor, initial_interval_days, min_interval_days)
             VALUES ($1, datetime($2), datetime($3), $4, $5, $6, $7, $8, $9, $10)"#,
             profile.id,
             profile.created_at,
@@ -37,7 +37,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
             profile.is_default,
             profile.desired_retention,
             fsrs_params,
-            profile.default_a_factor,
+            profile.initial_a_factor,
             profile.initial_interval_days,
             profile.min_interval_days,
         )
@@ -62,7 +62,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
                 is_default = $2,
                 desired_retention = $3,
                 fsrs_params = $4,
-                default_a_factor = $5,
+                initial_a_factor = $5,
                 initial_interval_days = $6,
                 min_interval_days = $7
             WHERE id = $8"#,
@@ -70,7 +70,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
             profile.is_default,
             profile.desired_retention,
             fsrs_params,
-            profile.default_a_factor,
+            profile.initial_a_factor,
             profile.initial_interval_days,
             profile.min_interval_days,
             profile.id,
@@ -104,7 +104,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
                 is_default as "is_default: bool",
                 desired_retention,
                 fsrs_params,
-                default_a_factor,
+                initial_a_factor,
                 initial_interval_days,
                 min_interval_days
             FROM study_profiles
@@ -131,7 +131,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
                 is_default as "is_default: bool",
                 desired_retention,
                 fsrs_params,
-                default_a_factor,
+                initial_a_factor,
                 initial_interval_days,
                 min_interval_days
             FROM study_profiles
@@ -166,7 +166,7 @@ impl StudyProfileRepository for SqliteStudyProfileRepository {
                 is_default as "is_default: bool",
                 desired_retention,
                 fsrs_params,
-                default_a_factor,
+                initial_a_factor,
                 initial_interval_days,
                 min_interval_days
             FROM study_profiles
@@ -209,7 +209,7 @@ mod tests {
             is_default,
             desired_retention: 0.9,
             fsrs_params: Some(vec![0.1, 0.2]),
-            default_a_factor: 1.2,
+            initial_a_factor: 1.2,
             initial_interval_days: 1.0,
             min_interval_days: 1.0,
         }
