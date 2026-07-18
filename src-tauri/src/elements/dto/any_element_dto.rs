@@ -45,7 +45,11 @@ pub struct FolderResponseDto {
 #[serde(rename_all = "camelCase")]
 pub struct ReadingResponseDto {
     pub meta: MetaResponseDto,
-    pub content: String,
+    /// `seq` of the split the user last read up to. The split index and per-split
+    /// content are fetched separately (lazily) rather than inlined here.
+    pub position_split: u32,
+    /// Top-level block index within `position_split` that the user last read up to.
+    pub position_block: u32,
     pub a_factor: f32,
 }
 
@@ -95,9 +99,12 @@ impl From<Folder> for AnyElementDto {
 
 impl From<Reading> for AnyElementDto {
     fn from(reading: Reading) -> Self {
+        // Split content is loaded lazily via the split index / split content
+        // commands, so only the reading's position and metadata are returned here.
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
-            content: reading.content,
+            position_split: reading.position_split,
+            position_block: reading.position_block,
             a_factor: reading.a_factor,
         })
     }

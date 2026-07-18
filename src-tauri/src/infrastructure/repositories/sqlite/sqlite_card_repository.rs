@@ -191,8 +191,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let card = Card {
             meta: Meta {
@@ -203,7 +203,7 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
         // Act
@@ -240,8 +240,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let card = Card {
             meta: Meta {
@@ -252,7 +252,7 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
         // Act
@@ -292,8 +292,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let card = Card {
             meta: Meta {
@@ -304,7 +304,7 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
         // Act

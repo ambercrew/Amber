@@ -188,8 +188,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let parent_extract = Extract {
             a_factor: 1.2,
@@ -208,7 +208,7 @@ mod tests {
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         extract_repo.create(parent_extract.clone()).await.unwrap();
         extract_repo.create(child_extract.clone()).await.unwrap();
 
@@ -250,8 +250,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -270,7 +270,7 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
@@ -308,8 +308,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -320,7 +320,7 @@ mod tests {
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
 
         // Act
@@ -360,8 +360,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -372,7 +372,7 @@ mod tests {
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading).await.unwrap();
+        reading_repo.create(reading, Vec::new()).await.unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
 
         // Act

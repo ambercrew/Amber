@@ -179,12 +179,15 @@ mod tests {
         let repo = scope.resolve::<dyn ReadingReviewRepository>().await;
         let reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
-            .create(Reading {
-                a_factor: 1.2,
-                meta: make_meta(reading_id),
-                content: String::new(),
-                position_block_index: 0,
-            })
+            .create(
+                Reading {
+                    a_factor: 1.2,
+                    meta: make_meta(reading_id),
+                    position_split: 0,
+                    position_block: 0,
+                },
+                Vec::new(),
+            )
             .await
             .unwrap();
         let review = make_review(reading_id);
@@ -216,12 +219,15 @@ mod tests {
 
         let new_reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
-            .create(Reading {
-                a_factor: 1.2,
-                meta: make_meta(new_reading_id),
-                content: String::new(),
-                position_block_index: 0,
-            })
+            .create(
+                Reading {
+                    a_factor: 1.2,
+                    meta: make_meta(new_reading_id),
+                    position_split: 0,
+                    position_block: 0,
+                },
+                Vec::new(),
+            )
             .await
             .unwrap();
 
@@ -243,12 +249,15 @@ mod tests {
 
         let finished_reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
-            .create(Reading {
-                a_factor: 1.2,
-                meta: make_meta(finished_reading_id),
-                content: String::new(),
-                position_block_index: 0,
-            })
+            .create(
+                Reading {
+                    a_factor: 1.2,
+                    meta: make_meta(finished_reading_id),
+                    position_split: 0,
+                    position_block: 0,
+                },
+                Vec::new(),
+            )
             .await
             .unwrap();
         repo.upsert(&ReadingReview {

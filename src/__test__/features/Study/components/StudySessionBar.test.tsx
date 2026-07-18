@@ -41,7 +41,8 @@ const readingCurrentElement: AnyElementDto = {
 			name: "Reading 1",
 			...META_FIELDS,
 		},
-		content: "",
+		positionSplit: 0,
+		positionBlock: 0,
 		aFactor: 1.2,
 	},
 };

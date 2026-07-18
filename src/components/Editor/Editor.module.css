@@ -11,7 +11,6 @@
 }
 
 .content-editable {
-	line-height: var(--mantine-line-height-xl);
 	outline: none;
 }
 

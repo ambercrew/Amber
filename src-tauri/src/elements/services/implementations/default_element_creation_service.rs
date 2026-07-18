@@ -10,7 +10,7 @@ use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
-use crate::elements::entities::reading::Reading;
+use crate::elements::entities::reading::{Reading, ReadingSplit};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
@@ -62,11 +62,20 @@ impl ElementCreationService for DefaultElementCreationService {
                 created_at: now,
                 modified_at: now,
             },
-            content: dto.content,
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
             a_factor: profile.initial_a_factor,
         };
-        self.reading_repository.create(reading).await?;
+        let splits = dto
+            .splits
+            .into_iter()
+            .enumerate()
+            .map(|(seq, content)| ReadingSplit {
+                seq: seq as u32,
+                content,
+            })
+            .collect();
+        self.reading_repository.create(reading, splits).await?;
         self.ensure_reading_review(element_id, profile).await
     }
 
@@ -291,7 +300,7 @@ mod tests {
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
             meta: dto_meta(None),
-            content: String::new(),
+            splits: Vec::new(),
         };
         let element_id = ElementId::Reading(dto.id);
 
@@ -430,7 +439,7 @@ mod tests {
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
             meta: dto_meta(None),
-            content: String::new(),
+            splits: Vec::new(),
         };
         let reading_id = dto.id;
 

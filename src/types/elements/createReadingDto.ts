@@ -3,5 +3,5 @@ import { CreateMetaDto } from "./createMetaDto";
 export interface CreateReadingDto {
 	id: string;
 	meta: CreateMetaDto;
-	content: string;
+	splits: string[];
 }

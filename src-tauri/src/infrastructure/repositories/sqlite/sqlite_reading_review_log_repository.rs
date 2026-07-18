@@ -83,20 +83,23 @@ mod tests {
         let repo = scope.resolve::<dyn ReadingReviewLogRepository>().await;
         let element_id = Uuid::new_v4();
         reading_repo
-            .create(Reading {
-                a_factor: 1.2,
-                meta: Meta {
-                    element_id: ElementId::Reading(element_id),
-                    name: "test".into(),
-                    parent: None,
-                    position: FractionalIndex::default(),
-                    study_profile_id: None,
-                    created_at: Utc::now(),
-                    modified_at: Utc::now(),
+            .create(
+                Reading {
+                    a_factor: 1.2,
+                    meta: Meta {
+                        element_id: ElementId::Reading(element_id),
+                        name: "test".into(),
+                        parent: None,
+                        position: FractionalIndex::default(),
+                        study_profile_id: None,
+                        created_at: Utc::now(),
+                        modified_at: Utc::now(),
+                    },
+                    position_split: 0,
+                    position_block: 0,
                 },
-                content: String::new(),
-                position_block_index: 0,
-            })
+                Vec::new(),
+            )
             .await
             .unwrap();
         let log = ReadingReviewLog {

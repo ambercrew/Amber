@@ -16,8 +16,8 @@ pub struct ReadingRow {
     pub study_profile_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub content: String,
-    pub position_block_index: i64,
+    pub position_split: i64,
+    pub position_block: i64,
     pub a_factor: f64,
 }
 
@@ -34,8 +34,8 @@ impl From<ReadingRow> for Reading {
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            content: row.content,
-            position_block_index: row.position_block_index as u32,
+            position_split: row.position_split as u32,
+            position_block: row.position_block as u32,
             a_factor: row.a_factor as f32,
         }
     }

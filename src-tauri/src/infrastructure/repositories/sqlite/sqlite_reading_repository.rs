@@ -5,7 +5,7 @@ use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
-use crate::elements::entities::reading::Reading;
+use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
@@ -19,21 +19,38 @@ pub struct SqliteReadingRepository {
 
 #[async_trait]
 impl ReadingRepository for SqliteReadingRepository {
-    async fn create(&self, reading: Reading) -> Result<(), RepositoryError> {
+    async fn create(
+        &self,
+        reading: Reading,
+        splits: Vec<ReadingSplit>,
+    ) -> Result<(), RepositoryError> {
         self.meta_repository.create_meta(&reading.meta).await?;
 
         let uuid = reading.meta.element_id.id();
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-        sqlx::query!(
-            "INSERT INTO readings (id, content, position_block_index, a_factor) VALUES ($1, $2, $3, $4)",
-            uuid,
-            reading.content,
-            reading.position_block_index,
-            reading.a_factor,
-        )
-        .execute(&mut *tx)
-        .await?;
+        {
+            let mut tx = self.tx.lock().await;
+            let tx = tx.as_mut();
+            sqlx::query!(
+                "INSERT INTO readings (id, position_split, position_block, a_factor) VALUES ($1, $2, $3, $4)",
+                uuid,
+                reading.position_split,
+                reading.position_block,
+                reading.a_factor,
+            )
+            .execute(&mut *tx)
+            .await?;
+
+            for split in splits {
+                sqlx::query!(
+                    "INSERT INTO reading_splits (reading_id, seq, content) VALUES ($1, $2, $3)",
+                    uuid,
+                    split.seq,
+                    split.content,
+                )
+                .execute(&mut *tx)
+                .await?;
+            }
+        }
         Ok(())
     }
 
@@ -52,8 +69,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.content,
-                r.position_block_index,
+                r.position_split,
+                r.position_block,
                 r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -62,7 +79,7 @@ impl ReadingRepository for SqliteReadingRepository {
         .fetch_all(&mut *tx)
         .await?;
 
-        Ok(rows.into_iter().map(|row| row.into()).collect())
+        Ok(rows.into_iter().map(Reading::from).collect::<Vec<_>>())
     }
 
     async fn get_by_id(&self, id: Uuid) -> Result<Reading, RepositoryError> {
@@ -80,8 +97,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.study_profile_id as "study_profile_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.content,
-                r.position_block_index,
+                r.position_split,
+                r.position_block,
                 r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -94,13 +111,78 @@ impl ReadingRepository for SqliteReadingRepository {
         Ok(row.into())
     }
 
-    async fn update_content(&self, id: Uuid, content: String) -> Result<(), RepositoryError> {
+    async fn get_split_manifest(
+        &self,
+        reading_id: Uuid,
+    ) -> Result<Vec<ReadingSplitMeta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let rows = sqlx::query!(
+            r#"SELECT seq, LENGTH(content) as "char_count!: i64"
+            FROM reading_splits
+            WHERE reading_id = $1
+            ORDER BY seq"#,
+            reading_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        Ok(rows
+            .into_iter()
+            .map(|row| ReadingSplitMeta {
+                seq: row.seq as u32,
+                char_count: row.char_count as u32,
+            })
+            .collect())
+    }
+
+    async fn get_split_content(&self, split_id: ReadingSplitId) -> Result<String, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query!(
+            "SELECT content FROM reading_splits WHERE reading_id = $1 AND seq = $2",
+            split_id.reading_id,
+            split_id.seq,
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+
+        Ok(row.content)
+    }
+
+    async fn update_content(
+        &self,
+        split_id: ReadingSplitId,
+        content: String,
+    ) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE readings SET content = $1 WHERE id = $2",
+            "UPDATE reading_splits SET content = $1 WHERE reading_id = $2 AND seq = $3",
             content,
-            id,
+            split_id.reading_id,
+            split_id.seq,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
+    async fn update_position(
+        &self,
+        reading_id: Uuid,
+        position_split: u32,
+        position_block: u32,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "UPDATE readings SET position_split = $1, position_block = $2 WHERE id = $3",
+            position_split,
+            position_block,
+            reading_id,
         )
         .execute(&mut *tx)
         .await?;
@@ -191,8 +273,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -203,7 +285,10 @@ mod tests {
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading.clone()).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
 
         // Act
@@ -240,8 +325,8 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let card = Card {
             meta: Meta {
@@ -252,7 +337,10 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading.clone()).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
         // Act
@@ -288,11 +376,14 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading.clone()).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
 
         // Act
 
@@ -330,11 +421,14 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading.clone()).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
 
         // Act
 
@@ -363,5 +457,160 @@ mod tests {
         // Assert
 
         assert!(!actual);
+    }
+
+    #[tokio::test]
+    async fn get_split_manifest_multiple_splits_returns_ordered_meta_with_char_counts() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        let folder = Folder {
+            meta: folder_meta(),
+        };
+        let reading = Reading {
+            a_factor: 1.2,
+            meta: Meta {
+                parent: Some(folder.meta.element_id),
+                ..reading_meta()
+            },
+            position_split: 0,
+            position_block: 0,
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo
+            .create(
+                reading.clone(),
+                vec![
+                    ReadingSplit {
+                        seq: 1,
+                        content: "abcd".into(),
+                    },
+                    ReadingSplit {
+                        seq: 0,
+                        content: "ab".into(),
+                    },
+                ],
+            )
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = reading_repo
+            .get_split_manifest(reading.meta.element_id.id())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(
+            vec![
+                ReadingSplitMeta {
+                    seq: 0,
+                    char_count: 2,
+                },
+                ReadingSplitMeta {
+                    seq: 1,
+                    char_count: 4,
+                },
+            ],
+            actual
+        );
+    }
+
+    #[tokio::test]
+    async fn get_split_content_existing_split_returns_content() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        let folder = Folder {
+            meta: folder_meta(),
+        };
+        let reading = Reading {
+            a_factor: 1.2,
+            meta: Meta {
+                parent: Some(folder.meta.element_id),
+                ..reading_meta()
+            },
+            position_split: 0,
+            position_block: 0,
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo
+            .create(
+                reading.clone(),
+                vec![ReadingSplit {
+                    seq: 0,
+                    content: "hello world".into(),
+                }],
+            )
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = reading_repo
+            .get_split_content(ReadingSplitId {
+                reading_id: reading.meta.element_id.id(),
+                seq: 0,
+            })
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!("hello world", actual);
+    }
+
+    #[tokio::test]
+    async fn update_position_valid_reading_persists_position() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        let folder = Folder {
+            meta: folder_meta(),
+        };
+        let reading = Reading {
+            a_factor: 1.2,
+            meta: Meta {
+                parent: Some(folder.meta.element_id),
+                ..reading_meta()
+            },
+            position_split: 0,
+            position_block: 0,
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
+
+        // Act
+
+        reading_repo
+            .update_position(reading.meta.element_id.id(), 3, 7)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let updated = reading_repo
+            .get_by_id(reading.meta.element_id.id())
+            .await
+            .unwrap();
+        assert_eq!(3, updated.position_split);
+        assert_eq!(7, updated.position_block);
     }
 }

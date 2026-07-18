@@ -201,11 +201,14 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         folder_repo.create(folder.clone()).await.unwrap();
-        reading_repo.create(reading.clone()).await.unwrap();
+        reading_repo
+            .create(reading.clone(), Vec::new())
+            .await
+            .unwrap();
 
         // Act
 

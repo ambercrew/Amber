@@ -1,4 +1,6 @@
+import { ReadingSplitIdDto } from "./readingSplitIdDto";
+
 export interface UpdateReadingDto {
-	id: string;
+	splitId: ReadingSplitIdDto;
 	content: string;
 }
