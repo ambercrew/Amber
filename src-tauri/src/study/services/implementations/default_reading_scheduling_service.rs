@@ -240,20 +240,23 @@ mod tests {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let element_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
-            .create(Reading {
-                a_factor,
-                meta: Meta {
-                    element_id,
-                    name: "test".into(),
-                    parent: None,
-                    position: FractionalIndex::default(),
-                    study_profile_id: None,
-                    created_at: Utc::now(),
-                    modified_at: Utc::now(),
+            .create(
+                Reading {
+                    a_factor,
+                    meta: Meta {
+                        element_id,
+                        name: "test".into(),
+                        parent: None,
+                        position: FractionalIndex::default(),
+                        study_profile_id: None,
+                        created_at: Utc::now(),
+                        modified_at: Utc::now(),
+                    },
+                    position_split: 0,
+                    position_block: 0,
                 },
-                content: String::new(),
-                position_block_index: 0,
-            })
+                Vec::new(),
+            )
             .await
             .unwrap();
         element_id

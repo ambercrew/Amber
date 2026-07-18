@@ -3,14 +3,11 @@ import { Container } from "@mantine/core";
 import CardElementViewer from "./CardElementViewer";
 import ElementEditor from "./ElementEditor";
 import FolderView from "./FolderView";
+import ReadingView from "./ReadingView/ReadingView";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
 import { selectStudyStatus } from "../../stores/study/studySelectors";
-import {
-	updateCard,
-	updateExtract,
-	updateReading,
-} from "../../api/elements/api/elementsApi";
+import { updateCard, updateExtract } from "../../api/elements/api/elementsApi";
 import { useElementViewerButtons } from "./useElementViewerButtons";
 import { useHighlightCreatedHandler } from "./useHighlightCreatedHandler";
 
@@ -33,13 +30,8 @@ export default function ElementViewer() {
 
 	const handleChange = useCallback(
 		async (content: string) => {
-			if (!elementId) return;
-
-			if (elementId.type === "reading") {
-				await updateReading({ id: elementId.id, content });
-			} else if (elementId.type === "extract") {
-				await updateExtract({ id: elementId.id, content });
-			}
+			if (elementId?.type !== "extract") return;
+			await updateExtract({ id: elementId.id, content });
 		},
 		[elementId],
 	);
@@ -87,16 +79,27 @@ export default function ElementViewer() {
 		);
 	}
 
-	const initialContent =
-		currentElement.type === "reading" || currentElement.type === "extract"
-			? currentElement.data.content
-			: "";
+	if (currentElement.type === "reading") {
+		return (
+			<ReadingView
+				key={`reading-${elementId.id}`}
+				readingId={elementId.id}
+				position={{
+					positionSplit: currentElement.data.positionSplit,
+					positionBlock: currentElement.data.positionBlock,
+				}}
+				buttons={buttons}
+				onHighlightCreated={handleHighlightCreated}
+				autoFocus={studyStatus === "editing"}
+			/>
+		);
+	}
 
 	return (
 		<Container size="sm" py="lg">
 			<ElementEditor
 				key={`${elementId.type}-${elementId.id}`}
-				initialContent={initialContent}
+				initialContent={currentElement.data.content}
 				buttons={buttons}
 				onChange={handleChange}
 				onHighlightCreated={handleHighlightCreated}

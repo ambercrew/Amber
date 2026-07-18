@@ -11,11 +11,14 @@ use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
+use crate::elements::dto::reading_split_id_dto::ReadingSplitIdDto;
+use crate::elements::dto::reading_split_meta_dto::ReadingSplitMetaDto;
 use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::dto::update_card_dto::UpdateCardDto;
 use crate::elements::dto::update_extract_dto::UpdateExtractDto;
 use crate::elements::dto::update_reading_dto::UpdateReadingDto;
+use crate::elements::dto::update_reading_position_dto::UpdateReadingPositionDto;
 use crate::elements::entities::folder::Folder;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
@@ -176,7 +179,53 @@ pub async fn update_reading(
     scope
         .resolve::<dyn ReadingRepository>()
         .await
-        .update_content(dto.id, dto.content)
+        .update_content(dto.split_id.into(), dto.content)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn get_reading_split_manifest(
+    injector: State<'_, Arc<Injector>>,
+    reading_id: Uuid,
+) -> Result<Vec<ReadingSplitMetaDto>, ApiError> {
+    let scope = injector.start_scope();
+    let manifest = scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .get_split_manifest(reading_id)
+        .await?;
+    Ok(manifest
+        .into_iter()
+        .map(ReadingSplitMetaDto::from)
+        .collect())
+}
+
+#[tauri::command]
+pub async fn get_reading_split_content(
+    injector: State<'_, Arc<Injector>>,
+    dto: ReadingSplitIdDto,
+) -> Result<String, ApiError> {
+    let scope = injector.start_scope();
+    let content = scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .get_split_content(dto.into())
+        .await?;
+    Ok(content)
+}
+
+#[tauri::command]
+pub async fn update_reading_position(
+    injector: State<'_, Arc<Injector>>,
+    dto: UpdateReadingPositionDto,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .update_position(dto.reading_id, dto.position_split, dto.position_block)
         .await?;
     scope.save_changes().await?;
     Ok(())

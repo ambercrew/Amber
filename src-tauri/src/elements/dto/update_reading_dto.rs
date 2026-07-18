@@ -1,9 +1,10 @@
 use serde::Deserialize;
-use uuid::Uuid;
+
+use super::reading_split_id_dto::ReadingSplitIdDto;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateReadingDto {
-    pub id: Uuid,
+    pub split_id: ReadingSplitIdDto,
     pub content: String,
 }

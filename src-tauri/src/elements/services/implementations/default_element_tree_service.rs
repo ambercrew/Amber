@@ -388,8 +388,8 @@ mod tests {
                 parent: Some(folder_id),
                 ..reading_meta()
             },
-            content: "content".to_string(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let reading_id = reading.meta.element_id;
         let extract = Extract {
@@ -422,7 +422,7 @@ mod tests {
         scope
             .resolve::<dyn ReadingRepository>()
             .await
-            .create(reading)
+            .create(reading, Vec::new())
             .await
             .unwrap();
         scope
@@ -486,8 +486,8 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let reading_second = Reading {
             a_factor: 1.2,
@@ -499,16 +499,22 @@ mod tests {
                 )),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let reading_first_id = reading_first.meta.element_id;
         let reading_second_id = reading_second.meta.element_id;
 
         // Insert in reverse position order to verify sorting
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
-        reading_repo.create(reading_second).await.unwrap();
-        reading_repo.create(reading_first).await.unwrap();
+        reading_repo
+            .create(reading_second, Vec::new())
+            .await
+            .unwrap();
+        reading_repo
+            .create(reading_first, Vec::new())
+            .await
+            .unwrap();
 
         // Act
 
@@ -583,14 +589,14 @@ mod tests {
                 name: "Orphan Reading".to_string(),
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let reading_id = reading.meta.element_id;
         scope
             .resolve::<dyn ReadingRepository>()
             .await
-            .create(reading)
+            .create(reading, Vec::new())
             .await
             .unwrap();
 
@@ -624,8 +630,8 @@ mod tests {
                 position: pos_first,
                 ..reading_meta()
             },
-            content: String::new(),
-            position_block_index: 0,
+            position_split: 0,
+            position_block: 0,
         };
         let folder = Folder {
             meta: Meta {
@@ -650,7 +656,7 @@ mod tests {
         scope
             .resolve::<dyn ReadingRepository>()
             .await
-            .create(reading)
+            .create(reading, Vec::new())
             .await
             .unwrap();
         scope

@@ -43,7 +43,9 @@ function useCreateHandlers(
 						name: defaultElementName("Reading"),
 						parent: elementId,
 					},
-					content: "",
+					// A new reading is a single empty split (seq 0) so it can be
+					// edited immediately.
+					splits: [""],
 				}),
 			),
 		extract: () =>

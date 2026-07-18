@@ -8,5 +8,5 @@ use super::create_meta_dto::CreateMetaDto;
 pub struct CreateReadingDto {
     pub id: Uuid,
     pub meta: CreateMetaDto,
-    pub content: String,
+    pub splits: Vec<String>,
 }

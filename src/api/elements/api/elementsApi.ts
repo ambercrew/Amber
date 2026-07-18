@@ -7,6 +7,9 @@ import { ElementId } from "../../../types/elements/elementId";
 import { UpdateCardDto } from "../../../types/elements/updateCardDto";
 import { UpdateExtractDto } from "../../../types/elements/updateExtractDto";
 import { UpdateReadingDto } from "../../../types/elements/updateReadingDto";
+import { UpdateReadingPositionDto } from "../../../types/elements/updateReadingPositionDto";
+import { ReadingSplitIdDto } from "../../../types/elements/readingSplitIdDto";
+import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { AnyElementDto } from "../dto/anyElementDto";
 import { NodeDto } from "../dto/nodeDto";
 
@@ -43,6 +46,24 @@ export function createCard(dto: CreateCardDto): Promise<void> {
 
 export function updateReading(dto: UpdateReadingDto): Promise<void> {
 	return invoke("update_reading", { dto });
+}
+
+export function getReadingSplitManifest(
+	readingId: string,
+): Promise<ReadingSplitMetaDto[]> {
+	return invoke("get_reading_split_manifest", { readingId });
+}
+
+export function getReadingSplitContent(
+	splitId: ReadingSplitIdDto,
+): Promise<string> {
+	return invoke("get_reading_split_content", { dto: splitId });
+}
+
+export function updateReadingPosition(
+	dto: UpdateReadingPositionDto,
+): Promise<void> {
+	return invoke("update_reading_position", { dto });
 }
 
 export function updateExtract(dto: UpdateExtractDto): Promise<void> {

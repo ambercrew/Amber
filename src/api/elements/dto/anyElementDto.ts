@@ -17,7 +17,8 @@ export interface FolderResponseDto {
 
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
-	content: string;
+	positionSplit: number;
+	positionBlock: number;
 	aFactor: number;
 }
 

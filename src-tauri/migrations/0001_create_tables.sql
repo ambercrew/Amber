@@ -138,10 +138,17 @@ CREATE TABLE folders(
 );
 
 CREATE TABLE readings(
-    id                     TEXT    NOT NULL PRIMARY KEY,
-    content                TEXT    NOT NULL,
-    position_block_index   INTEGER NOT NULL DEFAULT 0,
-    a_factor               REAL    NOT NULL DEFAULT 1.2
+    id              TEXT    NOT NULL PRIMARY KEY,
+    position_split  INTEGER NOT NULL DEFAULT 0,
+    position_block  INTEGER NOT NULL DEFAULT 0,
+    a_factor        REAL    NOT NULL DEFAULT 1.2
+);
+
+CREATE TABLE reading_splits(
+    reading_id  TEXT    NOT NULL REFERENCES readings(id) ON DELETE CASCADE,
+    seq         INTEGER NOT NULL,
+    content     TEXT    NOT NULL,
+    PRIMARY KEY (reading_id, seq)
 );
 
 CREATE TABLE extracts(

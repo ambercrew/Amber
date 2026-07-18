@@ -122,12 +122,15 @@ mod tests {
 
         let reading_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
-            .create(Reading {
-                a_factor: 1.2,
-                meta: make_meta(reading_id),
-                content: String::new(),
-                position_block_index: 0,
-            })
+            .create(
+                Reading {
+                    a_factor: 1.2,
+                    meta: make_meta(reading_id),
+                    position_split: 0,
+                    position_block: 0,
+                },
+                Vec::new(),
+            )
             .await
             .unwrap();
         reading_review_repo

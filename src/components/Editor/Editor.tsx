@@ -5,7 +5,7 @@ import {
 	SelectBlockExtension,
 	TabIndentationExtension,
 } from "@lexical/extension";
-import { CodeShikiExtension, ShikiTokenizer } from "@lexical/code-shiki";
+import { CodeShikiExtension } from "@lexical/code-shiki";
 import { $generateNodesFromDOM } from "@lexical/html";
 import { HistoryExtension } from "@lexical/history";
 import { ListExtension } from "@lexical/list";
@@ -22,13 +22,7 @@ import {
 	defineExtension,
 	LexicalEditor,
 } from "lexical";
-import {
-	Box,
-	ScrollArea,
-	Text,
-	Typography,
-	useComputedColorScheme,
-} from "@mantine/core";
+import { Box, Text, Typography, useComputedColorScheme } from "@mantine/core";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
@@ -187,18 +181,16 @@ export default function Editor({
 				extension={editorExtension}
 				contentEditable={null}>
 				<Box className={styles.anchor}>
-					<ScrollArea h="100%">
-						<ContentEditable
-							className={styles["content-editable"]}
-							aria-label="Rich text editor"
-							aria-placeholder="Type '/' for commands..."
-							placeholder={
-								<Text className={styles.placeholder} c="dimmed">
-									Type &apos;/&apos; for commands...
-								</Text>
-							}
-						/>
-					</ScrollArea>
+					<ContentEditable
+						className={styles["content-editable"]}
+						aria-label="Rich text editor"
+						aria-placeholder="Type '/' for commands..."
+						placeholder={
+							<Text className={styles.placeholder} c="dimmed">
+								Type &apos;/&apos; for commands...
+							</Text>
+						}
+					/>
 					<SlashMenuPlugin />
 					<EquationPlugin />
 					<ImagePlugin />
