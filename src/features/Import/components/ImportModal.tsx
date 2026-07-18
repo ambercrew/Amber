@@ -1,6 +1,7 @@
 import { ClipboardEvent, SyntheticEvent, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
+	ActionIcon,
 	Anchor,
 	Button,
 	Group,
@@ -12,7 +13,7 @@ import {
 	TextInput,
 } from "@mantine/core";
 import { Dropzone, PDF_MIME_TYPE } from "@mantine/dropzone";
-import { ArrowsInSimpleIcon } from "@phosphor-icons/react";
+import { ArrowsInSimpleIcon, FileIcon, XIcon } from "@phosphor-icons/react";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import errorToString from "../../../utils/errorToString";
@@ -63,6 +64,7 @@ function ImportModal() {
 	const navigate = useNavigate();
 
 	const [value, setValue] = useState("");
+	const [pendingFiles, setPendingFiles] = useState<File[] | null>(null);
 	const [phase, setPhase] = useState<Phase>({ kind: "idle" });
 	const openRef = useRef<() => void>(null);
 	const cancelledRef = useRef(false);
@@ -77,6 +79,7 @@ function ImportModal() {
 
 	function reset() {
 		setValue("");
+		setPendingFiles(null);
 		setPhase({ kind: "idle" });
 	}
 
@@ -159,6 +162,12 @@ function ImportModal() {
 
 	function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
 		e.preventDefault();
+
+		if (pendingFiles) {
+			void startFileImport(pendingFiles);
+			return;
+		}
+
 		const trimmed = value.trim();
 		if (!trimmed) return;
 
@@ -179,7 +188,7 @@ function ImportModal() {
 				return;
 			case "file":
 				e.preventDefault();
-				void startFileImport(input.files);
+				setPendingFiles(input.files);
 				return;
 			case "content":
 				e.preventDefault();
@@ -204,7 +213,7 @@ function ImportModal() {
 				activateOnClick={false}
 				disabled={isImporting}
 				openRef={openRef}
-				onDrop={files => void startFileImport(files)}
+				onDrop={files => setPendingFiles(files)}
 				onReject={() =>
 					setPhase({
 						kind: "error",
@@ -242,22 +251,70 @@ function ImportModal() {
 				) : (
 					<form onSubmit={handleSubmit}>
 						<Stack gap="xs">
-							<TextInput
-								placeholder="Paste a link or content"
-								data-autofocus
-								value={value}
-								error={
-									phase.kind === "error"
-										? phase.message
-										: null
-								}
-								style={CLICKABLE_STYLE}
-								onPaste={handlePaste}
-								onChange={e => {
-									setValue(e.currentTarget.value);
-									setPhase({ kind: "idle" });
-								}}
-							/>
+							{pendingFiles ? (
+								<Stack gap={4}>
+									{pendingFiles.map((file, index) => (
+										<Group
+											key={`${file.name}-${index}`}
+											justify="space-between"
+											wrap="nowrap"
+											px="sm"
+											py="xs"
+											gap="xs"
+											bd="1px solid var(--mantine-color-default-border)"
+											style={{
+												...CLICKABLE_STYLE,
+												borderRadius:
+													"var(--mantine-radius-sm)",
+											}}>
+											<Group
+												gap="xs"
+												wrap="nowrap"
+												miw={0}>
+												<FileIcon size={16} />
+												<Text size="sm" truncate>
+													{file.name}
+												</Text>
+											</Group>
+											<ActionIcon
+												variant="subtle"
+												color="gray"
+												size="sm"
+												aria-label={`Remove ${file.name}`}
+												onClick={() =>
+													setPendingFiles(prev =>
+														prev && prev.length > 1
+															? prev.filter(
+																	(_, i) =>
+																		i !==
+																		index,
+																)
+															: null,
+													)
+												}>
+												<XIcon size={14} />
+											</ActionIcon>
+										</Group>
+									))}
+								</Stack>
+							) : (
+								<TextInput
+									placeholder="Paste a link or content"
+									data-autofocus
+									value={value}
+									error={
+										phase.kind === "error"
+											? phase.message
+											: null
+									}
+									style={CLICKABLE_STYLE}
+									onPaste={handlePaste}
+									onChange={e => {
+										setValue(e.currentTarget.value);
+										setPhase({ kind: "idle" });
+									}}
+								/>
+							)}
 							{phase.kind === "error" &&
 								phase.rawHtml &&
 								phase.sourceUrl && (
@@ -275,21 +332,23 @@ function ImportModal() {
 										Import raw page
 									</Anchor>
 								)}
-							<Text size="sm" c="dimmed">
-								or drop a PDF anywhere here —{" "}
-								<Anchor
-									size="sm"
-									component="button"
-									type="button"
-									style={CLICKABLE_STYLE}
-									onClick={() => openRef.current?.()}>
-									browse
-								</Anchor>
-							</Text>
+							{!pendingFiles && (
+								<Text size="sm" c="dimmed">
+									or drop a PDF anywhere here —{" "}
+									<Anchor
+										size="sm"
+										component="button"
+										type="button"
+										style={CLICKABLE_STYLE}
+										onClick={() => openRef.current?.()}>
+										browse
+									</Anchor>
+								</Text>
+							)}
 							<Group justify="flex-end">
 								<Button
 									type="submit"
-									disabled={!value.trim()}
+									disabled={!pendingFiles && !value.trim()}
 									style={CLICKABLE_STYLE}>
 									Import
 								</Button>
