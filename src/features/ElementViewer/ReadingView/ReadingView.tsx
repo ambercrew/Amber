@@ -57,7 +57,7 @@ export default function ReadingView({
 		};
 	}, [readingId]);
 
-	const { getHeight, observeSplit, reportHeight } = useSplitHeights(
+	const { getHeight, observeSplit } = useSplitHeights(
 		readingId,
 		contentWidth,
 	);
@@ -77,6 +77,21 @@ export default function ReadingView({
 		initial: position,
 		getSlotElement,
 	});
+
+	// Auto-focus is a one-shot grant for the position split's first mount
+	// after open. Left permanently on, every re-mount of that split (as the
+	// virtualization window shifts back over it) would recreate its editor
+	// with the AutoFocus extension active, focusing the caret at the editor's
+	// start — and the browser scrolls the new caret into view, yanking the
+	// reader to the top of that split mid-scroll.
+	const [pendingAutoFocus, setPendingAutoFocus] = useState(!!autoFocus);
+	const handleContentReady = useCallback(
+		(seq: number) => {
+			if (seq === position.positionSplit) setPendingAutoFocus(false);
+			restoreIfTarget(seq);
+		},
+		[position.positionSplit, restoreIfTarget],
+	);
 
 	const setSlotRef = useCallback(
 		(seq: number) => (element: Element | null) => {
@@ -110,13 +125,13 @@ export default function ReadingView({
 						height={getHeight(split.seq, split.charCount)}
 						buttons={buttons}
 						autoFocus={
-							!!autoFocus && split.seq === position.positionSplit
+							pendingAutoFocus &&
+							split.seq === position.positionSplit
 						}
 						slotRef={setSlotRef(split.seq)}
 						observeSplit={observeSplit(split.seq, split.charCount)}
-						reportHeight={reportHeight}
 						onHighlightCreated={onHighlightCreated}
-						onContentReady={restoreIfTarget}
+						onContentReady={handleContentReady}
 					/>
 				))}
 		</Container>

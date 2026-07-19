@@ -24,8 +24,6 @@ interface SplitSlotProps {
 	slotRef: (element: Element | null) => void;
 	/** Ref for the mounted editor's measured element. */
 	observeSplit: (element: HTMLElement | null) => void;
-	/** Records a height measured by this component. */
-	reportHeight: (seq: number, height: number) => void;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onContentReady: (seq: number) => void;
 }
@@ -46,7 +44,6 @@ export default function SplitSlot({
 	autoFocus,
 	slotRef,
 	observeSplit,
-	reportHeight,
 	onHighlightCreated,
 	onContentReady,
 }: SplitSlotProps) {
@@ -76,19 +73,6 @@ export default function SplitSlot({
 	useEffect(() => {
 		if (mounted && content !== null) onContentReady(seq);
 	}, [mounted, content, seq, onContentReady]);
-
-	// Records the real height once the placeholder's estimate swaps for actual
-	// content, so the placeholder shown next time this split unmounts matches.
-	// Native scroll anchoring (see `ReadingView.tsx`) is what keeps the
-	// currently visible content stable across this resize — no manual
-	// compensation needed here.
-	useEffect(() => {
-		const element = contentElementRef.current;
-		if (!element) return;
-		const newHeight = element.offsetHeight;
-		if (newHeight <= 0) return;
-		reportHeight(seq, newHeight);
-	}, [mounted, content, seq, reportHeight]);
 
 	const handleChange = useCallback(
 		async (updated: string) => {
