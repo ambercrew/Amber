@@ -23,8 +23,6 @@ interface ReturnValue {
 		seq: number,
 		charCount: number,
 	) => (element: HTMLElement | null) => void;
-	/** Records a height measured by the caller. */
-	reportHeight: (seq: number, height: number) => void;
 }
 
 /**
@@ -68,14 +66,6 @@ export function useSplitHeights(
 			heightsRef.current[seq] ??
 			estimateSplitHeight(charCount, contentWidth),
 		[contentWidth],
-	);
-
-	const reportHeight = useCallback(
-		(seq: number, height: number) => {
-			heightsRef.current[seq] = height;
-			schedulePersist();
-		},
-		[schedulePersist],
 	);
 
 	// Cached per seq so the returned ref callback keeps the same identity
@@ -125,5 +115,5 @@ export function useSplitHeights(
 		};
 	}, []);
 
-	return { getHeight, observeSplit, reportHeight };
+	return { getHeight, observeSplit };
 }
