@@ -1,6 +1,10 @@
 use std::time::Duration;
 
 use base64::{Engine as _, engine::general_purpose};
+use pdf_oxide::converters::ConversionOptions;
+use pdf_oxide::document::PdfDocument;
+use pdf_oxide::extractors::xmp::XmpExtractor;
+use tauri::Emitter;
 use tauri_plugin_http::reqwest::{
     self,
     header::{CONTENT_TYPE, REFERER},
@@ -8,7 +12,7 @@ use tauri_plugin_http::reqwest::{
 
 use crate::common::api_error::ApiError;
 
-use super::dto::{FetchedImageDto, FetchedPageDto};
+use super::dto::{FetchedImageDto, FetchedPageDto, PdfExtractionDto, PdfImportProgressEvent};
 
 const MAX_PAGE_BYTES: usize = 20 * 1024 * 1024;
 const MAX_IMAGE_BYTES: usize = 10 * 1024 * 1024;
@@ -80,6 +84,75 @@ pub async fn fetch_image(
     })
 }
 
+#[tauri::command]
+pub async fn extract_pdf(
+    app: tauri::AppHandle,
+    request_id: String,
+    bytes_base64: String,
+) -> Result<PdfExtractionDto, ApiError> {
+    let bytes = general_purpose::STANDARD.decode(&bytes_base64)?;
+
+    tauri::async_runtime::spawn_blocking(move || extract_pdf_sync(&app, &request_id, bytes))
+        .await
+        .map_err(|e| ApiError::new(e.to_string()))?
+}
+
+fn extract_pdf_sync(
+    app: &tauri::AppHandle,
+    request_id: &str,
+    bytes: Vec<u8>,
+) -> Result<PdfExtractionDto, ApiError> {
+    extract_pdf_html(bytes, |done, total| {
+        let _ = app.emit(
+            "pdf-import-progress",
+            PdfImportProgressEvent {
+                request_id: request_id.to_string(),
+                done,
+                total,
+            },
+        );
+    })
+}
+
+fn extract_pdf_html(
+    bytes: Vec<u8>,
+    mut on_progress: impl FnMut(usize, usize),
+) -> Result<PdfExtractionDto, ApiError> {
+    let doc = PdfDocument::from_bytes(bytes)?;
+    let page_count = doc.page_count()?;
+
+    let options = ConversionOptions {
+        include_images: true,
+        ..Default::default()
+    };
+
+    let mut html = String::new();
+    let mut saw_text = false;
+
+    for i in 0..page_count {
+        if !saw_text && doc.has_text_layer(i)? {
+            saw_text = true;
+        }
+        html.push_str(&doc.to_html(i, &options)?);
+        on_progress(i + 1, page_count);
+    }
+
+    if !saw_text {
+        return Err(ApiError::new("no-text-layer".to_string()));
+    }
+
+    let title = XmpExtractor::extract(&doc)
+        .ok()
+        .flatten()
+        .and_then(|metadata| metadata.dc_title);
+
+    Ok(PdfExtractionDto {
+        title,
+        html,
+        page_count,
+    })
+}
+
 fn build_client(timeout: Duration) -> Result<reqwest::Client, ApiError> {
     reqwest::Client::builder()
         .timeout(timeout)
@@ -108,5 +181,48 @@ fn sniff_image_mime(bytes: &[u8]) -> Option<String> {
         Some("image/webp".to_string())
     } else {
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_pdf_html_pdf_with_text_layer_returns_html_and_reports_progress() {
+        // Arrange
+
+        let bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/example.pdf"
+        ))
+        .unwrap();
+        let mut progress_calls = Vec::new();
+
+        // Act
+
+        let result = extract_pdf_html(bytes, |done, total| progress_calls.push((done, total)));
+
+        // Assert
+
+        let extraction = result.ok().expect("expected extraction to succeed");
+        assert!(extraction.html.contains("Page 1 content"));
+        assert_eq!(extraction.page_count, 1);
+        assert_eq!(progress_calls, vec![(1, 1)]);
+    }
+
+    #[test]
+    fn extract_pdf_html_invalid_bytes_returns_error() {
+        // Arrange
+
+        let bytes = b"not a pdf".to_vec();
+
+        // Act
+
+        let result = extract_pdf_html(bytes, |_, _| {});
+
+        // Assert
+
+        assert!(result.is_err());
     }
 }

@@ -1,3 +1,5 @@
+import { extractPdf as invokeExtractPdf } from "../../../api/import/api/importApi";
+
 export interface PdfExtraction {
 	title: string | null;
 	html: string;
@@ -9,47 +11,22 @@ export interface PdfProgress {
 	total: number;
 }
 
-type WorkerResponse =
-	| { id: number; progress: PdfProgress }
-	| { id: number; result: PdfExtraction }
-	| { id: number; error: string };
+const BASE64_CHUNK_SIZE = 0x8000;
 
-let worker: Worker | null = null;
-let nextId = 0;
-
-function getWorker(): Worker {
-	worker ??= new Worker(new URL("./worker.ts", import.meta.url), {
-		type: "module",
-	});
-	return worker;
+function bytesToBase64(bytes: Uint8Array): string {
+	let binary = "";
+	for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+		binary += String.fromCharCode(
+			...bytes.subarray(i, i + BASE64_CHUNK_SIZE),
+		);
+	}
+	return btoa(binary);
 }
 
-/** The only module that imports `mupdf` — kept swappable given its
- * AGPL-3.0 license. Runs the extraction in a Web Worker since MuPDF's WASM
- * API is synchronous and CPU-bound. */
-export function extractPdf(
+export async function extractPdf(
 	bytes: ArrayBuffer,
 	onProgress?: (progress: PdfProgress) => void,
 ): Promise<PdfExtraction> {
-	const id = nextId++;
-	const w = getWorker();
-
-	return new Promise((resolve, reject) => {
-		function handleMessage(e: MessageEvent<WorkerResponse>) {
-			const data = e.data;
-			if (data.id !== id) return;
-
-			if ("progress" in data) {
-				onProgress?.(data.progress);
-				return;
-			}
-
-			w.removeEventListener("message", handleMessage);
-			if ("error" in data) reject(new Error(data.error));
-			else resolve(data.result);
-		}
-
-		w.addEventListener("message", handleMessage);
-		w.postMessage({ id, bytes }, [bytes]);
-	});
+	const bytesBase64 = bytesToBase64(new Uint8Array(bytes));
+	return invokeExtractPdf(bytesBase64, onProgress);
 }
