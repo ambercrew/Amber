@@ -89,11 +89,6 @@ function ImportModal() {
 		dispatch(closeImportModal());
 	}
 
-	function handleCancel() {
-		cancelledRef.current = true;
-		setPhase({ kind: "idle" });
-	}
-
 	function handleSuccess() {
 		reset();
 		dispatch(closeImportModal());
@@ -241,12 +236,6 @@ function ImportModal() {
 								}
 							/>
 						)}
-						<Button
-							variant="subtle"
-							size="xs"
-							onClick={handleCancel}>
-							Cancel
-						</Button>
 					</Stack>
 				) : (
 					<form onSubmit={handleSubmit}>
