@@ -89,7 +89,13 @@ export default function EquationComponent({ equation, nodeKey }: Props) {
 		<Box
 			component="span"
 			onDoubleClick={startEditing}
-			style={{ cursor: "pointer", display: "inline-block" }}
+			style={{
+				cursor: "pointer",
+				display: "inline-block",
+				maxWidth: "100%",
+				overflowX: "auto",
+				verticalAlign: "top",
+			}}
 			dangerouslySetInnerHTML={{ __html: html }}
 		/>
 	);

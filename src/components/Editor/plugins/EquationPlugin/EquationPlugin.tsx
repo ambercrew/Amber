@@ -3,7 +3,11 @@ import { TextNode } from "lexical";
 import { useEffect } from "react";
 import { $createEquationNode, EquationNode } from "./EquationNode";
 
-const EQUATION_REGEX = /\$([^$\n]+)\$/;
+// Requires the content to start and end on a non-space character, so plain
+// prose mentioning two dollar amounts (e.g. "costs $5 and $10 more") isn't
+// misread as an equation — real inline math never has whitespace touching
+// the delimiters.
+const EQUATION_REGEX = /\$(\S(?:[^$\n]*\S)?)\$/;
 
 function $transformTextToEquation(node: TextNode) {
 	const text = node.getTextContent();
