@@ -23,7 +23,9 @@ interface ReadingViewProps {
  * Content and layout are loaded lazily — only a lightweight split index is
  * fetched on open, never every split's content. Relies on the browser's
  * native scroll anchoring (`overflow-anchor`, on by default) to keep visible
- * content stable as splits above the viewport resize — do not disable it here.
+ * content stable as splits above the viewport resize. Engines that don't
+ * support it (WebKitGTK, the Linux Tauri webview) fall back to manual
+ * compensation — see `supportsOverflowAnchor` and `scrollCompensation.ts`.
  */
 export default function ReadingView({
 	readingId,

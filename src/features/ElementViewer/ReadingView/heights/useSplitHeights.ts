@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useRef } from "react";
 import { READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS } from "../readingViewConstants";
 import { estimateSplitHeight } from "./estimateSplitHeight";
+import { compensateScrollForResize } from "./scrollCompensation";
 import { loadSplitHeights, saveSplitHeights } from "./splitHeightsStorage";
+import { supportsOverflowAnchor } from "./supportsOverflowAnchor";
 
 interface ReturnValue {
 	/** Best-known height for a split: measured/stored, else an estimate. */
 	getHeight: (seq: number, charCount: number) => number;
 	/**
 	 * Ref callback for a mounted split's root element. Measures its real height
-	 * with a `ResizeObserver` and caches it (debounced) so the placeholder shown
-	 * after it unmounts — and the first paint next session — match exactly. This
-	 * only catches resizes React doesn't drive (Lexical edits, image loads); the
-	 * mount-time placeholder-to-content swap is recorded elsewhere via
-	 * `reportHeight`. Native scroll anchoring (see `ReadingView.tsx`) is what
-	 * keeps the visible content stable across either kind of resize — this hook
-	 * only keeps the height cache accurate. The returned function is cached per
-	 * seq, keeping a stable identity across renders (unless charCount changes)
-	 * so callers don't detach/reattach the ref — and tear down the
-	 * `ResizeObserver` — on every unrelated re-render.
+	 * with a `ResizeObserver` (which reports once on the initial observe, so
+	 * this also catches the mount-time placeholder-to-content swap, not just
+	 * later resizes like Lexical edits or image loads) and caches it (debounced)
+	 * so the placeholder shown after it unmounts — and the first paint next
+	 * session — match exactly. Native scroll anchoring (see `ReadingView.tsx`)
+	 * is what keeps the visible content stable across a resize on engines that
+	 * support it; on ones that don't (see `supportsOverflowAnchor`), this hook
+	 * also manually compensates the scroll position. The returned function is
+	 * cached per seq, keeping a stable identity across renders (unless
+	 * charCount changes) so callers don't detach/reattach the ref — and tear
+	 * down the `ResizeObserver` — on every unrelated re-render.
 	 */
 	observeSplit: (
 		seq: number,
@@ -89,7 +92,16 @@ export function useSplitHeights(
 				const observer = new ResizeObserver(() => {
 					const newHeight = element.offsetHeight;
 					if (newHeight <= 0) return;
-					if (getHeight(seq, charCount) === newHeight) return;
+					const prevHeight = getHeight(seq, charCount);
+					if (prevHeight === newHeight) return;
+
+					if (!supportsOverflowAnchor()) {
+						compensateScrollForResize(
+							element,
+							prevHeight,
+							newHeight,
+						);
+					}
 
 					heightsRef.current[seq] = newHeight;
 					schedulePersist();
