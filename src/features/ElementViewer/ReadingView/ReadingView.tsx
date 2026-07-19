@@ -21,7 +21,9 @@ interface ReadingViewProps {
  * Renders a reading as a virtualized vertical stack of splits: a small window of
  * live Lexical editors around the viewport, cheap placeholders elsewhere.
  * Content and layout are loaded lazily — only a lightweight split index is
- * fetched on open, never every split's content.
+ * fetched on open, never every split's content. Relies on the browser's
+ * native scroll anchoring (`overflow-anchor`, on by default) to keep visible
+ * content stable as splits above the viewport resize — do not disable it here.
  */
 export default function ReadingView({
 	readingId,
@@ -55,7 +57,7 @@ export default function ReadingView({
 		};
 	}, [readingId]);
 
-	const { getHeight, observeSplit } = useSplitHeights(
+	const { getHeight, observeSplit, reportHeight } = useSplitHeights(
 		readingId,
 		contentWidth,
 	);
@@ -104,7 +106,6 @@ export default function ReadingView({
 						seq={split.seq}
 						splitNumber={index + 1}
 						isFirst={index === 0}
-						charCount={split.charCount}
 						mounted={mountedSeqs.has(split.seq)}
 						height={getHeight(split.seq, split.charCount)}
 						buttons={buttons}
@@ -113,6 +114,7 @@ export default function ReadingView({
 						}
 						slotRef={setSlotRef(split.seq)}
 						observeSplit={observeSplit(split.seq, split.charCount)}
+						reportHeight={reportHeight}
 						onHighlightCreated={onHighlightCreated}
 						onContentReady={restoreIfTarget}
 					/>

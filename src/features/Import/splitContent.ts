@@ -6,7 +6,8 @@
  * reader already expects a break; the block ceiling bounds worst-case editor
  * size deterministically, and a break is never inserted inside a block.
  */
-const MAX_BLOCKS = 200;
+// TODO: reset back to 200
+const MAX_BLOCKS = 100;
 const HEADING_LOOKAHEAD = 50;
 const TARGET_BLOCKS = MAX_BLOCKS - HEADING_LOOKAHEAD;
 const HEADING_TAGS = new Set(["H1", "H2", "H3"]);

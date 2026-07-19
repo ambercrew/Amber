@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Divider } from "@mantine/core";
 import {
 	getReadingSplitContent,
@@ -15,7 +15,6 @@ interface SplitSlotProps {
 	/** 1-based ordinal shown in the boundary gutter marker. */
 	splitNumber: number;
 	isFirst: boolean;
-	charCount: number;
 	mounted: boolean;
 	/** Best-known height (px) for the placeholder state. */
 	height: number;
@@ -25,31 +24,42 @@ interface SplitSlotProps {
 	slotRef: (element: Element | null) => void;
 	/** Ref for the mounted editor's measured element. */
 	observeSplit: (element: HTMLElement | null) => void;
+	/** Records a height measured by this component. */
+	reportHeight: (seq: number, height: number) => void;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onContentReady: (seq: number) => void;
 }
 
-/** Lazily loads and renders the live editor for one mounted split. */
-function MountedSplit({
+/**
+ * One split in the reading stack: a live editor when mounted, a cheap
+ * placeholder otherwise. Renders a labeled divider at its top edge (every
+ * split except the first) so the seam between Lexical instances is legible.
+ */
+export default function SplitSlot({
 	readingId,
 	seq,
+	splitNumber,
+	isFirst,
+	mounted,
 	height,
 	buttons,
 	autoFocus,
+	slotRef,
+	observeSplit,
+	reportHeight,
 	onHighlightCreated,
 	onContentReady,
-}: Omit<
-	SplitSlotProps,
-	| "splitNumber"
-	| "isFirst"
-	| "mounted"
-	| "slotRef"
-	| "observeSplit"
-	| "charCount"
->) {
+}: SplitSlotProps) {
 	const [content, setContent] = useState<string | null>(null);
+	const contentElementRef = useRef<HTMLDivElement | null>(null);
 
+	// Re-fetches whenever this slot re-enters the mount window. Stale content
+	// from a previous mount is left in state rather than cleared — it renders
+	// only while `mounted`, and is virtually always identical to what's
+	// re-fetched (any local edit was already persisted via `handleChange`), so
+	// keeping it just avoids a pointless flash back to the placeholder.
 	useEffect(() => {
+		if (!mounted) return;
 		let cancelled = false;
 		void getReadingSplitContent({ readingId, seq })
 			.then(loaded => {
@@ -61,11 +71,24 @@ function MountedSplit({
 		return () => {
 			cancelled = true;
 		};
-	}, [readingId, seq]);
+	}, [mounted, readingId, seq]);
 
 	useEffect(() => {
-		if (content !== null) onContentReady(seq);
-	}, [content, seq, onContentReady]);
+		if (mounted && content !== null) onContentReady(seq);
+	}, [mounted, content, seq, onContentReady]);
+
+	// Records the real height once the placeholder's estimate swaps for actual
+	// content, so the placeholder shown next time this split unmounts matches.
+	// Native scroll anchoring (see `ReadingView.tsx`) is what keeps the
+	// currently visible content stable across this resize — no manual
+	// compensation needed here.
+	useEffect(() => {
+		const element = contentElementRef.current;
+		if (!element) return;
+		const newHeight = element.offsetHeight;
+		if (newHeight <= 0) return;
+		reportHeight(seq, newHeight);
+	}, [mounted, content, seq, reportHeight]);
 
 	const handleChange = useCallback(
 		async (updated: string) => {
@@ -77,55 +100,34 @@ function MountedSplit({
 		[readingId, seq],
 	);
 
-	// Reserve the known height while the split's content is being fetched.
-	if (content === null) return <SplitPlaceholder height={height} />;
-
-	return (
-		<ElementEditor
-			initialContent={content}
-			buttons={buttons}
-			autoFocus={autoFocus}
-			onChange={handleChange}
-			onHighlightCreated={onHighlightCreated}
-		/>
-	);
-}
-
-/**
- * One split in the reading stack: a live editor when mounted, a cheap
- * placeholder otherwise. Renders a labeled divider at its top edge (every
- * split except the first) so the seam between Lexical instances is legible.
- */
-export default function SplitSlot({
-	splitNumber,
-	isFirst,
-	slotRef,
-	observeSplit,
-	mounted,
-	charCount,
-	...mountedProps
-}: SplitSlotProps) {
-	const { height } = mountedProps;
-
 	// Measure only the swappable content box, not the (always-present) divider
 	// above it — otherwise the divider's height would be cached as part of the
 	// content height, then double-counted once that cached height is reused for
 	// the placeholder box sitting next to a divider of its own.
 	const setContentElement = useCallback(
 		(element: HTMLDivElement | null) => {
+			contentElementRef.current = element;
 			observeSplit(mounted ? element : null);
 		},
 		[observeSplit, mounted],
 	);
 
+	const showPlaceholder = !mounted || content === null;
+
 	return (
-		<div ref={slotRef} data-seq={mountedProps.seq}>
+		<div ref={slotRef} data-seq={seq}>
 			{!isFirst && <Divider label={`Split ${splitNumber}`} my="lg" />}
 			<div ref={setContentElement}>
-				{mounted ? (
-					<MountedSplit {...mountedProps} />
-				) : (
+				{showPlaceholder ? (
 					<SplitPlaceholder height={height} />
+				) : (
+					<ElementEditor
+						initialContent={content}
+						buttons={buttons}
+						autoFocus={autoFocus}
+						onChange={handleChange}
+						onHighlightCreated={onHighlightCreated}
+					/>
 				)}
 			</div>
 		</div>
