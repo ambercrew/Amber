@@ -190,6 +190,7 @@ pub async fn run() -> Result<(), String> {
             // Import
             fetch_page,
             fetch_image,
+            extract_pdf,
             // App Info
             is_store_installed,
         ])

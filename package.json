@@ -58,7 +58,6 @@
 		"dompurify": "^3.4.11",
 		"katex": "^0.17.0",
 		"lexical": "0.46.0",
-		"mupdf": "^1.28.0",
 		"react": "19.2.7",
 		"react-dom": "19.2.7",
 		"react-redux": "9.3.0",
