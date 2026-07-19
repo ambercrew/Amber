@@ -9,15 +9,22 @@ interface ReturnValue {
 	/**
 	 * Ref callback for a mounted split's root element. Measures its real height
 	 * with a `ResizeObserver` and caches it (debounced) so the placeholder shown
-	 * after it unmounts — and the first paint next session — match exactly. If
-	 * the measured height differs from what was displayed (estimate or stale
-	 * cache) while the split sits entirely above the viewport, compensates the
-	 * scroll position so currently visible content doesn't jump.
+	 * after it unmounts — and the first paint next session — match exactly. This
+	 * only catches resizes React doesn't drive (Lexical edits, image loads); the
+	 * mount-time placeholder-to-content swap is recorded elsewhere via
+	 * `reportHeight`. Native scroll anchoring (see `ReadingView.tsx`) is what
+	 * keeps the visible content stable across either kind of resize — this hook
+	 * only keeps the height cache accurate. The returned function is cached per
+	 * seq, keeping a stable identity across renders (unless charCount changes)
+	 * so callers don't detach/reattach the ref — and tear down the
+	 * `ResizeObserver` — on every unrelated re-render.
 	 */
 	observeSplit: (
 		seq: number,
 		charCount: number,
 	) => (element: HTMLElement | null) => void;
+	/** Records a height measured by the caller. */
+	reportHeight: (seq: number, height: number) => void;
 }
 
 /**
@@ -34,6 +41,12 @@ export function useSplitHeights(
 	const heightsRef = useRef<Record<number, number>>({});
 	const observersRef = useRef<Map<number, ResizeObserver>>(new Map());
 	const persistTimeoutRef = useRef<number | null>(null);
+	const refCallbacksRef = useRef<
+		Map<
+			number,
+			{ charCount: number; fn: (element: HTMLElement | null) => void }
+		>
+	>(new Map());
 
 	// Re-seed from storage whenever the reading changes.
 	useEffect(() => {
@@ -57,34 +70,45 @@ export function useSplitHeights(
 		[contentWidth],
 	);
 
+	const reportHeight = useCallback(
+		(seq: number, height: number) => {
+			heightsRef.current[seq] = height;
+			schedulePersist();
+		},
+		[schedulePersist],
+	);
+
+	// Cached per seq so the returned ref callback keeps the same identity
+	// across renders (as long as charCount doesn't change) — otherwise a new
+	// closure every render makes React detach/reattach the ref on every
+	// re-render of the caller, tearing down and recreating the
+	// ResizeObserver even though the DOM node never actually unmounted.
 	const observeSplit = useCallback(
-		(seq: number, charCount: number) => (element: HTMLElement | null) => {
-			const existing = observersRef.current.get(seq);
-			if (existing) {
-				existing.disconnect();
-				observersRef.current.delete(seq);
-			}
-			if (!element) return;
+		(seq: number, charCount: number) => {
+			const cached = refCallbacksRef.current.get(seq);
+			if (cached?.charCount === charCount) return cached.fn;
 
-			const observer = new ResizeObserver(() => {
-				const newHeight = element.offsetHeight;
-				if (newHeight <= 0) return;
-				const prevDisplayed = getHeight(seq, charCount);
-				if (prevDisplayed === newHeight) return;
-
-				// Already scrolled past this split (its bottom edge is above the
-				// viewport) — a height change here would otherwise silently shift
-				// everything below it, including whatever's currently visible.
-				const rect = element.getBoundingClientRect();
-				if (rect.bottom <= 0) {
-					window.scrollBy(0, newHeight - prevDisplayed);
+			const fn = (element: HTMLElement | null) => {
+				const existing = observersRef.current.get(seq);
+				if (existing) {
+					existing.disconnect();
+					observersRef.current.delete(seq);
 				}
+				if (!element) return;
 
-				heightsRef.current[seq] = newHeight;
-				schedulePersist();
-			});
-			observer.observe(element);
-			observersRef.current.set(seq, observer);
+				const observer = new ResizeObserver(() => {
+					const newHeight = element.offsetHeight;
+					if (newHeight <= 0) return;
+					if (getHeight(seq, charCount) === newHeight) return;
+
+					heightsRef.current[seq] = newHeight;
+					schedulePersist();
+				});
+				observer.observe(element);
+				observersRef.current.set(seq, observer);
+			};
+			refCallbacksRef.current.set(seq, { charCount, fn });
+			return fn;
 		},
 		[schedulePersist, getHeight],
 	);
@@ -101,5 +125,5 @@ export function useSplitHeights(
 		};
 	}, []);
 
-	return { getHeight, observeSplit };
+	return { getHeight, observeSplit, reportHeight };
 }
