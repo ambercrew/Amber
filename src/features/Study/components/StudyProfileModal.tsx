@@ -1,19 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-	Badge,
-	Box,
-	Button,
-	Flex,
-	Group,
-	Modal,
-	ScrollArea,
-	Scroller,
-	Stack,
-	Text,
-	useMantineTheme,
-} from "@mantine/core";
-import { useMediaQuery, useResizeObserver } from "@mantine/hooks";
-import { PlusIcon } from "@phosphor-icons/react";
+import { Modal, Select, Stack, useMantineTheme } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import {
 	getEffectiveStudyProfile,
 	listStudyProfiles,
@@ -25,6 +12,9 @@ import { closeStudyProfileModal } from "../../../stores/app/appReducer";
 import { selectIsStudyProfileModalOpened } from "../../../stores/app/appSelectors";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import ProfileForm from "./ProfileForm";
+import StudyProfileOption from "./StudyProfileOption";
+
+const CREATE_PROFILE_VALUE = "__create__";
 
 function StudyProfileModal() {
 	const opened = useAppSelector(selectIsStudyProfileModalOpened);
@@ -35,7 +25,6 @@ function StudyProfileModal() {
 	const theme = useMantineTheme();
 	const isMobile =
 		useMediaQuery(`(max-width: ${theme.breakpoints.sm})`) ?? false;
-	const [formRef, formRect] = useResizeObserver();
 
 	function refresh(
 		pickInitialId?: (list: StudyProfileDto[]) => string | null,
@@ -76,38 +65,9 @@ function StudyProfileModal() {
 	const selected =
 		profiles.find(profile => profile.id === selectedId) ?? null;
 
-	const profileButtons = (
-		<>
-			{profiles.map(profile => (
-				<Button
-					key={profile.id}
-					variant={profile.id === selectedId ? "light" : "subtle"}
-					color="gray"
-					justify="space-between"
-					style={{ flexShrink: 0 }}
-					styles={{ label: { flex: 1, minWidth: 0 } }}
-					rightSection={
-						profile.isDefault ? (
-							<Badge size="xs" variant="light">
-								Default
-							</Badge>
-						) : undefined
-					}
-					onClick={() => setSelectedId(profile.id)}>
-					<Text truncate="end" style={{ minWidth: 0 }}>
-						{profile.name}
-					</Text>
-				</Button>
-			))}
-			<Button
-				variant="subtle"
-				size="sm"
-				leftSection={<PlusIcon size={14} />}
-				onClick={() => setSelectedId(null)}>
-				Create new profile
-			</Button>
-		</>
-	);
+	function handleProfileChange(value: string | null) {
+		setSelectedId(value);
+	}
 
 	return (
 		<Modal
@@ -116,37 +76,45 @@ function StudyProfileModal() {
 			title="Study profiles"
 			fullScreen={isMobile}
 			centered
-			size="xl"
+			size="lg"
 			closeButtonProps={{ "aria-label": "Close" }}>
-			<Flex
-				direction={{ base: "column", sm: "row" }}
-				align={{ base: "stretch", sm: "flex-start" }}
-				gap="md">
-				{isMobile ? (
-					<Scroller w="100%">
-						<Group gap={4} wrap="nowrap">
-							{profileButtons}
-						</Group>
-					</Scroller>
-				) : (
-					<ScrollArea.Autosize
-						mah={formRect.height || undefined}
-						offsetScrollbars>
-						<Stack gap={6} w={180}>
-							{profileButtons}
-						</Stack>
-					</ScrollArea.Autosize>
-				)}
+			<Stack gap="md">
+				<Select
+					label="Profile"
+					value={selectedId}
+					allowDeselect={false}
+					data={[
+						...profiles.map(profile => ({
+							value: profile.id,
+							label: profile.name,
+						})),
+						{
+							value: CREATE_PROFILE_VALUE,
+							label: "Create new profile…",
+						},
+					]}
+					renderOption={({ option }) => {
+						const profile = profiles.find(
+							p => p.id === option.value,
+						);
+						return (
+							<StudyProfileOption
+								label={option.label}
+								isDefault={profile?.isDefault ?? false}
+							/>
+						);
+					}}
+					nothingFoundMessage="Nothing found..."
+					onChange={handleProfileChange}
+				/>
 
-				<Box ref={formRef} flex={1}>
-					<ProfileForm
-						key={selectedId ?? "new"}
-						profile={selected}
-						onSaved={refresh}
-						onSubmitted={() => dispatch(closeStudyProfileModal())}
-					/>
-				</Box>
-			</Flex>
+				<ProfileForm
+					key={selectedId ?? "new"}
+					profile={selected}
+					onSaved={selectId => refresh(() => selectId ?? null)}
+					onSubmitted={() => dispatch(closeStudyProfileModal())}
+				/>
+			</Stack>
 		</Modal>
 	);
 }

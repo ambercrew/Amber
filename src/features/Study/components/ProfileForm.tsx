@@ -24,7 +24,7 @@ import {
 
 interface ProfileFormProps {
 	profile: StudyProfileDto | null;
-	onSaved: () => void;
+	onSaved: (selectId?: string) => void;
 	onSubmitted: () => void;
 }
 
@@ -92,8 +92,8 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 
 	async function handleClone() {
 		if (!profile) return;
-		await cloneStudyProfile(profile.id);
-		onSaved();
+		const cloned = await cloneStudyProfile(profile.id);
+		onSaved(cloned.id);
 	}
 
 	function handleDelete() {
@@ -110,7 +110,7 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 			confirmProps: { color: "red" },
 			centered: true,
 			onConfirm: () => {
-				void deleteStudyProfile(profile.id).then(onSaved);
+				void deleteStudyProfile(profile.id).then(() => onSaved());
 			},
 		});
 	}
@@ -154,7 +154,7 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					multiline>
 					<NumberInput
 						label="Initial A-factor"
-						min={1}
+						min={0}
 						step={0.1}
 						decimalScale={2}
 						{...form.getInputProps("initialAFactor")}
