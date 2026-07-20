@@ -95,12 +95,26 @@ export default function ReadingView({
 		[position.positionSplit, restoreIfTarget],
 	);
 
+	// Cached per seq so the returned ref callback keeps the same identity
+	// across renders — otherwise a new closure every render (e.g. every time
+	// `primarySeq` shifts while scrolling) makes React detach/reattach every
+	// slot's ref, tearing down and recreating the IntersectionObserver's
+	// registration for every split, not just the ones near the viewport.
+	const slotRefsRef = useRef<Map<number, (element: Element | null) => void>>(
+		new Map(),
+	);
 	const setSlotRef = useCallback(
-		(seq: number) => (element: Element | null) => {
-			registerSlot(seq)(element);
-			if (element)
-				slotElementsRef.current.set(seq, element as HTMLElement);
-			else slotElementsRef.current.delete(seq);
+		(seq: number) => {
+			const cached = slotRefsRef.current.get(seq);
+			if (cached) return cached;
+			const fn = (element: Element | null) => {
+				registerSlot(seq)(element);
+				if (element)
+					slotElementsRef.current.set(seq, element as HTMLElement);
+				else slotElementsRef.current.delete(seq);
+			};
+			slotRefsRef.current.set(seq, fn);
+			return fn;
 		},
 		[registerSlot],
 	);

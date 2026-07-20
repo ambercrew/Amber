@@ -50,13 +50,13 @@ export default function SplitSlot({
 	const [content, setContent] = useState<string | null>(null);
 	const contentElementRef = useRef<HTMLDivElement | null>(null);
 
-	// Re-fetches whenever this slot re-enters the mount window. Stale content
-	// from a previous mount is left in state rather than cleared — it renders
-	// only while `mounted`, and is virtually always identical to what's
-	// re-fetched (any local edit was already persisted via `handleChange`), so
-	// keeping it just avoids a pointless flash back to the placeholder.
+	// Fetches once, the first time this slot enters the mount window. Content
+	// already loaded from an earlier mount is kept rather than re-fetched —
+	// any local edit was already persisted via `handleChange`, so a re-fetch
+	// would just be an identical, redundant IPC round-trip every time the
+	// window slides back over this split.
 	useEffect(() => {
-		if (!mounted) return;
+		if (!mounted || content !== null) return;
 		let cancelled = false;
 		void getReadingSplitContent({ readingId, seq })
 			.then(loaded => {
@@ -68,7 +68,7 @@ export default function SplitSlot({
 		return () => {
 			cancelled = true;
 		};
-	}, [mounted, readingId, seq]);
+	}, [mounted, readingId, seq, content]);
 
 	useEffect(() => {
 		if (mounted && content !== null) onContentReady(seq);
