@@ -22,6 +22,7 @@ import { selectStudyCounts } from "../../../stores/study/studySelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { commands } from "../../../commands/commands";
 import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
+import StudyProfileOption from "./StudyProfileOption";
 
 interface ElementProfileRowProps {
 	elementId: ElementId;
@@ -159,6 +160,15 @@ function ElementProfileRow({
 				}}
 				comboboxProps={{
 					offset: 0,
+				}}
+				renderOption={({ option }) => {
+					const profile = profiles.find(p => p.id === option.value);
+					return (
+						<StudyProfileOption
+							label={option.label}
+							isDefault={profile?.isDefault ?? false}
+						/>
+					);
 				}}
 				nothingFoundMessage="Nothing found..."
 				onChange={handleProfileChange}
