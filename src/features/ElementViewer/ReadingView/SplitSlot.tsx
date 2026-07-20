@@ -24,6 +24,8 @@ interface SplitSlotProps {
 	slotRef: (element: Element | null) => void;
 	/** Ref for the mounted editor's measured element. */
 	observeSplit: (element: HTMLElement | null) => void;
+	/** Registers the mounted editor's root element for this split. */
+	registerContentRoot: (element: HTMLElement | null) => void;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onContentReady: (seq: number) => void;
 }
@@ -44,6 +46,7 @@ export default function SplitSlot({
 	autoFocus,
 	slotRef,
 	observeSplit,
+	registerContentRoot,
 	onHighlightCreated,
 	onContentReady,
 }: SplitSlotProps) {
@@ -111,6 +114,7 @@ export default function SplitSlot({
 						autoFocus={autoFocus}
 						onChange={handleChange}
 						onHighlightCreated={onHighlightCreated}
+						onRootElement={registerContentRoot}
 					/>
 				)}
 			</div>

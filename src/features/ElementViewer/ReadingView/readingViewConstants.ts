@@ -14,8 +14,6 @@ export const READING_ESTIMATE_CHAR_AREA_IN_PX = 200;
 export const READING_ESTIMATE_SCALE = 0.3;
 // One localStorage write per settle, not per ResizeObserver tick.
 export const READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS = 400;
-// Debounce for persisting the reading position while scrolling.
-export const READING_POSITION_WRITE_DEBOUNCE_IN_MILLISECONDS = 750;
 // Fixed height of the app header/footer; the visible reading region sits below
 // the header, so position math offsets the viewport top by this much.
 export const READING_VIEWPORT_TOP_OFFSET_IN_PX = 56;

@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef } from "react";
-import { useDebouncedCallback } from "@mantine/hooks";
-import {
-	READING_POSITION_WRITE_DEBOUNCE_IN_MILLISECONDS,
-	READING_VIEWPORT_TOP_OFFSET_IN_PX,
-} from "./readingViewConstants";
+import { RefObject, useCallback, useEffect, useRef } from "react";
+import { READING_VIEWPORT_TOP_OFFSET_IN_PX } from "./readingViewConstants";
+import useAutoSave from "../hooks/useAutoSave";
+import useApi from "../../../hooks/useApi";
 import { updateReadingPosition } from "../../../api/elements/api/elementsApi";
 
+// TODO: also use on rust and on dtos
 interface ReadingPosition {
 	positionSplit: number;
 	positionBlock: number;
@@ -17,7 +16,15 @@ interface Props {
 	primarySeq: number;
 	/** Position to restore to on open. */
 	initial: ReadingPosition;
-	getSlotElement: (seq: number) => HTMLElement | undefined;
+	/** The editable root of the mounted split `seq`, whose children are its blocks. */
+	getContentRoot: (seq: number) => HTMLElement | undefined;
+	/**
+	 * Flipped to `true` once restore has anchored the viewport. Shared with the
+	 * mount window, which stays pinned to the target split until it flips — and
+	 * gating saves off it prevents the restore scroll from being recorded as a
+	 * user scroll back to the top.
+	 */
+	restoredRef: RefObject<boolean>;
 }
 
 interface ReturnValue {
@@ -26,11 +33,6 @@ interface ReturnValue {
 	 * need to restore to, scrolls the target block to the top of the viewport.
 	 */
 	restoreIfTarget: (seq: number) => void;
-}
-
-/** Lexical renders each top-level block as a direct child of the editable root. */
-function contentRoot(slotElement: HTMLElement): HTMLElement | null {
-	return slotElement.querySelector<HTMLElement>('[contenteditable="true"]');
 }
 
 /** Index of the first block whose bottom edge is still below the viewport top. */
@@ -43,19 +45,20 @@ function topVisibleBlockIndex(root: HTMLElement, topOffset: number): number {
 }
 
 /**
- * Restores the saved reading position on open and persists it (debounced) as the
- * user scrolls. Restore anchors to the actual mounted target block rather than an
+ * Restores the saved reading position on open and persists it as the user
+ * scrolls. Restore anchors to the actual mounted target block rather than an
  * absolute offset, so estimate error in the placeholders above never causes a
- * visible jump.
+ * visible jump. Persistence goes through `useAutoSave`, so the latest position
+ * is also flushed on unmount, app close, and before a sync — not just after the
+ * debounce settles.
  */
-// TODO: review
 export function useReadingPosition({
 	readingId,
 	primarySeq,
 	initial,
-	getSlotElement,
+	getContentRoot,
+	restoredRef,
 }: Props): ReturnValue {
-	const restoredRef = useRef(false);
 	const lastSavedRef = useRef<ReadingPosition>({
 		positionSplit: initial.positionSplit,
 		positionBlock: initial.positionBlock,
@@ -69,58 +72,84 @@ export function useReadingPosition({
 	const restoreIfTarget = useCallback(
 		(seq: number) => {
 			if (restoredRef.current || seq !== initial.positionSplit) return;
-			const slotElement = getSlotElement(seq);
-			if (!slotElement) return;
 			// Defer a frame so Lexical has painted the block rects.
 			requestAnimationFrame(() => {
-				const root = contentRoot(slotElement);
-				if (!root) return;
-				const block =
-					root.children[initial.positionBlock] ??
-					root.children[root.children.length - 1];
+				const root = getContentRoot(seq);
+				const block = root
+					? (root.children[initial.positionBlock] ??
+						root.children[root.children.length - 1])
+					: null;
 				if (block) {
 					block.scrollIntoView({ block: "start" });
 					window.scrollBy(0, -READING_VIEWPORT_TOP_OFFSET_IN_PX);
 				}
+				// Always release the gate, even if the root wasn't found — a
+				// permanently low flag would freeze the mount window on the
+				// target split forever.
 				restoredRef.current = true;
 			});
 		},
-		[initial.positionSplit, initial.positionBlock, getSlotElement],
+		[
+			initial.positionSplit,
+			initial.positionBlock,
+			getContentRoot,
+			restoredRef,
+		],
 	);
 
-	const savePosition = useDebouncedCallback(() => {
+	const { callApi } = useApi();
+	const handleSave = useCallback(
+		async (content: string) => {
+			const position = JSON.parse(content) as ReadingPosition;
+			const last = lastSavedRef.current;
+			if (
+				last.positionSplit === position.positionSplit &&
+				last.positionBlock === position.positionBlock
+			) {
+				return;
+			}
+			lastSavedRef.current = position;
+			await updateReadingPosition({ readingId, ...position });
+		},
+		[readingId],
+	);
+	const { onContentUpdate } = useAutoSave({ onSave: handleSave, callApi });
+
+	const recordPosition = useCallback(() => {
 		// Don't record scrolling that happens before the restore has landed.
 		if (!restoredRef.current) return;
 		const seq = primarySeqRef.current;
-		const slotElement = getSlotElement(seq);
-		if (!slotElement) return;
-		const root = contentRoot(slotElement);
+		const root = getContentRoot(seq);
 		if (!root) return;
-
 		const positionBlock = topVisibleBlockIndex(
 			root,
 			READING_VIEWPORT_TOP_OFFSET_IN_PX,
 		);
-		const last = lastSavedRef.current;
-		if (
-			last.positionSplit === seq &&
-			last.positionBlock === positionBlock
-		) {
-			return;
-		}
-		lastSavedRef.current = { positionSplit: seq, positionBlock };
-		void updateReadingPosition({
-			readingId,
-			positionSplit: seq,
-			positionBlock,
-		});
-	}, READING_POSITION_WRITE_DEBOUNCE_IN_MILLISECONDS);
+		// Capture the position eagerly rather than letting useAutoSave read it at
+		// flush time: on unmount the split editors tear down before this hook's
+		// flush runs, so a deferred DOM read would find no root. Serializing now
+		// lets useAutoSave persist this exact position on unmount / close / sync.
+		const position: ReadingPosition = { positionSplit: seq, positionBlock };
+		onContentUpdate(() => JSON.stringify(position));
+	}, [restoredRef, getContentRoot, onContentUpdate]);
 
+	// Throttle to one measurement per frame — scroll fires far more often than
+	// paints, and measuring a block's rect on every event is wasteful.
 	useEffect(() => {
-		const handler = () => savePosition();
+		let frame: number | null = null;
+		const handler = () => {
+			if (frame !== null) return;
+			frame = requestAnimationFrame(() => {
+				frame = null;
+				recordPosition();
+			});
+		};
 		window.addEventListener("scroll", handler, { passive: true });
-		return () => window.removeEventListener("scroll", handler);
-	}, [savePosition]);
+		return () => {
+			window.removeEventListener("scroll", handler);
+			if (frame !== null) cancelAnimationFrame(frame);
+		};
+	}, [recordPosition]);
 
 	return { restoreIfTarget };
 }
