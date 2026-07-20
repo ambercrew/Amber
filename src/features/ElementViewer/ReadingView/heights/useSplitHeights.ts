@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { RefObject, useCallback, useEffect, useRef } from "react";
 import { READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS } from "../readingViewConstants";
 import { estimateSplitHeight } from "./estimateSplitHeight";
 import { compensateScrollForResize } from "./scrollCompensation";
@@ -38,6 +38,16 @@ interface ReturnValue {
 export function useSplitHeights(
 	readingId: string,
 	contentWidth: number,
+	/**
+	 * Held low until the saved position has been restored. The target split (and
+	 * its neighbours) mount for the first time as part of that same restore, so
+	 * their first real measurement — placeholder estimate vs. actual height —
+	 * lands right as `restoreIfTarget` is positioning the viewport. Compensating
+	 * for that resize on top of the deliberate restore scroll would double up
+	 * into a much bigger jump than the estimate error alone; skip it until
+	 * restore has landed and any further resize is a genuine post-restore one.
+	 */
+	restoredRef?: RefObject<boolean>,
 ): ReturnValue {
 	const heightsRef = useRef<Record<number, number>>({});
 	const observersRef = useRef<Map<number, ResizeObserver>>(new Map());
@@ -95,7 +105,10 @@ export function useSplitHeights(
 					const prevHeight = getHeight(seq, charCount);
 					if (prevHeight === newHeight) return;
 
-					if (!supportsOverflowAnchor()) {
+					if (
+						!supportsOverflowAnchor() &&
+						(!restoredRef || restoredRef.current)
+					) {
 						compensateScrollForResize(
 							element,
 							prevHeight,
@@ -112,7 +125,7 @@ export function useSplitHeights(
 			refCallbacksRef.current.set(seq, { charCount, fn });
 			return fn;
 		},
-		[schedulePersist, getHeight],
+		[schedulePersist, getHeight, restoredRef],
 	);
 
 	// Tear down observers and flush any pending write on unmount.

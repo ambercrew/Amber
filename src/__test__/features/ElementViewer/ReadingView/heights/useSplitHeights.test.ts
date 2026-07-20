@@ -158,6 +158,58 @@ describe("useSplitHeights", () => {
 		expect(scrollBy).toHaveBeenCalledWith(0, 200);
 	});
 
+	it("Should not manually scroll while restore is pending", () => {
+		// Arrange
+
+		supportsOverflowAnchorMock.mockReturnValue(false);
+		const restoredRef = { current: false };
+		const { result } = renderHook(() =>
+			useSplitHeights("reading-1", 720, restoredRef),
+		);
+		const element = document.createElement("div");
+		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
+			top: 0,
+		} as DOMRect);
+		const scrollBy = vi
+			.spyOn(window, "scrollBy")
+			.mockImplementation(() => {});
+
+		// Act
+
+		act(() => result.current.observeSplit(0, 1000)(element));
+		act(() => triggerResize(element, estimateSplitHeight(1000, 720) + 200));
+
+		// Assert
+
+		expect(scrollBy).not.toHaveBeenCalled();
+	});
+
+	it("Should manually compensate the scroll once restore has landed", () => {
+		// Arrange
+
+		supportsOverflowAnchorMock.mockReturnValue(false);
+		const restoredRef = { current: true };
+		const { result } = renderHook(() =>
+			useSplitHeights("reading-1", 720, restoredRef),
+		);
+		const element = document.createElement("div");
+		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
+			top: 0,
+		} as DOMRect);
+		const scrollBy = vi
+			.spyOn(window, "scrollBy")
+			.mockImplementation(() => {});
+
+		// Act
+
+		act(() => result.current.observeSplit(0, 1000)(element));
+		act(() => triggerResize(element, estimateSplitHeight(1000, 720) + 200));
+
+		// Assert
+
+		expect(scrollBy).toHaveBeenCalledWith(0, 200);
+	});
+
 	it("Should disconnect the previous observer when the ref callback runs again with a new element", () => {
 		// Arrange
 

@@ -59,14 +59,18 @@ export default function ReadingView({
 		};
 	}, [readingId]);
 
+	// Shared latch: low until the saved position has been restored on open. The
+	// mount window stays pinned to the target split while it's low (see
+	// `useSplitMountWindow`); `useReadingPosition` flips it once restore anchors;
+	// `useSplitHeights` uses it to hold off compensating for the target split's
+	// own placeholder-to-content resize, which would otherwise double up with
+	// the restore scroll into a much bigger jump.
+	const restoredRef = useRef(false);
 	const { getHeight, observeSplit } = useSplitHeights(
 		readingId,
 		contentWidth,
+		restoredRef,
 	);
-	// Shared latch: low until the saved position has been restored on open. The
-	// mount window stays pinned to the target split while it's low (see
-	// `useSplitMountWindow`); `useReadingPosition` flips it once restore anchors.
-	const restoredRef = useRef(false);
 	const { mountedSeqs, primarySeq, registerSlot } = useSplitMountWindow({
 		splits: splits ?? [],
 		initialSeq: position.positionSplit,
