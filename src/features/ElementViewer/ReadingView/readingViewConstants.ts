@@ -11,7 +11,7 @@ export const READING_ESTIMATE_CHAR_AREA_IN_PX = 200;
 // `charCount` is LENGTH(content), i.e. the raw stored HTML/Lexical-JSON bytes,
 // not rendered text length — markup and JSON structure inflate it well past
 // what's actually visible. This scales the raw estimate back down to compensate.
-export const READING_ESTIMATE_SCALE = 0.5;
+export const READING_ESTIMATE_SCALE = 0.3;
 // One localStorage write per settle, not per ResizeObserver tick.
 export const READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS = 400;
 // Debounce for persisting the reading position while scrolling.
