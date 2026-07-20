@@ -180,37 +180,7 @@ describe("StudyProfileModal", () => {
 		});
 	});
 
-	it("Should switch the form to another profile when its button is clicked", async () => {
-		// Arrange
-
-		const user = userEvent.setup();
-		renderWithProviders(<StudyProfileModal />, {
-			preloadedState: {
-				app: {
-					startedInitialStateLoading: false,
-					importModalOpened: false,
-					studyProfileModalOpened: true,
-				},
-			},
-		});
-		await screen.findByRole("button", { name: secondProfile.name });
-
-		// Act
-
-		await user.click(
-			screen.getByRole("button", { name: secondProfile.name }),
-		);
-
-		// Assert
-
-		await waitFor(() => {
-			expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
-				secondProfile.name,
-			);
-		});
-	});
-
-	it("Should reset the form to a new profile when 'Create new profile' is clicked", async () => {
+	it("Should switch the form to another profile when it is selected", async () => {
 		// Arrange
 
 		const user = userEvent.setup();
@@ -227,8 +197,40 @@ describe("StudyProfileModal", () => {
 
 		// Act
 
+		await user.click(screen.getByRole("combobox", { name: "Profile" }));
 		await user.click(
-			screen.getByRole("button", { name: "Create new profile" }),
+			screen.getByText(secondProfile.name, { selector: "p" }),
+		);
+
+		// Assert
+
+		await waitFor(() => {
+			expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue(
+				secondProfile.name,
+			);
+		});
+	});
+
+	it("Should reset the form to a new profile when 'Create new profile' is selected", async () => {
+		// Arrange
+
+		const user = userEvent.setup();
+		renderWithProviders(<StudyProfileModal />, {
+			preloadedState: {
+				app: {
+					startedInitialStateLoading: false,
+					importModalOpened: false,
+					studyProfileModalOpened: true,
+				},
+			},
+		});
+		await screen.findByRole("textbox", { name: "Name" });
+
+		// Act
+
+		await user.click(screen.getByRole("combobox", { name: "Profile" }));
+		await user.click(
+			screen.getByText(/Create new profile/, { selector: "p" }),
 		);
 
 		// Assert
