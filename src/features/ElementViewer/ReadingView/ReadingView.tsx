@@ -130,6 +130,7 @@ export default function ReadingView({
 	return (
 		<Container ref={containerRef} size="sm" py="lg">
 			{contentWidth > 0 &&
+				// eslint-disable-next-line react-hooks/refs
 				splits.map((split, index) => (
 					<SplitSlot
 						key={split.seq}
