@@ -8,6 +8,7 @@ import {
 	FloatingMenuPlugin,
 } from "../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import RootElementPlugin from "../../components/Editor/plugins/RootElementPlugin";
 import useApi from "../../hooks/useApi";
 import useAutoSave from "./hooks/useAutoSave";
 
@@ -17,6 +18,8 @@ interface ElementEditorProps {
 	autoFocus?: boolean;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onChange: (content: string) => Promise<void>;
+	/** Receives the editor's root element (see `RootElementPlugin`). */
+	onRootElement?: (element: HTMLElement | null) => void;
 }
 
 export default function ElementEditor({
@@ -25,6 +28,7 @@ export default function ElementEditor({
 	autoFocus,
 	onHighlightCreated,
 	onChange,
+	onRootElement,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const handleSave = useCallback(
@@ -70,6 +74,9 @@ export default function ElementEditor({
 					ignoreSelectionChange
 					ignoreHistoryMergeTagChange
 				/>
+				{onRootElement && (
+					<RootElementPlugin onRootElement={onRootElement} />
+				)}
 			</Editor>
 		</>
 	);

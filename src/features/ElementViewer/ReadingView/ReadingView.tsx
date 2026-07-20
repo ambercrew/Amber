@@ -63,21 +63,30 @@ export default function ReadingView({
 		readingId,
 		contentWidth,
 	);
+	// Shared latch: low until the saved position has been restored on open. The
+	// mount window stays pinned to the target split while it's low (see
+	// `useSplitMountWindow`); `useReadingPosition` flips it once restore anchors.
+	const restoredRef = useRef(false);
 	const { mountedSeqs, primarySeq, registerSlot } = useSplitMountWindow({
 		splits: splits ?? [],
 		initialSeq: position.positionSplit,
+		restoredRef,
 	});
 
-	const slotElementsRef = useRef<Map<number, HTMLElement>>(new Map());
-	const getSlotElement = useCallback(
-		(seq: number) => slotElementsRef.current.get(seq),
+	// The editable root of each mounted split, keyed by seq. Registered by the
+	// split's editor via `RootElementPlugin` (see `SplitSlot`), so position math
+	// reads block geometry through Lexical rather than querying the DOM.
+	const contentRootsRef = useRef<Map<number, HTMLElement>>(new Map());
+	const getContentRoot = useCallback(
+		(seq: number) => contentRootsRef.current.get(seq),
 		[],
 	);
 	const { restoreIfTarget } = useReadingPosition({
 		readingId,
 		primarySeq,
 		initial: position,
-		getSlotElement,
+		getContentRoot,
+		restoredRef,
 	});
 
 	// Auto-focus is a one-shot grant for the position split's first mount
@@ -107,17 +116,27 @@ export default function ReadingView({
 		(seq: number) => {
 			const cached = slotRefsRef.current.get(seq);
 			if (cached) return cached;
-			const fn = (element: Element | null) => {
-				registerSlot(seq)(element);
-				if (element)
-					slotElementsRef.current.set(seq, element as HTMLElement);
-				else slotElementsRef.current.delete(seq);
-			};
+			const fn = registerSlot(seq);
 			slotRefsRef.current.set(seq, fn);
 			return fn;
 		},
 		[registerSlot],
 	);
+
+	// Cached per seq for the same ref-identity reason as `setSlotRef`.
+	const contentRootRefsRef = useRef<
+		Map<number, (element: HTMLElement | null) => void>
+	>(new Map());
+	const registerContentRoot = useCallback((seq: number) => {
+		const cached = contentRootRefsRef.current.get(seq);
+		if (cached) return cached;
+		const fn = (element: HTMLElement | null) => {
+			if (element) contentRootsRef.current.set(seq, element);
+			else contentRootsRef.current.delete(seq);
+		};
+		contentRootRefsRef.current.set(seq, fn);
+		return fn;
+	}, []);
 
 	if (!splits) {
 		return (
@@ -147,6 +166,7 @@ export default function ReadingView({
 						}
 						slotRef={setSlotRef(split.seq)}
 						observeSplit={observeSplit(split.seq, split.charCount)}
+						registerContentRoot={registerContentRoot(split.seq)}
 						onHighlightCreated={onHighlightCreated}
 						onContentReady={handleContentReady}
 					/>
