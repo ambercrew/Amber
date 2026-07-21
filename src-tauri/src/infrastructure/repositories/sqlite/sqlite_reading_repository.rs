@@ -8,6 +8,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::value_objects::reading_position::ReadingPosition;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -33,8 +34,8 @@ impl ReadingRepository for SqliteReadingRepository {
             sqlx::query!(
                 "INSERT INTO readings (id, position_split, position_block, a_factor) VALUES ($1, $2, $3, $4)",
                 uuid,
-                reading.position_split,
-                reading.position_block,
+                reading.position.position_split,
+                reading.position.position_block,
                 reading.a_factor,
             )
             .execute(&mut *tx)
@@ -173,15 +174,14 @@ impl ReadingRepository for SqliteReadingRepository {
     async fn update_position(
         &self,
         reading_id: Uuid,
-        position_split: u32,
-        position_block: u32,
+        position: ReadingPosition,
     ) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
             "UPDATE readings SET position_split = $1, position_block = $2 WHERE id = $3",
-            position_split,
-            position_block,
+            position.position_split,
+            position.position_block,
             reading_id,
         )
         .execute(&mut *tx)
@@ -273,8 +273,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -325,8 +324,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         let card = Card {
             meta: Meta {
@@ -376,8 +374,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -421,8 +418,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -477,8 +473,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -540,8 +535,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -588,8 +582,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -600,7 +593,13 @@ mod tests {
         // Act
 
         reading_repo
-            .update_position(reading.meta.element_id.id(), 3, 7)
+            .update_position(
+                reading.meta.element_id.id(),
+                ReadingPosition {
+                    position_split: 3,
+                    position_block: 7,
+                },
+            )
             .await
             .unwrap();
 
@@ -610,7 +609,7 @@ mod tests {
             .get_by_id(reading.meta.element_id.id())
             .await
             .unwrap();
-        assert_eq!(3, updated.position_split);
-        assert_eq!(7, updated.position_block);
+        assert_eq!(3, updated.position.position_split);
+        assert_eq!(7, updated.position.position_block);
     }
 }

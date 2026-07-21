@@ -2,6 +2,7 @@ use uuid::Uuid;
 
 use super::traits::Element;
 use crate::elements::value_objects::meta::Meta;
+use crate::elements::value_objects::reading_position::ReadingPosition;
 
 /// A single chunk of a reading's content. Large readings are broken into splits so
 /// that each can be reviewed independently; a non-split reading is just a single
@@ -31,10 +32,8 @@ pub struct ReadingSplitMeta {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Reading {
     pub meta: Meta,
-    /// `seq` of the split the user last read up to. Device-independent.
-    pub position_split: u32,
-    /// Top-level block index within the current split that the user last read up to.
-    pub position_block: u32,
+    /// Where the user last read up to. Device-independent.
+    pub position: ReadingPosition,
     /// Interval multiplier applied each time this reading is revisited. Seeded from
     /// the effective study profile's `initial_a_factor` at creation time and kept
     /// fixed afterwards, independent of later profile edits.

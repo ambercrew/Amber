@@ -8,6 +8,7 @@ use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::Reading;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
+use crate::elements::value_objects::reading_position::ReadingPosition;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -45,11 +46,9 @@ pub struct FolderResponseDto {
 #[serde(rename_all = "camelCase")]
 pub struct ReadingResponseDto {
     pub meta: MetaResponseDto,
-    /// `seq` of the split the user last read up to. The split index and per-split
-    /// content are fetched separately (lazily) rather than inlined here.
-    pub position_split: u32,
-    /// Top-level block index within `position_split` that the user last read up to.
-    pub position_block: u32,
+    /// Where the user last read up to. The split index and per-split content are
+    /// fetched separately (lazily) rather than inlined here.
+    pub position: ReadingPosition,
     pub a_factor: f32,
 }
 
@@ -103,8 +102,7 @@ impl From<Reading> for AnyElementDto {
         // commands, so only the reading's position and metadata are returned here.
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
-            position_split: reading.position_split,
-            position_block: reading.position_block,
+            position: reading.position,
             a_factor: reading.a_factor,
         })
     }

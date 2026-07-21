@@ -4,6 +4,7 @@ import { getReadingSplitManifest } from "../../../api/elements/api/elementsApi";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
+import { ReadingPosition } from "../../../types/elements/readingPosition";
 import SplitSlot from "./SplitSlot";
 import { useReadingPosition } from "./useReadingPosition";
 import { useSplitHeights } from "./heights/useSplitHeights";
@@ -11,7 +12,7 @@ import { useSplitMountWindow } from "./useSplitMountWindow";
 
 interface ReadingViewProps {
 	readingId: string;
-	position: { positionSplit: number; positionBlock: number };
+	position: ReadingPosition;
 	buttons: FloatingMenuItem[];
 	autoFocus?: boolean;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;

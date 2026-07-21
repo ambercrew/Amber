@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useReadingPosition } from "../../../../features/ElementViewer/ReadingView/useReadingPosition";
 import { AUTO_SAVE_DELAY_IN_MILLISECONDS } from "../../../../config/constants";
+import { ReadingPosition } from "../../../../types/elements/readingPosition";
 
 const { updateReadingPositionMock } = vi.hoisted(() => ({
 	updateReadingPositionMock: vi.fn(),
@@ -30,11 +31,6 @@ vi.mock("../../../../stores/sync/managers/syncEventManager", () => ({
 		PreSyncComplete: "PreSyncComplete",
 	},
 }));
-
-interface ReadingPosition {
-	positionSplit: number;
-	positionBlock: number;
-}
 
 /** A stand-in editable root with `blockCount` top-level block children. */
 function makeRoot(blockCount: number): HTMLElement {
@@ -242,8 +238,7 @@ describe("useReadingPosition", () => {
 
 		expect(updateReadingPositionMock).toHaveBeenCalledWith({
 			readingId: "r1",
-			positionSplit: 4,
-			positionBlock: 2,
+			position: { positionSplit: 4, positionBlock: 2 },
 		});
 	});
 
@@ -304,8 +299,7 @@ describe("useReadingPosition", () => {
 		expect(savedBeforeUnmount).toBe(0);
 		expect(updateReadingPositionMock).toHaveBeenCalledWith({
 			readingId: "r1",
-			positionSplit: 4,
-			positionBlock: 2,
+			position: { positionSplit: 4, positionBlock: 2 },
 		});
 	});
 

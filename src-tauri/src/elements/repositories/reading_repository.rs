@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
+use crate::elements::value_objects::reading_position::ReadingPosition;
 
 #[async_trait]
 pub trait ReadingRepository: Send + Sync {
@@ -29,7 +30,6 @@ pub trait ReadingRepository: Send + Sync {
     async fn update_position(
         &self,
         reading_id: Uuid,
-        position_split: u32,
-        position_block: u32,
+        position: ReadingPosition,
     ) -> Result<(), RepositoryError>;
 }

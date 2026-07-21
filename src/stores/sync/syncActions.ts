@@ -24,7 +24,9 @@ export function sync() {
 			dispatch(setIsSyncing(true));
 			await syncApi();
 		} catch (e) {
+			// eslint-disable-next-line no-console
 			console.error(e);
+			// eslint-disable-next-line no-alert
 			alert(errorToString(e));
 		} finally {
 			await defaultGlobalSyncEventManager.notifyListeners(

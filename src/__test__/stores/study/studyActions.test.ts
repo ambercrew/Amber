@@ -62,8 +62,7 @@ function readingElement(id: string): AnyElementDto {
 				name: `Reading ${id}`,
 				...META_FIELDS,
 			},
-			positionSplit: 0,
-			positionBlock: 0,
+			position: { positionSplit: 0, positionBlock: 0 },
 			aFactor: 1.2,
 		},
 	};

@@ -225,7 +225,7 @@ pub async fn update_reading_position(
     scope
         .resolve::<dyn ReadingRepository>()
         .await
-        .update_position(dto.reading_id, dto.position_split, dto.position_block)
+        .update_position(dto.reading_id, dto.position)
         .await?;
     scope.save_changes().await?;
     Ok(())
