@@ -131,7 +131,6 @@ function ElementProfileRow({
 			<Select
 				size="sm"
 				value={selectValue}
-				searchable
 				withAlignedLabels
 				flex={1}
 				data={[
