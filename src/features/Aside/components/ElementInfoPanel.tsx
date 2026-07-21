@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { Stack, Text, TextInput, TagsInput } from "@mantine/core";
+import { NumberInput, Stack, Text, TextInput, TagsInput } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useApi from "../../../hooks/useApi";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import { selectStudyCounts } from "../../../stores/study/studySelectors";
-import { updateElementTags } from "../../../api/elements/api/elementsApi";
+import {
+	updateAFactor,
+	updateElementTags,
+} from "../../../api/elements/api/elementsApi";
 import { renameElementAction } from "../../../stores/elements/elementsActions";
 import {
 	getCardReview,
@@ -73,6 +76,11 @@ function ReviewDetails({ element }: ReviewDetailsProps) {
 
 	const elementId = element.data.meta.elementId;
 
+	const debouncedUpdateAFactor = useDebouncedCallback(
+		(id: ElementId, value: number) => updateAFactor(id, value),
+		500,
+	);
+
 	useEffect(() => {
 		void callApi(async () => {
 			if (element.type === "card") {
@@ -94,7 +102,19 @@ function ReviewDetails({ element }: ReviewDetailsProps) {
 		return (
 			<InfoGroup title="Scheduling">
 				<InfoField label="A-factor">
-					<Text size="sm">{formatNumber(element.data.aFactor)}</Text>
+					<NumberInput
+						key={`a-factor-${elementId.id}`}
+						size="sm"
+						min={0}
+						step={0.1}
+						decimalScale={2}
+						defaultValue={element.data.aFactor}
+						onChange={value => {
+							if (typeof value === "number") {
+								debouncedUpdateAFactor(elementId, value);
+							}
+						}}
+					/>
 				</InfoField>
 				<InfoField label="Interval (days)">
 					<Text size="sm">

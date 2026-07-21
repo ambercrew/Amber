@@ -10,4 +10,5 @@ pub trait ExtractRepository: Send + Sync {
     async fn get_by_id(&self, id: Uuid) -> Result<Extract, RepositoryError>;
     async fn create(&self, extract: Extract) -> Result<(), RepositoryError>;
     async fn update_content(&self, id: Uuid, content: String) -> Result<(), RepositoryError>;
+    async fn update_a_factor(&self, id: Uuid, a_factor: f32) -> Result<(), RepositoryError>;
 }

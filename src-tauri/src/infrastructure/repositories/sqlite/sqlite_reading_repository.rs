@@ -188,6 +188,23 @@ impl ReadingRepository for SqliteReadingRepository {
         .await?;
         Ok(())
     }
+
+    async fn update_a_factor(
+        &self,
+        reading_id: Uuid,
+        a_factor: f32,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "UPDATE readings SET a_factor = $1 WHERE id = $2",
+            a_factor,
+            reading_id,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
