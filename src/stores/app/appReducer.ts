@@ -4,12 +4,14 @@ export interface AppState {
 	startedInitialStateLoading: boolean;
 	importModalOpened: boolean;
 	studyProfileModalOpened: boolean;
+	settingsModalOpened: boolean;
 }
 
 const initialState: AppState = {
 	startedInitialStateLoading: false,
 	importModalOpened: false,
 	studyProfileModalOpened: false,
+	settingsModalOpened: false,
 };
 
 const appSlice = createSlice({
@@ -31,6 +33,12 @@ const appSlice = createSlice({
 		closeStudyProfileModal: state => {
 			state.studyProfileModalOpened = false;
 		},
+		openSettingsModal: state => {
+			state.settingsModalOpened = true;
+		},
+		closeSettingsModal: state => {
+			state.settingsModalOpened = false;
+		},
 	},
 });
 
@@ -42,4 +50,6 @@ export const {
 	closeImportModal,
 	openStudyProfileModal,
 	closeStudyProfileModal,
+	openSettingsModal,
+	closeSettingsModal,
 } = appSlice.actions;

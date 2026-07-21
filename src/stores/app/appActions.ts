@@ -1,5 +1,6 @@
 import { NavigateFunction } from "react-router";
-import { loadAndApplySettings } from "../settings/settingsActions";
+import { loadSettings, saveSettings } from "../settings/settingsActions";
+import { buildUpdateSettingsRequest } from "../../api/settings/models/updateSettingsRequest";
 import { AppDispatch, RootState } from "../store";
 import { sync } from "../sync/syncActions";
 import { loadUserState } from "../user/userActions";
@@ -8,6 +9,7 @@ import { setUserInformation } from "../user/userReducer";
 import { selectStartedInitialStateLoading } from "./appSelectors";
 import { markStartLoadingOfInitialState } from "./appReducer";
 import { loadElementTree } from "../elements/elementsActions";
+import { setCurrentElement } from "../elements/elementsReducer";
 
 export function initialLoadApplicationState() {
 	return async function (
@@ -31,12 +33,31 @@ export function reloadApplicationState(
 	};
 }
 
+/** Persists a new database directory and reloads the application state:
+ * the backend reconnects to the database in the new directory, so its contents
+ * must be reloaded. */
+export function changeDatabaseDirectory(
+	directory: string,
+	navigate: NavigateFunction,
+) {
+	return async function (dispatch: AppDispatch): Promise<void> {
+		await dispatch(
+			saveSettings(
+				buildUpdateSettingsRequest({
+					baseDatabaseDirectory: directory,
+				}),
+			),
+		);
+		await dispatch(reloadApplicationState(navigate));
+	};
+}
+
 async function loadAppState(
 	dispatch: AppDispatch,
 	navigate?: NavigateFunction,
 	userInformationDto?: UserInformationDto,
 ) {
-	const settings = await dispatch(loadAndApplySettings());
+	const settings = await dispatch(loadSettings());
 
 	if (userInformationDto) {
 		dispatch(setUserInformation(userInformationDto));
@@ -44,10 +65,13 @@ async function loadAppState(
 		await dispatch(loadUserState());
 	}
 
-	// Sync on app close is added as an event in the settings actions.
+	// Sync on app close is registered as an event by the SettingsSync component.
 	if (settings?.autoSync) await dispatch(sync());
 
 	if (navigate) {
+		// The previously open element may not exist in the reloaded state
+		// (e.g. after switching database directories), so clear it.
+		dispatch(setCurrentElement(null));
 		await navigate("/");
 	}
 

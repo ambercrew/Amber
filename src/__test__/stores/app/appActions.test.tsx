@@ -1,5 +1,5 @@
 import { loadUserState } from "../../../stores/user/userActions.ts";
-import { loadAndApplySettings } from "../../../stores/settings/settingsActions.ts";
+import { loadSettings } from "../../../stores/settings/settingsActions.ts";
 import { sync } from "../../../stores/sync/syncActions.ts";
 import { loadElementTree } from "../../../stores/elements/elementsActions.ts";
 import UpdateSettingsRequestDto from "../../../api/settings/dto/updateSettingsRequestDto.ts";
@@ -33,9 +33,7 @@ describe("appActions", () => {
 		vi.mocked(loadUserState).mockReturnValue(expectedLoadSettingsCb);
 
 		const expectedInitiateSettings = vi.fn();
-		vi.mocked(loadAndApplySettings).mockReturnValue(
-			expectedInitiateSettings,
-		);
+		vi.mocked(loadSettings).mockReturnValue(expectedInitiateSettings);
 		dispatchMock.mockImplementation(cb => {
 			if (cb === expectedInitiateSettings) {
 				return Promise.resolve({
@@ -75,9 +73,7 @@ describe("appActions", () => {
 		vi.mocked(loadUserState).mockReturnValue(expectedLoadSettingsCb);
 
 		const expectedInitiateSettings = vi.fn();
-		vi.mocked(loadAndApplySettings).mockReturnValue(
-			expectedInitiateSettings,
-		);
+		vi.mocked(loadSettings).mockReturnValue(expectedInitiateSettings);
 		dispatchMock.mockImplementation(cb => {
 			if (cb === expectedInitiateSettings) {
 				return Promise.resolve({
@@ -116,9 +112,7 @@ describe("appActions", () => {
 		// Arrange
 
 		const expectedInitiateSettings = vi.fn();
-		vi.mocked(loadAndApplySettings).mockReturnValue(
-			expectedInitiateSettings,
-		);
+		vi.mocked(loadSettings).mockReturnValue(expectedInitiateSettings);
 		dispatchMock.mockImplementation(cb => {
 			if (cb === expectedInitiateSettings) {
 				return Promise.resolve({

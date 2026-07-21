@@ -13,6 +13,7 @@ import "@mantine/notifications/styles.css";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { theme, cssVariablesResolver } from "./theme.ts";
+import SettingsSync from "./features/App/components/SettingsSync.tsx";
 
 function forwardConsole(
 	fnName: "log" | "debug" | "info" | "warn" | "error",
@@ -48,6 +49,7 @@ createRoot(document.getElementById("root")!).render(
 			<MantineProvider
 				theme={theme}
 				cssVariablesResolver={cssVariablesResolver}>
+				<SettingsSync />
 				<ModalsProvider>
 					<RouterProvider router={router} />
 				</ModalsProvider>
