@@ -1,4 +1,5 @@
 import { ElementId } from "../../../types/elements/elementId";
+import { ReadingPosition } from "../../../types/elements/readingPosition";
 import { Tag } from "../../../types/elements/tag";
 
 export interface MetaResponseDto {
@@ -17,8 +18,7 @@ export interface FolderResponseDto {
 
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
-	positionSplit: number;
-	positionBlock: number;
+	position: ReadingPosition;
 	aFactor: number;
 }
 

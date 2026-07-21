@@ -1,3 +1,4 @@
+use crate::elements::value_objects::reading_position::ReadingPosition;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -62,8 +63,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 created_at: now,
                 modified_at: now,
             },
-            position_split: 0,
-            position_block: 0,
+            position: ReadingPosition::default(),
             a_factor: profile.initial_a_factor,
         };
         let splits = dto

@@ -3,12 +3,7 @@ import { READING_VIEWPORT_TOP_OFFSET_IN_PX } from "./readingViewConstants";
 import useAutoSave from "../hooks/useAutoSave";
 import useApi from "../../../hooks/useApi";
 import { updateReadingPosition } from "../../../api/elements/api/elementsApi";
-
-// TODO: also use on rust and on dtos
-interface ReadingPosition {
-	positionSplit: number;
-	positionBlock: number;
-}
+import { ReadingPosition } from "../../../types/elements/readingPosition";
 
 interface Props {
 	readingId: string;
@@ -109,7 +104,7 @@ export function useReadingPosition({
 				return;
 			}
 			lastSavedRef.current = position;
-			await updateReadingPosition({ readingId, ...position });
+			await updateReadingPosition({ readingId, position });
 		},
 		[readingId],
 	);

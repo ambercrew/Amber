@@ -84,10 +84,7 @@ export default function ElementViewer() {
 			<ReadingView
 				key={`reading-${elementId.id}`}
 				readingId={elementId.id}
-				position={{
-					positionSplit: currentElement.data.positionSplit,
-					positionBlock: currentElement.data.positionBlock,
-				}}
+				position={currentElement.data.position}
 				buttons={buttons}
 				onHighlightCreated={handleHighlightCreated}
 				autoFocus={studyStatus === "editing"}

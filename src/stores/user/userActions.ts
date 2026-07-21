@@ -19,6 +19,7 @@ export function loadUserState() {
 			const userInformation = await getUserInformation();
 			dispatch(setUserInformation(userInformation));
 		} catch (e) {
+			// eslint-disable-next-line no-console
 			console.error(e);
 		}
 	};

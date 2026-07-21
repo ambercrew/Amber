@@ -1,7 +1,7 @@
 import { Meta } from "./meta";
+import { ReadingPosition } from "./readingPosition";
 
 export interface Reading {
 	meta: Meta;
-	positionSplit: number;
-	positionBlock: number;
+	position: ReadingPosition;
 }

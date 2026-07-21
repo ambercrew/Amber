@@ -1,7 +1,14 @@
 import { screen } from "@testing-library/react";
+import { vi } from "vitest";
 import SettingsModal from "../../../../features/Settings/components/SettingsModal";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import UpdateSettingsRequestDto from "../../../../api/settings/dto/updateSettingsRequestDto";
+
+// AppearanceTab reads the OS type (Tauri plugin) to hide zoom on mobile;
+// stub it so the component renders in jsdom.
+vi.mock("../../../../utils/tauriUtils", () => ({
+	isMobile: () => false,
+}));
 
 const settings: UpdateSettingsRequestDto = {
 	baseDatabaseDirectory: "/home/user/brainy",

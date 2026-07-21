@@ -1,5 +1,6 @@
+import { ReadingPosition } from "./readingPosition";
+
 export interface UpdateReadingPositionDto {
 	readingId: string;
-	positionSplit: number;
-	positionBlock: number;
+	position: ReadingPosition;
 }

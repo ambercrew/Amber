@@ -1,3 +1,5 @@
+#[cfg(test)]
+use crate::elements::value_objects::reading_position::ReadingPosition;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -252,8 +254,7 @@ mod tests {
                         created_at: Utc::now(),
                         modified_at: Utc::now(),
                     },
-                    position_split: 0,
-                    position_block: 0,
+                    position: ReadingPosition::default(),
                 },
                 Vec::new(),
             )
