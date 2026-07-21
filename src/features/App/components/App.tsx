@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import {
-	AppShell,
-	Box,
-	useMantineTheme,
-	MantineBreakpoint,
-	rem,
-} from "@mantine/core";
-import { useSplitter, useMediaQuery, useHeadroom } from "@mantine/hooks";
+import { AppShell, Box, rem } from "@mantine/core";
+import { useSplitter, useHeadroom } from "@mantine/hooks";
 import { Notifications } from "@mantine/notifications";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { useRedirectIfElementMissing } from "../../../hooks/useRedirectIfElementMissing";
+import {
+	SMALL_SCREEN_BREAKPOINT,
+	useIsSmallScreen,
+} from "../../../hooks/useIsSmallScreen";
 import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
 import { useStudySessionGuard } from "../../Study/hooks/useStudySessionGuard";
 import { useStudySessionSummaryToast } from "../../Study/hooks/useStudySessionSummaryToast";
@@ -24,13 +22,13 @@ import { selectStudyStatus } from "../../../stores/study/studySelectors.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import ImportModal from "../../Import/components/ImportModal.tsx";
 import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
+import SettingsModal from "../../Settings/components/SettingsModal.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
-export const SIDEBAR_BREAKPOINT: MantineBreakpoint = "sm";
 
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
@@ -39,11 +37,7 @@ function App() {
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const studyStatus = useAppSelector(selectStudyStatus);
-	const theme = useMantineTheme();
-	const isMobileViewport =
-		useMediaQuery(
-			`(max-width: ${theme.breakpoints[SIDEBAR_BREAKPOINT]})`,
-		) ?? false;
+	const isSmallScreen = useIsSmallScreen();
 
 	const splitter = useSplitter({
 		panels: [
@@ -55,7 +49,7 @@ function App() {
 			},
 			{ defaultSize: 100 },
 		],
-		enabled: !isMobileViewport,
+		enabled: !isSmallScreen,
 		onCollapseChange: (_index, collapsed) => setSidebarExpanded(!collapsed),
 	});
 
@@ -88,7 +82,7 @@ function App() {
 			layout="alt"
 			navbar={{
 				width: navbarWidth,
-				breakpoint: SIDEBAR_BREAKPOINT,
+				breakpoint: SMALL_SCREEN_BREAKPOINT,
 				collapsed: {
 					desktop: !sidebarExpanded,
 					mobile: !sidebarExpanded,
@@ -108,6 +102,7 @@ function App() {
 			<CommandPalette />
 			<ImportModal />
 			<StudyProfileModal />
+			<SettingsModal />
 			<Notifications />
 
 			<AppShell.Header>
@@ -123,7 +118,7 @@ function App() {
 
 			<AppShell.Navbar>
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
-				{!isMobileViewport && (
+				{!isSmallScreen && (
 					<Box
 						// eslint-disable-next-line react-hooks/refs
 						{...splitter.getHandleProps({ index: 0 })}

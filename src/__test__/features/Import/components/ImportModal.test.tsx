@@ -25,6 +25,7 @@ function renderOpenedModal() {
 				startedInitialStateLoading: false,
 				importModalOpened: true,
 				studyProfileModalOpened: false,
+				settingsModalOpened: false,
 			},
 		},
 	});

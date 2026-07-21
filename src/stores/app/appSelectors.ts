@@ -8,3 +8,6 @@ export const selectIsImportModalOpened = (state: RootState) =>
 
 export const selectIsStudyProfileModalOpened = (state: RootState) =>
 	state.app.studyProfileModalOpened;
+
+export const selectIsSettingsModalOpened = (state: RootState) =>
+	state.app.settingsModalOpened;

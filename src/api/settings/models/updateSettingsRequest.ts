@@ -17,3 +17,25 @@ export default interface UpdateSettingsRequest {
 	openai: AiProviderSettings | null;
 	openaiApiKey: string | null;
 }
+
+/**
+ * Builds an {@link UpdateSettingsRequest} that leaves every field unchanged
+ * (all `null`), overriding only the fields provided. Use this so callers only
+ * specify the settings they actually want to change.
+ */
+export function buildUpdateSettingsRequest(
+	overrides: Partial<UpdateSettingsRequest>,
+): UpdateSettingsRequest {
+	return {
+		baseDatabaseDirectory: null,
+		theme: null,
+		zoomPercentage: null,
+		autoSync: null,
+		enableAi: null,
+		aiProvider: null,
+		ollama: null,
+		openai: null,
+		openaiApiKey: null,
+		...overrides,
+	};
+}

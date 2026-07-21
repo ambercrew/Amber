@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Button, Group, Text, Tooltip } from "@mantine/core";
 import { useHotkeys } from "@mantine/hooks";
 import { useNavigate } from "react-router";
-import { SIDEBAR_BREAKPOINT } from "../../App/components/App";
+import { SMALL_SCREEN_BREAKPOINT } from "../../../hooks/useIsSmallScreen";
 import {
 	previewCardReview,
 	previewNextReading,
@@ -133,7 +133,10 @@ function StudySessionBar() {
 	return (
 		<Group h="100%" px="sm" py="xs" wrap="nowrap" align="center">
 			<Box flex={1}>
-				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
+				<Text
+					size="sm"
+					c="dimmed"
+					visibleFrom={SMALL_SCREEN_BREAKPOINT}>
 					{index + 1}/{queue.length}
 				</Text>
 			</Box>
@@ -229,7 +232,10 @@ function StudySessionBar() {
 			<Box
 				flex={1}
 				style={{ display: "flex", justifyContent: "flex-end" }}>
-				<Text size="sm" c="dimmed" visibleFrom={SIDEBAR_BREAKPOINT}>
+				<Text
+					size="sm"
+					c="dimmed"
+					visibleFrom={SMALL_SCREEN_BREAKPOINT}>
 					{formatElapsed(elapsedSeconds)}
 				</Text>
 			</Box>

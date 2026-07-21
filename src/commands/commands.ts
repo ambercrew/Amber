@@ -4,29 +4,38 @@ import { notifications } from "@mantine/notifications";
 import {
 	BookOpenIcon,
 	FadersHorizontalIcon,
+	GearIcon,
+	MoonIcon,
 	UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { AppDispatch, RootState } from "../stores/store";
 import {
 	openImportModal,
+	openSettingsModal,
 	openStudyProfileModal,
 } from "../stores/app/appReducer";
 import { startStudySession } from "../stores/study/studyActions";
 import { sessionStopped } from "../stores/study/studyReducer";
 import { selectStudyStatus } from "../stores/study/studySelectors";
+import { saveSettings } from "../stores/settings/settingsActions";
+import { buildUpdateSettingsRequest } from "../api/settings/models/updateSettingsRequest";
+import { isCurrentlyDark } from "./commandUtils";
 
 export const SPOTLIGHT_SHORTCUT = "mod+K";
 export const IMPORT_SHORTCUT = "mod+shift+N";
 export const TOGGLE_STUDY_SESSION_SHORTCUT = "mod+L";
+export const OPEN_SETTINGS_SHORTCUT = "mod+P";
 
 export const commandIds = [
 	"import",
 	"manage-study-profiles",
 	"toggle-study-session",
+	"open-settings",
+	"toggle-theme",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
-export const commandGroups = ["General"] as const;
+export const commandGroups = ["General", "Settings"] as const;
 export type CommandGroup = (typeof commandGroups)[number];
 
 export interface Command {
@@ -58,6 +67,29 @@ export const commands: Command[] = [
 		label: "Manage study profiles",
 		icon: createElement(FadersHorizontalIcon),
 		execute: dispatch => dispatch(openStudyProfileModal()),
+	},
+	{
+		id: "open-settings",
+		group: "Settings",
+		label: "Open settings",
+		shortcut: OPEN_SETTINGS_SHORTCUT,
+		icon: createElement(GearIcon),
+		execute: dispatch => dispatch(openSettingsModal()),
+	},
+	{
+		id: "toggle-theme",
+		group: "Settings",
+		label: state =>
+			isCurrentlyDark(state)
+				? "Switch to light theme"
+				: "Switch to dark theme",
+		icon: createElement(MoonIcon),
+		execute: (dispatch, getState) => {
+			const next = isCurrentlyDark(getState()) ? "Light" : "Dark";
+			void dispatch(
+				saveSettings(buildUpdateSettingsRequest({ theme: next })),
+			);
+		},
 	},
 	{
 		id: "toggle-study-session",
