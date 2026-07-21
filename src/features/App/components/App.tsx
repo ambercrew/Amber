@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import { AppShell, Box, rem } from "@mantine/core";
+import { AppShell, rem } from "@mantine/core";
 import { useSplitter, useHeadroom } from "@mantine/hooks";
 import { Notifications } from "@mantine/notifications";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -20,6 +20,8 @@ import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import { selectStudyStatus } from "../../../stores/study/studySelectors.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
+import Aside from "../../Aside/components/Aside.tsx";
+import ResizeHandle from "../../../components/ResizeHandle/ResizeHandle.tsx";
 import ImportModal from "../../Import/components/ImportModal.tsx";
 import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import SettingsModal from "../../Settings/components/SettingsModal.tsx";
@@ -29,11 +31,13 @@ import { isMobile } from "../../../utils/tauriUtils.ts";
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
+const ASIDE_DEFAULT = 320;
 
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
 
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
+	const [asideExpanded, setAsideExpanded] = useState(false);
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const studyStatus = useAppSelector(selectStudyStatus);
@@ -48,6 +52,11 @@ function App() {
 				collapsible: true,
 			},
 			{ defaultSize: 100 },
+			{
+				defaultSize: `${ASIDE_DEFAULT}px`,
+				min: "160px",
+				max: "30%",
+			},
 		],
 		enabled: !isSmallScreen,
 		onCollapseChange: (_index, collapsed) => setSidebarExpanded(!collapsed),
@@ -60,6 +69,7 @@ function App() {
 
 	const navbarWidth =
 		parseFloat(String(splitter.sizes[0])) || SIDEBAR_DEFAULT;
+	const asideWidth = parseFloat(String(splitter.sizes[2])) || ASIDE_DEFAULT;
 
 	useEffect(() => {
 		const contextMenuCb = (e: MouseEvent) => {
@@ -88,6 +98,14 @@ function App() {
 					mobile: !sidebarExpanded,
 				},
 			}}
+			aside={{
+				width: asideWidth,
+				breakpoint: SMALL_SCREEN_BREAKPOINT,
+				collapsed: {
+					desktop: !asideExpanded,
+					mobile: !asideExpanded,
+				},
+			}}
 			header={{
 				height: HEADER_AND_FOOTER_HEIGHT,
 				collapsed: !pinned,
@@ -108,7 +126,7 @@ function App() {
 			<AppShell.Header>
 				<AppHeader
 					onToggleSidebar={() => splitter.toggleCollapse(0)}
-					pinned={pinned}
+					onToggleAside={() => setAsideExpanded(v => !v)}
 				/>
 			</AppShell.Header>
 
@@ -119,21 +137,24 @@ function App() {
 			<AppShell.Navbar>
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isSmallScreen && (
-					<Box
+					<ResizeHandle
+						side="right"
 						// eslint-disable-next-line react-hooks/refs
-						{...splitter.getHandleProps({ index: 0 })}
-						style={{
-							position: "absolute",
-							right: 0,
-							top: 0,
-							bottom: 0,
-							width: 4,
-							cursor: "col-resize",
-							zIndex: 10,
-						}}
+						handleProps={splitter.getHandleProps({ index: 0 })}
 					/>
 				)}
 			</AppShell.Navbar>
+
+			<AppShell.Aside>
+				<Aside onCollapse={() => setAsideExpanded(false)} />
+				{!isSmallScreen && (
+					<ResizeHandle
+						side="left"
+						// eslint-disable-next-line react-hooks/refs
+						handleProps={splitter.getHandleProps({ index: 1 })}
+					/>
+				)}
+			</AppShell.Aside>
 
 			<AppShell.Main pt={`${rem(HEADER_AND_FOOTER_HEIGHT)}`}>
 				<Outlet />
