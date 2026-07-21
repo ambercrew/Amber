@@ -48,7 +48,7 @@ function App() {
 			{
 				defaultSize: `${SIDEBAR_DEFAULT}px`,
 				min: "160px",
-				max: "50%",
+				max: "40%",
 				collapsible: true,
 			},
 			{ defaultSize: 100 },
