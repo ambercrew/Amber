@@ -168,6 +168,7 @@ pub async fn run() -> Result<(), String> {
             get_reading_split_content,
             update_extract,
             update_card,
+            update_a_factor,
             // Study
             get_card_review,
             get_reading_review,

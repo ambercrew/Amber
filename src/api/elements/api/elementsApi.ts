@@ -100,3 +100,10 @@ export function updateElementTags(
 ): Promise<void> {
 	return invoke("update_element_tags", { elementId, tags });
 }
+
+export function updateAFactor(
+	elementId: ElementId,
+	aFactor: number,
+): Promise<void> {
+	return invoke("update_a_factor", { elementId, aFactor });
+}

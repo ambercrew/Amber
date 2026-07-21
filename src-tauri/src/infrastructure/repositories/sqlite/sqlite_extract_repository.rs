@@ -105,6 +105,19 @@ impl ExtractRepository for SqliteExtractRepository {
         .await?;
         Ok(())
     }
+
+    async fn update_a_factor(&self, id: Uuid, a_factor: f32) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            "UPDATE extracts SET a_factor = $1 WHERE id = $2",
+            a_factor,
+            id,
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

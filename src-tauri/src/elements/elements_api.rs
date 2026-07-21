@@ -247,6 +247,38 @@ pub async fn update_extract(
 }
 
 #[tauri::command]
+pub async fn update_a_factor(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+    a_factor: f32,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    match element_id {
+        ElementId::Reading(id) => {
+            scope
+                .resolve::<dyn ReadingRepository>()
+                .await
+                .update_a_factor(id, a_factor)
+                .await?;
+        }
+        ElementId::Extract(id) => {
+            scope
+                .resolve::<dyn ExtractRepository>()
+                .await
+                .update_a_factor(id, a_factor)
+                .await?;
+        }
+        _ => {
+            return Err(ApiError::new(
+                "a_factor is only valid for readings and extracts".to_string(),
+            ));
+        }
+    }
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn update_card(
     injector: State<'_, Arc<Injector>>,
     dto: UpdateCardDto,
