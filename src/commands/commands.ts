@@ -35,7 +35,7 @@ export const commandIds = [
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
-export const commandGroups = ["General", "Settings"] as const;
+export const commandGroups = ["General", "Study", "Settings"] as const;
 export type CommandGroup = (typeof commandGroups)[number];
 
 export interface Command {
@@ -63,7 +63,7 @@ export const commands: Command[] = [
 	},
 	{
 		id: "manage-study-profiles",
-		group: "General",
+		group: "Study",
 		label: "Manage study profiles",
 		icon: createElement(FadersHorizontalIcon),
 		execute: dispatch => dispatch(openStudyProfileModal()),
@@ -93,7 +93,7 @@ export const commands: Command[] = [
 	},
 	{
 		id: "toggle-study-session",
-		group: "General",
+		group: "Study",
 		label: state =>
 			selectStudyStatus(state) === "studying"
 				? "Stop studying"

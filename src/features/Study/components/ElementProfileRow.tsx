@@ -30,7 +30,6 @@ interface ElementProfileRowProps {
 	onDueChange?: (dueState: string | null, finished: boolean) => void;
 }
 
-const CREATE_PROFILE_VALUE = "__create__";
 const INHERIT_VALUE = "__inherit__";
 
 function formatDueState(due: string | null, finished: boolean): string | null {
@@ -113,10 +112,6 @@ function ElementProfileRow({
 	]);
 
 	function handleProfileChange(value: string | null) {
-		if (value === CREATE_PROFILE_VALUE) {
-			dispatch(openStudyProfileModal());
-			return;
-		}
 		void callApi(async () => {
 			const profileId = value === INHERIT_VALUE ? null : value;
 			await assignStudyProfile(elementId, profileId);
@@ -135,7 +130,6 @@ function ElementProfileRow({
 		<Group gap={4} wrap="nowrap" align="center">
 			<Select
 				size="sm"
-				variant="unstyled"
 				value={selectValue}
 				searchable
 				withAlignedLabels
@@ -146,10 +140,6 @@ function ElementProfileRow({
 						value: profile.id,
 						label: profile.name,
 					})),
-					{
-						value: CREATE_PROFILE_VALUE,
-						label: "Create new profile…",
-					},
 				]}
 				styles={{
 					input: {
@@ -174,7 +164,6 @@ function ElementProfileRow({
 				onChange={handleProfileChange}
 			/>
 			<ActionIcon
-				size="sm"
 				variant="subtle"
 				title="Manage study profiles"
 				onClick={() => dispatch(openStudyProfileModal())}>

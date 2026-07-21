@@ -99,6 +99,9 @@ export const theme = createTheme({
 				navbar: {
 					backgroundColor: "var(--sidebar-bg)",
 				},
+				aside: {
+					backgroundColor: "var(--sidebar-bg)",
+				},
 			},
 		}),
 		// Search-match marks (e.g. Highlight in the sidebar tree) sit on top

@@ -33,27 +33,33 @@ describe("AppHeader", () => {
 	it("Should show no element name when no element is selected", () => {
 		// Arrange & Act
 
-		renderWithProviders(<AppHeader pinned onToggleSidebar={vi.fn()} />, {
-			preloadedState: BASE_STATE,
-		});
+		renderWithProviders(
+			<AppHeader onToggleSidebar={vi.fn()} onToggleAside={vi.fn()} />,
+			{
+				preloadedState: BASE_STATE,
+			},
+		);
 
 		// Assert
 
-		expect(screen.getAllByRole("button")).toHaveLength(2);
+		expect(screen.getAllByRole("button")).toHaveLength(3);
 		expect(screen.getByRole("switch")).toBeInTheDocument();
 	});
 
 	it("Should show element name when an element is selected", () => {
 		// Arrange & Act
 
-		renderWithProviders(<AppHeader pinned onToggleSidebar={vi.fn()} />, {
-			preloadedState: {
-				elements: {
-					...BASE_STATE.elements,
-					currentElement: folderElement,
+		renderWithProviders(
+			<AppHeader onToggleSidebar={vi.fn()} onToggleAside={vi.fn()} />,
+			{
+				preloadedState: {
+					elements: {
+						...BASE_STATE.elements,
+						currentElement: folderElement,
+					},
 				},
 			},
-		});
+		);
 
 		// Assert
 
@@ -69,16 +75,47 @@ describe("AppHeader", () => {
 		// Act
 
 		renderWithProviders(
-			<AppHeader pinned onToggleSidebar={onToggleSidebar} />,
+			<AppHeader
+				onToggleSidebar={onToggleSidebar}
+				onToggleAside={vi.fn()}
+			/>,
 			{
 				preloadedState: BASE_STATE,
 			},
 		);
-		await user.click(screen.getByTitle("Toggle sidebar"));
+		await user.click(
+			screen.getByRole("button", { name: "Toggle left sidebar" }),
+		);
 
 		// Assert
 
 		expect(onToggleSidebar).toHaveBeenCalledOnce();
+	});
+
+	it("Should call onToggleAside when info sidebar button is clicked", async () => {
+		// Arrange
+
+		const onToggleAside = vi.fn();
+		const user = userEvent.setup();
+
+		// Act
+
+		renderWithProviders(
+			<AppHeader
+				onToggleSidebar={vi.fn()}
+				onToggleAside={onToggleAside}
+			/>,
+			{
+				preloadedState: BASE_STATE,
+			},
+		);
+		await user.click(
+			screen.getByRole("button", { name: "Toggle right sidebar" }),
+		);
+
+		// Assert
+
+		expect(onToggleAside).toHaveBeenCalledOnce();
 	});
 
 	it("Should open the command palette when the command button is clicked", async () => {
@@ -90,12 +127,14 @@ describe("AppHeader", () => {
 
 		renderWithProviders(
 			<>
-				<AppHeader pinned onToggleSidebar={vi.fn()} />
+				<AppHeader onToggleSidebar={vi.fn()} onToggleAside={vi.fn()} />
 				<CommandPalette />
 			</>,
 			{ preloadedState: BASE_STATE },
 		);
-		await user.click(screen.getByTitle("Open command palette (Ctrl + K)"));
+		await user.click(
+			screen.getByRole("button", { name: "Open command palette" }),
+		);
 
 		// Assert
 
