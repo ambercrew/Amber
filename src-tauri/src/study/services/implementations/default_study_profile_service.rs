@@ -351,6 +351,8 @@ mod tests {
                 parent: None,
                 position: FractionalIndex::default(),
                 study_profile_id: None,
+                source_id: None,
+                derived_from: None,
                 created_at: Utc::now(),
                 modified_at: Utc::now(),
             })

@@ -3,14 +3,14 @@ use serde::Serialize;
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase", tag = "kind")]
 pub enum FetchedPageDto {
-    Html {
-        final_url: String,
-        text: String,
-    },
+    #[serde(rename_all = "camelCase")]
+    Html { final_url: String, text: String },
+    #[serde(rename_all = "camelCase")]
     Pdf {
         final_url: String,
         bytes_base64: String,
     },
+    #[serde(rename_all = "camelCase")]
     Other {
         final_url: String,
         content_type: String,
@@ -28,6 +28,8 @@ pub struct FetchedImageDto {
 #[serde(rename_all = "camelCase")]
 pub struct PdfExtractionDto {
     pub title: Option<String>,
+    pub authors: Option<String>,
+    pub publication_date: Option<String>,
     pub html: String,
     pub page_count: usize,
 }

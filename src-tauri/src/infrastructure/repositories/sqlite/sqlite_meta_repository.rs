@@ -27,15 +27,18 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, study_profile_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, datetime($8), datetime($9))",
+            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, derived_from_id, derived_from_type, study_profile_id, source_id, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, datetime($11), datetime($12))",
             uuid,
             element_type,
             meta.name,
             meta.position.as_bytes(),
             meta.parent.map(|p| p.id()),
             meta.parent.map(|p| p.element_name()),
+            meta.derived_from.map(|p| p.id()),
+            meta.derived_from.map(|p| p.element_name()),
             meta.study_profile_id,
+            meta.source_id,
             meta.created_at,
             meta.modified_at,
         )
@@ -57,7 +60,10 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
                 study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -179,6 +185,49 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(())
     }
 
+    async fn set_source(
+        &self,
+        id: ElementId,
+        source_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE meta SET source_id = $1 WHERE element_id = $2"#,
+            source_id,
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
+    async fn clear_derived_from(&self, id: ElementId) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE meta SET derived_from_id = NULL, derived_from_type = NULL WHERE element_id = $1"#,
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
+    async fn count_by_source(&self, source_id: Uuid) -> Result<i64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE source_id = $1"#,
+            source_id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.count)
+    }
+
     async fn move_to(
         &self,
         id: ElementId,
@@ -229,7 +278,10 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
                 study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -258,7 +310,10 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
                 study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -290,7 +345,10 @@ impl MetaRepository for SqliteMetaRepository {
                 position as "position: _",
                 parent_id as "parent_id: _",
                 parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
                 study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta

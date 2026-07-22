@@ -129,6 +129,36 @@ END;
 
 -------------------------------------------------------------------------
 
+CREATE TABLE sources(
+    id                  TEXT        NOT NULL        PRIMARY KEY,
+    created_at          TEXT        NOT NULL        DEFAULT (datetime('now')),
+    modified_at         TEXT        NOT NULL        DEFAULT (datetime('now')),
+    title               TEXT        NOT NULL,
+    authors             TEXT,
+    publication_date    TEXT,
+    type                TEXT        NOT NULL,
+    location            TEXT
+);
+
+CREATE INDEX sources_location_index ON sources(location);
+
+CREATE TRIGGER sources_update_modified_at_after_update
+    AFTER UPDATE OF title, authors, publication_date, type, location ON sources
+BEGIN
+    UPDATE sources
+    SET modified_at = datetime('now')
+    WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER sources_add_to_deleted_entities_after_delete
+    AFTER DELETE ON sources
+BEGIN
+    INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
+    VALUES ('sources', OLD.id, OLD.created_at, datetime('now'));
+END;
+
+-------------------------------------------------------------------------
+
 -- Element tables are created before meta (no FK to meta) so that meta can
 -- reference them. The reverse constraint (element must have a meta row)
 -- is enforced by the application inserting meta before the element row.
@@ -166,22 +196,28 @@ CREATE TABLE cards(
 -------------------------------------------------------------------------
 
 CREATE TABLE meta(
-    element_id        TEXT    NOT NULL PRIMARY KEY,
-    element_type      TEXT    NOT NULL,
-    name              TEXT    NOT NULL,
-    position          BLOB    NOT NULL,
-    parent_id         TEXT,
-    parent_type       TEXT,
-    study_profile_id  TEXT,
-    created_at        TEXT    NOT NULL DEFAULT (datetime('now')),
-    modified_at       TEXT    NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (study_profile_id) REFERENCES study_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE
+    element_id          TEXT    NOT NULL PRIMARY KEY,
+    element_type        TEXT    NOT NULL,
+    name                TEXT    NOT NULL,
+    position            BLOB    NOT NULL,
+    parent_id           TEXT,
+    parent_type         TEXT,
+    derived_from_id     TEXT,
+    derived_from_type   TEXT,
+    study_profile_id    TEXT,
+    source_id           TEXT,
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    modified_at         TEXT    NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (study_profile_id) REFERENCES study_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE,
+    FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX meta_parent_id_index ON meta(parent_id);
+CREATE INDEX meta_source_id_index ON meta(source_id);
+CREATE INDEX meta_derived_from_id_index ON meta(derived_from_id);
 
 CREATE TRIGGER meta_update_modified_at_after_update
-    AFTER UPDATE OF name, parent_id, parent_type, position ON meta
+    AFTER UPDATE OF name, position , parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, source_id ON meta
 BEGIN
     UPDATE meta
     SET modified_at = datetime('now')

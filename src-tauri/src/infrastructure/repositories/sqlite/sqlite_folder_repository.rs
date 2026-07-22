@@ -46,7 +46,10 @@ impl FolderRepository for SqliteFolderRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.derived_from_id as "derived_from_id: _",
+                m.derived_from_type,
                 m.study_profile_id as "study_profile_id: _",
+                m.source_id as "source_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _"
             FROM folders f
@@ -71,7 +74,10 @@ impl FolderRepository for SqliteFolderRepository {
                 m.position as "position: _",
                 m.parent_id as "parent_id: _",
                 m.parent_type,
+                m.derived_from_id as "derived_from_id: _",
+                m.derived_from_type,
                 m.study_profile_id as "study_profile_id: _",
+                m.source_id as "source_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _"
             FROM folders f
@@ -131,6 +137,8 @@ mod tests {
             parent: None,
             position: FractionalIndex::default(),
             study_profile_id: None,
+            source_id: None,
+            derived_from: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
