@@ -9,5 +9,6 @@ pub mod sqlite_reading_repository;
 pub mod sqlite_reading_review_log_repository;
 pub mod sqlite_reading_review_repository;
 pub mod sqlite_rows;
+pub mod sqlite_source_repository;
 pub mod sqlite_study_profile_repository;
 pub mod sqlite_sync_repository;

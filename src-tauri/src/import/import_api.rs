@@ -141,13 +141,21 @@ fn extract_pdf_html(
         return Err(ApiError::new("no-text-layer".to_string()));
     }
 
-    let title = XmpExtractor::extract(&doc)
-        .ok()
-        .flatten()
-        .and_then(|metadata| metadata.dc_title);
+    let metadata = XmpExtractor::extract(&doc).ok().flatten();
+    let title = metadata.as_ref().and_then(|m| m.dc_title.clone());
+    let authors = metadata.as_ref().and_then(|m| {
+        if m.dc_creator.is_empty() {
+            None
+        } else {
+            Some(m.dc_creator.join(", "))
+        }
+    });
+    let publication_date = metadata.as_ref().and_then(|m| m.xmp_create_date.clone());
 
     Ok(PdfExtractionDto {
         title,
+        authors,
+        publication_date,
         html,
         page_count,
     })

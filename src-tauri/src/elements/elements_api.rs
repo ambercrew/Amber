@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use chrono::Utc;
 use tauri::State;
 use uuid::Uuid;
 
@@ -19,18 +18,15 @@ use crate::elements::dto::update_card_dto::UpdateCardDto;
 use crate::elements::dto::update_extract_dto::UpdateExtractDto;
 use crate::elements::dto::update_reading_dto::UpdateReadingDto;
 use crate::elements::dto::update_reading_position_dto::UpdateReadingPositionDto;
-use crate::elements::entities::folder::Folder;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::ElementCreationService;
-use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::elements::value_objects::meta::Meta;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;
 
@@ -84,28 +80,10 @@ pub async fn create_folder(
     dto: CreateFolderDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
-    let parent = dto.meta.parent;
-    let position = scope
-        .resolve::<dyn ElementIndexService>()
-        .await
-        .get_new_last_index(parent)
-        .await?;
-    let now = Utc::now();
-    let folder = Folder {
-        meta: Meta {
-            element_id: ElementId::Folder(Uuid::new_v4()),
-            name: dto.meta.name,
-            parent,
-            position,
-            study_profile_id: None,
-            created_at: now,
-            modified_at: now,
-        },
-    };
     scope
-        .resolve::<dyn FolderRepository>()
+        .resolve::<dyn ElementCreationService>()
         .await
-        .create(folder)
+        .create_folder(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -304,6 +282,21 @@ pub async fn update_element_tags(
         .resolve::<dyn MetaRepository>()
         .await
         .update_tags(element_id, tags)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn clear_derived_from(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn MetaRepository>()
+        .await
+        .clear_derived_from(element_id)
         .await?;
     scope.save_changes().await?;
     Ok(())

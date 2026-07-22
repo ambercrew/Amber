@@ -27,6 +27,19 @@ pub trait MetaRepository: Send + Sync {
         study_profile_id: Option<Uuid>,
     ) -> Result<(), RepositoryError>;
 
+    /// Sets or clears (`None`) the source the element's registry entry.
+    async fn set_source(
+        &self,
+        id: ElementId,
+        source_id: Option<Uuid>,
+    ) -> Result<(), RepositoryError>;
+
+    /// Number of elements currently pointing at the given source.
+    async fn count_by_source(&self, source_id: Uuid) -> Result<i64, RepositoryError>;
+
+    /// Clears the element's `derived_from` lineage.
+    async fn clear_derived_from(&self, id: ElementId) -> Result<(), RepositoryError>;
+
     /// Changes the parent and position of the given element.
     async fn move_to(
         &self,

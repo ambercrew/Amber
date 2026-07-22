@@ -9,6 +9,7 @@ mod infrastructure;
 mod local_configurations;
 mod secrets;
 mod settings;
+mod sources;
 mod study;
 mod sync;
 #[cfg(test)]
@@ -25,6 +26,7 @@ use backend::api::user_api::*;
 use elements::elements_api::*;
 use import::import_api::*;
 use settings::settings_api::*;
+use sources::sources_api::*;
 use study::study_api::*;
 use study::study_profile_api::*;
 
@@ -158,6 +160,7 @@ pub async fn run() -> Result<(), String> {
             element_exists,
             move_element,
             update_element_tags,
+            clear_derived_from,
             create_folder,
             create_reading,
             create_extract,
@@ -188,6 +191,13 @@ pub async fn run() -> Result<(), String> {
             set_default_study_profile,
             assign_study_profile,
             get_effective_study_profile,
+            // Sources
+            list_sources,
+            get_source,
+            create_source,
+            update_source,
+            delete_source,
+            assign_source,
             // Import
             fetch_page,
             fetch_image,

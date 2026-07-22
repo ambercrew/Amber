@@ -40,6 +40,7 @@ use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteM
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repository::SqliteReadingReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_source_repository::SqliteSourceRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
@@ -51,6 +52,9 @@ use crate::settings::entities::settings::Settings;
 use crate::settings::repositories::settings_repository::SettingsRepository;
 #[cfg(not(test))]
 use crate::settings::value_objects::settings_profile::SettingsProfile;
+use crate::sources::repositories::source_repository::SourceRepository;
+use crate::sources::services::implementations::default_source_service::DefaultSourceService;
+use crate::sources::services::source_service::SourceService;
 use crate::study::repositories::card_review_log_repository::CardReviewLogRepository;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_log_repository::ReadingReviewLogRepository;
@@ -220,6 +224,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         dyn ElementCreationService,
         DefaultElementCreationService
     );
+
+    // Sources
+
+    register_scope!(injector, dyn SourceRepository, SqliteSourceRepository);
+    register_scope!(injector, dyn SourceService, DefaultSourceService);
 
     // Settings
 

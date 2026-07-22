@@ -8,12 +8,15 @@ use uuid::Uuid;
 
 use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
+use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
+use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::{Reading, ReadingSplit};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
+use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::{
     ElementCreationError, ElementCreationService,
@@ -32,6 +35,7 @@ use crate::study::value_objects::card_state::CardState;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultElementCreationService {
+    folder_repository: Arc<dyn FolderRepository>,
     reading_repository: Arc<dyn ReadingRepository>,
     extract_repository: Arc<dyn ExtractRepository>,
     card_repository: Arc<dyn CardRepository>,
@@ -43,6 +47,28 @@ pub struct DefaultElementCreationService {
 
 #[async_trait]
 impl ElementCreationService for DefaultElementCreationService {
+    async fn create_folder(&self, dto: CreateFolderDto) -> Result<(), ElementCreationError> {
+        let parent = dto.meta.parent;
+        let position = self.index_service.get_new_last_index(parent).await?;
+        let now = Utc::now();
+
+        let folder = Folder {
+            meta: Meta {
+                element_id: ElementId::Folder(Uuid::new_v4()),
+                name: dto.meta.name,
+                parent,
+                position,
+                study_profile_id: None,
+                source_id: dto.meta.source_id,
+                derived_from: dto.meta.derived_from,
+                created_at: now,
+                modified_at: now,
+            },
+        };
+        self.folder_repository.create(folder).await?;
+        Ok(())
+    }
+
     async fn create_reading(&self, dto: CreateReadingDto) -> Result<(), ElementCreationError> {
         let element_id = ElementId::Reading(dto.id);
         let parent = dto.meta.parent;
@@ -60,6 +86,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 parent,
                 position,
                 study_profile_id: None,
+                source_id: dto.meta.source_id,
+                derived_from: dto.meta.derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -96,6 +124,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 parent,
                 position,
                 study_profile_id: None,
+                source_id: dto.meta.source_id,
+                derived_from: dto.meta.derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -120,6 +150,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 parent,
                 position,
                 study_profile_id: None,
+                source_id: dto.meta.source_id,
+                derived_from: dto.meta.derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -206,6 +238,7 @@ mod tests {
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
             sqlite_extract_repository::SqliteExtractRepository,
+            sqlite_folder_repository::SqliteFolderRepository,
             sqlite_meta_repository::SqliteMetaRepository,
             sqlite_reading_repository::SqliteReadingRepository,
             sqlite_reading_review_repository::SqliteReadingReviewRepository,
@@ -221,6 +254,7 @@ mod tests {
 
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
         register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
@@ -257,6 +291,8 @@ mod tests {
         crate::elements::dto::create_meta_dto::CreateMetaDto {
             name: "test".into(),
             parent,
+            derived_from: None,
+            source_id: None,
         }
     }
 
@@ -289,6 +325,7 @@ mod tests {
         let scope = injector.start_scope();
         create_test_profile(&scope, 3.0).await;
         let service = DefaultElementCreationService {
+            folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
@@ -328,6 +365,7 @@ mod tests {
         let scope = injector.start_scope();
         create_test_profile(&scope, 2.0).await;
         let service = DefaultElementCreationService {
+            folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
@@ -369,6 +407,7 @@ mod tests {
         let scope = injector.start_scope();
         create_test_profile(&scope, 1.0).await;
         let service = DefaultElementCreationService {
+            folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
@@ -428,6 +467,7 @@ mod tests {
         let scope = injector.start_scope();
         create_test_profile_with_a_factor(&scope, 1.5).await;
         let service = DefaultElementCreationService {
+            folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
@@ -466,6 +506,7 @@ mod tests {
         let scope = injector.start_scope();
         create_test_profile_with_a_factor(&scope, 1.5).await;
         let service = DefaultElementCreationService {
+            folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
