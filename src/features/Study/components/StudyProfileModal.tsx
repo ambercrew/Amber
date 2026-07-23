@@ -83,6 +83,7 @@ function StudyProfileModal() {
 					label="Profile"
 					value={selectedId}
 					allowDeselect={false}
+					withAlignedLabels
 					data={[
 						...profiles.map(profile => ({
 							value: profile.id,
@@ -93,7 +94,7 @@ function StudyProfileModal() {
 							label: "Create new profile…",
 						},
 					]}
-					renderOption={({ option }) => {
+					renderOption={({ option, checked }) => {
 						const profile = profiles.find(
 							p => p.id === option.value,
 						);
@@ -101,6 +102,7 @@ function StudyProfileModal() {
 							<StudyProfileOption
 								label={option.label}
 								isDefault={profile?.isDefault ?? false}
+								checked={checked ?? false}
 							/>
 						);
 					}}
