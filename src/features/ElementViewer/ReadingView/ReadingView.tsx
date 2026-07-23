@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Center, Container, Loader } from "@mantine/core";
 import { getReadingSplitManifest } from "../../../api/elements/api/elementsApi";
+import { MetaResponseDto } from "../../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { ReadingPosition } from "../../../types/elements/readingPosition";
+import ContentSourcePanel from "../ContentSourcePanel";
 import SplitSlot from "./SplitSlot";
 import { useReadingPosition } from "./useReadingPosition";
 import { useSplitHeights } from "./heights/useSplitHeights";
@@ -13,6 +15,7 @@ import { useSplitMountWindow } from "./useSplitMountWindow";
 interface ReadingViewProps {
 	readingId: string;
 	position: ReadingPosition;
+	meta: MetaResponseDto;
 	buttons: FloatingMenuItem[];
 	autoFocus?: boolean;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
@@ -31,6 +34,7 @@ interface ReadingViewProps {
 export default function ReadingView({
 	readingId,
 	position,
+	meta,
 	buttons,
 	autoFocus,
 	onHighlightCreated,
@@ -176,6 +180,7 @@ export default function ReadingView({
 						onContentReady={handleContentReady}
 					/>
 				))}
+			<ContentSourcePanel meta={meta} />
 		</Container>
 	);
 }
