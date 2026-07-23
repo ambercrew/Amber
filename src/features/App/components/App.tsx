@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import { AppShell, rem } from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { useSplitter, useHeadroom } from "@mantine/hooks";
 import { Notifications } from "@mantine/notifications";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -33,7 +33,6 @@ const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
-// TODO: let main content have their own scrollbar
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
 
@@ -86,6 +85,7 @@ function App() {
 
 	if (!areSettingsLoaded) return null;
 
+	// TODO: scrollbars for main?
 	return (
 		<AppShell
 			// eslint-disable-next-line react-hooks/refs
@@ -146,6 +146,10 @@ function App() {
 				)}
 			</AppShell.Navbar>
 
+			<AppShell.Main pt="var(--app-shell-header-height)">
+				<Outlet />
+			</AppShell.Main>
+
 			<AppShell.Aside>
 				<Aside onCollapse={() => setAsideExpanded(false)} />
 				{!isSmallScreen && (
@@ -156,10 +160,6 @@ function App() {
 					/>
 				)}
 			</AppShell.Aside>
-
-			<AppShell.Main pt={`${rem(HEADER_AND_FOOTER_HEIGHT)}`}>
-				<Outlet />
-			</AppShell.Main>
 		</AppShell>
 	);
 }

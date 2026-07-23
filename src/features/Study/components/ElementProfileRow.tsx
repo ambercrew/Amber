@@ -150,12 +150,13 @@ function ElementProfileRow({
 				comboboxProps={{
 					offset: 0,
 				}}
-				renderOption={({ option }) => {
+				renderOption={({ option, checked }) => {
 					const profile = profiles.find(p => p.id === option.value);
 					return (
 						<StudyProfileOption
 							label={option.label}
 							isDefault={profile?.isDefault ?? false}
+							checked={checked ?? false}
 						/>
 					);
 				}}

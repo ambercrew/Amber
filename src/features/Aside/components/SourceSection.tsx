@@ -192,6 +192,7 @@ function SourceSection({
 						value={selectedSourceId}
 						clearable={selectedSourceId !== null}
 						searchable
+						withAlignedLabels
 						placeholder="None"
 						data={[
 							...sources.map(s => ({
@@ -200,6 +201,7 @@ function SourceSection({
 							})),
 							{ value: NEW_VALUE, label: "+ Create new source" },
 						]}
+						allowDeselect={false}
 						onChange={handleSourceChange}
 					/>
 					<ActionIcon
@@ -266,6 +268,7 @@ function SourceSection({
 						<Select
 							size="sm"
 							allowDeselect={false}
+							withAlignedLabels
 							data={SOURCE_TYPE_OPTIONS}
 							value={selectedSource.sourceType}
 							onChange={value =>
