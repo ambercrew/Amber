@@ -1,15 +1,12 @@
 import ElementProfileRow from "../../../../features/Study/components/ElementProfileRow";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
-import {
-	listStudyProfiles,
-	getEffectiveStudyProfile,
-} from "../../../../api/study/api/studyProfileApi";
-import { getCardReview } from "../../../../api/study/api/studyApi";
+import { assignStudyProfile } from "../../../../api/study/api/studyProfileApi";
+import { getElementDetails } from "../../../../api/elements/api/elementsApi";
 import { StudyProfileDto } from "../../../../api/study/dto/studyProfileDto";
-import { CardReviewDto } from "../../../../api/study/dto/cardReviewDto";
+import { ElementDetailsResponseDto } from "../../../../api/elements/dto/elementDetailsDto";
 
 vi.mock(import("../../../../api/study/api/studyProfileApi.ts"));
-vi.mock(import("../../../../api/study/api/studyApi.ts"));
+vi.mock(import("../../../../api/elements/api/elementsApi.ts"));
 
 const cardElementId = { type: "card" as const, id: "card-1" };
 
@@ -26,76 +23,71 @@ const profile: StudyProfileDto = {
 	minIntervalDays: 1,
 };
 
-function makeReview(due: string): CardReviewDto {
+function makeDetails(
+	overrides: Partial<ElementDetailsResponseDto> = {},
+): ElementDetailsResponseDto {
 	return {
-		cardId: "card-1",
-		due,
-		stability: 1,
-		difficulty: 1,
-		reps: 1,
-		lapses: 0,
-		state: "review",
-		lastReviewed: null,
+		source: null,
+		derivedFromName: null,
+		cardReview: null,
+		readingReview: null,
+		effectiveProfile: { profile, source: "default", inheritedFrom: null },
+		profiles: [profile],
+		inheritedProfileName: "Default",
+		...overrides,
 	};
 }
 
-const BASE_STUDY_STATE = {
-	status: "studying" as const,
-	queue: [{ elementId: cardElementId, title: "Card 1" }],
-	cardPhase: "question" as const,
-	shownAt: null,
-	summary: null,
-};
-
 describe("ElementProfileRow", () => {
-	beforeEach(() => {
-		vi.mocked(listStudyProfiles).mockResolvedValue([profile]);
-		vi.mocked(getEffectiveStudyProfile).mockResolvedValue({
-			profile,
-			source: "default",
-			inheritedFrom: null,
-		});
-	});
-
-	it("Should refetch the due date when the graded count changes without the element changing", async () => {
+	it("Should show the inherited profile name when the effective profile is not direct", () => {
 		// Arrange
 
-		vi.mocked(getCardReview).mockResolvedValueOnce(
-			makeReview("2024-01-01T00:00:00Z"),
-		);
-		const onDueChange = vi.fn();
-
-		const { store } = renderWithProviders(
-			<ElementProfileRow
-				elementId={cardElementId}
-				parentId={null}
-				onDueChange={onDueChange}
-			/>,
-			{
-				preloadedState: {
-					study: {
-						...BASE_STUDY_STATE,
-						counts: { cards: 0, readings: 0, finished: 0 },
-					},
-				},
-			},
-		);
-
-		await vi.waitFor(() => {
-			expect(getCardReview).toHaveBeenCalledTimes(1);
-		});
+		const details = makeDetails();
 
 		// Act
 
-		vi.mocked(getCardReview).mockResolvedValueOnce(
-			makeReview("2099-01-01T00:00:00Z"),
+		renderWithProviders(
+			<ElementProfileRow elementId={cardElementId} details={details} />,
 		);
-		store.dispatch({ type: "study/cardGraded" });
+
+		// Assert
+
+		expect(document.querySelector("input")?.getAttribute("value")).toBe(
+			"Inherit from parent (Default)",
+		);
+	});
+
+	it("Should reload element details after assigning a study profile", async () => {
+		// Arrange
+
+		vi.mocked(assignStudyProfile).mockResolvedValue(undefined);
+		vi.mocked(getElementDetails).mockResolvedValue(makeDetails());
+		const details = makeDetails();
+
+		renderWithProviders(
+			<ElementProfileRow elementId={cardElementId} details={details} />,
+		);
+
+		// Act
+
+		document.querySelector("input")?.click();
+		const option = await vi.waitFor(() => {
+			const options = document.querySelectorAll("[role='option']");
+			// [0] is "Inherit from parent", [1] is the "Default" profile.
+			const found = options[1];
+			if (!found) throw new Error("option not found");
+			return found;
+		});
+		(option as HTMLElement).click();
 
 		// Assert
 
 		await vi.waitFor(() => {
-			expect(getCardReview).toHaveBeenCalledTimes(2);
+			expect(assignStudyProfile).toHaveBeenCalledWith(
+				cardElementId,
+				"profile-1",
+			);
+			expect(getElementDetails).toHaveBeenCalledWith(cardElementId);
 		});
 	});
 });

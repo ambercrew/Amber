@@ -11,6 +11,7 @@ import { UpdateReadingPositionDto } from "../../../types/elements/updateReadingP
 import { ReadingSplitIdDto } from "../../../types/elements/readingSplitIdDto";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { AnyElementDto } from "../dto/anyElementDto";
+import { ElementDetailsResponseDto } from "../dto/elementDetailsDto";
 import { NodeDto } from "../dto/nodeDto";
 
 export function getElementTree(): Promise<NodeDto[]> {
@@ -80,6 +81,12 @@ export function elementExists(elementId: ElementId): Promise<boolean> {
 
 export function getElementById(elementId: ElementId): Promise<AnyElementDto> {
 	return invoke("get_element_by_id", { elementId });
+}
+
+export function getElementDetails(
+	elementId: ElementId,
+): Promise<ElementDetailsResponseDto> {
+	return invoke("get_element_details", { elementId });
 }
 
 export type DropPosition = "before" | "after" | "inside";

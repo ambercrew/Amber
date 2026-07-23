@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
 	ActionIcon,
@@ -12,22 +12,24 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { TrashIcon, XIcon } from "@phosphor-icons/react";
 import useApi from "../../../hooks/useApi";
-import {
-	assignSource,
-	createSource,
-	deleteSource,
-	listSources,
-	updateSource,
-} from "../../../api/sources/api/sourcesApi";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
 import {
 	SourceRequestDto,
 	SourceResponseDto,
 	SourceType,
 } from "../../../api/sources/dto/sourceDto";
+import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
+import { clearDerivedFromAction } from "../../../stores/elements/elementsActions";
+import { loadElementDetailsAction } from "../../../stores/elementDetails/elementDetailsActions";
 import {
-	clearDerivedFrom,
-	getElementById,
-} from "../../../api/elements/api/elementsApi";
+	assignSourceAction,
+	createSourceAction,
+	deleteSourceAction,
+	loadSourcesAction,
+	updateSourceAction,
+} from "../../../stores/sources/sourcesActions";
+import { selectSources } from "../../../stores/sources/sourcesSelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { paths } from "../../../paths";
 import InfoField from "./InfoField";
@@ -54,76 +56,61 @@ interface SourceSectionProps {
 	elementId: ElementId;
 	sourceId: string | null;
 	derivedFrom: ElementId | null;
+	details: ElementDetailsResponseDto | null;
 }
 
 function SourceSection({
 	elementId,
 	sourceId,
 	derivedFrom,
+	details,
 }: SourceSectionProps) {
 	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
 	const { callApi } = useApi();
-	const [sources, setSources] = useState<SourceResponseDto[]>([]);
-	const [selectedSourceId, setSelectedSourceId] = useState<string | null>(
-		sourceId,
-	);
-	const [currentDerivedFrom, setCurrentDerivedFrom] =
-		useState<ElementId | null>(derivedFrom);
-	const [derivedFromName, setDerivedFromName] = useState<string | null>(null);
+	const sources = useAppSelector(selectSources);
+	const selectedSource = details?.source ?? null;
+	const derivedFromName = details?.derivedFromName ?? null;
 
 	useEffect(() => {
-		void callApi(async () => {
-			setSources(await listSources());
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+		void dispatch(loadSourcesAction());
+	}, [dispatch]);
 
-	useEffect(() => {
-		void callApi(async () => {
-			if (currentDerivedFrom) {
-				const element = await getElementById(currentDerivedFrom);
-				setDerivedFromName(element.data.meta.name);
-			} else {
-				setDerivedFromName(null);
-			}
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [currentDerivedFrom?.type, currentDerivedFrom?.id]);
-
-	const selectedSource = sources.find(s => s.id === selectedSourceId) ?? null;
+	function refreshDetails() {
+		return dispatch(loadElementDetailsAction(elementId));
+	}
 
 	function handleSourceChange(value: string | null) {
 		void callApi(async () => {
 			if (value === null) {
-				await assignSource(elementId, null);
-				setSelectedSourceId(null);
+				await dispatch(assignSourceAction(elementId, null));
+				await refreshDetails();
 				return;
 			}
 			if (value === NEW_VALUE) {
-				const created = await createSource({
-					title: "New source",
-					authors: null,
-					publicationDate: null,
-					sourceType: "File",
-					location: null,
-				});
-				setSources(current => [...current, created]);
-				await assignSource(elementId, created.id);
-				setSelectedSourceId(created.id);
+				const created = await dispatch(
+					createSourceAction({
+						title: "New source",
+						authors: null,
+						publicationDate: null,
+						sourceType: "File",
+						location: null,
+					}),
+				);
+				await dispatch(assignSourceAction(elementId, created.id));
+				await refreshDetails();
 				return;
 			}
-			await assignSource(elementId, value);
-			setSelectedSourceId(value);
+			await dispatch(assignSourceAction(elementId, value));
+			await refreshDetails();
 		});
 	}
 
 	const debouncedUpdateSource = useDebouncedCallback(
 		(id: string, dto: SourceRequestDto) => {
 			void callApi(async () => {
-				const updated = await updateSource(id, dto);
-				setSources(current =>
-					current.map(s => (s.id === id ? updated : s)),
-				);
+				await dispatch(updateSourceAction(id, dto));
+				await refreshDetails();
 			});
 		},
 		500,
@@ -138,11 +125,6 @@ function SourceSection({
 			...sourceRequestFrom(selectedSource),
 			[field]: value,
 		};
-		setSources(current =>
-			current.map(s =>
-				s.id === selectedSource.id ? { ...s, [field]: value } : s,
-			),
-		);
 		debouncedUpdateSource(selectedSource.id, dto);
 	}
 
@@ -165,11 +147,8 @@ function SourceSection({
 			centered: true,
 			onConfirm: () => {
 				void callApi(async () => {
-					await deleteSource(selectedSource.id);
-					setSources(current =>
-						current.filter(s => s.id !== selectedSource.id),
-					);
-					setSelectedSourceId(null);
+					await dispatch(deleteSourceAction(selectedSource.id));
+					await refreshDetails();
 				});
 			},
 		});
@@ -177,8 +156,8 @@ function SourceSection({
 
 	function handleClearDerivedFrom() {
 		void callApi(async () => {
-			await clearDerivedFrom(elementId);
-			setCurrentDerivedFrom(null);
+			await dispatch(clearDerivedFromAction(elementId));
+			await refreshDetails();
 		});
 	}
 
@@ -189,8 +168,8 @@ function SourceSection({
 					<Select
 						size="sm"
 						style={{ flex: 1 }}
-						value={selectedSourceId}
-						clearable={selectedSourceId !== null}
+						value={sourceId}
+						clearable={sourceId !== null}
 						searchable
 						withAlignedLabels
 						placeholder="None"
@@ -297,15 +276,15 @@ function SourceSection({
 			)}
 
 			<InfoField label="Derived from">
-				{currentDerivedFrom ? (
+				{derivedFrom ? (
 					<Group gap={4} wrap="nowrap">
 						<Anchor
 							size="sm"
 							onClick={() => {
 								void navigate(
 									paths.element(
-										currentDerivedFrom.type,
-										currentDerivedFrom.id,
+										derivedFrom.type,
+										derivedFrom.id,
 									),
 								);
 							}}>

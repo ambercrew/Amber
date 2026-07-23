@@ -1,4 +1,5 @@
 pub mod element_creation_service;
+pub mod element_details_service;
 pub mod element_index_service;
 pub mod element_move_error;
 pub mod element_move_service;

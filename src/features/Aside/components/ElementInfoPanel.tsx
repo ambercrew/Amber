@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Divider, Stack, Text, TextInput, TagsInput } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -6,18 +5,42 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import { updateElementTags } from "../../../api/elements/api/elementsApi";
 import { renameElementAction } from "../../../stores/elements/elementsActions";
+import { selectCurrentElementDetails } from "../../../stores/elementDetails/elementDetailsSelectors";
+import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 import { ElementId } from "../../../types/elements/elementId";
+import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import ElementProfileRow from "../../Study/components/ElementProfileRow";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
 import ReviewDetails from "./ReviewDetails";
 import SourceSection from "./SourceSection";
 
+function formatDue(due: string | null, finished: boolean): string {
+	if (finished) return "Finished";
+	if (!due) return "New";
+	return formatRelativeDueDate(due);
+}
+
+function computeDueState(
+	elementType: string,
+	details: ElementDetailsResponseDto | null,
+): string | null {
+	if (!details) return null;
+	if (elementType === "card") {
+		return formatDue(details.cardReview?.due ?? null, false);
+	}
+	if (elementType === "reading" || elementType === "extract") {
+		const finished = Boolean(details.readingReview?.finishedAt);
+		return formatDue(details.readingReview?.due ?? null, finished);
+	}
+	return null;
+}
+
 function ElementInfoPanel() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const storedMeta = currentElement?.data.meta ?? null;
 	const dispatch = useAppDispatch();
-	const [dueState, setDueState] = useState<string | null>(null);
+	const details = useAppSelector(selectCurrentElementDetails);
 
 	const debouncedRename = useDebouncedCallback(
 		async (id: ElementId, name: string) => {
@@ -39,6 +62,8 @@ function ElementInfoPanel() {
 			</Text>
 		);
 	}
+
+	const dueState = computeDueState(storedMeta.elementId.type, details);
 
 	return (
 		<Stack gap="lg" px="md" py="sm">
@@ -80,8 +105,7 @@ function ElementInfoPanel() {
 				<InfoField label="Study profile">
 					<ElementProfileRow
 						elementId={storedMeta.elementId}
-						parentId={storedMeta.parent}
-						onDueChange={setDueState}
+						details={details}
 					/>
 				</InfoField>
 				<InfoField label="Due">
@@ -95,7 +119,10 @@ function ElementInfoPanel() {
 					currentElement.type === "extract") && (
 					<>
 						<Divider />
-						<ReviewDetails element={currentElement} />
+						<ReviewDetails
+							element={currentElement}
+							details={details}
+						/>
 					</>
 				)}
 
@@ -106,6 +133,7 @@ function ElementInfoPanel() {
 				elementId={storedMeta.elementId}
 				sourceId={storedMeta.sourceId}
 				derivedFrom={storedMeta.derivedFrom}
+				details={details}
 			/>
 		</Stack>
 	);

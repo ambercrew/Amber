@@ -89,7 +89,6 @@ function App() {
 
 	if (!areSettingsLoaded) return null;
 
-	// TODO: scrollbars for main?
 	return (
 		<AppShell
 			// eslint-disable-next-line react-hooks/refs

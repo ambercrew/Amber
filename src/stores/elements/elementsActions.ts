@@ -1,4 +1,5 @@
 import {
+	clearDerivedFrom,
 	createCard,
 	createExtract,
 	createFolder,
@@ -22,10 +23,22 @@ import {
 } from "../../types/events/elementCreatedEvent";
 import errorToString from "../../utils/errorToString";
 import { AppDispatch } from "../store";
-import { setTree, setTreeError, setTreeLoading } from "./elementsReducer";
+import {
+	setCurrentElementMeta,
+	setTree,
+	setTreeError,
+	setTreeLoading,
+} from "./elementsReducer";
 
 export function loadElementTree() {
 	return withTreeRefresh(() => Promise.resolve());
+}
+
+export function clearDerivedFromAction(elementId: ElementId) {
+	return async (dispatch: AppDispatch) => {
+		await clearDerivedFrom(elementId);
+		dispatch(setCurrentElementMeta({ derivedFrom: null }));
+	};
 }
 
 export function deleteElementAction(elementId: ElementId) {

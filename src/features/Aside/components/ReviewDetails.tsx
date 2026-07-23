@@ -1,17 +1,8 @@
-import { useEffect, useState } from "react";
 import { NumberInput, Text } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
-import useAppSelector from "../../../hooks/useAppSelector";
-import useApi from "../../../hooks/useApi";
-import { selectStudyCounts } from "../../../stores/study/studySelectors";
 import { updateAFactor } from "../../../api/elements/api/elementsApi";
-import {
-	getCardReview,
-	getReadingReview,
-} from "../../../api/study/api/studyApi";
-import { CardReviewDto } from "../../../api/study/dto/cardReviewDto";
-import { ReadingReviewDto } from "../../../api/study/dto/readingReviewDto";
 import { AnyElementDto } from "../../../api/elements/dto/anyElementDto";
+import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import { ElementId } from "../../../types/elements/elementId";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
@@ -26,39 +17,18 @@ function formatNumber(value: number): string {
 
 interface ReviewDetailsProps {
 	element: AnyElementDto;
+	details: ElementDetailsResponseDto | null;
 }
 
-function ReviewDetails({ element }: ReviewDetailsProps) {
-	const { callApi } = useApi();
-	const counts = useAppSelector(selectStudyCounts);
-	const gradedCount = counts.cards + counts.readings;
-	const [cardReview, setCardReview] = useState<CardReviewDto | null>(null);
-	const [readingReview, setReadingReview] = useState<ReadingReviewDto | null>(
-		null,
-	);
-
+function ReviewDetails({ element, details }: ReviewDetailsProps) {
 	const elementId = element.data.meta.elementId;
+	const cardReview = details?.cardReview ?? null;
+	const readingReview = details?.readingReview ?? null;
 
 	const debouncedUpdateAFactor = useDebouncedCallback(
 		(id: ElementId, value: number) => updateAFactor(id, value),
 		500,
 	);
-
-	useEffect(() => {
-		void callApi(async () => {
-			if (element.type === "card") {
-				setReadingReview(null);
-				setCardReview(await getCardReview(elementId.id));
-			} else if (
-				element.type === "reading" ||
-				element.type === "extract"
-			) {
-				setCardReview(null);
-				setReadingReview(await getReadingReview(elementId));
-			}
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [element.type, elementId.id, gradedCount]);
 
 	if (element.type === "reading" || element.type === "extract") {
 		const finished = Boolean(readingReview?.finishedAt);

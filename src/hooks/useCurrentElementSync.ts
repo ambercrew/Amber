@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { elementExists, getElementById } from "../api/elements/api/elementsApi";
 import { setCurrentElement } from "../stores/elements/elementsReducer";
 import { selectElementTree } from "../stores/elements/elementsSelectors";
+import { loadElementDetailsAction } from "../stores/elementDetails/elementDetailsActions";
 import useAppDispatch from "./useAppDispatch";
 import useAppSelector from "./useAppSelector";
 import { useElementParams } from "./useElementParams";
@@ -23,6 +24,7 @@ export function useCurrentElementSync() {
 				void getElementById(id).then(element =>
 					dispatch(setCurrentElement(element)),
 				);
+				void dispatch(loadElementDetailsAction(id));
 			}
 		});
 	}, [params?.type, params?.id, tree, dispatch]);

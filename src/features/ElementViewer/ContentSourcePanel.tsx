@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
 	Anchor,
@@ -11,10 +10,9 @@ import {
 } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { CaretDownIcon, CaretRightIcon } from "@phosphor-icons/react";
-import { getElementById } from "../../api/elements/api/elementsApi";
 import { MetaResponseDto } from "../../api/elements/dto/anyElementDto";
-import { getSource } from "../../api/sources/api/sourcesApi";
-import { SourceResponseDto } from "../../api/sources/dto/sourceDto";
+import useAppSelector from "../../hooks/useAppSelector";
+import { selectCurrentElementDetails } from "../../stores/elementDetails/elementDetailsSelectors";
 import { paths } from "../../paths";
 
 interface ContentSourcePanelProps {
@@ -33,50 +31,15 @@ function SourceField({ label, value }: { label: string; value: string }) {
 }
 
 export default function ContentSourcePanel({ meta }: ContentSourcePanelProps) {
-	const { sourceId, derivedFrom } = meta;
+	const { derivedFrom } = meta;
 	const navigate = useNavigate();
 	const [opened, setOpened] = useLocalStorage({
 		key: "content-source-panel.opened",
 		defaultValue: true,
 	});
-	const [source, setSource] = useState<SourceResponseDto | null>(null);
-	const [derivedFromName, setDerivedFromName] = useState<{
-		id: string;
-		name: string;
-	} | null>(null);
-
-	useEffect(() => {
-		if (!sourceId) return;
-		let cancelled = false;
-		void getSource(sourceId).then(result => {
-			if (!cancelled) setSource(result);
-		});
-		return () => {
-			cancelled = true;
-		};
-	}, [sourceId]);
-
-	useEffect(() => {
-		if (!derivedFrom) return;
-		let cancelled = false;
-		void getElementById(derivedFrom).then(element => {
-			if (!cancelled)
-				setDerivedFromName({
-					id: derivedFrom.id,
-					name: element.data.meta.name,
-				});
-		});
-		return () => {
-			cancelled = true;
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [derivedFrom?.type, derivedFrom?.id]);
-
-	const displaySource = source?.id === sourceId ? source : null;
-	const displayDerivedFromName =
-		derivedFromName && derivedFromName.id === derivedFrom?.id
-			? derivedFromName.name
-			: null;
+	const details = useAppSelector(selectCurrentElementDetails);
+	const source = details?.source ?? null;
+	const derivedFromName = details?.derivedFromName ?? null;
 
 	return (
 		<Stack gap="lg" py="lg">
@@ -98,23 +61,23 @@ export default function ContentSourcePanel({ meta }: ContentSourcePanelProps) {
 					<Stack gap="md" pl="lg">
 						<SourceField
 							label="Title"
-							value={displaySource?.title ?? "No source"}
+							value={source?.title ?? "No source"}
 						/>
 						<SourceField
 							label="Authors"
-							value={displaySource?.authors ?? "—"}
+							value={source?.authors ?? "—"}
 						/>
 						<SourceField
 							label="Publication date"
-							value={displaySource?.publicationDate ?? "—"}
+							value={source?.publicationDate ?? "—"}
 						/>
 						<SourceField
 							label="Type"
-							value={displaySource?.sourceType ?? "—"}
+							value={source?.sourceType ?? "—"}
 						/>
 						<SourceField
 							label="Location"
-							value={displaySource?.location ?? "—"}
+							value={source?.location ?? "—"}
 						/>
 						<Stack gap={2}>
 							<Text size="xs" c="dimmed" fw={500}>
@@ -131,7 +94,7 @@ export default function ContentSourcePanel({ meta }: ContentSourcePanelProps) {
 											),
 										);
 									}}>
-									{displayDerivedFromName ?? "…"}
+									{derivedFromName ?? "…"}
 								</Anchor>
 							) : (
 								<Text size="sm">—</Text>
