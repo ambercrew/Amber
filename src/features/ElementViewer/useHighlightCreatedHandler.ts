@@ -24,6 +24,7 @@ export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 						meta: {
 							name: truncateToWords(getPlainText(fullHtml)),
 							parent: elementId!,
+							derivedFrom: elementId!,
 						},
 						front: buildClozeFrontHtml(
 							stripOtherHighlights(fullHtml, id),
@@ -41,6 +42,7 @@ export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 					meta: {
 						name: truncateToWords(getPlainText(html)),
 						parent: elementId!,
+						derivedFrom: elementId!,
 					},
 					content: stripOtherHighlights(html, id),
 				}),
