@@ -7,6 +7,8 @@ import { normalize } from "../../../../features/Import/normalize";
 import { hydrateLazyImages } from "../../../../features/Import/normalize/hydrateLazyImages";
 import { createImportedReading } from "../../../../features/Import/createImportedReading";
 import { runFileImport } from "../../../../features/Import/flows/file";
+import { createSource } from "../../../../api/sources/api/sourcesApi";
+import { SourceResponseDto } from "../../../../api/sources/dto/sourceDto";
 import { ImportContext } from "../../../../features/Import/importContext";
 
 vi.mock(import("../../../../api/import/api/importApi"));
@@ -14,6 +16,24 @@ vi.mock(import("../../../../features/Import/normalize"));
 vi.mock(import("../../../../features/Import/normalize/hydrateLazyImages"));
 vi.mock(import("../../../../features/Import/createImportedReading"));
 vi.mock(import("../../../../features/Import/flows/file"));
+vi.mock(import("../../../../api/sources/api/sourcesApi"));
+
+function makeSource(
+	overrides: Partial<SourceResponseDto> = {},
+): SourceResponseDto {
+	return {
+		id: "source-1",
+		createdAt: "2024-01-01T00:00:00Z",
+		modifiedAt: "2024-01-01T00:00:00Z",
+		title: "Article Title",
+		authors: null,
+		publicationDate: null,
+		sourceType: "WebPage",
+		location: null,
+		elementCount: 0,
+		...overrides,
+	};
+}
 
 function makeCtx(): ImportContext {
 	return {
@@ -90,9 +110,33 @@ describe("runUrlImport", () => {
 
 		expect(actual).toBeNull();
 		expect(runFileImport).toHaveBeenCalledTimes(1);
-		const [files, passedCtx] = vi.mocked(runFileImport).mock.calls[0];
+		const [files, passedCtx, , location] =
+			vi.mocked(runFileImport).mock.calls[0];
 		expect(files[0].name).toBe("doc.pdf");
 		expect(passedCtx).toBe(ctx);
+		expect(location).toBe("https://example.com/doc.pdf");
+	});
+
+	it("Should fall back to the requested url when the fetched pdf has no final url", async () => {
+		// Arrange
+
+		const base64 = btoa("%PDF-1.4 fake");
+		vi.mocked(fetchPage).mockResolvedValue({
+			kind: "pdf",
+			finalUrl: "",
+			bytesBase64: base64,
+		});
+		vi.mocked(runFileImport).mockResolvedValue(null);
+		const ctx = makeCtx();
+
+		// Act
+
+		await runUrlImport("https://example.com/doc.pdf", ctx);
+
+		// Assert
+
+		const [, , , location] = vi.mocked(runFileImport).mock.calls[0];
+		expect(location).toBe("https://example.com/doc.pdf");
 	});
 
 	it("Should hydrate lazy images before parsing the article", async () => {
@@ -104,6 +148,7 @@ describe("runUrlImport", () => {
 			text: ARTICLE_HTML,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
+		vi.mocked(createSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -138,6 +183,29 @@ describe("runUrlImport", () => {
 		});
 	});
 
+	it("Should fall back to the requested url as the source url when the fetched page has no final url", async () => {
+		// Arrange
+
+		vi.mocked(fetchPage).mockResolvedValue({
+			kind: "html",
+			finalUrl: "",
+			text: "<html><body></body></html>",
+		});
+		const ctx = makeCtx();
+
+		// Act
+
+		const actual = await runUrlImport("https://example.com/empty", ctx);
+
+		// Assert
+
+		expect(actual).toEqual({
+			kind: "no-article",
+			rawHtml: "",
+			sourceUrl: "https://example.com/empty",
+		});
+	});
+
 	it("Should normalize the extracted article and create a reading on success", async () => {
 		// Arrange
 
@@ -147,6 +215,8 @@ describe("runUrlImport", () => {
 			text: ARTICLE_HTML,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
+		const source = makeSource({ id: "source-1" });
+		vi.mocked(createSource).mockResolvedValue(source);
 		const ctx = makeCtx();
 
 		// Act
@@ -159,11 +229,47 @@ describe("runUrlImport", () => {
 		expect(normalize).toHaveBeenCalledWith(expect.any(String), {
 			baseUrl: "https://example.com/article",
 		});
+		expect(createSource).toHaveBeenCalledWith({
+			title: "Article Title",
+			authors: null,
+			publicationDate: null,
+			sourceType: "WebPage",
+			location: "https://example.com/article",
+		});
 		expect(createImportedReading).toHaveBeenCalledWith(
 			ctx,
 			"Article Title",
 			"<p>normalized</p>",
+			"source-1",
 		);
+	});
+
+	it("Should fill the source's authors and publication date from the article's byline and published time", async () => {
+		// Arrange
+
+		const htmlWithMetadata = `<html><head><title>Article Title</title><meta name="author" content="Jane Doe"><meta property="article:published_time" content="2020-01-01T00:00:00.000Z"></head><body><article><h1>Article Title</h1><p>${ARTICLE_BODY_TEXT}</p></article></body></html>`;
+		vi.mocked(fetchPage).mockResolvedValue({
+			kind: "html",
+			finalUrl: "https://example.com/article",
+			text: htmlWithMetadata,
+		});
+		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
+		vi.mocked(createSource).mockResolvedValue(makeSource());
+		const ctx = makeCtx();
+
+		// Act
+
+		await runUrlImport("https://example.com/article", ctx);
+
+		// Assert
+
+		expect(createSource).toHaveBeenCalledWith({
+			title: "Article Title",
+			authors: "Jane Doe",
+			publicationDate: "2020-01-01T00:00:00.000Z",
+			sourceType: "WebPage",
+			location: "https://example.com/article",
+		});
 	});
 });
 
@@ -174,6 +280,8 @@ describe("importRawPage", () => {
 		vi.mocked(normalize).mockResolvedValue(
 			"<h1>Fallback Title</h1><p>body</p>",
 		);
+		const source = makeSource({ id: "source-2", title: "Fallback Title" });
+		vi.mocked(createSource).mockResolvedValue(source);
 		const ctx = makeCtx();
 
 		// Act
@@ -185,10 +293,18 @@ describe("importRawPage", () => {
 		expect(normalize).toHaveBeenCalledWith("<div>raw</div>", {
 			baseUrl: "https://example.com/raw",
 		});
+		expect(createSource).toHaveBeenCalledWith({
+			title: "Fallback Title",
+			authors: null,
+			publicationDate: null,
+			sourceType: "WebPage",
+			location: "https://example.com/raw",
+		});
 		expect(createImportedReading).toHaveBeenCalledWith(
 			ctx,
 			"Fallback Title",
 			"<h1>Fallback Title</h1><p>body</p>",
+			"source-2",
 		);
 	});
 });

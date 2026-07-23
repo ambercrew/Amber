@@ -33,6 +33,7 @@ const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
+// TODO: let main content have their own scrollbar
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: 120 });
 

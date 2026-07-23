@@ -10,6 +10,8 @@ describe("extractPdf", () => {
 		const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46]).buffer;
 		vi.mocked(invokeExtractPdf).mockResolvedValue({
 			title: "T",
+			authors: null,
+			publicationDate: null,
 			html: "<p>h</p>",
 			pageCount: 1,
 		});
@@ -29,6 +31,8 @@ describe("extractPdf", () => {
 		const bytes = new ArrayBuffer(4);
 		vi.mocked(invokeExtractPdf).mockResolvedValue({
 			title: "Title",
+			authors: "Jane Doe",
+			publicationDate: "2020-01-01",
 			html: "<p>content</p>",
 			pageCount: 3,
 		});
@@ -41,6 +45,8 @@ describe("extractPdf", () => {
 
 		expect(actual).toEqual({
 			title: "Title",
+			authors: "Jane Doe",
+			publicationDate: "2020-01-01",
 			html: "<p>content</p>",
 			pageCount: 3,
 		});
@@ -53,6 +59,8 @@ describe("extractPdf", () => {
 		const onProgress = vi.fn();
 		vi.mocked(invokeExtractPdf).mockResolvedValue({
 			title: null,
+			authors: null,
+			publicationDate: null,
 			html: "<p>ok</p>",
 			pageCount: 2,
 		});

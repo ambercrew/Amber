@@ -1,5 +1,6 @@
 import { Readability } from "@mozilla/readability";
 import { fetchPage } from "../../../api/import/api/importApi";
+import { createSource } from "../../../api/sources/api/sourcesApi";
 import errorToString from "../../../utils/errorToString";
 import { normalize } from "../normalize";
 import { hydrateLazyImages } from "../normalize/hydrateLazyImages";
@@ -24,12 +25,14 @@ export async function runUrlImport(
 		return { kind: "fetch-failed", message: errorToString(err) };
 	}
 
+	const resolvedUrl = page.finalUrl || url;
+
 	if (page.kind === "pdf") {
 		const bytes = base64ToArrayBuffer(page.bytesBase64);
-		const file = new File([bytes], filenameFromUrl(page.finalUrl), {
+		const file = new File([bytes], filenameFromUrl(resolvedUrl), {
 			type: "application/pdf",
 		});
-		return runFileImport([file], ctx);
+		return runFileImport([file], ctx, undefined, resolvedUrl);
 	}
 
 	if (page.kind === "other") {
@@ -41,7 +44,7 @@ export async function runUrlImport(
 
 	const doc = new DOMParser().parseFromString(page.text, "text/html");
 	const base = doc.createElement("base");
-	base.href = page.finalUrl;
+	base.href = resolvedUrl;
 	doc.head.prepend(base);
 
 	// The fetched HTML is server-rendered, so lazy-loaded images still hold
@@ -54,15 +57,17 @@ export async function runUrlImport(
 		return {
 			kind: "no-article",
 			rawHtml: doc.body.innerHTML,
-			sourceUrl: page.finalUrl,
+			sourceUrl: resolvedUrl,
 		};
 	}
 
 	await importArticleHtml(
 		article.content ?? "",
 		article.title ?? null,
-		page.finalUrl,
+		resolvedUrl,
 		ctx,
+		article.byline ?? null,
+		article.publishedTime ?? null,
 	);
 	return null;
 }
@@ -80,6 +85,8 @@ async function importArticleHtml(
 	title: string | null,
 	baseUrl: string,
 	ctx: ImportContext,
+	authors: string | null = null,
+	publicationDate: string | null = null,
 ): Promise<void> {
 	const content = await normalize(html, { baseUrl });
 	const trimmedTitle = title?.trim();
@@ -87,7 +94,16 @@ async function importArticleHtml(
 		trimmedTitle && trimmedTitle.length > 0
 			? trimmedTitle
 			: deriveTitle(content, "");
-	await createImportedReading(ctx, finalTitle, content);
+
+	const source = await createSource({
+		title: finalTitle,
+		authors,
+		publicationDate,
+		sourceType: "WebPage",
+		location: baseUrl,
+	});
+
+	await createImportedReading(ctx, finalTitle, content, source.id);
 }
 
 function filenameFromUrl(url: string): string {
