@@ -107,3 +107,7 @@ export function updateAFactor(
 ): Promise<void> {
 	return invoke("update_a_factor", { elementId, aFactor });
 }
+
+export function clearDerivedFrom(elementId: ElementId): Promise<void> {
+	return invoke("clear_derived_from", { elementId });
+}

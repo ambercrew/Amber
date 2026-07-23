@@ -10,6 +10,8 @@ export interface MetaResponseDto {
 	tags: Tag[];
 	createdAt: string;
 	modifiedAt: string;
+	sourceId: string | null;
+	derivedFrom: ElementId | null;
 }
 
 export interface FolderResponseDto {
