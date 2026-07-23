@@ -56,10 +56,14 @@ function App() {
 				defaultSize: `${ASIDE_DEFAULT}px`,
 				min: "160px",
 				max: "30%",
+				collapsible: true,
 			},
 		],
 		enabled: !isSmallScreen,
-		onCollapseChange: (_index, collapsed) => setSidebarExpanded(!collapsed),
+		onCollapseChange: (index, collapsed) => {
+			if (index === 0) setSidebarExpanded(!collapsed);
+			if (index === 2) setAsideExpanded(!collapsed);
+		},
 	});
 
 	useRedirectIfElementMissing();
@@ -151,7 +155,7 @@ function App() {
 			</AppShell.Main>
 
 			<AppShell.Aside>
-				<Aside onCollapse={() => setAsideExpanded(false)} />
+				<Aside onCollapse={() => splitter.collapse(2)} />
 				{!isSmallScreen && (
 					<ResizeHandle
 						side="left"
