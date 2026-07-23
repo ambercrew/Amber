@@ -9,6 +9,7 @@ import {
 } from "../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import RootElementPlugin from "../../components/Editor/plugins/RootElementPlugin";
+import ReadingPositionMarkerPlugin from "../../components/Editor/plugins/ReadingPositionMarkerPlugin";
 import useApi from "../../hooks/useApi";
 import useAutoSave from "./hooks/useAutoSave";
 
@@ -20,6 +21,8 @@ interface ElementEditorProps {
 	onChange: (content: string) => Promise<void>;
 	/** Receives the editor's root element (see `RootElementPlugin`). */
 	onRootElement?: (element: HTMLElement | null) => void;
+	/** Block index to mark as the reader's saved position, if any. */
+	markerBlockIndex?: number;
 }
 
 export default function ElementEditor({
@@ -29,6 +32,7 @@ export default function ElementEditor({
 	onHighlightCreated,
 	onChange,
 	onRootElement,
+	markerBlockIndex,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const handleSave = useCallback(
@@ -76,6 +80,11 @@ export default function ElementEditor({
 				/>
 				{onRootElement && (
 					<RootElementPlugin onRootElement={onRootElement} />
+				)}
+				{markerBlockIndex !== undefined && (
+					<ReadingPositionMarkerPlugin
+						blockIndex={markerBlockIndex}
+					/>
 				)}
 			</Editor>
 		</>

@@ -178,6 +178,11 @@ export default function ReadingView({
 						registerContentRoot={registerContentRoot(split.seq)}
 						onHighlightCreated={onHighlightCreated}
 						onContentReady={handleContentReady}
+						markerBlockIndex={
+							split.seq === position.positionSplit
+								? position.positionBlock
+								: undefined
+						}
 					/>
 				))}
 			<ContentSourcePanel meta={meta} />
