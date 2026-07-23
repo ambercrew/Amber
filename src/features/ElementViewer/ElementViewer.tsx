@@ -16,8 +16,12 @@ export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const studyStatus = useAppSelector(selectStudyStatus);
 	const elementId = currentElement?.data?.meta?.elementId;
+	const sourceId = currentElement?.data?.meta?.sourceId;
 	const buttons = useElementViewerButtons();
-	const handleHighlightCreated = useHighlightCreatedHandler(elementId);
+	const handleHighlightCreated = useHighlightCreatedHandler(
+		elementId,
+		sourceId,
+	);
 
 	const frontContentRef = useRef("");
 	const backContentRef = useRef("");

@@ -10,13 +10,14 @@ import { HighlightCreatedPayload } from "../../../components/Editor/plugins/High
 vi.mock(import("../../../stores/elements/elementsActions"));
 
 const ELEMENT_ID: ElementId = { type: "reading", id: "reading-1" };
+const SOURCE_ID = "source-1";
 
 function HookWrapper({
 	capture,
 }: {
 	capture: (handler: (payload: HighlightCreatedPayload) => void) => void;
 }) {
-	capture(useHighlightCreatedHandler(ELEMENT_ID));
+	capture(useHighlightCreatedHandler(ELEMENT_ID, SOURCE_ID));
 	return null;
 }
 
@@ -57,6 +58,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "A Old B New Text C",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			front: '<p>A Old B <mark data-cloze-hidden="true">New Text</mark> C</p>',
 			back: "New Text",
@@ -140,6 +142,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "Nested Rest",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			content: "Nested Rest",
 		});
@@ -175,6 +178,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "First Second New Text Third",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			front: '<p>First Second <mark data-cloze-hidden="true">New Text</mark> Third</p>',
 			back: "Old New Text",
@@ -206,6 +210,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "Old Cloze New Text",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			front: '<p>Old Cloze <mark data-cloze-hidden="true">New Text</mark></p>',
 			back: "Before Old Cloze New Text",
@@ -234,6 +239,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "Before Old Cloze Rest",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			content: "Before Old Cloze Rest",
 		});
@@ -264,6 +270,7 @@ describe("useHighlightCreatedHandler", () => {
 				name: "First Middle Second",
 				parent: ELEMENT_ID,
 				derivedFrom: ELEMENT_ID,
+				sourceId: SOURCE_ID,
 			},
 			content: "First Middle Second",
 		});
