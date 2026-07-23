@@ -13,6 +13,7 @@ use crate::sources::repositories::source_repository::SourceRepository;
 use crate::sources::services::source_service::{
     SourceFields, SourceService, SourceServiceError, SourceWithElementCount,
 };
+use crate::sources::value_objects::source_type::SourceType;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultSourceService {
@@ -48,7 +49,8 @@ impl SourceService for DefaultSourceService {
         &self,
         fields: SourceFields,
     ) -> Result<Source, RepositoryError> {
-        if let Some(location) = fields.location.as_deref().filter(|l| !l.is_empty())
+        if fields.source_type == SourceType::WebPage
+            && let Some(location) = fields.location.as_deref().filter(|l| !l.is_empty())
             && let Some(existing) = self.source_repository.find_by_location(location).await?
         {
             return Ok(existing);

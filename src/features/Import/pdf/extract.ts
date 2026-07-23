@@ -2,6 +2,8 @@ import { extractPdf as invokeExtractPdf } from "../../../api/import/api/importAp
 
 export interface PdfExtraction {
 	title: string | null;
+	authors: string | null;
+	publicationDate: string | null;
 	html: string;
 	pageCount: number;
 }

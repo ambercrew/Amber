@@ -7,12 +7,13 @@ export async function createImportedReading(
 	ctx: ImportContext,
 	name: string,
 	content: string,
+	sourceId?: string | null,
 ): Promise<void> {
 	const id = crypto.randomUUID();
 	await ctx.dispatch(
 		createReadingAction({
 			id,
-			meta: { name, parent: ctx.parent },
+			meta: { name, parent: ctx.parent, sourceId },
 			splits: splitContent(content),
 		}),
 	);
