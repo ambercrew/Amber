@@ -11,6 +11,7 @@ import ElementProfileRow from "../../Study/components/ElementProfileRow";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
 import ReviewDetails from "./ReviewDetails";
+import SourceSection from "./SourceSection";
 
 function ElementInfoPanel() {
 	const currentElement = useAppSelector(selectCurrentElement);
@@ -97,6 +98,15 @@ function ElementInfoPanel() {
 						<ReviewDetails element={currentElement} />
 					</>
 				)}
+
+			<Divider />
+
+			<SourceSection
+				key={storedMeta.elementId.id}
+				elementId={storedMeta.elementId}
+				sourceId={storedMeta.sourceId}
+				derivedFrom={storedMeta.derivedFrom}
+			/>
 		</Stack>
 	);
 }
