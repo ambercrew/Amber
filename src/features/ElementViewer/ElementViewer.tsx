@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Container } from "@mantine/core";
 import CardElementViewer from "./CardElementViewer";
+import ContentSourcePanel from "./ContentSourcePanel";
 import ElementEditor from "./ElementEditor";
 import FolderView from "./FolderView";
 import ReadingView from "./ReadingView/ReadingView";
@@ -62,7 +63,11 @@ export default function ElementViewer() {
 		[elementId],
 	);
 
-	if (!currentElement || !elementId || currentElement.type === "folder") {
+	if (!currentElement || !elementId) {
+		return <FolderView />;
+	}
+
+	if (currentElement.type === "folder") {
 		return <FolderView />;
 	}
 
@@ -85,6 +90,7 @@ export default function ElementViewer() {
 				key={`reading-${elementId.id}`}
 				readingId={elementId.id}
 				position={currentElement.data.position}
+				meta={currentElement.data.meta}
 				buttons={buttons}
 				onHighlightCreated={handleHighlightCreated}
 				autoFocus={studyStatus === "editing"}
@@ -102,6 +108,7 @@ export default function ElementViewer() {
 				onHighlightCreated={handleHighlightCreated}
 				autoFocus={studyStatus === "editing"}
 			/>
+			<ContentSourcePanel meta={currentElement.data.meta} />
 		</Container>
 	);
 }
