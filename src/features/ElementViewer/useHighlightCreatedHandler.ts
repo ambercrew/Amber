@@ -12,7 +12,10 @@ import {
 	CLOZE_HIDDEN_TAG_NAME,
 } from "../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
 
-export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
+export function useHighlightCreatedHandler(
+	elementId: ElementId | undefined,
+	sourceId: string | null | undefined,
+) {
 	const dispatch = useAppDispatch();
 
 	return useCallback(
@@ -25,6 +28,7 @@ export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 							name: truncateToWords(getPlainText(fullHtml)),
 							parent: elementId!,
 							derivedFrom: elementId!,
+							sourceId,
 						},
 						front: buildClozeFrontHtml(
 							stripOtherHighlights(fullHtml, id),
@@ -43,12 +47,13 @@ export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 						name: truncateToWords(getPlainText(html)),
 						parent: elementId!,
 						derivedFrom: elementId!,
+						sourceId,
 					},
 					content: stripOtherHighlights(html, id),
 				}),
 			);
 		},
-		[dispatch, elementId],
+		[dispatch, elementId, sourceId],
 	);
 }
 
