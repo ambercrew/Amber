@@ -155,6 +155,7 @@ pub async fn run() -> Result<(), String> {
             // Elements
             get_element_tree,
             get_element_by_id,
+            get_element_details,
             delete_element,
             rename_element,
             element_exists,

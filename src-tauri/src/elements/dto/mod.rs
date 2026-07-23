@@ -4,6 +4,7 @@ pub mod create_extract_dto;
 pub mod create_folder_dto;
 pub mod create_meta_dto;
 pub mod create_reading_dto;
+pub mod element_details_dto;
 pub mod move_element_dto;
 pub mod reading_split_id_dto;
 pub mod reading_split_meta_dto;

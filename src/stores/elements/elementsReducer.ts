@@ -1,5 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AnyElementDto } from "../../api/elements/dto/anyElementDto";
+import {
+	AnyElementDto,
+	MetaResponseDto,
+} from "../../api/elements/dto/anyElementDto";
 import { NodeDto } from "../../api/elements/dto/nodeDto";
 
 export interface ElementsState {
@@ -42,6 +45,16 @@ const elementsSlice = createSlice({
 		) => {
 			state.currentElement = action.payload;
 		},
+		setCurrentElementMeta: (
+			state,
+			action: PayloadAction<Partial<MetaResponseDto>>,
+		) => {
+			if (!state.currentElement) return;
+			state.currentElement.data.meta = {
+				...state.currentElement.data.meta,
+				...action.payload,
+			};
+		},
 	},
 });
 
@@ -53,4 +66,5 @@ export const {
 	setTreeError,
 	clearTreeError,
 	setCurrentElement,
+	setCurrentElementMeta,
 } = elementsSlice.actions;

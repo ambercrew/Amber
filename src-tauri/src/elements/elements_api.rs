@@ -9,6 +9,7 @@ use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
+use crate::elements::dto::element_details_dto::ElementDetailsResponseDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
 use crate::elements::dto::reading_split_id_dto::ReadingSplitIdDto;
 use crate::elements::dto::reading_split_meta_dto::ReadingSplitMetaDto;
@@ -24,6 +25,7 @@ use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::ElementCreationService;
+use crate::elements::services::element_details_service::ElementDetailsService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
@@ -362,4 +364,18 @@ pub async fn get_element_by_id(
     dto.meta_mut().tags = tags;
 
     Ok(dto)
+}
+
+#[tauri::command]
+pub async fn get_element_details(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+) -> Result<ElementDetailsResponseDto, ApiError> {
+    let scope = injector.start_scope();
+    let details = scope
+        .resolve::<dyn ElementDetailsService>()
+        .await
+        .get_element_details(element_id)
+        .await?;
+    Ok(details.into())
 }

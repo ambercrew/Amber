@@ -1,121 +1,33 @@
-import { useEffect, useState } from "react";
 import { ActionIcon, Group, Select } from "@mantine/core";
-import {
-	assignStudyProfile,
-	getEffectiveStudyProfile,
-	listStudyProfiles,
-} from "../../../api/study/api/studyProfileApi";
-import {
-	EffectiveProfileDto,
-	StudyProfileDto,
-} from "../../../api/study/dto/studyProfileDto";
-import {
-	getCardReview,
-	getReadingReview,
-} from "../../../api/study/api/studyApi";
+import { assignStudyProfile } from "../../../api/study/api/studyProfileApi";
+import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import useApi from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import useAppSelector from "../../../hooks/useAppSelector";
 import { openStudyProfileModal } from "../../../stores/app/appReducer";
-import { selectIsStudyProfileModalOpened } from "../../../stores/app/appSelectors";
-import { selectStudyCounts } from "../../../stores/study/studySelectors";
+import { loadElementDetailsAction } from "../../../stores/elementDetails/elementDetailsActions";
 import { ElementId } from "../../../types/elements/elementId";
 import { commands } from "../../../commands/commands";
-import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 import StudyProfileOption from "./StudyProfileOption";
 
 interface ElementProfileRowProps {
 	elementId: ElementId;
-	parentId: ElementId | null;
-	onDueChange?: (dueState: string | null, finished: boolean) => void;
+	details: ElementDetailsResponseDto | null;
 }
 
 const INHERIT_VALUE = "__inherit__";
 
-function formatDueState(due: string | null, finished: boolean): string | null {
-	if (finished) return "Finished";
-	if (!due) return "New";
-	return formatRelativeDueDate(due);
-}
-
-function ElementProfileRow({
-	elementId,
-	parentId,
-	onDueChange,
-}: ElementProfileRowProps) {
+function ElementProfileRow({ elementId, details }: ElementProfileRowProps) {
 	const dispatch = useAppDispatch();
 	const { callApi } = useApi();
-	const [profiles, setProfiles] = useState<StudyProfileDto[]>([]);
-	const [effective, setEffective] = useState<EffectiveProfileDto | null>(
-		null,
-	);
-	const [inheritedName, setInheritedName] = useState<string | null>(null);
-	const counts = useAppSelector(selectStudyCounts);
-	const gradedCount = counts.cards + counts.readings;
-	const isProfileModalOpened = useAppSelector(
-		selectIsStudyProfileModalOpened,
-	);
-
-	async function loadStatus() {
-		const [profileList, effectiveProfile] = await Promise.all([
-			listStudyProfiles(),
-			getEffectiveStudyProfile(elementId),
-		]);
-		setProfiles(profileList);
-		setEffective(effectiveProfile);
-
-		if (effectiveProfile.source === "direct") {
-			if (parentId) {
-				const parentEffective =
-					await getEffectiveStudyProfile(parentId);
-				setInheritedName(parentEffective.profile.name);
-			} else {
-				setInheritedName(
-					profileList.find(profile => profile.isDefault)?.name ??
-						null,
-				);
-			}
-		} else {
-			setInheritedName(effectiveProfile.profile.name);
-		}
-
-		if (elementId.type === "card") {
-			const review = await getCardReview(elementId.id);
-			onDueChange?.(formatDueState(review?.due ?? null, false), false);
-		} else if (
-			elementId.type === "reading" ||
-			elementId.type === "extract"
-		) {
-			const review = await getReadingReview(elementId);
-			const isFinished = Boolean(review?.finishedAt);
-			onDueChange?.(
-				formatDueState(review?.due ?? null, isFinished),
-				isFinished,
-			);
-		} else {
-			onDueChange?.(null, false);
-		}
-	}
-
-	useEffect(() => {
-		void callApi(loadStatus);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		elementId.type,
-		elementId.id,
-		parentId?.type,
-		parentId?.id,
-		gradedCount,
-		isProfileModalOpened,
-		callApi,
-		onDueChange,
-	]);
+	const profiles = details?.profiles ?? [];
+	const effective = details?.effectiveProfile ?? null;
+	const inheritedName = details?.inheritedProfileName ?? null;
 
 	function handleProfileChange(value: string | null) {
 		void callApi(async () => {
 			const profileId = value === INHERIT_VALUE ? null : value;
 			await assignStudyProfile(elementId, profileId);
-			await loadStatus();
+			await dispatch(loadElementDetailsAction(elementId));
 		});
 	}
 
