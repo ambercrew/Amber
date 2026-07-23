@@ -316,7 +316,7 @@ function SourceSection({
 							variant="subtle"
 							title="Clear derived from"
 							onClick={handleClearDerivedFrom}>
-							<XIcon size={12} />
+							<XIcon size={16} />
 						</ActionIcon>
 					</Group>
 				) : (

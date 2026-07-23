@@ -53,7 +53,11 @@ describe("useHighlightCreatedHandler", () => {
 
 		expect(createCardAction).toHaveBeenCalledWith({
 			id: "new-id",
-			meta: { name: "A Old B New Text C", parent: ELEMENT_ID },
+			meta: {
+				name: "A Old B New Text C",
+				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
+			},
 			front: '<p>A Old B <mark data-cloze-hidden="true">New Text</mark> C</p>',
 			back: "New Text",
 		});
@@ -132,7 +136,11 @@ describe("useHighlightCreatedHandler", () => {
 
 		expect(createExtractAction).toHaveBeenCalledWith({
 			id: "new-id",
-			meta: { name: "Nested Rest", parent: ELEMENT_ID },
+			meta: {
+				name: "Nested Rest",
+				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
+			},
 			content: "Nested Rest",
 		});
 		expect(createCardAction).not.toHaveBeenCalled();
@@ -166,6 +174,7 @@ describe("useHighlightCreatedHandler", () => {
 			meta: {
 				name: "First Second New Text Third",
 				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
 			},
 			front: '<p>First Second <mark data-cloze-hidden="true">New Text</mark> Third</p>',
 			back: "Old New Text",
@@ -193,7 +202,11 @@ describe("useHighlightCreatedHandler", () => {
 
 		expect(createCardAction).toHaveBeenCalledWith({
 			id: "new-id",
-			meta: { name: "Old Cloze New Text", parent: ELEMENT_ID },
+			meta: {
+				name: "Old Cloze New Text",
+				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
+			},
 			front: '<p>Old Cloze <mark data-cloze-hidden="true">New Text</mark></p>',
 			back: "Before Old Cloze New Text",
 		});
@@ -217,7 +230,11 @@ describe("useHighlightCreatedHandler", () => {
 
 		expect(createExtractAction).toHaveBeenCalledWith({
 			id: "new-id",
-			meta: { name: "Before Old Cloze Rest", parent: ELEMENT_ID },
+			meta: {
+				name: "Before Old Cloze Rest",
+				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
+			},
 			content: "Before Old Cloze Rest",
 		});
 	});
@@ -243,7 +260,11 @@ describe("useHighlightCreatedHandler", () => {
 
 		expect(createExtractAction).toHaveBeenCalledWith({
 			id: "new-id",
-			meta: { name: "First Middle Second", parent: ELEMENT_ID },
+			meta: {
+				name: "First Middle Second",
+				parent: ELEMENT_ID,
+				derivedFrom: ELEMENT_ID,
+			},
 			content: "First Middle Second",
 		});
 	});
