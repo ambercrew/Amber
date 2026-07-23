@@ -28,6 +28,8 @@ interface SplitSlotProps {
 	registerContentRoot: (element: HTMLElement | null) => void;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onContentReady: (seq: number) => void;
+	/** Block index to mark as the reader's saved position, if it's in this split. */
+	markerBlockIndex?: number;
 }
 
 /**
@@ -49,6 +51,7 @@ export default function SplitSlot({
 	registerContentRoot,
 	onHighlightCreated,
 	onContentReady,
+	markerBlockIndex,
 }: SplitSlotProps) {
 	const [content, setContent] = useState<string | null>(null);
 	const contentElementRef = useRef<HTMLDivElement | null>(null);
@@ -115,6 +118,7 @@ export default function SplitSlot({
 						onChange={handleChange}
 						onHighlightCreated={onHighlightCreated}
 						onRootElement={registerContentRoot}
+						markerBlockIndex={markerBlockIndex}
 					/>
 				)}
 			</div>
