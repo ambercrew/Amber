@@ -29,7 +29,7 @@ import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
-const HEADER_AND_FOOTER_HEIGHT = 56;
+export const HEADER_AND_FOOTER_HEIGHT = 56;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 

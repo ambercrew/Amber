@@ -1,5 +1,8 @@
 // Number of splits kept mounted on each side of the split currently at the top
 // of the viewport. Total live editors ≈ 2 * NEIGHBORS + 1, regardless of
+
+import { HEADER_AND_FOOTER_HEIGHT } from "../../App/components/App";
+
 // how many splits the reading has.
 export const READING_SPLIT_MOUNT_NEIGHBORS = 1;
 // Floor for any placeholder height so empty/near-empty splits stay observable.
@@ -16,4 +19,4 @@ export const READING_ESTIMATE_SCALE = 0.3;
 export const READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS = 400;
 // Fixed height of the app header/footer; the visible reading region sits below
 // the header, so position math offsets the viewport top by this much.
-export const READING_VIEWPORT_TOP_OFFSET_IN_PX = 56;
+export const READING_VIEWPORT_TOP_OFFSET_IN_PX = HEADER_AND_FOOTER_HEIGHT;

@@ -76,7 +76,6 @@ export function useReadPoint({
 					: null;
 				if (block) {
 					block.scrollIntoView({ block: "start" });
-					window.scrollBy(0, -READING_VIEWPORT_TOP_OFFSET_IN_PX);
 				}
 				// Always release the gate, even if the root wasn't found — a
 				// permanently low flag would freeze the mount window on the
