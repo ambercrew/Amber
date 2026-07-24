@@ -10,6 +10,7 @@ import {
 import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import RootElementPlugin from "../../components/Editor/plugins/RootElementPlugin";
 import ReadPointMarkerPlugin from "../../components/Editor/plugins/ReadPointMarkerPlugin";
+import CursorTrackerPlugin from "../../components/Editor/plugins/CursorTrackerPlugin";
 import useApi from "../../hooks/useApi";
 import useAutoSave from "./hooks/useAutoSave";
 
@@ -23,6 +24,8 @@ interface ElementEditorProps {
 	onRootElement?: (element: HTMLElement | null) => void;
 	/** Block index to mark as the reader's saved read point, if any. */
 	markerBlockIndex?: number;
+	/** Receives the block index containing the caret (see `CursorTrackerPlugin`). */
+	onCursorMove?: (blockIndex: number) => void;
 }
 
 export default function ElementEditor({
@@ -33,6 +36,7 @@ export default function ElementEditor({
 	onChange,
 	onRootElement,
 	markerBlockIndex,
+	onCursorMove,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const handleSave = useCallback(
@@ -83,6 +87,9 @@ export default function ElementEditor({
 				)}
 				{markerBlockIndex !== undefined && (
 					<ReadPointMarkerPlugin blockIndex={markerBlockIndex} />
+				)}
+				{onCursorMove && (
+					<CursorTrackerPlugin onCursorMove={onCursorMove} />
 				)}
 			</Editor>
 		</>

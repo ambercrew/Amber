@@ -12,4 +12,6 @@ export interface HighlightCreatedPayload {
 	/** HTML of the entire document, after wrapping the selection in the highlight. */
 	fullHtml: string;
 	color: MantineColor;
+	/** Index, among the editor root's top-level children, of the block containing the end of the selection. */
+	endBlockIndex: number;
 }

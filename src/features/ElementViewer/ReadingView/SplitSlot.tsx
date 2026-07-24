@@ -26,10 +26,15 @@ interface SplitSlotProps {
 	observeSplit: (element: HTMLElement | null) => void;
 	/** Registers the mounted editor's root element for this split. */
 	registerContentRoot: (element: HTMLElement | null) => void;
-	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
+	onHighlightCreated?: (
+		payload: HighlightCreatedPayload,
+		seq: number,
+	) => void;
 	onContentReady: (seq: number) => void;
 	/** Block index to mark as the reader's saved read point, if it's in this split. */
 	markerBlockIndex?: number;
+	/** Called with the block index containing the caret, whenever it moves in this split. */
+	onCursorMove?: (seq: number, blockIndex: number) => void;
 }
 
 /**
@@ -52,6 +57,7 @@ export default function SplitSlot({
 	onHighlightCreated,
 	onContentReady,
 	markerBlockIndex,
+	onCursorMove,
 }: SplitSlotProps) {
 	const [content, setContent] = useState<string | null>(null);
 	const contentElementRef = useRef<HTMLDivElement | null>(null);
@@ -79,6 +85,17 @@ export default function SplitSlot({
 	useEffect(() => {
 		if (mounted && content !== null) onContentReady(seq);
 	}, [mounted, content, seq, onContentReady]);
+
+	const handleHighlightCreated = useCallback(
+		(payload: HighlightCreatedPayload) =>
+			onHighlightCreated?.(payload, seq),
+		[onHighlightCreated, seq],
+	);
+
+	const handleCursorMove = useCallback(
+		(blockIndex: number) => onCursorMove?.(seq, blockIndex),
+		[onCursorMove, seq],
+	);
 
 	const handleChange = useCallback(
 		async (updated: string) => {
@@ -116,9 +133,10 @@ export default function SplitSlot({
 						buttons={buttons}
 						autoFocus={autoFocus}
 						onChange={handleChange}
-						onHighlightCreated={onHighlightCreated}
+						onHighlightCreated={handleHighlightCreated}
 						onRootElement={registerContentRoot}
 						markerBlockIndex={markerBlockIndex}
+						onCursorMove={handleCursorMove}
 					/>
 				)}
 			</div>
