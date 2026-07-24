@@ -60,7 +60,7 @@ describe("useSplitMountWindow", () => {
 	});
 });
 
-describe("useSplitMountWindow pin/jump gating", () => {
+describe("useSplitMountWindow lock/unlock gating", () => {
 	const originalObserver = window.IntersectionObserver;
 	let observerCallback: IntersectionObserverCallback | null = null;
 
@@ -95,7 +95,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		});
 	}
 
-	it("Should keep the window pinned to the initial split until released", () => {
+	it("Should keep the window locked to the initial split until unlocked", () => {
 		// Arrange
 
 		const splits = makeSplits(10);
@@ -118,7 +118,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		expect(sorted(result.current.mountedSeqs)).toEqual([4, 5, 6]);
 	});
 
-	it("Should follow the viewport once released", () => {
+	it("Should follow the viewport once unlocked", () => {
 		// Arrange
 
 		const splits = makeSplits(10);
@@ -133,7 +133,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		// Act
 
 		act(() => {
-			result.current.releaseJump();
+			result.current.unlock();
 		});
 		intersect(topSlot, true);
 
@@ -143,7 +143,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		expect(sorted(result.current.mountedSeqs)).toEqual([0, 1]);
 	});
 
-	it("Should force the window onto jumpTo's target, ignoring the observer until releaseJump", () => {
+	it("Should force the window onto lockTo's target, ignoring the observer until unlock", () => {
 		// Arrange
 
 		const splits = makeSplits(10);
@@ -151,7 +151,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 			useSplitMountWindow({ splits, initialSeq: 0 }),
 		);
 		act(() => {
-			result.current.releaseJump();
+			result.current.unlock();
 		});
 		const topSlot = document.createElement("div");
 		act(() => {
@@ -161,17 +161,17 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		// Act
 
 		act(() => {
-			result.current.jumpTo(5);
+			result.current.lockTo(5);
 		});
 
-		// Assert: jumping in takes effect immediately.
+		// Assert: locking in takes effect immediately.
 
 		expect(result.current.primarySeq).toBe(5);
 		expect(sorted(result.current.mountedSeqs)).toEqual([4, 5, 6]);
 
 		// Act: the real viewport hasn't caught up yet, so the observer still
 		// reports the old top split as intersecting — this must not override
-		// the jump.
+		// the lock.
 
 		intersect(topSlot, true);
 
@@ -182,7 +182,7 @@ describe("useSplitMountWindow pin/jump gating", () => {
 		// Act: once released, the observer drives `primarySeq` again.
 
 		act(() => {
-			result.current.releaseJump();
+			result.current.unlock();
 		});
 		intersect(topSlot, true);
 

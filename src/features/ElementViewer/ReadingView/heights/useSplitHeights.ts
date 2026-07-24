@@ -12,15 +12,11 @@ interface ReturnValue {
 	 * Ref callback for a mounted split's root element. Measures its real height
 	 * with a `ResizeObserver` (which reports once on the initial observe, so
 	 * this also catches the mount-time placeholder-to-content swap, not just
-	 * later resizes like Lexical edits or image loads) and caches it (debounced)
-	 * so the placeholder shown after it unmounts — and the first paint next
-	 * session — match exactly. Native scroll anchoring (see `ReadingView.tsx`)
-	 * is what keeps the visible content stable across a resize on engines that
-	 * support it; on ones that don't (see `supportsOverflowAnchor`), this hook
-	 * also manually compensates the scroll position. The returned function is
-	 * cached per seq, keeping a stable identity across renders (unless
-	 * charCount changes) so callers don't detach/reattach the ref — and tear
-	 * down the `ResizeObserver` — on every unrelated re-render.
+	 * later resizes) and caches it debounced, so the placeholder shown after it
+	 * unmounts matches exactly. Native scroll anchoring keeps visible content
+	 * stable across the resize on engines that support it; on ones that don't,
+	 * this hook manually compensates the scroll position instead. Cached per
+	 * seq so callers don't detach/reattach the ref on every unrelated re-render.
 	 */
 	observeSplit: (
 		seq: number,
@@ -39,13 +35,11 @@ export function useSplitHeights(
 	readingId: string,
 	contentWidth: number,
 	/**
-	 * Held low until the saved position has been restored. The target split (and
-	 * its neighbours) mount for the first time as part of that same restore, so
-	 * their first real measurement — placeholder estimate vs. actual height —
-	 * lands right as `restoreIfTarget` is positioning the viewport. Compensating
-	 * for that resize on top of the deliberate restore scroll would double up
-	 * into a much bigger jump than the estimate error alone; skip it until
-	 * restore has landed and any further resize is a genuine post-restore one.
+	 * Held low until the saved position has been restored. The target split's
+	 * first real measurement — placeholder estimate vs. actual height — lands
+	 * right as that restore is positioning the viewport, and compensating for
+	 * it on top of the restore scroll would double up into a much bigger jump
+	 * than the estimate error alone; skip it until restore has landed.
 	 */
 	restoredRef?: RefObject<boolean>,
 ): ReturnValue {

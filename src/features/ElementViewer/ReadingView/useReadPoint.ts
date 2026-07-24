@@ -7,7 +7,6 @@ import { updateReadPoint } from "../../../api/elements/api/elementsApi";
 import { ReadPoint } from "../../../types/elements/readPoint";
 import { READ_POINT_MANUAL_SET_REQUESTED } from "../../../types/events/readPointManualSetRequestedEvent";
 import { READ_POINT_MANUAL_CLEAR_REQUESTED } from "../../../types/events/readPointManualClearRequestedEvent";
-import { scrollBlockIntoView } from "./scrollBlockIntoView";
 
 interface Props {
 	readingId: string;
@@ -24,22 +23,14 @@ interface Props {
 	 */
 	lastSplitSeq?: number;
 	/**
-	 * Flipped to `true` once restore has anchored the viewport. Shared with the
-	 * mount window, which stays pinned to the target split until it flips — and
-	 * gating saves off it prevents the restore scroll from being recorded as a
-	 * user scroll back to the top.
+	 * Flipped to `true` once restore has anchored the viewport — gating saves
+	 * off it prevents the restore scroll from being recorded as a user scroll
+	 * back to the top.
 	 */
 	restoredRef: RefObject<boolean>;
-	/** Called once restore has landed (or had nothing to do), so callers relying on `restoredRef` can react (e.g. release the mount window's pin). */
-	onRestored?: () => void;
 }
 
 interface ReturnValue {
-	/**
-	 * Called when a split's editor content has mounted. If it's the split we
-	 * need to restore to, scrolls the target block to the top of the viewport.
-	 */
-	restoreIfTarget: (seq: number) => void;
 	/**
 	 * Called when an extract or cloze is created in this reading, with the
 	 * split and block right after the extracted range.
@@ -77,18 +68,14 @@ function isAtDocumentEnd(root: HTMLElement): boolean {
 }
 
 /**
- * Restores the saved read point on open and persists it as the user
- * scrolls. Restore anchors to the actual mounted target block rather than an
- * absolute offset, so estimate error in the placeholders above never causes a
- * visible jump. Persistence goes through `useAutoSave`, so the latest read
- * point is also flushed on unmount, app close, and before a sync — not just
- * after the debounce settles.
+ * Persists the read point as the user scrolls, extracts/clozes are created,
+ * or a manual set/clear is requested. Flushes on unmount, app close, and
+ * before a sync, not just after the debounce settles.
  *
  * Three placement sources compete for the same read point, in priority
- * order: manual (a user command) beats extract/cloze creation, which beats
- * automatic scroll-tracking. Once either a manual or extract placement
- * happens, automatic tracking stops for the rest of this reading's opening —
- * it only resumes on the next open, from `initial`.
+ * order: manual beats extract/cloze creation, which beats automatic
+ * scroll-tracking. Once a manual or extract placement happens, automatic
+ * tracking stops until the next open.
  */
 export function useReadPoint({
 	readingId,
@@ -97,7 +84,6 @@ export function useReadPoint({
 	getContentRoot,
 	lastSplitSeq,
 	restoredRef,
-	onRestored,
 }: Props): ReturnValue {
 	const lastSavedRef = useRef<ReadPoint>({
 		split: initial.split,
@@ -109,10 +95,8 @@ export function useReadPoint({
 		primarySeqRef.current = primarySeq;
 	}, [primarySeq]);
 
-	// Last read point reported by `CursorTrackerPlugin` for any mounted
-	// split. Lexical keeps this valid even after focus moves away from the
-	// editor (e.g. to the command palette), unlike a live DOM selection
-	// query, which would read whatever has focus at command time instead.
+	// Last known caret position, kept valid even after focus moves elsewhere
+	// (e.g. the command palette), unlike reading live DOM selection.
 	const lastCursorRef = useRef<ReadPoint | null>(null);
 	const trackCursor = useCallback((seq: number, block: number) => {
 		lastCursorRef.current = { split: seq, block };
@@ -123,32 +107,6 @@ export function useReadPoint({
 	// them again, but never the other way around.
 	const precedenceRef = useRef<"automatic" | "extract" | "manual">(
 		"automatic",
-	);
-
-	const restoreIfTarget = useCallback(
-		(seq: number) => {
-			if (restoredRef.current || seq !== initial.split) return;
-			// Already at the very start of the reading — nothing to scroll to.
-			if (
-				initial.split === NO_READ_POINT.split &&
-				initial.block === NO_READ_POINT.block
-			) {
-				restoredRef.current = true;
-				onRestored?.();
-				return;
-			}
-			// Defer a frame so Lexical has painted the block rects.
-			requestAnimationFrame(() => {
-				const root = getContentRoot(seq);
-				if (root) scrollBlockIntoView(root, initial.block);
-				// Always release the gate, even if the root wasn't found — a
-				// permanently low flag would freeze the mount window on the
-				// target split forever.
-				restoredRef.current = true;
-				onRestored?.();
-			});
-		},
-		[initial.split, initial.block, getContentRoot, restoredRef, onRestored],
 	);
 
 	const { callApi } = useApi();
@@ -169,11 +127,8 @@ export function useReadPoint({
 	);
 	const { onContentUpdate } = useAutoSave({ onSave: handleSave, callApi });
 
-	// Capture the read point eagerly rather than letting useAutoSave read it
-	// at flush time: on unmount the split editors tear down before this
-	// hook's flush runs, so a deferred DOM read would find no root.
-	// Serializing now lets useAutoSave persist this exact read point on
-	// unmount / close / sync.
+	// Captured eagerly rather than read at flush time: split editors tear
+	// down before flush runs, so a deferred DOM read would find no root.
 	const persistReadPoint = useCallback(
 		(readPoint: ReadPoint) => {
 			onContentUpdate(() => JSON.stringify(readPoint));
@@ -265,7 +220,6 @@ export function useReadPoint({
 	const getCurrentReadPoint = useCallback(() => lastSavedRef.current, []);
 
 	return {
-		restoreIfTarget,
 		recordExtractReadPoint,
 		trackCursor,
 		getCurrentReadPoint,

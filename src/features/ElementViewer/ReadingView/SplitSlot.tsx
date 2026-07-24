@@ -63,11 +63,9 @@ export default function SplitSlot({
 	const [content, setContent] = useState<string | null>(null);
 	const contentElementRef = useRef<HTMLDivElement | null>(null);
 
-	// Fetches once, the first time this slot enters the mount window. Content
-	// already loaded from an earlier mount is kept rather than re-fetched —
-	// any local edit was already persisted via `handleChange`, so a re-fetch
-	// would just be an identical, redundant IPC round-trip every time the
-	// window slides back over this split.
+	// Fetches once, the first time this slot enters the mount window. Kept on
+	// later re-mounts instead of re-fetching, since local edits are already
+	// persisted.
 	useEffect(() => {
 		if (!mounted || content !== null) return;
 		let cancelled = false;
@@ -108,10 +106,8 @@ export default function SplitSlot({
 		[readingId, seq],
 	);
 
-	// Measure only the swappable content box, not the (always-present) divider
-	// above it — otherwise the divider's height would be cached as part of the
-	// content height, then double-counted once that cached height is reused for
-	// the placeholder box sitting next to a divider of its own.
+	// Measure only the content box, not the divider above it, so its height
+	// isn't double-counted when reused for the placeholder.
 	const setContentElement = useCallback(
 		(element: HTMLDivElement | null) => {
 			contentElementRef.current = element;
