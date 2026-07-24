@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getNearestNodeFromDOMNode, NodeKey } from "lexical";
 import { Box, Tooltip } from "@mantine/core";
-import { ClockCounterClockwiseIcon } from "@phosphor-icons/react";
+import { commandIcon } from "../../../commands/commandIcon";
 
 interface ReadPointMarkerPluginProps {
 	/** Index of the block (among the editor root's children) to mark. */
@@ -79,8 +79,8 @@ export default function ReadPointMarkerPlugin({
 
 	return (
 		<Tooltip label="Resumed reading here" position="left" withArrow>
-			<Box pos="absolute" top={top} right="100%" mr={5}>
-				<ClockCounterClockwiseIcon size={22} />
+			<Box pos="absolute" top={top} right="100%" mr={5} fz={22}>
+				{commandIcon("set-read-point")}
 			</Box>
 		</Tooltip>
 	);
