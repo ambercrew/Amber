@@ -22,7 +22,13 @@ import {
 	defineExtension,
 	LexicalEditor,
 } from "lexical";
-import { Box, Text, Typography, useComputedColorScheme } from "@mantine/core";
+import {
+	Box,
+	Menu,
+	Text,
+	Typography,
+	useComputedColorScheme,
+} from "@mantine/core";
 import { SlashMenuPlugin } from "./plugins/SlashMenuPlugin";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
@@ -119,6 +125,8 @@ interface EditorProps {
 	autoFocus?: boolean;
 	children?: React.ReactNode;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
+	/** Extra items for the editor's right-click menu, if any (e.g. `Menu.Item`/`Menu.Sub`). */
+	contextMenuItems?: React.ReactNode;
 }
 
 export default function Editor({
@@ -126,6 +134,7 @@ export default function Editor({
 	autoFocus = false,
 	children,
 	onHighlightCreated,
+	contextMenuItems,
 }: EditorProps) {
 	const colorScheme = useComputedColorScheme("light");
 
@@ -176,28 +185,39 @@ export default function Editor({
 	);
 
 	return (
-		<Typography>
-			<LexicalExtensionComposer
-				extension={editorExtension}
-				contentEditable={null}>
-				<Box className={styles.anchor}>
-					<ContentEditable
-						className={styles["content-editable"]}
-						aria-label="Rich text editor"
-						aria-placeholder="Type '/' for commands..."
-						placeholder={
-							<Text className={styles.placeholder} c="dimmed">
-								Type &apos;/&apos; for commands...
-							</Text>
-						}
-					/>
-					<SlashMenuPlugin />
-					<EquationPlugin />
-					<ImagePlugin />
-					<HighlightPlugin onHighlightCreated={onHighlightCreated} />
-					{children}
-				</Box>
-			</LexicalExtensionComposer>
-		</Typography>
+		<Menu withinPortal shadow="lg">
+			<Menu.ContextMenu disabled={!contextMenuItems}>
+				<Typography>
+					<LexicalExtensionComposer
+						extension={editorExtension}
+						contentEditable={null}>
+						<Box className={styles.anchor}>
+							<ContentEditable
+								className={styles["content-editable"]}
+								aria-label="Rich text editor"
+								aria-placeholder="Type '/' for commands..."
+								placeholder={
+									<Text
+										className={styles.placeholder}
+										c="dimmed">
+										Type &apos;/&apos; for commands...
+									</Text>
+								}
+							/>
+							<SlashMenuPlugin />
+							<EquationPlugin />
+							<ImagePlugin />
+							<HighlightPlugin
+								onHighlightCreated={onHighlightCreated}
+							/>
+							{children}
+						</Box>
+					</LexicalExtensionComposer>
+				</Typography>
+			</Menu.ContextMenu>
+			{contextMenuItems && (
+				<Menu.Dropdown>{contextMenuItems}</Menu.Dropdown>
+			)}
+		</Menu>
 	);
 }

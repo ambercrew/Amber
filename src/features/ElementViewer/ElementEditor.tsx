@@ -26,6 +26,8 @@ interface ElementEditorProps {
 	markerBlockIndex?: number;
 	/** Receives the block index containing the caret (see `CursorTrackerPlugin`). */
 	onCursorMove?: (blockIndex: number) => void;
+	/** Extra items for the editor's right-click menu, if any. */
+	contextMenuItems?: React.ReactNode;
 }
 
 export default function ElementEditor({
@@ -37,6 +39,7 @@ export default function ElementEditor({
 	onRootElement,
 	markerBlockIndex,
 	onCursorMove,
+	contextMenuItems,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const handleSave = useCallback(
@@ -75,7 +78,8 @@ export default function ElementEditor({
 			<Editor
 				initialContent={initialContent}
 				autoFocus={autoFocus}
-				onHighlightCreated={onHighlightCreated}>
+				onHighlightCreated={onHighlightCreated}
+				contextMenuItems={contextMenuItems}>
 				<FloatingMenuPlugin buttons={buttons} />
 				<OnChangePlugin
 					onChange={handleChange}

@@ -7,6 +7,7 @@ import { updateReadPoint } from "../../../api/elements/api/elementsApi";
 import { ReadPoint } from "../../../types/elements/readPoint";
 import { READ_POINT_MANUAL_SET_REQUESTED } from "../../../types/events/readPointManualSetRequestedEvent";
 import { READ_POINT_MANUAL_CLEAR_REQUESTED } from "../../../types/events/readPointManualClearRequestedEvent";
+import { scrollBlockIntoView } from "./scrollBlockIntoView";
 
 interface Props {
 	readingId: string;
@@ -29,6 +30,8 @@ interface Props {
 	 * user scroll back to the top.
 	 */
 	restoredRef: RefObject<boolean>;
+	/** Called once restore has landed (or had nothing to do), so callers relying on `restoredRef` can react (e.g. release the mount window's pin). */
+	onRestored?: () => void;
 }
 
 interface ReturnValue {
@@ -48,10 +51,12 @@ interface ReturnValue {
 	 * (e.g. to the command palette's search field).
 	 */
 	trackCursor: (seq: number, block: number) => void;
+	/** The read point as last recorded, regardless of which mechanism set it. */
+	getCurrentReadPoint: () => ReadPoint;
 }
 
 /** The sentinel value meaning "no read point" — also a reading's state before it has ever had one saved. */
-const NO_READ_POINT: ReadPoint = { split: 0, block: 0 };
+export const NO_READ_POINT: ReadPoint = { split: 0, block: 0 };
 
 /** Index of the first block whose bottom edge is still below the viewport top. */
 function topVisibleBlockIndex(root: HTMLElement, topOffset: number): number {
@@ -92,6 +97,7 @@ export function useReadPoint({
 	getContentRoot,
 	lastSplitSeq,
 	restoredRef,
+	onRestored,
 }: Props): ReturnValue {
 	const lastSavedRef = useRef<ReadPoint>({
 		split: initial.split,
@@ -128,25 +134,21 @@ export function useReadPoint({
 				initial.block === NO_READ_POINT.block
 			) {
 				restoredRef.current = true;
+				onRestored?.();
 				return;
 			}
 			// Defer a frame so Lexical has painted the block rects.
 			requestAnimationFrame(() => {
 				const root = getContentRoot(seq);
-				const block = root
-					? (root.children[initial.block] ??
-						root.children[root.children.length - 1])
-					: null;
-				if (block) {
-					block.scrollIntoView({ block: "start" });
-				}
+				if (root) scrollBlockIntoView(root, initial.block);
 				// Always release the gate, even if the root wasn't found — a
 				// permanently low flag would freeze the mount window on the
 				// target split forever.
 				restoredRef.current = true;
+				onRestored?.();
 			});
 		},
-		[initial.split, initial.block, getContentRoot, restoredRef],
+		[initial.split, initial.block, getContentRoot, restoredRef, onRestored],
 	);
 
 	const { callApi } = useApi();
@@ -260,5 +262,12 @@ export function useReadPoint({
 		recordManualClearReadPoint,
 	);
 
-	return { restoreIfTarget, recordExtractReadPoint, trackCursor };
+	const getCurrentReadPoint = useCallback(() => lastSavedRef.current, []);
+
+	return {
+		restoreIfTarget,
+		recordExtractReadPoint,
+		trackCursor,
+		getCurrentReadPoint,
+	};
 }

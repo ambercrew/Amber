@@ -1,26 +1,11 @@
-import {
-	RefObject,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { READING_SPLIT_MOUNT_NEIGHBORS } from "./readingViewConstants";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 
 interface Props {
 	splits: ReadingSplitMetaDto[];
-	/** Split to treat as primary before the observer reports anything (restore). */
+	/** Split to mount initially, pinned there until released (see `jumpTo`/`releaseJump`). */
 	initialSeq: number;
-	/**
-	 * Held low until the saved position has been restored. While it is low the
-	 * observer keeps `primarySeq` pinned to `initialSeq` — otherwise, at open the
-	 * viewport sits at the document top (scrollTop 0), the observer reports the
-	 * top-of-document splits as intersecting, and the mount window collapses
-	 * there, unmounting the target split before restore can anchor to it.
-	 */
-	restoredRef?: RefObject<boolean>;
 }
 
 interface ReturnValue {
@@ -30,6 +15,15 @@ interface ReturnValue {
 	primarySeq: number;
 	/** Ref callback for each slot's root element, observed for viewport entry. */
 	registerSlot: (seq: number) => (element: Element | null) => void;
+	/**
+	 * Forces the mount window onto `seq`, for jumping to a split that isn't
+	 * currently in the viewport (e.g. "go to read point"). Bypasses the
+	 * viewport observer until `releaseJump` is called, so it isn't immediately
+	 * overridden by the (still stale) actual scroll position.
+	 */
+	jumpTo: (seq: number) => void;
+	/** Resumes viewport-observer-driven tracking after a `jumpTo`. */
+	releaseJump: () => void;
 }
 
 /**
@@ -41,12 +35,20 @@ interface ReturnValue {
 export function useSplitMountWindow({
 	splits,
 	initialSeq,
-	restoredRef,
 }: Props): ReturnValue {
 	const [primarySeq, setPrimarySeq] = useState(initialSeq);
 	const intersectingRef = useRef<Set<number>>(new Set());
 	const elementSeqRef = useRef<Map<Element, number>>(new Map());
 	const observerRef = useRef<IntersectionObserver | null>(null);
+	// Pinned from mount, so the window stays on `initialSeq` until the reader
+	// (via `releaseJump`) says restore has anchored the viewport there —
+	// otherwise, at open the viewport sits at the document top (scrollTop 0),
+	// the observer reports the top-of-document splits as intersecting, and
+	// the mount window collapses there, unmounting the target split before
+	// restore can anchor to it. The same pin/release pair also backs `jumpTo`,
+	// for forcing the window onto a split the viewport hasn't scrolled to yet
+	// (e.g. "go to read point").
+	const jumpingRef = useRef(true);
 
 	useEffect(() => {
 		const observer = new IntersectionObserver(
@@ -58,10 +60,7 @@ export function useSplitMountWindow({
 					else intersectingRef.current.delete(seq);
 				}
 				if (intersectingRef.current.size === 0) return;
-				// Stay pinned to `initialSeq` until restore has anchored the
-				// viewport to the target split; only then does the topmost
-				// intersecting split reflect where the reader actually is.
-				if (restoredRef && !restoredRef.current) return;
+				if (jumpingRef.current) return;
 				const topmost = Math.min(...intersectingRef.current);
 				setPrimarySeq(prev => (prev === topmost ? prev : topmost));
 			},
@@ -77,7 +76,7 @@ export function useSplitMountWindow({
 			observer.disconnect();
 			observerRef.current = null;
 		};
-	}, [restoredRef]);
+	}, []);
 
 	const registerSlot = useCallback(
 		(seq: number) => (element: Element | null) => {
@@ -114,5 +113,14 @@ export function useSplitMountWindow({
 		return mounted;
 	}, [splits, primarySeq]);
 
-	return { mountedSeqs, primarySeq, registerSlot };
+	const jumpTo = useCallback((seq: number) => {
+		jumpingRef.current = true;
+		setPrimarySeq(seq);
+	}, []);
+
+	const releaseJump = useCallback(() => {
+		jumpingRef.current = false;
+	}, []);
+
+	return { mountedSeqs, primarySeq, registerSlot, jumpTo, releaseJump };
 }

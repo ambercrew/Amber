@@ -60,7 +60,7 @@ describe("useSplitMountWindow", () => {
 	});
 });
 
-describe("useSplitMountWindow restore gating", () => {
+describe("useSplitMountWindow pin/jump gating", () => {
 	const originalObserver = window.IntersectionObserver;
 	let observerCallback: IntersectionObserverCallback | null = null;
 
@@ -95,13 +95,12 @@ describe("useSplitMountWindow restore gating", () => {
 		});
 	}
 
-	it("Should keep the window pinned to the initial split while restore is pending", () => {
+	it("Should keep the window pinned to the initial split until released", () => {
 		// Arrange
 
 		const splits = makeSplits(10);
-		const restoredRef = { current: false };
 		const { result } = renderHook(() =>
-			useSplitMountWindow({ splits, initialSeq: 5, restoredRef }),
+			useSplitMountWindow({ splits, initialSeq: 5 }),
 		);
 		const topSlot = document.createElement("div");
 		act(() => {
@@ -119,13 +118,12 @@ describe("useSplitMountWindow restore gating", () => {
 		expect(sorted(result.current.mountedSeqs)).toEqual([4, 5, 6]);
 	});
 
-	it("Should follow the viewport once restore has landed", () => {
+	it("Should follow the viewport once released", () => {
 		// Arrange
 
 		const splits = makeSplits(10);
-		const restoredRef = { current: false };
 		const { result } = renderHook(() =>
-			useSplitMountWindow({ splits, initialSeq: 5, restoredRef }),
+			useSplitMountWindow({ splits, initialSeq: 5 }),
 		);
 		const topSlot = document.createElement("div");
 		act(() => {
@@ -134,12 +132,62 @@ describe("useSplitMountWindow restore gating", () => {
 
 		// Act
 
-		restoredRef.current = true;
+		act(() => {
+			result.current.releaseJump();
+		});
 		intersect(topSlot, true);
 
 		// Assert
 
 		expect(result.current.primarySeq).toBe(0);
 		expect(sorted(result.current.mountedSeqs)).toEqual([0, 1]);
+	});
+
+	it("Should force the window onto jumpTo's target, ignoring the observer until releaseJump", () => {
+		// Arrange
+
+		const splits = makeSplits(10);
+		const { result } = renderHook(() =>
+			useSplitMountWindow({ splits, initialSeq: 0 }),
+		);
+		act(() => {
+			result.current.releaseJump();
+		});
+		const topSlot = document.createElement("div");
+		act(() => {
+			result.current.registerSlot(0)(topSlot);
+		});
+
+		// Act
+
+		act(() => {
+			result.current.jumpTo(5);
+		});
+
+		// Assert: jumping in takes effect immediately.
+
+		expect(result.current.primarySeq).toBe(5);
+		expect(sorted(result.current.mountedSeqs)).toEqual([4, 5, 6]);
+
+		// Act: the real viewport hasn't caught up yet, so the observer still
+		// reports the old top split as intersecting — this must not override
+		// the jump.
+
+		intersect(topSlot, true);
+
+		// Assert
+
+		expect(result.current.primarySeq).toBe(5);
+
+		// Act: once released, the observer drives `primarySeq` again.
+
+		act(() => {
+			result.current.releaseJump();
+		});
+		intersect(topSlot, true);
+
+		// Assert
+
+		expect(result.current.primarySeq).toBe(0);
 	});
 });

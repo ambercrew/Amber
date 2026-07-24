@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Center, Container, Loader } from "@mantine/core";
+import { useWindowEvent } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 import { getReadingSplitManifest } from "../../../api/elements/api/elementsApi";
 import { MetaResponseDto } from "../../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { ReadPoint } from "../../../types/elements/readPoint";
+import { READ_POINT_MANUAL_GOTO_REQUESTED } from "../../../types/events/readPointManualGotoRequestedEvent";
 import ContentSourcePanel from "../ContentSourcePanel";
 import SplitSlot from "./SplitSlot";
-import { useReadPoint } from "./useReadPoint";
+import { scrollBlockIntoView } from "./scrollBlockIntoView";
+import { NO_READ_POINT, useReadPoint } from "./useReadPoint";
 import { useSplitHeights } from "./heights/useSplitHeights";
 import { useSplitMountWindow } from "./useSplitMountWindow";
 
@@ -76,11 +80,11 @@ export default function ReadingView({
 		contentWidth,
 		restoredRef,
 	);
-	const { mountedSeqs, primarySeq, registerSlot } = useSplitMountWindow({
-		splits: splits ?? [],
-		initialSeq: readPoint.split,
-		restoredRef,
-	});
+	const { mountedSeqs, primarySeq, registerSlot, jumpTo, releaseJump } =
+		useSplitMountWindow({
+			splits: splits ?? [],
+			initialSeq: readPoint.split,
+		});
 
 	// The editable root of each mounted split, keyed by seq. Registered by the
 	// split's editor via `RootElementPlugin` (see `SplitSlot`), so position math
@@ -90,15 +94,46 @@ export default function ReadingView({
 		(seq: number) => contentRootsRef.current.get(seq),
 		[],
 	);
-	const { restoreIfTarget, recordExtractReadPoint, trackCursor } =
-		useReadPoint({
-			readingId,
-			primarySeq,
-			initial: readPoint,
-			getContentRoot,
-			lastSplitSeq: splits?.[splits.length - 1]?.seq,
-			restoredRef,
-		});
+	const {
+		restoreIfTarget,
+		recordExtractReadPoint,
+		trackCursor,
+		getCurrentReadPoint,
+	} = useReadPoint({
+		readingId,
+		primarySeq,
+		initial: readPoint,
+		getContentRoot,
+		lastSplitSeq: splits?.[splits.length - 1]?.seq,
+		restoredRef,
+		onRestored: releaseJump,
+	});
+
+	// Split/block of a "go to read point" request whose target split isn't
+	// mounted yet, so the scroll can't happen until it becomes available.
+	// Cleared once `handleContentReady` fires for that split.
+	const pendingGotoRef = useRef<ReadPoint | null>(null);
+	const goToReadPoint = useCallback(() => {
+		const target = getCurrentReadPoint();
+		if (
+			target.split === NO_READ_POINT.split &&
+			target.block === NO_READ_POINT.block
+		) {
+			notifications.show({ message: "No read point set" });
+			return;
+		}
+		const root = getContentRoot(target.split);
+		if (root) {
+			scrollBlockIntoView(root, target.block);
+			return;
+		}
+		// Not mounted — force it into the mount window so it renders a live
+		// editor, then scroll to it precisely in `handleContentReady` once its
+		// content is ready.
+		pendingGotoRef.current = target;
+		jumpTo(target.split);
+	}, [getCurrentReadPoint, getContentRoot, jumpTo]);
+	useWindowEvent(READ_POINT_MANUAL_GOTO_REQUESTED, goToReadPoint);
 
 	const handleHighlightCreated = useCallback(
 		(payload: HighlightCreatedPayload, seq: number) => {
@@ -119,8 +154,15 @@ export default function ReadingView({
 		(seq: number) => {
 			if (seq === readPoint.split) setPendingAutoFocus(false);
 			restoreIfTarget(seq);
+			if (pendingGotoRef.current?.split === seq) {
+				const { block } = pendingGotoRef.current;
+				pendingGotoRef.current = null;
+				const root = getContentRoot(seq);
+				if (root) scrollBlockIntoView(root, block);
+				releaseJump();
+			}
 		},
-		[readPoint.split, restoreIfTarget],
+		[readPoint.split, restoreIfTarget, getContentRoot, releaseJump],
 	);
 
 	// Cached per seq so the returned ref callback keeps the same identity
