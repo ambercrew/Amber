@@ -62,10 +62,14 @@ export default function ReadPointMarkerPlugin({
 			);
 		};
 
-		measure();
+		// Deferred a frame: right on mount, the block just swapped in from a
+		// placeholder and hasn't painted real geometry yet, so measuring
+		// synchronously here would place the marker at a stale position.
+		const raf = requestAnimationFrame(measure);
 		const unregisterUpdate = editor.registerUpdateListener(measure);
 		window.addEventListener("resize", measure);
 		return () => {
+			cancelAnimationFrame(raf);
 			unregisterUpdate();
 			window.removeEventListener("resize", measure);
 		};
@@ -75,7 +79,7 @@ export default function ReadPointMarkerPlugin({
 
 	return (
 		<Tooltip label="Resumed reading here" position="left" withArrow>
-			<Box pos="absolute" top={top} right="100%" mr={4}>
+			<Box pos="absolute" top={top} right="100%" mr={5}>
 				<ClockCounterClockwiseIcon size={22} />
 			</Box>
 		</Tooltip>
