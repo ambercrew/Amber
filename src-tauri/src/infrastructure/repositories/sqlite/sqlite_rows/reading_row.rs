@@ -22,7 +22,7 @@ pub struct ReadingRow {
     pub modified_at: DateTime<Utc>,
     pub readpoint_split: i64,
     pub readpoint_block: i64,
-    pub a_factor: f64,
+    pub interval_multiplier: f64,
 }
 
 impl From<ReadingRow> for Reading {
@@ -44,7 +44,7 @@ impl From<ReadingRow> for Reading {
                 split: row.readpoint_split as u32,
                 block: row.readpoint_block as u32,
             },
-            a_factor: row.a_factor as f32,
+            interval_multiplier: row.interval_multiplier as f32,
         }
     }
 }

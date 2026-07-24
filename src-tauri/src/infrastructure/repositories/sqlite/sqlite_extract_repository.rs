@@ -28,10 +28,10 @@ impl ExtractRepository for SqliteExtractRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO extracts (id, content, a_factor) VALUES ($1, $2, $3)",
+            "INSERT INTO extracts (id, content, interval_multiplier) VALUES ($1, $2, $3)",
             uuid,
             extract.content,
-            extract.a_factor,
+            extract.interval_multiplier,
         )
         .execute(&mut *tx)
         .await?;
@@ -57,7 +57,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 e.content,
-                e.a_factor
+                e.interval_multiplier
             FROM extracts e
             INNER JOIN meta m ON e.id = m.element_id
             ORDER BY m.position"#
@@ -87,7 +87,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
                 e.content,
-                e.a_factor
+                e.interval_multiplier
             FROM extracts e
             INNER JOIN meta m ON e.id = m.element_id
             WHERE e.id = $1"#,
@@ -112,12 +112,16 @@ impl ExtractRepository for SqliteExtractRepository {
         Ok(())
     }
 
-    async fn update_a_factor(&self, id: Uuid, a_factor: f32) -> Result<(), RepositoryError> {
+    async fn update_interval_multiplier(
+        &self,
+        id: Uuid,
+        interval_multiplier: f32,
+    ) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE extracts SET a_factor = $1 WHERE id = $2",
-            a_factor,
+            "UPDATE extracts SET interval_multiplier = $1 WHERE id = $2",
+            interval_multiplier,
             id,
         )
         .execute(&mut *tx)
@@ -206,7 +210,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -214,7 +218,7 @@ mod tests {
             read_point: ReadPoint::default(),
         };
         let parent_extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
@@ -222,7 +226,7 @@ mod tests {
             content: String::new(),
         };
         let child_extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(parent_extract.meta.element_id),
                 ..extract_meta()
@@ -267,7 +271,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -275,7 +279,7 @@ mod tests {
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
@@ -324,7 +328,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -332,7 +336,7 @@ mod tests {
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()
@@ -375,7 +379,7 @@ mod tests {
             meta: folder_meta(),
         };
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
@@ -383,7 +387,7 @@ mod tests {
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(reading.meta.element_id),
                 ..extract_meta()

@@ -131,18 +131,31 @@ impl DefaultReadingSchedulingService {
 
         Ok(match existing {
             Some(review) if review.interval_days > 0.0 => {
-                let a_factor = self.a_factor_for(element_id).await?;
-                review.interval_days * a_factor
+                let interval_multiplier = self.interval_multiplier_for(element_id).await?;
+                review.interval_days * interval_multiplier
             }
             _ => profile.initial_interval_days,
         }
         .max(profile.min_interval_days))
     }
 
-    async fn a_factor_for(&self, element_id: ElementId) -> Result<f32, ReadingSchedulingError> {
+    async fn interval_multiplier_for(
+        &self,
+        element_id: ElementId,
+    ) -> Result<f32, ReadingSchedulingError> {
         Ok(match element_id {
-            ElementId::Reading(id) => self.reading_repository.get_by_id(id).await?.a_factor,
-            ElementId::Extract(id) => self.extract_repository.get_by_id(id).await?.a_factor,
+            ElementId::Reading(id) => {
+                self.reading_repository
+                    .get_by_id(id)
+                    .await?
+                    .interval_multiplier
+            }
+            ElementId::Extract(id) => {
+                self.extract_repository
+                    .get_by_id(id)
+                    .await?
+                    .interval_multiplier
+            }
             _ => unreachable!("reading scheduling only applies to readings and extracts"),
         })
     }
@@ -232,19 +245,19 @@ mod tests {
     }
 
     async fn create_test_reading(scope: &injector::injector_scope::InjectorScope<'_>) -> ElementId {
-        create_test_reading_with_a_factor(scope, 1.2).await
+        create_test_reading_with_interval_multiplier(scope, 1.2).await
     }
 
-    async fn create_test_reading_with_a_factor(
+    async fn create_test_reading_with_interval_multiplier(
         scope: &injector::injector_scope::InjectorScope<'_>,
-        a_factor: f32,
+        interval_multiplier: f32,
     ) -> ElementId {
         let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
         let element_id = ElementId::Reading(Uuid::new_v4());
         reading_repo
             .create(
                 Reading {
-                    a_factor,
+                    interval_multiplier,
                     meta: Meta {
                         element_id,
                         name: "test".into(),
@@ -284,7 +297,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn next_second_pass_multiplies_interval_by_a_factor() {
+    async fn next_second_pass_multiplies_interval_by_interval_multiplier() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -303,12 +316,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn next_second_pass_uses_readings_own_a_factor_not_profiles() {
+    async fn next_second_pass_uses_readings_own_interval_multiplier_not_profiles() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        let element_id = create_test_reading_with_a_factor(&scope, 1.5).await;
+        let element_id = create_test_reading_with_interval_multiplier(&scope, 1.5).await;
         let service = scope.resolve::<dyn ReadingSchedulingService>().await;
         service.next(element_id).await.unwrap();
 

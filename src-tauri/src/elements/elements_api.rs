@@ -227,10 +227,10 @@ pub async fn update_extract(
 }
 
 #[tauri::command]
-pub async fn update_a_factor(
+pub async fn update_interval_multiplier(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
-    a_factor: f32,
+    interval_multiplier: f32,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     match element_id {
@@ -238,19 +238,19 @@ pub async fn update_a_factor(
             scope
                 .resolve::<dyn ReadingRepository>()
                 .await
-                .update_a_factor(id, a_factor)
+                .update_interval_multiplier(id, interval_multiplier)
                 .await?;
         }
         ElementId::Extract(id) => {
             scope
                 .resolve::<dyn ExtractRepository>()
                 .await
-                .update_a_factor(id, a_factor)
+                .update_interval_multiplier(id, interval_multiplier)
                 .await?;
         }
         _ => {
             return Err(ApiError::new(
-                "a_factor is only valid for readings and extracts".to_string(),
+                "interval_multiplier is only valid for readings and extracts".to_string(),
             ));
         }
     }

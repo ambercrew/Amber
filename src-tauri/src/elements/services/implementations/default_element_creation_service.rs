@@ -92,7 +92,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 modified_at: now,
             },
             read_point: ReadPoint::default(),
-            a_factor: profile.initial_a_factor,
+            interval_multiplier: profile.initial_interval_multiplier,
         };
         let splits = dto
             .splits
@@ -130,7 +130,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 modified_at: now,
             },
             content: dto.content,
-            a_factor: profile.initial_a_factor,
+            interval_multiplier: profile.initial_interval_multiplier,
         };
         self.extract_repository.create(extract).await?;
         // Extracts are reviewed like readings.
@@ -309,7 +309,7 @@ mod tests {
             is_default: true,
             desired_retention: 0.9,
             fsrs_params: None,
-            initial_a_factor: 1.2,
+            initial_interval_multiplier: 1.2,
             initial_interval_days,
             min_interval_days: 1.0,
         };
@@ -438,9 +438,9 @@ mod tests {
         assert!(review.is_some());
     }
 
-    async fn create_test_profile_with_a_factor(
+    async fn create_test_profile_with_interval_multiplier(
         scope: &injector::injector_scope::InjectorScope<'_>,
-        initial_a_factor: f32,
+        initial_interval_multiplier: f32,
     ) -> Uuid {
         let profile_repo = scope.resolve::<dyn StudyProfileRepository>().await;
         let profile = StudyProfile {
@@ -451,7 +451,7 @@ mod tests {
             is_default: true,
             desired_retention: 0.9,
             fsrs_params: None,
-            initial_a_factor,
+            initial_interval_multiplier,
             initial_interval_days: 1.0,
             min_interval_days: 1.0,
         };
@@ -460,12 +460,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_reading_valid_dto_seeds_a_factor_from_profile() {
+    async fn create_reading_valid_dto_seeds_interval_multiplier_from_profile() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        create_test_profile_with_a_factor(&scope, 1.5).await;
+        create_test_profile_with_interval_multiplier(&scope, 1.5).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
@@ -495,16 +495,16 @@ mod tests {
             .get_by_id(reading_id)
             .await
             .unwrap();
-        assert_eq!(1.5, reading.a_factor);
+        assert_eq!(1.5, reading.interval_multiplier);
     }
 
     #[tokio::test]
-    async fn create_extract_valid_dto_seeds_a_factor_from_profile() {
+    async fn create_extract_valid_dto_seeds_interval_multiplier_from_profile() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
-        create_test_profile_with_a_factor(&scope, 1.5).await;
+        create_test_profile_with_interval_multiplier(&scope, 1.5).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
             reading_repository: scope.resolve::<dyn ReadingRepository>().await,
@@ -534,6 +534,6 @@ mod tests {
             .get_by_id(extract_id)
             .await
             .unwrap();
-        assert_eq!(1.5, extract.a_factor);
+        assert_eq!(1.5, extract.interval_multiplier);
     }
 }

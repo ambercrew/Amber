@@ -54,7 +54,7 @@ pub struct ReadingResponseDto {
     /// Where the user last read up to. The split index and per-split content are
     /// fetched separately (lazily) rather than inlined here.
     pub read_point: ReadPoint,
-    pub a_factor: f32,
+    pub interval_multiplier: f32,
 }
 
 #[derive(Serialize)]
@@ -62,7 +62,7 @@ pub struct ReadingResponseDto {
 pub struct ExtractResponseDto {
     pub meta: MetaResponseDto,
     pub content: String,
-    pub a_factor: f32,
+    pub interval_multiplier: f32,
 }
 
 #[derive(Serialize)]
@@ -108,7 +108,7 @@ impl From<Reading> for AnyElementDto {
         AnyElementDto::Reading(ReadingResponseDto {
             meta: reading.meta.into(),
             read_point: reading.read_point,
-            a_factor: reading.a_factor,
+            interval_multiplier: reading.interval_multiplier,
         })
     }
 }
@@ -118,7 +118,7 @@ impl From<Extract> for AnyElementDto {
         AnyElementDto::Extract(ExtractResponseDto {
             meta: extract.meta.into(),
             content: extract.content,
-            a_factor: extract.a_factor,
+            interval_multiplier: extract.interval_multiplier,
         })
     }
 }

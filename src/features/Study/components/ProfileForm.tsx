@@ -64,7 +64,8 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 			name: profile?.name ?? "New profile",
 			desiredRetention: profile?.desiredRetention ?? 0.9,
 			fsrsParams: (profile?.fsrsParams ?? DEFAULT_FSRS_PARAMS).join(", "),
-			initialAFactor: profile?.initialAFactor ?? 1.2,
+			initialIntervalMultiplier:
+				profile?.initialIntervalMultiplier ?? 1.2,
 			initialIntervalDays: profile?.initialIntervalDays ?? 1,
 			minIntervalDays: profile?.minIntervalDays ?? 1,
 		},
@@ -153,11 +154,11 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					label="Starting multiplier applied to the interval each time an incremental reading or extract is revisited. Copied onto each reading/extract when it's created; editing this afterwards only affects newly created ones."
 					multiline>
 					<NumberInput
-						label="Initial A-factor"
+						label="Initial interval multiplier"
 						min={0}
 						step={0.1}
 						decimalScale={2}
-						{...form.getInputProps("initialAFactor")}
+						{...form.getInputProps("initialIntervalMultiplier")}
 					/>
 				</Tooltip>
 				<Tooltip

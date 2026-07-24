@@ -21,13 +21,13 @@ export interface FolderResponseDto {
 export interface ReadingResponseDto {
 	meta: MetaResponseDto;
 	readPoint: ReadPoint;
-	aFactor: number;
+	intervalMultiplier: number;
 }
 
 export interface ExtractResponseDto {
 	meta: MetaResponseDto;
 	content: string;
-	aFactor: number;
+	intervalMultiplier: number;
 }
 
 export interface CardResponseDto {

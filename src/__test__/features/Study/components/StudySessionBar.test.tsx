@@ -44,7 +44,7 @@ const readingCurrentElement: AnyElementDto = {
 			...META_FIELDS,
 		},
 		readPoint: { split: 0, block: 0 },
-		aFactor: 1.2,
+		intervalMultiplier: 1.2,
 	},
 };
 

@@ -87,7 +87,7 @@ mod tests {
         reading_repo
             .create(
                 Reading {
-                    a_factor: 1.2,
+                    interval_multiplier: 1.2,
                     meta: Meta {
                         element_id: ElementId::Reading(element_id),
                         name: "test".into(),

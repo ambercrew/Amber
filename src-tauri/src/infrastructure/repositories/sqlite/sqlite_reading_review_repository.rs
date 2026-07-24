@@ -185,7 +185,7 @@ mod tests {
         reading_repo
             .create(
                 Reading {
-                    a_factor: 1.2,
+                    interval_multiplier: 1.2,
                     meta: make_meta(reading_id),
                     read_point: ReadPoint::default(),
                 },
@@ -224,7 +224,7 @@ mod tests {
         reading_repo
             .create(
                 Reading {
-                    a_factor: 1.2,
+                    interval_multiplier: 1.2,
                     meta: make_meta(new_reading_id),
                     read_point: ReadPoint::default(),
                 },
@@ -236,7 +236,7 @@ mod tests {
         let overdue_extract_id = ElementId::Extract(Uuid::new_v4());
         extract_repo
             .create(Extract {
-                a_factor: 1.2,
+                interval_multiplier: 1.2,
                 meta: make_meta(overdue_extract_id),
                 content: String::new(),
             })
@@ -253,7 +253,7 @@ mod tests {
         reading_repo
             .create(
                 Reading {
-                    a_factor: 1.2,
+                    interval_multiplier: 1.2,
                     meta: make_meta(finished_reading_id),
                     read_point: ReadPoint::default(),
                 },
