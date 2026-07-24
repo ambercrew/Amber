@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -211,7 +211,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder.clone()).await.unwrap();
         reading_repo

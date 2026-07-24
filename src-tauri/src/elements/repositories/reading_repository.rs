@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 
 #[async_trait]
 pub trait ReadingRepository: Send + Sync {
@@ -27,10 +27,10 @@ pub trait ReadingRepository: Send + Sync {
         split_id: ReadingSplitId,
         content: String,
     ) -> Result<(), RepositoryError>;
-    async fn update_position(
+    async fn update_read_point(
         &self,
         reading_id: Uuid,
-        position: ReadingPosition,
+        read_point: ReadPoint,
     ) -> Result<(), RepositoryError>;
     async fn update_a_factor(&self, reading_id: Uuid, a_factor: f32)
     -> Result<(), RepositoryError>;

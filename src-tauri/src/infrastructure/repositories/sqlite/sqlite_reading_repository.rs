@@ -8,7 +8,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -32,10 +32,10 @@ impl ReadingRepository for SqliteReadingRepository {
             let mut tx = self.tx.lock().await;
             let tx = tx.as_mut();
             sqlx::query!(
-                "INSERT INTO readings (id, position_split, position_block, a_factor) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO readings (id, readpoint_split, readpoint_block, a_factor) VALUES ($1, $2, $3, $4)",
                 uuid,
-                reading.position.position_split,
-                reading.position.position_block,
+                reading.read_point.split,
+                reading.read_point.block,
                 reading.a_factor,
             )
             .execute(&mut *tx)
@@ -73,8 +73,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.source_id as "source_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.position_split,
-                r.position_block,
+                r.readpoint_split,
+                r.readpoint_block,
                 r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -104,8 +104,8 @@ impl ReadingRepository for SqliteReadingRepository {
                 m.source_id as "source_id: _",
                 m.created_at as "created_at: _",
                 m.modified_at as "modified_at: _",
-                r.position_split,
-                r.position_block,
+                r.readpoint_split,
+                r.readpoint_block,
                 r.a_factor
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
@@ -177,17 +177,17 @@ impl ReadingRepository for SqliteReadingRepository {
         Ok(())
     }
 
-    async fn update_position(
+    async fn update_read_point(
         &self,
         reading_id: Uuid,
-        position: ReadingPosition,
+        read_point: ReadPoint,
     ) -> Result<(), RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE readings SET position_split = $1, position_block = $2 WHERE id = $3",
-            position.position_split,
-            position.position_block,
+            "UPDATE readings SET readpoint_split = $1, readpoint_block = $2 WHERE id = $3",
+            read_point.split,
+            read_point.block,
             reading_id,
         )
         .execute(&mut *tx)
@@ -298,7 +298,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let extract = Extract {
             a_factor: 1.2,
@@ -349,7 +349,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let card = Card {
             meta: Meta {
@@ -399,7 +399,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -443,7 +443,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -498,7 +498,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -560,7 +560,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -590,7 +590,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn update_position_valid_reading_persists_position() {
+    async fn update_read_point_valid_reading_persists_read_point() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -607,7 +607,7 @@ mod tests {
                 parent: Some(folder.meta.element_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         folder_repo.create(folder).await.unwrap();
         reading_repo
@@ -618,12 +618,9 @@ mod tests {
         // Act
 
         reading_repo
-            .update_position(
+            .update_read_point(
                 reading.meta.element_id.id(),
-                ReadingPosition {
-                    position_split: 3,
-                    position_block: 7,
-                },
+                ReadPoint { split: 3, block: 7 },
             )
             .await
             .unwrap();
@@ -634,7 +631,7 @@ mod tests {
             .get_by_id(reading.meta.element_id.id())
             .await
             .unwrap();
-        assert_eq!(3, updated.position.position_split);
-        assert_eq!(7, updated.position.position_block);
+        assert_eq!(3, updated.read_point.split);
+        assert_eq!(7, updated.read_point.block);
     }
 }

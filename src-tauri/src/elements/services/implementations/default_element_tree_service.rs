@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -392,7 +392,7 @@ mod tests {
                 parent: Some(folder_id),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let reading_id = reading.meta.element_id;
         let extract = Extract {
@@ -489,7 +489,7 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let reading_second = Reading {
             a_factor: 1.2,
@@ -501,7 +501,7 @@ mod tests {
                 )),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let reading_first_id = reading_first.meta.element_id;
         let reading_second_id = reading_second.meta.element_id;
@@ -590,7 +590,7 @@ mod tests {
                 name: "Orphan Reading".to_string(),
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let reading_id = reading.meta.element_id;
         scope
@@ -630,7 +630,7 @@ mod tests {
                 position: pos_first,
                 ..reading_meta()
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
         };
         let folder = Folder {
             meta: Meta {

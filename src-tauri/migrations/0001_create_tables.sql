@@ -169,8 +169,8 @@ CREATE TABLE folders(
 
 CREATE TABLE readings(
     id              TEXT    NOT NULL PRIMARY KEY,
-    position_split  INTEGER NOT NULL DEFAULT 0,
-    position_block  INTEGER NOT NULL DEFAULT 0,
+    readpoint_split  INTEGER NOT NULL DEFAULT 0,
+    readpoint_block  INTEGER NOT NULL DEFAULT 0,
     a_factor        REAL    NOT NULL DEFAULT 1.2
 );
 

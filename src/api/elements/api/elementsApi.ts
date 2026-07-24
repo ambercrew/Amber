@@ -7,7 +7,7 @@ import { ElementId } from "../../../types/elements/elementId";
 import { UpdateCardDto } from "../../../types/elements/updateCardDto";
 import { UpdateExtractDto } from "../../../types/elements/updateExtractDto";
 import { UpdateReadingDto } from "../../../types/elements/updateReadingDto";
-import { UpdateReadingPositionDto } from "../../../types/elements/updateReadingPositionDto";
+import { UpdateReadPointDto } from "../../../types/elements/updateReadPointDto";
 import { ReadingSplitIdDto } from "../../../types/elements/readingSplitIdDto";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { AnyElementDto } from "../dto/anyElementDto";
@@ -61,10 +61,8 @@ export function getReadingSplitContent(
 	return invoke("get_reading_split_content", { dto: splitId });
 }
 
-export function updateReadingPosition(
-	dto: UpdateReadingPositionDto,
-): Promise<void> {
-	return invoke("update_reading_position", { dto });
+export function updateReadPoint(dto: UpdateReadPointDto): Promise<void> {
+	return invoke("update_read_point", { dto });
 }
 
 export function updateExtract(dto: UpdateExtractDto): Promise<void> {

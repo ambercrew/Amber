@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -187,7 +187,7 @@ mod tests {
                 Reading {
                     a_factor: 1.2,
                     meta: make_meta(reading_id),
-                    position: ReadingPosition::default(),
+                    read_point: ReadPoint::default(),
                 },
                 Vec::new(),
             )
@@ -226,7 +226,7 @@ mod tests {
                 Reading {
                     a_factor: 1.2,
                     meta: make_meta(new_reading_id),
-                    position: ReadingPosition::default(),
+                    read_point: ReadPoint::default(),
                 },
                 Vec::new(),
             )
@@ -255,7 +255,7 @@ mod tests {
                 Reading {
                     a_factor: 1.2,
                     meta: make_meta(finished_reading_id),
-                    position: ReadingPosition::default(),
+                    read_point: ReadPoint::default(),
                 },
                 Vec::new(),
             )

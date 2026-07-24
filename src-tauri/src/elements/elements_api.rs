@@ -17,8 +17,8 @@ use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::dto::update_card_dto::UpdateCardDto;
 use crate::elements::dto::update_extract_dto::UpdateExtractDto;
+use crate::elements::dto::update_read_point_dto::UpdateReadPointDto;
 use crate::elements::dto::update_reading_dto::UpdateReadingDto;
-use crate::elements::dto::update_reading_position_dto::UpdateReadingPositionDto;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
@@ -197,15 +197,15 @@ pub async fn get_reading_split_content(
 }
 
 #[tauri::command]
-pub async fn update_reading_position(
+pub async fn update_read_point(
     injector: State<'_, Arc<Injector>>,
-    dto: UpdateReadingPositionDto,
+    dto: UpdateReadPointDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
         .resolve::<dyn ReadingRepository>()
         .await
-        .update_position(dto.reading_id, dto.position)
+        .update_read_point(dto.reading_id, dto.read_point)
         .await?;
     scope.save_changes().await?;
     Ok(())

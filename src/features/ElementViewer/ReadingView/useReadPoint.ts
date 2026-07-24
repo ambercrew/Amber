@@ -2,15 +2,15 @@ import { RefObject, useCallback, useEffect, useRef } from "react";
 import { READING_VIEWPORT_TOP_OFFSET_IN_PX } from "./readingViewConstants";
 import useAutoSave from "../hooks/useAutoSave";
 import useApi from "../../../hooks/useApi";
-import { updateReadingPosition } from "../../../api/elements/api/elementsApi";
-import { ReadingPosition } from "../../../types/elements/readingPosition";
+import { updateReadPoint } from "../../../api/elements/api/elementsApi";
+import { ReadPoint } from "../../../types/elements/readPoint";
 
 interface Props {
 	readingId: string;
 	/** seq of the split currently at the top of the viewport. */
 	primarySeq: number;
-	/** Position to restore to on open. */
-	initial: ReadingPosition;
+	/** Read point to restore to on open. */
+	initial: ReadPoint;
 	/** The editable root of the mounted split `seq`, whose children are its blocks. */
 	getContentRoot: (seq: number) => HTMLElement | undefined;
 	/**
@@ -40,23 +40,23 @@ function topVisibleBlockIndex(root: HTMLElement, topOffset: number): number {
 }
 
 /**
- * Restores the saved reading position on open and persists it as the user
+ * Restores the saved read point on open and persists it as the user
  * scrolls. Restore anchors to the actual mounted target block rather than an
  * absolute offset, so estimate error in the placeholders above never causes a
- * visible jump. Persistence goes through `useAutoSave`, so the latest position
- * is also flushed on unmount, app close, and before a sync — not just after the
- * debounce settles.
+ * visible jump. Persistence goes through `useAutoSave`, so the latest read
+ * point is also flushed on unmount, app close, and before a sync — not just
+ * after the debounce settles.
  */
-export function useReadingPosition({
+export function useReadPoint({
 	readingId,
 	primarySeq,
 	initial,
 	getContentRoot,
 	restoredRef,
 }: Props): ReturnValue {
-	const lastSavedRef = useRef<ReadingPosition>({
-		positionSplit: initial.positionSplit,
-		positionBlock: initial.positionBlock,
+	const lastSavedRef = useRef<ReadPoint>({
+		split: initial.split,
+		block: initial.block,
 	});
 	// Read the latest primary seq from inside the (stable) scroll handler.
 	const primarySeqRef = useRef(primarySeq);
@@ -66,12 +66,12 @@ export function useReadingPosition({
 
 	const restoreIfTarget = useCallback(
 		(seq: number) => {
-			if (restoredRef.current || seq !== initial.positionSplit) return;
+			if (restoredRef.current || seq !== initial.split) return;
 			// Defer a frame so Lexical has painted the block rects.
 			requestAnimationFrame(() => {
 				const root = getContentRoot(seq);
 				const block = root
-					? (root.children[initial.positionBlock] ??
+					? (root.children[initial.block] ??
 						root.children[root.children.length - 1])
 					: null;
 				if (block) {
@@ -84,48 +84,44 @@ export function useReadingPosition({
 				restoredRef.current = true;
 			});
 		},
-		[
-			initial.positionSplit,
-			initial.positionBlock,
-			getContentRoot,
-			restoredRef,
-		],
+		[initial.split, initial.block, getContentRoot, restoredRef],
 	);
 
 	const { callApi } = useApi();
 	const handleSave = useCallback(
 		async (content: string) => {
-			const position = JSON.parse(content) as ReadingPosition;
+			const readPoint = JSON.parse(content) as ReadPoint;
 			const last = lastSavedRef.current;
 			if (
-				last.positionSplit === position.positionSplit &&
-				last.positionBlock === position.positionBlock
+				last.split === readPoint.split &&
+				last.block === readPoint.block
 			) {
 				return;
 			}
-			lastSavedRef.current = position;
-			await updateReadingPosition({ readingId, position });
+			lastSavedRef.current = readPoint;
+			await updateReadPoint({ readingId, readPoint });
 		},
 		[readingId],
 	);
 	const { onContentUpdate } = useAutoSave({ onSave: handleSave, callApi });
 
-	const recordPosition = useCallback(() => {
+	const recordReadPoint = useCallback(() => {
 		// Don't record scrolling that happens before the restore has landed.
 		if (!restoredRef.current) return;
 		const seq = primarySeqRef.current;
 		const root = getContentRoot(seq);
 		if (!root) return;
-		const positionBlock = topVisibleBlockIndex(
+		const block = topVisibleBlockIndex(
 			root,
 			READING_VIEWPORT_TOP_OFFSET_IN_PX,
 		);
-		// Capture the position eagerly rather than letting useAutoSave read it at
-		// flush time: on unmount the split editors tear down before this hook's
-		// flush runs, so a deferred DOM read would find no root. Serializing now
-		// lets useAutoSave persist this exact position on unmount / close / sync.
-		const position: ReadingPosition = { positionSplit: seq, positionBlock };
-		onContentUpdate(() => JSON.stringify(position));
+		// Capture the read point eagerly rather than letting useAutoSave read it
+		// at flush time: on unmount the split editors tear down before this
+		// hook's flush runs, so a deferred DOM read would find no root.
+		// Serializing now lets useAutoSave persist this exact read point on
+		// unmount / close / sync.
+		const readPoint: ReadPoint = { split: seq, block };
+		onContentUpdate(() => JSON.stringify(readPoint));
 	}, [restoredRef, getContentRoot, onContentUpdate]);
 
 	// Throttle to one measurement per frame — scroll fires far more often than
@@ -136,7 +132,7 @@ export function useReadingPosition({
 			if (frame !== null) return;
 			frame = requestAnimationFrame(() => {
 				frame = null;
-				recordPosition();
+				recordReadPoint();
 			});
 		};
 		window.addEventListener("scroll", handler, { passive: true });
@@ -144,7 +140,7 @@ export function useReadingPosition({
 			window.removeEventListener("scroll", handler);
 			if (frame !== null) cancelAnimationFrame(frame);
 		};
-	}, [recordPosition]);
+	}, [recordReadPoint]);
 
 	return { restoreIfTarget };
 }

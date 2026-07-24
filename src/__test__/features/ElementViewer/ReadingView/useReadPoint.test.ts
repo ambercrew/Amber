@@ -1,15 +1,15 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useReadingPosition } from "../../../../features/ElementViewer/ReadingView/useReadingPosition";
+import { useReadPoint } from "../../../../features/ElementViewer/ReadingView/useReadPoint";
 import { AUTO_SAVE_DELAY_IN_MILLISECONDS } from "../../../../config/constants";
-import { ReadingPosition } from "../../../../types/elements/readingPosition";
+import { ReadPoint } from "../../../../types/elements/readPoint";
 
-const { updateReadingPositionMock } = vi.hoisted(() => ({
-	updateReadingPositionMock: vi.fn(),
+const { updateReadPointMock } = vi.hoisted(() => ({
+	updateReadPointMock: vi.fn(),
 }));
 
 vi.mock("../../../../api/elements/api/elementsApi", () => ({
-	updateReadingPosition: updateReadingPositionMock,
+	updateReadPoint: updateReadPointMock,
 }));
 
 // useAutoSave wires itself into the app-close and sync managers (both backed by
@@ -64,13 +64,13 @@ function setBlockBottoms(root: HTMLElement, bottoms: number[]) {
 }
 
 // Blocks 0–1 are scrolled above the viewport top (56px); block 2 is the first
-// one still visible, so the saved `positionBlock` should be 2.
+// one still visible, so the saved `block` should be 2.
 const BOTTOMS_TOP_VISIBLE_IS_TWO = [10, 10, 100, 100, 100];
 
-function renderPosition(overrides: {
+function renderReadPoint(overrides: {
 	root: HTMLElement | undefined;
 	primarySeq: number;
-	initial: ReadingPosition;
+	initial: ReadPoint;
 	restoredRef: { current: boolean };
 	readingId?: string;
 }) {
@@ -82,7 +82,7 @@ function renderPosition(overrides: {
 		readingId = "r1",
 	} = overrides;
 	return renderHook(() =>
-		useReadingPosition({
+		useReadPoint({
 			readingId,
 			primarySeq,
 			initial,
@@ -92,10 +92,10 @@ function renderPosition(overrides: {
 	);
 }
 
-describe("useReadingPosition", () => {
+describe("useReadPoint", () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
-		updateReadingPositionMock.mockResolvedValue(undefined);
+		updateReadPointMock.mockResolvedValue(undefined);
 		window.scrollBy = vi.fn();
 	});
 
@@ -110,10 +110,10 @@ describe("useReadingPosition", () => {
 		const scrollIntoView = vi.fn();
 		(root.children[0] as HTMLElement).scrollIntoView = scrollIntoView;
 		const restoredRef = { current: false };
-		const { result } = renderPosition({
+		const { result } = renderReadPoint({
 			root,
 			primarySeq: 2,
-			initial: { positionSplit: 2, positionBlock: 0 },
+			initial: { split: 2, block: 0 },
 			restoredRef,
 		});
 
@@ -137,10 +137,10 @@ describe("useReadingPosition", () => {
 		const scrollIntoView = vi.fn();
 		(root.children[2] as HTMLElement).scrollIntoView = scrollIntoView;
 		const restoredRef = { current: false };
-		const { result } = renderPosition({
+		const { result } = renderReadPoint({
 			root,
 			primarySeq: 3,
-			initial: { positionSplit: 3, positionBlock: 2 },
+			initial: { split: 3, block: 2 },
 			restoredRef,
 		});
 
@@ -166,10 +166,10 @@ describe("useReadingPosition", () => {
 		const scrollIntoView = vi.fn();
 		(root.children[2] as HTMLElement).scrollIntoView = scrollIntoView;
 		const restoredRef = { current: false };
-		const { result } = renderPosition({
+		const { result } = renderReadPoint({
 			root,
 			primarySeq: 3,
-			initial: { positionSplit: 3, positionBlock: 2 },
+			initial: { split: 3, block: 2 },
 			restoredRef,
 		});
 
@@ -189,16 +189,16 @@ describe("useReadingPosition", () => {
 		expect(scrollIntoView).toHaveBeenCalledTimes(1);
 	});
 
-	it("Should not persist position on scroll before restore has landed", () => {
+	it("Should not persist the read point on scroll before restore has landed", () => {
 		// Arrange
 
 		const root = makeRoot(5);
 		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
 		const restoredRef = { current: false };
-		renderPosition({
+		renderReadPoint({
 			root,
 			primarySeq: 4,
-			initial: { positionSplit: 4, positionBlock: 0 },
+			initial: { split: 4, block: 0 },
 			restoredRef,
 		});
 
@@ -211,7 +211,7 @@ describe("useReadingPosition", () => {
 
 		// Assert
 
-		expect(updateReadingPositionMock).not.toHaveBeenCalled();
+		expect(updateReadPointMock).not.toHaveBeenCalled();
 	});
 
 	it("Should persist the top visible block after scrolling once restored", () => {
@@ -220,10 +220,10 @@ describe("useReadingPosition", () => {
 		const root = makeRoot(5);
 		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
 		const restoredRef = { current: true };
-		renderPosition({
+		renderReadPoint({
 			root,
 			primarySeq: 4,
-			initial: { positionSplit: 4, positionBlock: 0 },
+			initial: { split: 4, block: 0 },
 			restoredRef,
 		});
 
@@ -236,24 +236,24 @@ describe("useReadingPosition", () => {
 
 		// Assert
 
-		expect(updateReadingPositionMock).toHaveBeenCalledWith({
+		expect(updateReadPointMock).toHaveBeenCalledWith({
 			readingId: "r1",
-			position: { positionSplit: 4, positionBlock: 2 },
+			readPoint: { split: 4, block: 2 },
 		});
 	});
 
-	it("Should not persist a position identical to the last saved one", () => {
+	it("Should not persist a read point identical to the last saved one", () => {
 		// Arrange
 
 		const root = makeRoot(5);
 		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
 		const restoredRef = { current: true };
-		renderPosition({
+		renderReadPoint({
 			root,
 			primarySeq: 4,
 			// Last-saved is seeded from `initial`, and the scroll resolves to
 			// block 2 as well, so there is nothing new to write.
-			initial: { positionSplit: 4, positionBlock: 2 },
+			initial: { split: 4, block: 2 },
 			restoredRef,
 		});
 
@@ -266,30 +266,30 @@ describe("useReadingPosition", () => {
 
 		// Assert
 
-		expect(updateReadingPositionMock).not.toHaveBeenCalled();
+		expect(updateReadPointMock).not.toHaveBeenCalled();
 	});
 
-	it("Should flush the pending position when unmounting before the debounce fires", () => {
+	it("Should flush the pending read point when unmounting before the debounce fires", () => {
 		// Arrange
 
 		const root = makeRoot(5);
 		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
 		const restoredRef = { current: true };
-		const { unmount } = renderPosition({
+		const { unmount } = renderReadPoint({
 			root,
 			primarySeq: 4,
-			initial: { positionSplit: 4, positionBlock: 0 },
+			initial: { split: 4, block: 0 },
 			restoredRef,
 		});
 
 		// Act
 
-		// Run the scroll's rAF (records the position) but not the autosave debounce.
+		// Run the scroll's rAF (records the read point) but not the autosave debounce.
 		act(() => {
 			window.dispatchEvent(new Event("scroll"));
 			vi.advanceTimersByTime(20);
 		});
-		const savedBeforeUnmount = updateReadingPositionMock.mock.calls.length;
+		const savedBeforeUnmount = updateReadPointMock.mock.calls.length;
 		act(() => {
 			unmount();
 		});
@@ -297,9 +297,9 @@ describe("useReadingPosition", () => {
 		// Assert
 
 		expect(savedBeforeUnmount).toBe(0);
-		expect(updateReadingPositionMock).toHaveBeenCalledWith({
+		expect(updateReadPointMock).toHaveBeenCalledWith({
 			readingId: "r1",
-			position: { positionSplit: 4, positionBlock: 2 },
+			readPoint: { split: 4, block: 2 },
 		});
 	});
 
@@ -309,10 +309,10 @@ describe("useReadingPosition", () => {
 		const root = makeRoot(5);
 		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
 		const restoredRef = { current: true };
-		const { unmount } = renderPosition({
+		const { unmount } = renderReadPoint({
 			root,
 			primarySeq: 4,
-			initial: { positionSplit: 4, positionBlock: 0 },
+			initial: { split: 4, block: 0 },
 			restoredRef,
 		});
 
@@ -328,6 +328,6 @@ describe("useReadingPosition", () => {
 
 		// Assert
 
-		expect(updateReadingPositionMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
 	});
 });
