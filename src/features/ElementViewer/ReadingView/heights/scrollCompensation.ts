@@ -1,12 +1,11 @@
 import { READING_VIEWPORT_TOP_OFFSET_IN_PX } from "../readingViewConstants";
 
 /**
- * Manual fallback for browsers without native `overflow-anchor` support (see
- * `supportsOverflowAnchor`). Adjusts scroll position by the same delta a
- * resizing element grew/shrank by, so content the reader is already looking
- * at doesn't jump. Skipped when the element's top is still below the fixed
- * header (`READING_VIEWPORT_TOP_OFFSET_IN_PX`) — i.e. still visible — since
- * compensating there would itself yank the viewport away from what's shown.
+ * Manual fallback for browsers without native scroll anchoring. Adjusts
+ * scroll position by the same delta a resizing element grew/shrank by, so
+ * content the reader is already looking at doesn't jump. Skipped while the
+ * element is still visible, since compensating there would itself yank the
+ * viewport away from what's shown.
  */
 export function compensateScrollForResize(
 	element: HTMLElement,
