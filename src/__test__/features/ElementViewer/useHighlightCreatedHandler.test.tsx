@@ -48,6 +48,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: "New Text",
 			fullHtml,
 			color: "blue",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -81,6 +82,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: "the answer",
 			fullHtml,
 			color: "blue",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -107,6 +109,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: longText,
 			fullHtml: `<p><mark data-highlight-id="new-id" data-highlight-color="blue">${longText}</mark></p>`,
 			color: "blue",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -132,6 +135,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: '<mark data-highlight-id="other-id" data-highlight-color="yellow">Nested</mark> Rest',
 			fullHtml: "<p>irrelevant</p>",
 			color: "yellow",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -168,6 +172,7 @@ describe("useHighlightCreatedHandler", () => {
 			html,
 			fullHtml,
 			color: "blue",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -200,6 +205,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> New Text',
 			fullHtml,
 			color: "blue",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -229,6 +235,7 @@ describe("useHighlightCreatedHandler", () => {
 			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> Rest',
 			fullHtml: "<p>irrelevant</p>",
 			color: "yellow",
+			endBlockIndex: 0,
 		});
 
 		// Assert
@@ -260,6 +267,7 @@ describe("useHighlightCreatedHandler", () => {
 				'<mark data-highlight-id="other-id-2" data-highlight-color="blue">Second</mark>',
 			fullHtml: "<p>irrelevant</p>",
 			color: "yellow",
+			endBlockIndex: 0,
 		});
 
 		// Assert

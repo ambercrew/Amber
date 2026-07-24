@@ -3,6 +3,8 @@ import { NavigateFunction } from "react-router";
 import { notifications } from "@mantine/notifications";
 import {
 	BookOpenIcon,
+	BookmarkSimpleIcon,
+	EraserIcon,
 	FadersHorizontalIcon,
 	GearIcon,
 	MoonIcon,
@@ -20,11 +22,15 @@ import { selectStudyStatus } from "../stores/study/studySelectors";
 import { saveSettings } from "../stores/settings/settingsActions";
 import { buildUpdateSettingsRequest } from "../api/settings/models/updateSettingsRequest";
 import { isCurrentlyDark } from "./commandUtils";
+import { selectCurrentElement } from "../stores/elements/elementsSelectors";
+import { READ_POINT_MANUAL_SET_REQUESTED } from "../types/events/readPointManualSetRequestedEvent";
+import { READ_POINT_MANUAL_CLEAR_REQUESTED } from "../types/events/readPointManualClearRequestedEvent";
 
 export const SPOTLIGHT_SHORTCUT = "mod+K";
 export const IMPORT_SHORTCUT = "mod+shift+N";
 export const TOGGLE_STUDY_SESSION_SHORTCUT = "mod+L";
 export const OPEN_SETTINGS_SHORTCUT = "mod+P";
+export const SET_READ_POINT_SHORTCUT = "mod+shift+R";
 
 export const commandIds = [
 	"import",
@@ -32,10 +38,17 @@ export const commandIds = [
 	"toggle-study-session",
 	"open-settings",
 	"toggle-theme",
+	"set-read-point",
+	"clear-read-point",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
-export const commandGroups = ["General", "Study", "Settings"] as const;
+export const commandGroups = [
+	"General",
+	"Study",
+	"Settings",
+	"Reading",
+] as const;
 export type CommandGroup = (typeof commandGroups)[number];
 
 export interface Command {
@@ -108,6 +121,29 @@ export const commands: Command[] = [
 			void dispatch(startStudySession(navigate)).then(started => {
 				if (!started) notifications.show({ message: "Nothing due" });
 			});
+		},
+	},
+	{
+		id: "set-read-point",
+		group: "Reading",
+		label: "Set read point",
+		shortcut: SET_READ_POINT_SHORTCUT,
+		icon: createElement(BookmarkSimpleIcon),
+		enabled: state => selectCurrentElement(state)?.type === "reading",
+		execute: () => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			notifications.show({ message: "Read point set" });
+		},
+	},
+	{
+		id: "clear-read-point",
+		group: "Reading",
+		label: "Clear read point",
+		icon: createElement(EraserIcon),
+		enabled: state => selectCurrentElement(state)?.type === "reading",
+		execute: () => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
+			notifications.show({ message: "Read point cleared" });
 		},
 	},
 ];

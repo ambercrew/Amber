@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useReadPoint } from "../../../../features/ElementViewer/ReadingView/useReadPoint";
 import { AUTO_SAVE_DELAY_IN_MILLISECONDS } from "../../../../config/constants";
 import { ReadPoint } from "../../../../types/elements/readPoint";
+import { READ_POINT_MANUAL_SET_REQUESTED } from "../../../../types/events/readPointManualSetRequestedEvent";
+import { READ_POINT_MANUAL_CLEAR_REQUESTED } from "../../../../types/events/readPointManualClearRequestedEvent";
 
 const { updateReadPointMock } = vi.hoisted(() => ({
 	updateReadPointMock: vi.fn(),
@@ -73,6 +75,7 @@ function renderReadPoint(overrides: {
 	initial: ReadPoint;
 	restoredRef: { current: boolean };
 	readingId?: string;
+	lastSplitSeq?: number;
 }) {
 	const {
 		root,
@@ -80,6 +83,7 @@ function renderReadPoint(overrides: {
 		initial,
 		restoredRef,
 		readingId = "r1",
+		lastSplitSeq,
 	} = overrides;
 	return renderHook(() =>
 		useReadPoint({
@@ -87,6 +91,7 @@ function renderReadPoint(overrides: {
 			primarySeq,
 			initial,
 			getContentRoot: () => root,
+			lastSplitSeq,
 			restoredRef,
 		}),
 	);
@@ -189,6 +194,33 @@ describe("useReadPoint", () => {
 		expect(scrollIntoView).toHaveBeenCalledTimes(1);
 	});
 
+	it("Should not scroll and should mark restored when the saved read point is the very start", () => {
+		// Arrange
+
+		const root = makeRoot(3);
+		const scrollIntoView = vi.fn();
+		(root.children[0] as HTMLElement).scrollIntoView = scrollIntoView;
+		const restoredRef = { current: false };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 0,
+			initial: { split: 0, block: 0 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			result.current.restoreIfTarget(0);
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(scrollIntoView).not.toHaveBeenCalled();
+		expect(restoredRef.current).toBe(true);
+	});
+
 	it("Should not persist the read point on scroll before restore has landed", () => {
 		// Arrange
 
@@ -225,6 +257,67 @@ describe("useReadPoint", () => {
 			primarySeq: 4,
 			initial: { split: 4, block: 0 },
 			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 2 },
+		});
+	});
+
+	it("Should clear the read point when scrolling reaches the absolute end of the last split", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		// The last block's bottom edge (100) is within the viewport
+		// (jsdom's default window.innerHeight is 768), so the reader has
+		// scrolled all the way to the end of this, the reading's last split.
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+			lastSplitSeq: 4,
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 0, block: 0 },
+		});
+	});
+
+	it("Should not clear when the primary split is not the reading's last split", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+			lastSplitSeq: 5,
 		});
 
 		// Act
@@ -329,5 +422,278 @@ describe("useReadPoint", () => {
 		// Assert
 
 		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+	});
+
+	it("Should persist the read point when an extract is created", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			result.current.recordExtractReadPoint(4, 3);
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should stop automatic tracking after an extract is created", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			result.current.recordExtractReadPoint(4, 3);
+			vi.runAllTimers();
+		});
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should not let an extract relocate a read point that was already set manually", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+		act(() => {
+			result.current.trackCursor(4, 3);
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+		});
+
+		// Act
+
+		act(() => {
+			result.current.recordExtractReadPoint(4, 1);
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should let a manual set override a read point that was already set by an extract", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+		act(() => {
+			result.current.recordExtractReadPoint(4, 1);
+			result.current.trackCursor(4, 3);
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should persist the last tracked cursor position when a manual set is requested", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+		act(() => {
+			result.current.trackCursor(4, 3);
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should fall back to the top visible block when a manual set is requested and no cursor has been tracked yet", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 2 },
+		});
+	});
+
+	it("Should stop automatic tracking after a manual set is requested", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+		act(() => {
+			result.current.trackCursor(4, 3);
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			vi.runAllTimers();
+		});
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 4, block: 3 },
+		});
+	});
+
+	it("Should clear the read point when a manual clear is requested", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 3 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 0, block: 0 },
+		});
+	});
+
+	it("Should stop automatic tracking after a manual clear is requested", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 3 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
+			vi.runAllTimers();
+		});
+		act(() => {
+			window.dispatchEvent(new Event("scroll"));
+			vi.runAllTimers();
+		});
+
+		// Assert
+
+		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
+		expect(updateReadPointMock).toHaveBeenCalledWith({
+			readingId: "r1",
+			readPoint: { split: 0, block: 0 },
+		});
 	});
 });

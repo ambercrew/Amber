@@ -90,13 +90,23 @@ export default function ReadingView({
 		(seq: number) => contentRootsRef.current.get(seq),
 		[],
 	);
-	const { restoreIfTarget } = useReadPoint({
-		readingId,
-		primarySeq,
-		initial: readPoint,
-		getContentRoot,
-		restoredRef,
-	});
+	const { restoreIfTarget, recordExtractReadPoint, trackCursor } =
+		useReadPoint({
+			readingId,
+			primarySeq,
+			initial: readPoint,
+			getContentRoot,
+			lastSplitSeq: splits?.[splits.length - 1]?.seq,
+			restoredRef,
+		});
+
+	const handleHighlightCreated = useCallback(
+		(payload: HighlightCreatedPayload, seq: number) => {
+			onHighlightCreated?.(payload);
+			recordExtractReadPoint(seq, payload.endBlockIndex);
+		},
+		[onHighlightCreated, recordExtractReadPoint],
+	);
 
 	// Auto-focus is a one-shot grant for the read point split's first mount
 	// after open. Left permanently on, every re-mount of that split (as the
@@ -175,10 +185,12 @@ export default function ReadingView({
 						slotRef={setSlotRef(split.seq)}
 						observeSplit={observeSplit(split.seq, split.charCount)}
 						registerContentRoot={registerContentRoot(split.seq)}
-						onHighlightCreated={onHighlightCreated}
+						onHighlightCreated={handleHighlightCreated}
 						onContentReady={handleContentReady}
+						onCursorMove={trackCursor}
 						markerBlockIndex={
-							split.seq === readPoint.split
+							split.seq === readPoint.split &&
+							(readPoint.split !== 0 || readPoint.block !== 0)
 								? readPoint.block
 								: undefined
 						}
