@@ -157,9 +157,14 @@ export default function ReadingView({
 			if (pendingGotoRef.current?.split === seq) {
 				const { block } = pendingGotoRef.current;
 				pendingGotoRef.current = null;
-				const root = getContentRoot(seq);
-				if (root) scrollBlockIntoView(root, block);
-				releaseJump();
+				// Defer a frame so Lexical has painted the block rects (same
+				// reasoning as `restoreIfTarget`) — otherwise a split that just
+				// mounted from a placeholder scrolls to a stale position.
+				requestAnimationFrame(() => {
+					const root = getContentRoot(seq);
+					if (root) scrollBlockIntoView(root, block);
+					releaseJump();
+				});
 			}
 		},
 		[readPoint.split, restoreIfTarget, getContentRoot, releaseJump],
