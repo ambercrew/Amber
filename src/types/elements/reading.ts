@@ -1,7 +1,7 @@
 import { Meta } from "./meta";
-import { ReadingPosition } from "./readingPosition";
+import { ReadPoint } from "./readPoint";
 
 export interface Reading {
 	meta: Meta;
-	position: ReadingPosition;
+	readPoint: ReadPoint;
 }

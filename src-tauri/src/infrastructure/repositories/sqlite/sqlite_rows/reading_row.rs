@@ -5,7 +5,7 @@ use crate::elements::entities::reading::Reading;
 use crate::elements::extensions::into_element_id_ext::IntoOptionalElementIdExt;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct ReadingRow {
@@ -20,8 +20,8 @@ pub struct ReadingRow {
     pub source_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub position_split: i64,
-    pub position_block: i64,
+    pub readpoint_split: i64,
+    pub readpoint_block: i64,
     pub a_factor: f64,
 }
 
@@ -40,9 +40,9 @@ impl From<ReadingRow> for Reading {
                 created_at: row.created_at,
                 modified_at: row.modified_at,
             },
-            position: ReadingPosition {
-                position_split: row.position_split as u32,
-                position_block: row.position_block as u32,
+            read_point: ReadPoint {
+                split: row.readpoint_split as u32,
+                block: row.readpoint_block as u32,
             },
             a_factor: row.a_factor as f32,
         }

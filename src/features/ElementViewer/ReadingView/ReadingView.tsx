@@ -5,16 +5,16 @@ import { MetaResponseDto } from "../../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
-import { ReadingPosition } from "../../../types/elements/readingPosition";
+import { ReadPoint } from "../../../types/elements/readPoint";
 import ContentSourcePanel from "../ContentSourcePanel";
 import SplitSlot from "./SplitSlot";
-import { useReadingPosition } from "./useReadingPosition";
+import { useReadPoint } from "./useReadPoint";
 import { useSplitHeights } from "./heights/useSplitHeights";
 import { useSplitMountWindow } from "./useSplitMountWindow";
 
 interface ReadingViewProps {
 	readingId: string;
-	position: ReadingPosition;
+	readPoint: ReadPoint;
 	meta: MetaResponseDto;
 	buttons: FloatingMenuItem[];
 	autoFocus?: boolean;
@@ -33,7 +33,7 @@ interface ReadingViewProps {
  */
 export default function ReadingView({
 	readingId,
-	position,
+	readPoint,
 	meta,
 	buttons,
 	autoFocus,
@@ -64,9 +64,9 @@ export default function ReadingView({
 		};
 	}, [readingId]);
 
-	// Shared latch: low until the saved position has been restored on open. The
-	// mount window stays pinned to the target split while it's low (see
-	// `useSplitMountWindow`); `useReadingPosition` flips it once restore anchors;
+	// Shared latch: low until the saved read point has been restored on open.
+	// The mount window stays pinned to the target split while it's low (see
+	// `useSplitMountWindow`); `useReadPoint` flips it once restore anchors;
 	// `useSplitHeights` uses it to hold off compensating for the target split's
 	// own placeholder-to-content resize, which would otherwise double up with
 	// the restore scroll into a much bigger jump.
@@ -78,7 +78,7 @@ export default function ReadingView({
 	);
 	const { mountedSeqs, primarySeq, registerSlot } = useSplitMountWindow({
 		splits: splits ?? [],
-		initialSeq: position.positionSplit,
+		initialSeq: readPoint.split,
 		restoredRef,
 	});
 
@@ -90,15 +90,15 @@ export default function ReadingView({
 		(seq: number) => contentRootsRef.current.get(seq),
 		[],
 	);
-	const { restoreIfTarget } = useReadingPosition({
+	const { restoreIfTarget } = useReadPoint({
 		readingId,
 		primarySeq,
-		initial: position,
+		initial: readPoint,
 		getContentRoot,
 		restoredRef,
 	});
 
-	// Auto-focus is a one-shot grant for the position split's first mount
+	// Auto-focus is a one-shot grant for the read point split's first mount
 	// after open. Left permanently on, every re-mount of that split (as the
 	// virtualization window shifts back over it) would recreate its editor
 	// with the AutoFocus extension active, focusing the caret at the editor's
@@ -107,10 +107,10 @@ export default function ReadingView({
 	const [pendingAutoFocus, setPendingAutoFocus] = useState(!!autoFocus);
 	const handleContentReady = useCallback(
 		(seq: number) => {
-			if (seq === position.positionSplit) setPendingAutoFocus(false);
+			if (seq === readPoint.split) setPendingAutoFocus(false);
 			restoreIfTarget(seq);
 		},
-		[position.positionSplit, restoreIfTarget],
+		[readPoint.split, restoreIfTarget],
 	);
 
 	// Cached per seq so the returned ref callback keeps the same identity
@@ -170,8 +170,7 @@ export default function ReadingView({
 						height={getHeight(split.seq, split.charCount)}
 						buttons={buttons}
 						autoFocus={
-							pendingAutoFocus &&
-							split.seq === position.positionSplit
+							pendingAutoFocus && split.seq === readPoint.split
 						}
 						slotRef={setSlotRef(split.seq)}
 						observeSplit={observeSplit(split.seq, split.charCount)}
@@ -179,8 +178,8 @@ export default function ReadingView({
 						onHighlightCreated={onHighlightCreated}
 						onContentReady={handleContentReady}
 						markerBlockIndex={
-							split.seq === position.positionSplit
-								? position.positionBlock
+							split.seq === readPoint.split
+								? readPoint.block
 								: undefined
 						}
 					/>

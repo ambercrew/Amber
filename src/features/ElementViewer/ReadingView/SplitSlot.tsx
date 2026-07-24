@@ -28,7 +28,7 @@ interface SplitSlotProps {
 	registerContentRoot: (element: HTMLElement | null) => void;
 	onHighlightCreated?: (payload: HighlightCreatedPayload) => void;
 	onContentReady: (seq: number) => void;
-	/** Block index to mark as the reader's saved position, if it's in this split. */
+	/** Block index to mark as the reader's saved read point, if it's in this split. */
 	markerBlockIndex?: number;
 }
 

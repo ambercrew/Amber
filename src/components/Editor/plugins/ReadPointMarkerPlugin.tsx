@@ -4,7 +4,7 @@ import { $getNearestNodeFromDOMNode, NodeKey } from "lexical";
 import { Box, Tooltip } from "@mantine/core";
 import { BookmarkSimpleIcon } from "@phosphor-icons/react";
 
-interface ReadingPositionMarkerPluginProps {
+interface ReadPointMarkerPluginProps {
 	/** Index of the block (among the editor root's children) to mark. */
 	blockIndex: number;
 }
@@ -20,9 +20,9 @@ interface ReadingPositionMarkerPluginProps {
  * own Lexical node key is used, so the marker stays on that exact block even
  * if edits above it shift its index.
  */
-export default function ReadingPositionMarkerPlugin({
+export default function ReadPointMarkerPlugin({
 	blockIndex,
-}: ReadingPositionMarkerPluginProps) {
+}: ReadPointMarkerPluginProps) {
 	const [editor] = useLexicalComposerContext();
 	const [top, setTop] = useState<number | null>(null);
 	const blockKeyRef = useRef<NodeKey | null>(null);

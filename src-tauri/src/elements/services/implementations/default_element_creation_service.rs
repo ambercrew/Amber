@@ -1,4 +1,4 @@
-use crate::elements::value_objects::reading_position::ReadingPosition;
+use crate::elements::value_objects::read_point::ReadPoint;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -91,7 +91,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 created_at: now,
                 modified_at: now,
             },
-            position: ReadingPosition::default(),
+            read_point: ReadPoint::default(),
             a_factor: profile.initial_a_factor,
         };
         let splits = dto

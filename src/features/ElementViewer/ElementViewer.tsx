@@ -93,7 +93,7 @@ export default function ElementViewer() {
 			<ReadingView
 				key={`reading-${elementId.id}`}
 				readingId={elementId.id}
-				position={currentElement.data.position}
+				readPoint={currentElement.data.readPoint}
 				meta={currentElement.data.meta}
 				buttons={buttons}
 				onHighlightCreated={handleHighlightCreated}
