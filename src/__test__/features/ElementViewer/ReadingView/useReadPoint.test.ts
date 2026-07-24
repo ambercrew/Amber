@@ -696,4 +696,50 @@ describe("useReadPoint", () => {
 			readPoint: { split: 0, block: 0 },
 		});
 	});
+
+	it("Should return the initial read point from getCurrentReadPoint before anything is recorded", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 3 },
+			restoredRef,
+		});
+
+		// Act
+
+		const actual = result.current.getCurrentReadPoint();
+
+		// Assert
+
+		expect(actual).toEqual({ split: 4, block: 3 });
+	});
+
+	it("Should reflect the latest recorded read point from getCurrentReadPoint", () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+		});
+
+		// Act
+
+		act(() => {
+			result.current.recordExtractReadPoint(4, 3);
+			vi.runAllTimers();
+		});
+		const actual = result.current.getCurrentReadPoint();
+
+		// Assert
+
+		expect(actual).toEqual({ split: 4, block: 3 });
+	});
 });

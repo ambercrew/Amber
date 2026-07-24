@@ -35,7 +35,7 @@ export default function ContentSourcePanel({ meta }: ContentSourcePanelProps) {
 	const navigate = useNavigate();
 	const [opened, setOpened] = useLocalStorage({
 		key: "content-source-panel.opened",
-		defaultValue: true,
+		defaultValue: false,
 	});
 	const details = useAppSelector(selectCurrentElementDetails);
 	const source = details?.source ?? null;

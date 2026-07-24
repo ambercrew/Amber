@@ -6,6 +6,7 @@ import {
 } from "../../../api/elements/api/elementsApi";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import ReadPointMenu from "../../../components/Editor/plugins/ReadPointMenu";
 import ElementEditor from "../ElementEditor";
 import SplitPlaceholder from "./SplitPlaceholder";
 
@@ -137,6 +138,7 @@ export default function SplitSlot({
 						onRootElement={registerContentRoot}
 						markerBlockIndex={markerBlockIndex}
 						onCursorMove={handleCursorMove}
+						contextMenuItems={<ReadPointMenu />}
 					/>
 				)}
 			</div>

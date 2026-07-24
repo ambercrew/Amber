@@ -7,6 +7,7 @@ import {
 	EraserIcon,
 	FadersHorizontalIcon,
 	GearIcon,
+	MapPinIcon,
 	MoonIcon,
 	UploadSimpleIcon,
 } from "@phosphor-icons/react";
@@ -25,6 +26,7 @@ import { isCurrentlyDark } from "./commandUtils";
 import { selectCurrentElement } from "../stores/elements/elementsSelectors";
 import { READ_POINT_MANUAL_SET_REQUESTED } from "../types/events/readPointManualSetRequestedEvent";
 import { READ_POINT_MANUAL_CLEAR_REQUESTED } from "../types/events/readPointManualClearRequestedEvent";
+import { READ_POINT_MANUAL_GOTO_REQUESTED } from "../types/events/readPointManualGotoRequestedEvent";
 
 export const SPOTLIGHT_SHORTCUT = "mod+K";
 export const IMPORT_SHORTCUT = "mod+shift+N";
@@ -40,6 +42,7 @@ export const commandIds = [
 	"toggle-theme",
 	"set-read-point",
 	"clear-read-point",
+	"go-to-read-point",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
@@ -144,6 +147,16 @@ export const commands: Command[] = [
 		execute: () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
 			notifications.show({ message: "Read point cleared" });
+		},
+	},
+	{
+		id: "go-to-read-point",
+		group: "Reading",
+		label: "Go to read point",
+		icon: createElement(MapPinIcon),
+		enabled: state => selectCurrentElement(state)?.type === "reading",
+		execute: () => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_GOTO_REQUESTED));
 		},
 	},
 ];
