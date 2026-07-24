@@ -68,8 +68,8 @@ export interface Command {
 	) => void;
 }
 
-export const commands: Command[] = [
-	{
+export const commandsById: Record<CommandId, Command> = {
+	import: {
 		id: "import",
 		group: "General",
 		label: "Import",
@@ -77,14 +77,14 @@ export const commands: Command[] = [
 		icon: createElement(UploadSimpleIcon),
 		execute: dispatch => dispatch(openImportModal()),
 	},
-	{
+	"manage-study-profiles": {
 		id: "manage-study-profiles",
 		group: "Study",
 		label: "Manage study profiles",
 		icon: createElement(FadersHorizontalIcon),
 		execute: dispatch => dispatch(openStudyProfileModal()),
 	},
-	{
+	"open-settings": {
 		id: "open-settings",
 		group: "Settings",
 		label: "Open settings",
@@ -92,7 +92,7 @@ export const commands: Command[] = [
 		icon: createElement(GearIcon),
 		execute: dispatch => dispatch(openSettingsModal()),
 	},
-	{
+	"toggle-theme": {
 		id: "toggle-theme",
 		group: "Settings",
 		label: state =>
@@ -107,7 +107,7 @@ export const commands: Command[] = [
 			);
 		},
 	},
-	{
+	"toggle-study-session": {
 		id: "toggle-study-session",
 		group: "Study",
 		label: state =>
@@ -126,7 +126,7 @@ export const commands: Command[] = [
 			});
 		},
 	},
-	{
+	"set-read-point": {
 		id: "set-read-point",
 		group: "Reading",
 		label: "Set read point",
@@ -138,7 +138,7 @@ export const commands: Command[] = [
 			notifications.show({ message: "Read point set" });
 		},
 	},
-	{
+	"clear-read-point": {
 		id: "clear-read-point",
 		group: "Reading",
 		label: "Clear read point",
@@ -149,7 +149,7 @@ export const commands: Command[] = [
 			notifications.show({ message: "Read point cleared" });
 		},
 	},
-	{
+	"go-to-read-point": {
 		id: "go-to-read-point",
 		group: "Reading",
 		label: "Go to read point",
@@ -159,4 +159,7 @@ export const commands: Command[] = [
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_GOTO_REQUESTED));
 		},
 	},
-];
+};
+
+/** Declaration order, for consumers that list/iterate commands rather than look one up by id. */
+export const commands: Command[] = Object.values(commandsById);
