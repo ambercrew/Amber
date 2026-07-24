@@ -3,7 +3,7 @@ import { useStore } from "react-redux";
 import { useNavigate } from "react-router";
 import { RootState } from "../stores/store";
 import useAppDispatch from "../hooks/useAppDispatch";
-import { CommandId, commands } from "./commands";
+import { CommandId, commandsById } from "./commands";
 
 export function useRunCommand() {
 	const dispatch = useAppDispatch();
@@ -12,8 +12,7 @@ export function useRunCommand() {
 
 	return useCallback(
 		(id: CommandId) => {
-			const command = commands.find(c => c.id === id);
-			if (!command) return;
+			const command = commandsById[id];
 			if (command.enabled && !command.enabled(store.getState())) return;
 			command.execute(dispatch, () => store.getState(), navigate);
 		},

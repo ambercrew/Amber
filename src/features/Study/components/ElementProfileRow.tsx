@@ -6,7 +6,7 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import { openStudyProfileModal } from "../../../stores/app/appReducer";
 import { loadElementDetailsAction } from "../../../stores/elementDetails/elementDetailsActions";
 import { ElementId } from "../../../types/elements/elementId";
-import { commands } from "../../../commands/commands";
+import { commandIcon } from "../../../commands/commandIcon";
 import StudyProfileOption from "./StudyProfileOption";
 
 interface ElementProfileRowProps {
@@ -79,7 +79,7 @@ function ElementProfileRow({ elementId, details }: ElementProfileRowProps) {
 				variant="subtle"
 				title="Manage study profiles"
 				onClick={() => dispatch(openStudyProfileModal())}>
-				{commands.find(c => c.id === "manage-study-profiles")?.icon}
+				{commandIcon("manage-study-profiles")}
 			</ActionIcon>
 		</Group>
 	);
