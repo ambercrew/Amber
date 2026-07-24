@@ -35,9 +35,9 @@ pub struct Reading {
     /// Where the user last read up to. Device-independent.
     pub read_point: ReadPoint,
     /// Interval multiplier applied each time this reading is revisited. Seeded from
-    /// the effective study profile's `initial_a_factor` at creation time and kept
+    /// the effective study profile's `initial_interval_multiplier` at creation time and kept
     /// fixed afterwards, independent of later profile edits.
-    pub a_factor: f32,
+    pub interval_multiplier: f32,
 }
 
 impl Element for Reading {

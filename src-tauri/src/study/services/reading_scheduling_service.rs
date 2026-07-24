@@ -9,7 +9,7 @@ use crate::study::services::profile_resolution_service::ProfileResolutionError;
 
 #[async_trait]
 pub trait ReadingSchedulingService: Send + Sync {
-    /// Advances the element to its next interval (`interval_days * a_factor`, or
+    /// Advances the element to its next interval (`interval_days * interval_multiplier`, or
     /// `profile.initial_interval_days` on the first pass), floored by
     /// `profile.min_interval_days`.
     async fn next(&self, element_id: ElementId) -> Result<ReadingReview, ReadingSchedulingError>;

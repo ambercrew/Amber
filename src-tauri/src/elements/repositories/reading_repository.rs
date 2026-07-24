@@ -32,6 +32,9 @@ pub trait ReadingRepository: Send + Sync {
         reading_id: Uuid,
         read_point: ReadPoint,
     ) -> Result<(), RepositoryError>;
-    async fn update_a_factor(&self, reading_id: Uuid, a_factor: f32)
-    -> Result<(), RepositoryError>;
+    async fn update_interval_multiplier(
+        &self,
+        reading_id: Uuid,
+        interval_multiplier: f32,
+    ) -> Result<(), RepositoryError>;
 }

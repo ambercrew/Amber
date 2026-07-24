@@ -386,7 +386,7 @@ mod tests {
         };
         let folder_id = folder.meta.element_id;
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Photosynthesis".to_string(),
                 parent: Some(folder_id),
@@ -396,7 +396,7 @@ mod tests {
         };
         let reading_id = reading.meta.element_id;
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Key passage".to_string(),
                 parent: Some(reading_id),
@@ -482,7 +482,7 @@ mod tests {
             .unwrap();
 
         let reading_first = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "First".to_string(),
                 parent: Some(folder_id),
@@ -492,7 +492,7 @@ mod tests {
             read_point: ReadPoint::default(),
         };
         let reading_second = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Second".to_string(),
                 parent: Some(folder_id),
@@ -585,7 +585,7 @@ mod tests {
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Orphan Reading".to_string(),
                 ..reading_meta()
@@ -624,7 +624,7 @@ mod tests {
         let pos_third = FractionalIndex::new_after(&pos_second);
 
         let reading = Reading {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Reading".to_string(),
                 position: pos_first,
@@ -640,7 +640,7 @@ mod tests {
             },
         };
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Extract".to_string(),
                 position: pos_third,
@@ -699,7 +699,7 @@ mod tests {
         };
         let folder_id = folder.meta.element_id;
         let extract = Extract {
-            a_factor: 1.2,
+            interval_multiplier: 1.2,
             meta: Meta {
                 name: "Direct extract".to_string(),
                 parent: Some(folder_id),

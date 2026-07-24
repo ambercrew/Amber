@@ -14,7 +14,7 @@ use crate::study::services::profile_resolution_service::{
 };
 
 const DEFAULT_DESIRED_RETENTION: f32 = 0.9;
-const DEFAULT_A_FACTOR: f32 = 1.2;
+const DEFAULT_INTERVAL_MULTIPLIER: f32 = 1.2;
 const DEFAULT_INITIAL_INTERVAL_DAYS: f32 = 1.0;
 const DEFAULT_MIN_INTERVAL_DAYS: f32 = 1.0;
 
@@ -100,7 +100,7 @@ impl DefaultProfileResolutionService {
             is_default: true,
             desired_retention: DEFAULT_DESIRED_RETENTION,
             fsrs_params: Some(fsrs::DEFAULT_PARAMETERS.to_vec()),
-            initial_a_factor: DEFAULT_A_FACTOR,
+            initial_interval_multiplier: DEFAULT_INTERVAL_MULTIPLIER,
             initial_interval_days: DEFAULT_INITIAL_INTERVAL_DAYS,
             min_interval_days: DEFAULT_MIN_INTERVAL_DAYS,
         }
@@ -283,7 +283,10 @@ mod tests {
         // Assert
 
         assert!(resolved.is_default);
-        assert_eq!(DEFAULT_A_FACTOR, resolved.initial_a_factor);
+        assert_eq!(
+            DEFAULT_INTERVAL_MULTIPLIER,
+            resolved.initial_interval_multiplier
+        );
     }
 
     #[tokio::test]

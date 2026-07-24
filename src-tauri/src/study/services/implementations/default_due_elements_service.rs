@@ -128,7 +128,7 @@ mod tests {
         reading_repo
             .create(
                 Reading {
-                    a_factor: 1.2,
+                    interval_multiplier: 1.2,
                     meta: make_meta(reading_id),
                     read_point: ReadPoint::default(),
                 },

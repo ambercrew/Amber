@@ -106,11 +106,14 @@ export function updateElementTags(
 	return invoke("update_element_tags", { elementId, tags });
 }
 
-export function updateAFactor(
+export function updateIntervalMultiplier(
 	elementId: ElementId,
-	aFactor: number,
+	intervalMultiplier: number,
 ): Promise<void> {
-	return invoke("update_a_factor", { elementId, aFactor });
+	return invoke("update_interval_multiplier", {
+		elementId,
+		intervalMultiplier,
+	});
 }
 
 export function clearDerivedFrom(elementId: ElementId): Promise<void> {

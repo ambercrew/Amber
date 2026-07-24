@@ -20,7 +20,7 @@ pub struct ExtractRow {
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
     pub content: String,
-    pub a_factor: f64,
+    pub interval_multiplier: f64,
 }
 
 impl From<ExtractRow> for Extract {
@@ -39,7 +39,7 @@ impl From<ExtractRow> for Extract {
                 modified_at: row.modified_at,
             },
             content: row.content,
-            a_factor: row.a_factor as f32,
+            interval_multiplier: row.interval_multiplier as f32,
         }
     }
 }

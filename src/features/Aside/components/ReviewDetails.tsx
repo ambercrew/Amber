@@ -1,6 +1,6 @@
 import { NumberInput, Text } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { updateAFactor } from "../../../api/elements/api/elementsApi";
+import { updateIntervalMultiplier } from "../../../api/elements/api/elementsApi";
 import { AnyElementDto } from "../../../api/elements/dto/anyElementDto";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import { ElementId } from "../../../types/elements/elementId";
@@ -25,8 +25,8 @@ function ReviewDetails({ element, details }: ReviewDetailsProps) {
 	const cardReview = details?.cardReview ?? null;
 	const readingReview = details?.readingReview ?? null;
 
-	const debouncedUpdateAFactor = useDebouncedCallback(
-		(id: ElementId, value: number) => updateAFactor(id, value),
+	const debouncedUpdateIntervalMultiplier = useDebouncedCallback(
+		(id: ElementId, value: number) => updateIntervalMultiplier(id, value),
 		500,
 	);
 
@@ -37,17 +37,20 @@ function ReviewDetails({ element, details }: ReviewDetailsProps) {
 				title="Scheduling"
 				storageKey="scheduling"
 				defaultOpened={false}>
-				<InfoField label="A-factor">
+				<InfoField label="Interval multiplier">
 					<NumberInput
-						key={`a-factor-${elementId.id}`}
+						key={`interval-multiplier-${elementId.id}`}
 						size="sm"
 						min={0}
 						step={0.1}
 						decimalScale={2}
-						defaultValue={element.data.aFactor}
+						defaultValue={element.data.intervalMultiplier}
 						onChange={value => {
 							if (typeof value === "number") {
-								debouncedUpdateAFactor(elementId, value);
+								debouncedUpdateIntervalMultiplier(
+									elementId,
+									value,
+								);
 							}
 						}}
 					/>

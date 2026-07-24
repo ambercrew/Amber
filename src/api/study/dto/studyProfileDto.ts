@@ -8,7 +8,7 @@ export interface StudyProfileDto {
 	isDefault: boolean;
 	desiredRetention: number;
 	fsrsParams: number[];
-	initialAFactor: number;
+	initialIntervalMultiplier: number;
 	initialIntervalDays: number;
 	minIntervalDays: number;
 }
@@ -17,7 +17,7 @@ export interface StudyProfileRequestDto {
 	name: string;
 	desiredRetention: number;
 	fsrsParams: number[];
-	initialAFactor: number;
+	initialIntervalMultiplier: number;
 	initialIntervalDays: number;
 	minIntervalDays: number;
 }
