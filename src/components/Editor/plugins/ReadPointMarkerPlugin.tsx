@@ -28,10 +28,6 @@ export default function ReadPointMarkerPlugin({
 	const blockKeyRef = useRef<NodeKey | null>(null);
 
 	useEffect(() => {
-		blockKeyRef.current = null;
-	}, [editor, blockIndex]);
-
-	useEffect(() => {
 		const measure = () => {
 			const root = editor.getRootElement();
 			const anchor = root?.parentElement;
