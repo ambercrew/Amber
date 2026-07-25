@@ -34,6 +34,7 @@ function makeDetails(
 		effectiveProfile: { profile, source: "default", inheritedFrom: null },
 		profiles: [profile],
 		inheritedProfileName: "Default",
+		priority: { rank: 1, total: 1, percentage: 0 },
 		...overrides,
 	};
 }

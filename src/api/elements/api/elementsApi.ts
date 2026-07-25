@@ -116,6 +116,23 @@ export function updateIntervalMultiplier(
 	});
 }
 
+export function setElementPriorityByRank(
+	elementId: ElementId,
+	rank: number,
+): Promise<void> {
+	return invoke("set_element_priority_by_rank", { elementId, rank });
+}
+
+export function setElementPriorityByPercentage(
+	elementId: ElementId,
+	percentage: number,
+): Promise<void> {
+	return invoke("set_element_priority_by_percentage", {
+		elementId,
+		percentage,
+	});
+}
+
 export function clearDerivedFrom(elementId: ElementId): Promise<void> {
 	return invoke("clear_derived_from", { elementId });
 }

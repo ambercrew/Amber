@@ -27,6 +27,8 @@ use crate::elements::services::implementations::default_element_details_service:
 use crate::elements::services::implementations::default_element_index_service::DefaultElementIndexService;
 use crate::elements::services::implementations::default_element_move_service::DefaultElementMoveService;
 use crate::elements::services::implementations::default_element_tree_service::DefaultElementTreeService;
+use crate::elements::services::implementations::default_priority_service::DefaultPriorityService;
+use crate::elements::services::priority_service::PriorityService;
 use crate::generated_code;
 use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
@@ -176,6 +178,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     );
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);
+    register_scope!(injector, dyn PriorityService, DefaultPriorityService);
 
     // Study
 

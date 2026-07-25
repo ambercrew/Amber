@@ -26,6 +26,7 @@ function renderOpenedModal() {
 				importModalOpened: true,
 				studyProfileModalOpened: false,
 				settingsModalOpened: false,
+				priorityDialogOpened: false,
 			},
 		},
 	});

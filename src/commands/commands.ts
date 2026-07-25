@@ -2,6 +2,7 @@ import { createElement, ReactNode } from "react";
 import { NavigateFunction } from "react-router";
 import { notifications } from "@mantine/notifications";
 import {
+	ArrowsDownUpIcon,
 	BookOpenIcon,
 	BookmarkSimpleIcon,
 	EraserIcon,
@@ -14,6 +15,7 @@ import {
 import { AppDispatch, RootState } from "../stores/store";
 import {
 	openImportModal,
+	openPriorityDialog,
 	openSettingsModal,
 	openStudyProfileModal,
 } from "../stores/app/appReducer";
@@ -33,6 +35,7 @@ export const IMPORT_SHORTCUT = "mod+shift+N";
 export const TOGGLE_STUDY_SESSION_SHORTCUT = "mod+L";
 export const OPEN_SETTINGS_SHORTCUT = "mod+P";
 export const SET_READ_POINT_SHORTCUT = "mod+shift+R";
+export const OPEN_PRIORITY_DIALOG_SHORTCUT = "alt+P";
 
 export const commandIds = [
 	"import",
@@ -43,6 +46,7 @@ export const commandIds = [
 	"set-read-point",
 	"clear-read-point",
 	"go-to-read-point",
+	"open-priority-dialog",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
@@ -158,6 +162,15 @@ export const commandsById: Record<CommandId, Command> = {
 		execute: () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_GOTO_REQUESTED));
 		},
+	},
+	"open-priority-dialog": {
+		id: "open-priority-dialog",
+		group: "General",
+		label: "Set priority",
+		shortcut: OPEN_PRIORITY_DIALOG_SHORTCUT,
+		icon: createElement(ArrowsDownUpIcon),
+		enabled: state => selectCurrentElement(state) !== null,
+		execute: dispatch => dispatch(openPriorityDialog()),
 	},
 };
 

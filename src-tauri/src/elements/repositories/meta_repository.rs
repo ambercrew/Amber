@@ -66,4 +66,32 @@ pub trait MetaRepository: Send + Sync {
         &self,
         parent: Option<ElementId>,
     ) -> Result<Vec<Meta>, RepositoryError>;
+
+    /// Sets the element's priority (global queue ordering, independent of `position`).
+    async fn set_priority(
+        &self,
+        id: ElementId,
+        new_priority: FractionalIndex,
+    ) -> Result<(), RepositoryError>;
+
+    /// Highest priority (i.e. lowest-ranked, "back of the queue") across all elements.
+    async fn get_last_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError>;
+
+    /// Lowest priority (i.e. highest-ranked, "front of the queue") across all elements.
+    async fn get_first_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError>;
+
+    /// Return the element immediately before this one in global priority order.
+    async fn get_previous_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError>;
+
+    /// Return the element immediately after this one in global priority order.
+    async fn get_next_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError>;
+
+    /// All elements, ordered by priority ascending (front of queue first).
+    async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError>;
+
+    /// Total number of elements in the priority queue.
+    async fn count_all(&self) -> Result<i64, RepositoryError>;
+
+    /// Number of elements with a strictly lower priority value (i.e. ranked ahead) than this one.
+    async fn count_with_lower_priority(&self, id: ElementId) -> Result<i64, RepositoryError>;
 }

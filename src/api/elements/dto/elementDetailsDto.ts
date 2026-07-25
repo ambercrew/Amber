@@ -5,6 +5,7 @@ import {
 	StudyProfileDto,
 } from "../../study/dto/studyProfileDto";
 import { SourceResponseDto } from "../../sources/dto/sourceDto";
+import { PriorityInfoDto } from "./priorityInfoDto";
 
 export interface ElementDetailsResponseDto {
 	source: SourceResponseDto | null;
@@ -14,4 +15,5 @@ export interface ElementDetailsResponseDto {
 	effectiveProfile: EffectiveProfileDto;
 	profiles: StudyProfileDto[];
 	inheritedProfileName: string | null;
+	priority: PriorityInfoDto;
 }

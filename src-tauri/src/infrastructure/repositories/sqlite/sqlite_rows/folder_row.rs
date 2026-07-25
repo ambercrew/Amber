@@ -11,6 +11,7 @@ pub struct FolderRow {
     pub id: Uuid,
     pub name: String,
     pub position: Vec<u8>,
+    pub priority: Vec<u8>,
     pub parent_id: Option<Uuid>,
     pub parent_type: Option<String>,
     pub derived_from_id: Option<Uuid>,
@@ -32,6 +33,8 @@ impl From<FolderRow> for Folder {
                 study_profile_id: row.study_profile_id,
                 source_id: row.source_id,
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
+                    .expect("Invalid fractional index"),
+                priority: fractional_index::FractionalIndex::from_bytes(row.priority)
                     .expect("Invalid fractional index"),
                 created_at: row.created_at,
                 modified_at: row.modified_at,

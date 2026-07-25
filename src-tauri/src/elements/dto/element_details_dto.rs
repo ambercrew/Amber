@@ -1,5 +1,6 @@
 use serde::Serialize;
 
+use crate::elements::dto::priority_info_dto::PriorityInfoResponseDto;
 use crate::elements::services::element_details_service::ElementDetails;
 use crate::sources::dto::source_dto::SourceResponseDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
@@ -21,6 +22,7 @@ pub struct ElementDetailsResponseDto {
     /// (or app-wide default's) profile name when this element's profile is
     /// direct, otherwise the effective profile's own name.
     pub inherited_profile_name: Option<String>,
+    pub priority: PriorityInfoResponseDto,
 }
 
 impl From<ElementDetails> for ElementDetailsResponseDto {
@@ -33,6 +35,7 @@ impl From<ElementDetails> for ElementDetailsResponseDto {
             effective_profile: details.effective_profile.into(),
             profiles: details.profiles.into_iter().map(Into::into).collect(),
             inherited_profile_name: details.inherited_profile_name,
+            priority: details.priority.into(),
         }
     }
 }

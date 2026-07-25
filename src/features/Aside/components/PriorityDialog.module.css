@@ -1,0 +1,15 @@
+/*
+ * Mantine's Slider paints its track groove via a `::before` pseudo-element,
+ * which the `styles` prop (plain inline styles) cannot target. A CSS module
+ * class is the only way to reach it.
+ */
+.gradient-track::before {
+	background-image: linear-gradient(
+		to right,
+		var(--mantine-color-red-6) 0%,
+		var(--mantine-color-orange-6) 15%,
+		var(--mantine-color-yellow-6) 35%,
+		var(--mantine-color-gray-5) 80%,
+		var(--mantine-color-gray-5) 100%
+	) !important;
+}

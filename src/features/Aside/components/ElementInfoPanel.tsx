@@ -1,4 +1,12 @@
-import { Divider, Stack, Text, TextInput, TagsInput } from "@mantine/core";
+import {
+	ActionIcon,
+	Divider,
+	Group,
+	Stack,
+	Text,
+	TextInput,
+	TagsInput,
+} from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -9,6 +17,8 @@ import { selectCurrentElementDetails } from "../../../stores/elementDetails/elem
 import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 import { ElementId } from "../../../types/elements/elementId";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
+import { openPriorityDialog } from "../../../stores/app/appReducer";
+import { commandIcon } from "../../../commands/commandIcon";
 import ElementProfileRow from "../../Study/components/ElementProfileRow";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
@@ -96,6 +106,21 @@ function ElementInfoPanel() {
 					<Text size="sm">
 						{new Date(storedMeta.createdAt).toLocaleString()}
 					</Text>
+				</InfoField>
+				<InfoField label="Priority">
+					<Group gap={4} wrap="nowrap" align="center">
+						<Text size="sm" flex={1}>
+							{details
+								? `${details.priority.percentage.toFixed(2)}% (${details.priority.rank}/${details.priority.total})`
+								: "—"}
+						</Text>
+						<ActionIcon
+							variant="subtle"
+							title="Set priority"
+							onClick={() => dispatch(openPriorityDialog())}>
+							{commandIcon("open-priority-dialog")}
+						</ActionIcon>
+					</Group>
 				</InfoField>
 			</InfoGroup>
 

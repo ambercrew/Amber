@@ -30,6 +30,7 @@ function renderModal(opened: boolean) {
 				importModalOpened: false,
 				studyProfileModalOpened: false,
 				settingsModalOpened: opened,
+				priorityDialogOpened: false,
 			},
 			settings: { settings },
 		},

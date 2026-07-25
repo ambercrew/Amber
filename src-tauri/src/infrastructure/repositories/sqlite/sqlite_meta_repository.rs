@@ -27,12 +27,13 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (element_id, element_type, name, position, parent_id, parent_type, derived_from_id, derived_from_type, study_profile_id, source_id, created_at, modified_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, datetime($11), datetime($12))",
+            "INSERT INTO meta (element_id, element_type, name, position, priority, parent_id, parent_type, derived_from_id, derived_from_type, study_profile_id, source_id, created_at, modified_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, datetime($12), datetime($13))",
             uuid,
             element_type,
             meta.name,
             meta.position.as_bytes(),
+            meta.priority.as_bytes(),
             meta.parent.map(|p| p.id()),
             meta.parent.map(|p| p.element_name()),
             meta.derived_from.map(|p| p.id()),
@@ -58,6 +59,7 @@ impl MetaRepository for SqliteMetaRepository {
                 element_type,
                 name,
                 position as "position: _",
+                priority as "priority: _",
                 parent_id as "parent_id: _",
                 parent_type,
                 derived_from_id as "derived_from_id: _",
@@ -276,6 +278,7 @@ impl MetaRepository for SqliteMetaRepository {
                 element_type,
                 name,
                 position as "position: _",
+                priority as "priority: _",
                 parent_id as "parent_id: _",
                 parent_type,
                 derived_from_id as "derived_from_id: _",
@@ -308,6 +311,7 @@ impl MetaRepository for SqliteMetaRepository {
                 element_type,
                 name,
                 position as "position: _",
+                priority as "priority: _",
                 parent_id as "parent_id: _",
                 parent_type,
                 derived_from_id as "derived_from_id: _",
@@ -343,6 +347,7 @@ impl MetaRepository for SqliteMetaRepository {
                 element_type,
                 name,
                 position as "position: _",
+                priority as "priority: _",
                 parent_id as "parent_id: _",
                 parent_type,
                 derived_from_id as "derived_from_id: _",
@@ -359,5 +364,159 @@ impl MetaRepository for SqliteMetaRepository {
         .fetch_all(&mut *tx)
         .await?;
         Ok(rows.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn set_priority(
+        &self,
+        id: ElementId,
+        new_priority: FractionalIndex,
+    ) -> Result<(), RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        sqlx::query!(
+            r#"UPDATE meta SET priority = $1 WHERE element_id = $2"#,
+            new_priority.as_bytes(),
+            uuid
+        )
+        .execute(&mut *tx)
+        .await?;
+        Ok(())
+    }
+
+    async fn get_last_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta ORDER BY priority DESC LIMIT 1"#
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn get_first_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta ORDER BY priority LIMIT 1"#
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn get_previous_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                element_id as "element_id: _",
+                element_type,
+                name,
+                position as "position: _",
+                priority as "priority: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
+                study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE priority < $1
+            ORDER BY priority DESC
+            LIMIT 1"#,
+            meta.priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        Ok(row.map(|r| r.into()))
+    }
+
+    async fn get_next_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                element_id as "element_id: _",
+                element_type,
+                name,
+                position as "position: _",
+                priority as "priority: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
+                study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE priority > $1
+            ORDER BY priority
+            LIMIT 1"#,
+            meta.priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        Ok(row.map(|r| r.into()))
+    }
+
+    async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let rows = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                element_id as "element_id: _",
+                element_type,
+                name,
+                position as "position: _",
+                priority as "priority: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
+                study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            ORDER BY priority"#
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+        Ok(rows.into_iter().map(|r| r.into()).collect())
+    }
+
+    async fn count_all(&self) -> Result<i64, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(r#"SELECT COUNT(*) as "count: i64" FROM meta"#)
+            .fetch_one(&mut *tx)
+            .await?;
+        Ok(row.count)
+    }
+
+    async fn count_with_lower_priority(&self, id: ElementId) -> Result<i64, RepositoryError> {
+        let uuid = id.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT COUNT(*) as "count: i64" FROM meta
+            WHERE priority < (SELECT priority FROM meta WHERE element_id = $1)"#,
+            uuid
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.count)
     }
 }

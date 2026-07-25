@@ -7,6 +7,7 @@ use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::services::element_details_service::{
     ElementDetails, ElementDetailsError, ElementDetailsService,
 };
+use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::sources::services::source_service::SourceService;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
@@ -22,6 +23,7 @@ pub struct DefaultElementDetailsService {
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
     study_profile_service: Arc<dyn StudyProfileService>,
+    priority_service: Arc<dyn PriorityService>,
 }
 
 #[async_trait]
@@ -69,6 +71,7 @@ impl ElementDetailsService for DefaultElementDetailsService {
             .resolve_effective_profile(element_id)
             .await?;
         let profiles = self.study_profile_service.list_profiles().await?;
+        let priority = self.priority_service.get_priority_info(element_id).await?;
 
         let inherited_profile_name = match effective_profile.source {
             ProfileSource::Direct => match meta.parent {
@@ -95,6 +98,7 @@ impl ElementDetailsService for DefaultElementDetailsService {
             effective_profile,
             profiles,
             inherited_profile_name,
+            priority,
         })
     }
 }
@@ -106,6 +110,8 @@ mod tests {
     use injector::{injector::Injector, register_scope};
     use uuid::Uuid;
 
+    use crate::elements::services::implementations::default_priority_service::DefaultPriorityService;
+    use crate::elements::services::priority_service::PriorityService;
     use crate::{
         elements::{
             entities::card::Card, repositories::card_repository::CardRepository,
@@ -169,6 +175,7 @@ mod tests {
             dyn StudyProfileService,
             DefaultStudyProfileService
         );
+        register_scope!(injector, dyn PriorityService, DefaultPriorityService);
         register_scope!(
             injector,
             dyn ElementDetailsService,
@@ -183,6 +190,7 @@ mod tests {
             name: "test".into(),
             parent,
             position: FractionalIndex::default(),
+            priority: FractionalIndex::default(),
             study_profile_id: None,
             source_id: None,
             derived_from: None,

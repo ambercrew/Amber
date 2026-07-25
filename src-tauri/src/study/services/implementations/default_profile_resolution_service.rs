@@ -150,6 +150,7 @@ mod tests {
             name: "test".into(),
             parent,
             position: FractionalIndex::default(),
+            priority: FractionalIndex::default(),
             study_profile_id: None,
             source_id: None,
             derived_from: None,
