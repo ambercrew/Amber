@@ -85,8 +85,8 @@ pub async fn fetch_image(
 }
 
 #[tauri::command]
-pub async fn extract_pdf(
-    app: tauri::AppHandle,
+pub async fn extract_pdf<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     request_id: String,
     bytes_base64: String,
 ) -> Result<PdfExtractionDto, ApiError> {
@@ -97,8 +97,8 @@ pub async fn extract_pdf(
         .map_err(|e| ApiError::new(e.to_string()))?
 }
 
-fn extract_pdf_sync(
-    app: &tauri::AppHandle,
+fn extract_pdf_sync<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
     request_id: &str,
     bytes: Vec<u8>,
 ) -> Result<PdfExtractionDto, ApiError> {

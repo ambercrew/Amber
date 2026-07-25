@@ -79,9 +79,9 @@ export default function ReadingView({
 		[],
 	);
 
-	// `restoredRef` is shared with the hooks below: low until the saved read
-	// point has been restored on open, so they can hold off scroll-tracking
-	// and resize compensation until then.
+	// `restoredRef` is shared with the hook below: low until the saved read
+	// point has been restored on open, so it can hold off scroll-tracking
+	// until then.
 	const { restoredRef, notifySplitReady, goToReadPoint } = useReadPointScroll(
 		{
 			initial: readPoint,
@@ -93,7 +93,6 @@ export default function ReadingView({
 	const { getHeight, observeSplit } = useSplitHeights(
 		readingId,
 		contentWidth,
-		restoredRef,
 	);
 	const { recordExtractReadPoint, trackCursor, getCurrentReadPoint } =
 		useReadPoint({

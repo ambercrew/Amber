@@ -1,9 +1,7 @@
-import { RefObject, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { READING_HEIGHT_WRITE_DEBOUNCE_IN_MILLISECONDS } from "../readingViewConstants";
 import { estimateSplitHeight } from "./estimateSplitHeight";
-import { compensateScrollForResize } from "./scrollCompensation";
 import { loadSplitHeights, saveSplitHeights } from "./splitHeightsStorage";
-import { supportsOverflowAnchor } from "./supportsOverflowAnchor";
 
 interface ReturnValue {
 	/** Best-known height for a split: measured/stored, else an estimate. */
@@ -13,10 +11,8 @@ interface ReturnValue {
 	 * with a `ResizeObserver` (which reports once on the initial observe, so
 	 * this also catches the mount-time placeholder-to-content swap, not just
 	 * later resizes) and caches it debounced, so the placeholder shown after it
-	 * unmounts matches exactly. Native scroll anchoring keeps visible content
-	 * stable across the resize on engines that support it; on ones that don't,
-	 * this hook manually compensates the scroll position instead. Cached per
-	 * seq so callers don't detach/reattach the ref on every unrelated re-render.
+	 * unmounts matches exactly. Cached per seq so callers don't
+	 * detach/reattach the ref on every unrelated re-render.
 	 */
 	observeSplit: (
 		seq: number,
@@ -34,14 +30,6 @@ interface ReturnValue {
 export function useSplitHeights(
 	readingId: string,
 	contentWidth: number,
-	/**
-	 * Held low until the saved position has been restored. The target split's
-	 * first real measurement — placeholder estimate vs. actual height — lands
-	 * right as that restore is positioning the viewport, and compensating for
-	 * it on top of the restore scroll would double up into a much bigger jump
-	 * than the estimate error alone; skip it until restore has landed.
-	 */
-	restoredRef?: RefObject<boolean>,
 ): ReturnValue {
 	const heightsRef = useRef<Record<number, number>>({});
 	const observersRef = useRef<Map<number, ResizeObserver>>(new Map());
@@ -96,19 +84,7 @@ export function useSplitHeights(
 				const observer = new ResizeObserver(() => {
 					const newHeight = element.offsetHeight;
 					if (newHeight <= 0) return;
-					const prevHeight = getHeight(seq, charCount);
-					if (prevHeight === newHeight) return;
-
-					if (
-						!supportsOverflowAnchor() &&
-						(!restoredRef || restoredRef.current)
-					) {
-						compensateScrollForResize(
-							element,
-							prevHeight,
-							newHeight,
-						);
-					}
+					if (getHeight(seq, charCount) === newHeight) return;
 
 					heightsRef.current[seq] = newHeight;
 					schedulePersist();
@@ -119,7 +95,7 @@ export function useSplitHeights(
 			refCallbacksRef.current.set(seq, { charCount, fn });
 			return fn;
 		},
-		[schedulePersist, getHeight, restoredRef],
+		[schedulePersist, getHeight],
 	);
 
 	// Tear down observers and flush any pending write on unmount.
