@@ -200,6 +200,7 @@ CREATE TABLE meta(
     element_type        TEXT    NOT NULL,
     name                TEXT    NOT NULL,
     position            BLOB    NOT NULL,
+    priority            BLOB    NOT NULL,
     parent_id           TEXT,
     parent_type         TEXT,
     derived_from_id     TEXT,
@@ -215,9 +216,10 @@ CREATE TABLE meta(
 CREATE INDEX meta_parent_id_index ON meta(parent_id);
 CREATE INDEX meta_source_id_index ON meta(source_id);
 CREATE INDEX meta_derived_from_id_index ON meta(derived_from_id);
+CREATE INDEX meta_priority_index ON meta(priority);
 
 CREATE TRIGGER meta_update_modified_at_after_update
-    AFTER UPDATE OF name, position , parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, source_id ON meta
+    AFTER UPDATE OF name, position, priority, parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, source_id ON meta
 BEGIN
     UPDATE meta
     SET modified_at = datetime('now')

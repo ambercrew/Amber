@@ -28,6 +28,7 @@ use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::services::element_details_service::ElementDetailsService;
 use crate::elements::services::element_move_service::ElementMoveService;
 use crate::elements::services::element_tree_service::ElementTreeService;
+use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use injector::injector::Injector;
@@ -378,4 +379,36 @@ pub async fn get_element_details(
         .get_element_details(element_id)
         .await?;
     Ok(details.into())
+}
+
+#[tauri::command]
+pub async fn set_element_priority_by_rank(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+    rank: i64,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn PriorityService>()
+        .await
+        .set_priority_by_rank(element_id, rank)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn set_element_priority_by_percentage(
+    injector: State<'_, Arc<Injector>>,
+    element_id: ElementId,
+    percentage: f64,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn PriorityService>()
+        .await
+        .set_priority_by_percentage(element_id, percentage)
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
 }

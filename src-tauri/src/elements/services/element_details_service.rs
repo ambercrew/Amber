@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use thiserror::Error;
 
 use crate::common::repository_error::RepositoryError;
+use crate::elements::services::priority_service::{PriorityError, PriorityInfo};
 use crate::elements::value_objects::element_id::ElementId;
 use crate::sources::services::source_service::SourceWithElementCount;
 use crate::study::entities::card_review::CardReview;
@@ -21,6 +22,7 @@ pub struct ElementDetails {
     pub reading_review: Option<ReadingReview>,
     pub effective_profile: EffectiveProfile,
     pub profiles: Vec<StudyProfile>,
+    pub priority: PriorityInfo,
     /// Name to show for the "inherit from parent" option: the parent's (or
     /// app-wide default's) profile name when this element's profile is
     /// direct, otherwise the effective profile's own name.
@@ -42,4 +44,7 @@ pub enum ElementDetailsError {
 
     #[error(transparent)]
     ProfileResolution(#[from] ProfileResolutionError),
+
+    #[error(transparent)]
+    Priority(#[from] PriorityError),
 }

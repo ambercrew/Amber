@@ -162,6 +162,8 @@ pub async fn run() -> Result<(), String> {
             move_element,
             update_element_tags,
             clear_derived_from,
+            set_element_priority_by_rank,
+            set_element_priority_by_percentage,
             create_folder,
             create_reading,
             create_extract,

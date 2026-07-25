@@ -22,6 +22,7 @@ use crate::elements::services::element_creation_service::{
     ElementCreationError, ElementCreationService,
 };
 use crate::elements::services::element_index_service::ElementIndexService;
+use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 use crate::study::entities::card_review::CardReview;
@@ -40,6 +41,7 @@ pub struct DefaultElementCreationService {
     extract_repository: Arc<dyn ExtractRepository>,
     card_repository: Arc<dyn CardRepository>,
     index_service: Arc<dyn ElementIndexService>,
+    priority_service: Arc<dyn PriorityService>,
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
     card_review_repository: Arc<dyn CardReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
@@ -50,6 +52,7 @@ impl ElementCreationService for DefaultElementCreationService {
     async fn create_folder(&self, dto: CreateFolderDto) -> Result<(), ElementCreationError> {
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
+        let priority = self.priority_service.get_new_first_priority().await?;
         let now = Utc::now();
 
         let folder = Folder {
@@ -58,6 +61,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 name: dto.meta.name,
                 parent,
                 position,
+                priority,
                 study_profile_id: None,
                 source_id: dto.meta.source_id,
                 derived_from: dto.meta.derived_from,
@@ -73,6 +77,7 @@ impl ElementCreationService for DefaultElementCreationService {
         let element_id = ElementId::Reading(dto.id);
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
+        let priority = self.priority_service.get_new_first_priority().await?;
         let now = Utc::now();
         let profile = self
             .profile_resolution_service
@@ -85,6 +90,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 name: dto.meta.name,
                 parent,
                 position,
+                priority,
                 study_profile_id: None,
                 source_id: dto.meta.source_id,
                 derived_from: dto.meta.derived_from,
@@ -111,6 +117,12 @@ impl ElementCreationService for DefaultElementCreationService {
         let element_id = ElementId::Extract(dto.id);
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
+        // Extracted text inherits the priority of the element it was pulled
+        // from, so the reader isn't forced to re-triage every extract.
+        let priority = match dto.meta.derived_from {
+            Some(source) => self.priority_service.get_inherited_priority(source).await?,
+            None => self.priority_service.get_new_first_priority().await?,
+        };
         let now = Utc::now();
         let profile = self
             .profile_resolution_service
@@ -123,6 +135,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 name: dto.meta.name,
                 parent,
                 position,
+                priority,
                 study_profile_id: None,
                 source_id: dto.meta.source_id,
                 derived_from: dto.meta.derived_from,
@@ -141,6 +154,7 @@ impl ElementCreationService for DefaultElementCreationService {
         let element_id = ElementId::Card(dto.id);
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
+        let priority = self.priority_service.get_new_first_priority().await?;
         let now = Utc::now();
 
         let card = Card {
@@ -149,6 +163,7 @@ impl ElementCreationService for DefaultElementCreationService {
                 name: dto.meta.name,
                 parent,
                 position,
+                priority,
                 study_profile_id: None,
                 source_id: dto.meta.source_id,
                 derived_from: dto.meta.derived_from,
@@ -234,6 +249,7 @@ mod tests {
     use crate::{
         elements::repositories::meta_repository::MetaRepository,
         elements::services::implementations::default_element_index_service::DefaultElementIndexService,
+        elements::services::implementations::default_priority_service::DefaultPriorityService,
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
@@ -264,6 +280,7 @@ mod tests {
             dyn ElementIndexService,
             DefaultElementIndexService
         );
+        register_scope!(injector, dyn PriorityService, DefaultPriorityService);
         register_scope!(
             injector,
             dyn ReadingReviewRepository,
@@ -330,6 +347,7 @@ mod tests {
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
+            priority_service: scope.resolve::<dyn PriorityService>().await,
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
@@ -370,6 +388,7 @@ mod tests {
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
+            priority_service: scope.resolve::<dyn PriorityService>().await,
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
@@ -412,6 +431,7 @@ mod tests {
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
+            priority_service: scope.resolve::<dyn PriorityService>().await,
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
@@ -472,6 +492,7 @@ mod tests {
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
+            priority_service: scope.resolve::<dyn PriorityService>().await,
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
@@ -511,6 +532,7 @@ mod tests {
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
+            priority_service: scope.resolve::<dyn PriorityService>().await,
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,

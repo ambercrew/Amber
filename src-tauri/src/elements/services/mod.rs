@@ -5,3 +5,4 @@ pub mod element_move_error;
 pub mod element_move_service;
 pub mod element_tree_service;
 pub mod implementations;
+pub mod priority_service;

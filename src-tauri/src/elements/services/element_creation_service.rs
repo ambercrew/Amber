@@ -7,6 +7,7 @@ use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
 use crate::elements::services::element_move_error::ElementMoveError;
+use crate::elements::services::priority_service::PriorityError;
 use crate::study::services::profile_resolution_service::ProfileResolutionError;
 
 /// Creates folders, readings, extracts and cards. Beyond persisting the element
@@ -31,4 +32,7 @@ pub enum ElementCreationError {
 
     #[error(transparent)]
     ProfileResolution(#[from] ProfileResolutionError),
+
+    #[error(transparent)]
+    Priority(#[from] PriorityError),
 }

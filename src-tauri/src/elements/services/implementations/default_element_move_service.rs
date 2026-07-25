@@ -128,6 +128,7 @@ mod tests {
                 name: "test".into(),
                 parent,
                 position,
+                priority: FractionalIndex::default(),
                 study_profile_id: None,
                 source_id: None,
                 derived_from: None,

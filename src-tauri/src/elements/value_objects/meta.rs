@@ -10,6 +10,9 @@ pub struct Meta {
     pub name: String,
     pub parent: Option<ElementId>,
     pub position: FractionalIndex,
+    /// Global ordering across all elements, independent of `position` (which
+    /// only orders siblings in the sidebar tree). Drives the priority queue.
+    pub priority: FractionalIndex,
     /// The element this one was created from, one hop up the derivation chain.
     /// Independent of `parent`, which is the element's place in the sidebar tree.
     pub derived_from: Option<ElementId>,

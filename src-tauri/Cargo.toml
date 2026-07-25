@@ -68,7 +68,7 @@ features = [
 [target.'cfg(not(target_os = "linux"))'.dependencies.tauri]
 version = "2"
 default-features = false
-features = [
+features = ["cef",
   "test",
   "wry",
 ]

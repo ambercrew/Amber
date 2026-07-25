@@ -82,6 +82,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: false,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -103,6 +104,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -134,6 +136,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 				elements: elementsStateFor(cardElement("1")),
 			},
@@ -171,6 +174,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 				elements: elementsStateFor(null),
 			},
@@ -197,6 +201,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -229,6 +234,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -261,6 +267,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -292,6 +299,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});
@@ -321,6 +329,7 @@ describe("StudyProfileModal", () => {
 					importModalOpened: false,
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
+					priorityDialogOpened: false,
 				},
 			},
 		});

@@ -6,6 +6,7 @@ pub mod create_meta_dto;
 pub mod create_reading_dto;
 pub mod element_details_dto;
 pub mod move_element_dto;
+pub mod priority_info_dto;
 pub mod reading_split_id_dto;
 pub mod reading_split_meta_dto;
 pub mod tag_dto;

@@ -5,6 +5,7 @@ export interface AppState {
 	importModalOpened: boolean;
 	studyProfileModalOpened: boolean;
 	settingsModalOpened: boolean;
+	priorityDialogOpened: boolean;
 }
 
 const initialState: AppState = {
@@ -12,6 +13,7 @@ const initialState: AppState = {
 	importModalOpened: false,
 	studyProfileModalOpened: false,
 	settingsModalOpened: false,
+	priorityDialogOpened: false,
 };
 
 const appSlice = createSlice({
@@ -39,6 +41,12 @@ const appSlice = createSlice({
 		closeSettingsModal: state => {
 			state.settingsModalOpened = false;
 		},
+		openPriorityDialog: state => {
+			state.priorityDialogOpened = true;
+		},
+		closePriorityDialog: state => {
+			state.priorityDialogOpened = false;
+		},
 	},
 });
 
@@ -52,4 +60,6 @@ export const {
 	closeStudyProfileModal,
 	openSettingsModal,
 	closeSettingsModal,
+	openPriorityDialog,
+	closePriorityDialog,
 } = appSlice.actions;
