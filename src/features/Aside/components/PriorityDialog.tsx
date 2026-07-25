@@ -44,6 +44,10 @@ function PriorityDialogBody({
 	const [rank, setRank] = useState(initialRank);
 	const [percentage, setPercentage] = useState(initialPercentage);
 
+	// The percentage gap between two adjacent ranks, so stepping the
+	// controls below moves priority by exactly one element.
+	const percentageStep = total <= 1 ? 1 : 100 / (total - 1);
+
 	function rankToPercentage(value: number): number {
 		return total <= 1 ? 0 : ((value - 1) / (total - 1)) * 100;
 	}
@@ -69,6 +73,11 @@ function PriorityDialogBody({
 		);
 	}
 
+	function handleSliderChange(value: number) {
+		setPercentage(value);
+		setRank(percentageToRank(value));
+	}
+
 	return (
 		<Stack gap="lg">
 			<NumberInput
@@ -85,6 +94,7 @@ function PriorityDialogBody({
 				suffix="%"
 				min={0}
 				max={100}
+				step={percentageStep}
 				value={Math.round(percentage * 100) / 100}
 				onChange={handlePercentageChange}
 			/>
@@ -93,9 +103,9 @@ function PriorityDialogBody({
 					value={percentage}
 					min={0}
 					max={100}
-					step={0.1}
+					step={percentageStep}
 					label={value => `${value.toFixed(0)}%`}
-					onChange={setPercentage}
+					onChange={handleSliderChange}
 					onChangeEnd={handlePercentageChange}
 					classNames={{ track: styles["gradient-track"] }}
 					styles={{
