@@ -47,9 +47,14 @@ pub mod generated_code {
     include!(concat!(env!("OUT_DIR"), "/generated_code.rs"));
 }
 
+#[cfg(target_os = "linux")]
+type AppRuntime = tauri::Cef;
+#[cfg(not(target_os = "linux"))]
+type AppRuntime = tauri::Wry;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), String> {
-    let mut tauri_builder = tauri::Builder::default()
+    let mut tauri_builder = tauri::Builder::<AppRuntime>::default()
         .plugin(
             tauri_plugin_log::Builder::new()
                 .level(log::LevelFilter::Info)
