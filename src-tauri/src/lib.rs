@@ -104,7 +104,7 @@ pub async fn run() -> Result<(), String> {
                 let _ = app
                     .get_webview_window("main")
                     .expect("no main window")
-                    .set_title("Brainy - development");
+                    .set_title("Amber - development");
             }
 
             // Starting backup service.

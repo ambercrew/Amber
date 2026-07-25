@@ -4,11 +4,13 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use fractional_index::FractionalIndex;
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::element_id_with_priority::ElementIdWithPriority;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::study::entities::reading_review::ReadingReview;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
@@ -86,15 +88,15 @@ impl ReadingReviewRepository for SqliteReadingReviewRepository {
         Ok(())
     }
 
-    async fn get_due_element_ids(
+    async fn get_due_elements(
         &self,
         as_of: DateTime<Utc>,
-    ) -> Result<Vec<ElementId>, RepositoryError> {
+    ) -> Result<Vec<ElementIdWithPriority>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
         let rows = sqlx::query!(
-            r#"SELECT m.element_id as "element_id: uuid::Uuid", m.element_type
+            r#"SELECT m.element_id as "element_id: uuid::Uuid", m.element_type, m.priority
             FROM meta m
             LEFT JOIN reading_reviews rr ON rr.element_id = m.element_id
             WHERE m.element_type IN ('reading', 'extract')
@@ -106,7 +108,11 @@ impl ReadingReviewRepository for SqliteReadingReviewRepository {
 
         Ok(rows
             .into_iter()
-            .map(|row| element_id_from_type(row.element_id, &row.element_type))
+            .map(|row| ElementIdWithPriority {
+                element_id: element_id_from_type(row.element_id, &row.element_type),
+                priority: FractionalIndex::from_bytes(row.priority)
+                    .expect("Invalid fractional index"),
+            })
             .collect())
     }
 }
@@ -212,7 +218,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_due_element_ids_new_overdue_and_finished_returns_only_due() {
+    async fn get_due_elements_new_overdue_and_finished_returns_only_due() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -272,12 +278,18 @@ mod tests {
 
         // Act
 
-        let due_ids = repo.get_due_element_ids(Utc::now()).await.unwrap();
+        let due: Vec<ElementId> = repo
+            .get_due_elements(Utc::now())
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|entry| entry.element_id)
+            .collect();
 
         // Assert
 
-        assert!(due_ids.contains(&new_reading_id));
-        assert!(due_ids.contains(&overdue_extract_id));
-        assert!(!due_ids.contains(&finished_reading_id));
+        assert!(due.contains(&new_reading_id));
+        assert!(due.contains(&overdue_extract_id));
+        assert!(!due.contains(&finished_reading_id));
     }
 }

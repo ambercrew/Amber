@@ -28,11 +28,14 @@ impl PriorityService for DefaultPriorityService {
         source_id: ElementId,
     ) -> Result<FractionalIndex, PriorityError> {
         let source = self.meta_repository.get_by_id(source_id.id()).await?;
-        let next = self.meta_repository.get_next_by_priority(&source).await?;
-        let priority = match next {
-            Some(next) => FractionalIndex::new_between(&source.priority, &next.priority)
-                .unwrap_or_else(|| FractionalIndex::new_after(&source.priority)),
-            None => FractionalIndex::new_after(&source.priority),
+        let previous = self
+            .meta_repository
+            .get_previous_by_priority(&source)
+            .await?;
+        let priority = match previous {
+            Some(previous) => FractionalIndex::new_between(&previous.priority, &source.priority)
+                .unwrap_or_else(|| FractionalIndex::new_before(&source.priority)),
+            None => FractionalIndex::new_before(&source.priority),
         };
         Ok(priority)
     }
@@ -209,6 +212,55 @@ mod tests {
         // Assert
 
         assert!(actual < FractionalIndex::default());
+    }
+
+    #[tokio::test]
+    async fn get_inherited_priority_source_with_no_previous_returns_before_source() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let source = make_folder(FractionalIndex::default());
+        let source_id = source.meta.element_id;
+        folder_repo.create(source).await.unwrap();
+
+        // Act
+
+        let actual = service.get_inherited_priority(source_id).await.unwrap();
+
+        // Assert
+
+        assert!(actual < FractionalIndex::default());
+    }
+
+    #[tokio::test]
+    async fn get_inherited_priority_source_with_previous_returns_between_previous_and_source() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let previous_priority = FractionalIndex::default();
+        let source_priority = FractionalIndex::new_after(&previous_priority);
+        let previous = make_folder(previous_priority.clone());
+        let source = make_folder(source_priority.clone());
+        let source_id = source.meta.element_id;
+        folder_repo.create(previous).await.unwrap();
+        folder_repo.create(source).await.unwrap();
+
+        // Act
+
+        let actual = service.get_inherited_priority(source_id).await.unwrap();
+
+        // Assert
+
+        assert!(actual > previous_priority);
+        assert!(actual < source_priority);
     }
 
     #[tokio::test]

@@ -2,10 +2,13 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use fractional_index::FractionalIndex;
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
+use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::element_id_with_priority::ElementIdWithPriority;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::card_review_row::CardReviewRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 use crate::study::entities::card_review::CardReview;
@@ -76,13 +79,17 @@ impl CardReviewRepository for SqliteCardReviewRepository {
         Ok(())
     }
 
-    async fn get_due_card_ids(&self, as_of: DateTime<Utc>) -> Result<Vec<Uuid>, RepositoryError> {
+    async fn get_due_cards(
+        &self,
+        as_of: DateTime<Utc>,
+    ) -> Result<Vec<ElementIdWithPriority>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        let ids = sqlx::query!(
-            r#"SELECT c.id as "id: uuid::Uuid"
+        let due = sqlx::query!(
+            r#"SELECT c.id as "id: uuid::Uuid", m.priority
             FROM cards c
+            JOIN meta m ON m.element_id = c.id
             LEFT JOIN card_reviews cr ON cr.card_id = c.id
             WHERE cr.card_id IS NULL OR cr.due <= datetime($1)"#,
             as_of
@@ -90,10 +97,13 @@ impl CardReviewRepository for SqliteCardReviewRepository {
         .fetch_all(&mut *tx)
         .await?
         .into_iter()
-        .map(|row| row.id)
+        .map(|row| ElementIdWithPriority {
+            element_id: ElementId::Card(row.id),
+            priority: FractionalIndex::from_bytes(row.priority).expect("Invalid fractional index"),
+        })
         .collect();
 
-        Ok(ids)
+        Ok(due)
     }
 }
 
@@ -224,7 +234,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_due_card_ids_new_and_overdue_cards_returns_both() {
+    async fn get_due_cards_new_and_overdue_cards_returns_both() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -276,12 +286,18 @@ mod tests {
 
         // Act
 
-        let due_ids = repo.get_due_card_ids(Utc::now()).await.unwrap();
+        let due: Vec<Uuid> = repo
+            .get_due_cards(Utc::now())
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|entry| entry.element_id.id())
+            .collect();
 
         // Assert
 
-        assert!(due_ids.contains(&new_card_id));
-        assert!(due_ids.contains(&overdue_card_id));
-        assert!(!due_ids.contains(&future_card_id));
+        assert!(due.contains(&new_card_id));
+        assert!(due.contains(&overdue_card_id));
+        assert!(!due.contains(&future_card_id));
     }
 }
