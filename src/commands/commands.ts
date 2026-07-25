@@ -165,8 +165,8 @@ export const commandsById: Record<CommandId, Command> = {
 	},
 	"open-priority-dialog": {
 		id: "open-priority-dialog",
-		group: "General",
-		label: "Set priority",
+		group: "Study",
+		label: "Set element priority",
 		shortcut: OPEN_PRIORITY_DIALOG_SHORTCUT,
 		icon: createElement(ArrowsDownUpIcon),
 		enabled: state => selectCurrentElement(state) !== null,
