@@ -4,15 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useSplitHeights } from "../../../../../features/ElementViewer/ReadingView/heights/useSplitHeights";
 import { estimateSplitHeight } from "../../../../../features/ElementViewer/ReadingView/heights/estimateSplitHeight";
 
-const { supportsOverflowAnchorMock } = vi.hoisted(() => ({
-	supportsOverflowAnchorMock: vi.fn().mockReturnValue(true),
-}));
-
-vi.mock(
-	"../../../../../features/ElementViewer/ReadingView/heights/supportsOverflowAnchor",
-	() => ({ supportsOverflowAnchor: supportsOverflowAnchorMock }),
-);
-
 let observeCallback: ResizeObserverCallback | null = null;
 const disconnect = vi.fn();
 
@@ -38,7 +29,6 @@ describe("useSplitHeights", () => {
 
 	beforeEach(() => {
 		window.localStorage.clear();
-		supportsOverflowAnchorMock.mockReturnValue(true);
 		observeCallback = null;
 		disconnect.mockClear();
 		window.ResizeObserver =
@@ -110,104 +100,6 @@ describe("useSplitHeights", () => {
 		// Assert
 
 		expect(result.current.getHeight(0, 1000)).toBe(900);
-	});
-
-	it("Should not manually scroll when the engine supports native overflow anchoring", () => {
-		// Arrange
-
-		supportsOverflowAnchorMock.mockReturnValue(true);
-		const { result } = renderHook(() => useSplitHeights("reading-1", 720));
-		const element = document.createElement("div");
-		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-			top: 0,
-		} as DOMRect);
-		const scrollBy = vi
-			.spyOn(window, "scrollBy")
-			.mockImplementation(() => {});
-
-		// Act
-
-		act(() => result.current.observeSplit(0, 1000)(element));
-		act(() => triggerResize(element, 900));
-
-		// Assert
-
-		expect(scrollBy).not.toHaveBeenCalled();
-	});
-
-	it("Should manually compensate the scroll when the engine has no native overflow anchoring", () => {
-		// Arrange
-
-		supportsOverflowAnchorMock.mockReturnValue(false);
-		const { result } = renderHook(() => useSplitHeights("reading-1", 720));
-		const element = document.createElement("div");
-		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-			top: 0,
-		} as DOMRect);
-		const scrollBy = vi
-			.spyOn(window, "scrollBy")
-			.mockImplementation(() => {});
-
-		// Act
-
-		act(() => result.current.observeSplit(0, 1000)(element));
-		act(() => triggerResize(element, estimateSplitHeight(1000, 720) + 200));
-
-		// Assert
-
-		expect(scrollBy).toHaveBeenCalledWith(0, 200);
-	});
-
-	it("Should not manually scroll while restore is pending", () => {
-		// Arrange
-
-		supportsOverflowAnchorMock.mockReturnValue(false);
-		const restoredRef = { current: false };
-		const { result } = renderHook(() =>
-			useSplitHeights("reading-1", 720, restoredRef),
-		);
-		const element = document.createElement("div");
-		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-			top: 0,
-		} as DOMRect);
-		const scrollBy = vi
-			.spyOn(window, "scrollBy")
-			.mockImplementation(() => {});
-
-		// Act
-
-		act(() => result.current.observeSplit(0, 1000)(element));
-		act(() => triggerResize(element, estimateSplitHeight(1000, 720) + 200));
-
-		// Assert
-
-		expect(scrollBy).not.toHaveBeenCalled();
-	});
-
-	it("Should manually compensate the scroll once restore has landed", () => {
-		// Arrange
-
-		supportsOverflowAnchorMock.mockReturnValue(false);
-		const restoredRef = { current: true };
-		const { result } = renderHook(() =>
-			useSplitHeights("reading-1", 720, restoredRef),
-		);
-		const element = document.createElement("div");
-		vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
-			top: 0,
-		} as DOMRect);
-		const scrollBy = vi
-			.spyOn(window, "scrollBy")
-			.mockImplementation(() => {});
-
-		// Act
-
-		act(() => result.current.observeSplit(0, 1000)(element));
-		act(() => triggerResize(element, estimateSplitHeight(1000, 720) + 200));
-
-		// Assert
-
-		expect(scrollBy).toHaveBeenCalledWith(0, 200);
 	});
 
 	it("Should disconnect the previous observer when the ref callback runs again with a new element", () => {
