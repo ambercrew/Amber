@@ -188,4 +188,29 @@ describe("PriorityDialog", () => {
 		);
 		await waitFor(() => expect(getElementDetails).toHaveBeenCalledTimes(2));
 	});
+
+	it("Should move the percentage by exactly one element when stepping with the arrow keys", async () => {
+		// Arrange
+
+		vi.mocked(setElementPriorityByPercentage).mockResolvedValue(undefined);
+		renderWithProviders(<PriorityDialog />, {
+			preloadedState: {
+				app: appStateFor(true),
+				elements: elementsStateFor(cardElement()),
+			},
+		});
+		const percentageInput = await screen.findByLabelText("Percentage");
+
+		// Act
+
+		fireEvent.keyDown(percentageInput, { key: "ArrowUp" });
+
+		// Assert
+
+		// rank 3 of 5 -> rank 4 of 5 is (4-1)/(5-1)*100 = 75%.
+		expect(setElementPriorityByPercentage).toHaveBeenCalledWith(
+			cardElementId,
+			75,
+		);
+	});
 });
