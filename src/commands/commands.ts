@@ -10,7 +10,8 @@ import {
 	GearIcon,
 	MapPinIcon,
 	MoonIcon,
-	SlidersHorizontalIcon,
+	PencilSimpleIcon,
+	ShuffleIcon,
 	UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { AppDispatch, RootState } from "../stores/store";
@@ -42,7 +43,8 @@ export const OPEN_PRIORITY_DIALOG_SHORTCUT = "alt+P";
 export const commandIds = [
 	"import",
 	"manage-study-profiles",
-	"toggle-study-session",
+	"enter-study-mode",
+	"enter-edit-mode",
 	"open-settings",
 	"toggle-theme",
 	"set-read-point",
@@ -114,24 +116,27 @@ export const commandsById: Record<CommandId, Command> = {
 			);
 		},
 	},
-	"toggle-study-session": {
-		id: "toggle-study-session",
+	"enter-study-mode": {
+		id: "enter-study-mode",
 		group: "Study",
-		label: state =>
-			selectStudyStatus(state) === "studying"
-				? "Stop studying"
-				: "Start studying",
+		label: "Enter study mode",
 		shortcut: TOGGLE_STUDY_SESSION_SHORTCUT,
 		icon: createElement(BookOpenIcon),
-		execute: (dispatch, getState, navigate) => {
-			if (selectStudyStatus(getState()) === "studying") {
-				dispatch(sessionStopped());
-				return;
-			}
+		enabled: state => selectStudyStatus(state) !== "studying",
+		execute: (dispatch, _getState, navigate) => {
 			void dispatch(startStudySession(navigate)).then(started => {
 				if (!started) notifications.show({ message: "Nothing due" });
 			});
 		},
+	},
+	"enter-edit-mode": {
+		id: "enter-edit-mode",
+		group: "Study",
+		label: "Enter edit mode",
+		shortcut: TOGGLE_STUDY_SESSION_SHORTCUT,
+		icon: createElement(PencilSimpleIcon),
+		enabled: state => selectStudyStatus(state) === "studying",
+		execute: dispatch => dispatch(sessionStopped()),
 	},
 	"set-read-point": {
 		id: "set-read-point",
@@ -179,7 +184,7 @@ export const commandsById: Record<CommandId, Command> = {
 		id: "open-study-session-settings",
 		group: "Study",
 		label: "Study session settings",
-		icon: createElement(SlidersHorizontalIcon),
+		icon: createElement(ShuffleIcon),
 		execute: dispatch => dispatch(openStudySessionSettingsDialog()),
 	},
 };

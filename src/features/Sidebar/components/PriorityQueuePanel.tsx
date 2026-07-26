@@ -1,6 +1,8 @@
 import { ActionIcon, Box, NavLink, Stack, Text } from "@mantine/core";
-import { SlidersHorizontalIcon } from "@phosphor-icons/react";
+import { IconProps } from "@phosphor-icons/react";
+import { cloneElement, ReactElement } from "react";
 import { useNavigate } from "react-router";
+import { commandIcon } from "../../../commands/commandIcon";
 import { useElementParams } from "../../../hooks/useElementParams";
 import { paths } from "../../../paths";
 import ElementNodeIcon from "../../App/components/ElementNodeIcon";
@@ -29,7 +31,12 @@ function PriorityQueuePanel() {
 				size="md"
 				title="Study session settings"
 				onClick={() => dispatch(openStudySessionSettingsDialog())}>
-				<SlidersHorizontalIcon size={20} />
+				{cloneElement(
+					commandIcon(
+						"open-study-session-settings",
+					) as ReactElement<IconProps>,
+					{ size: 20 },
+				)}
 			</ActionIcon>
 		</PanelHeader>
 	);
