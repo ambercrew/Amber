@@ -89,6 +89,14 @@ pub trait MetaRepository: Send + Sync {
     /// All elements, ordered by priority ascending (front of queue first).
     async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError>;
 
+    /// The element at the given zero-based offset in priority order,
+    /// excluding `excluding`, or `None` if the offset is out of range.
+    async fn get_at_priority_offset(
+        &self,
+        excluding: ElementId,
+        offset: i64,
+    ) -> Result<Option<Meta>, RepositoryError>;
+
     /// Total number of elements in the priority queue.
     async fn count_all(&self) -> Result<i64, RepositoryError>;
 

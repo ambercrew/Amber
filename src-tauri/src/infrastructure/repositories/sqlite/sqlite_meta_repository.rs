@@ -497,6 +497,44 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(rows.into_iter().map(|r| r.into()).collect())
     }
 
+    async fn get_at_priority_offset(
+        &self,
+        excluding: ElementId,
+        offset: i64,
+    ) -> Result<Option<Meta>, RepositoryError> {
+        let uuid = excluding.id();
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let row = sqlx::query_as!(
+            MetaRow,
+            r#"SELECT
+                element_id as "element_id: _",
+                element_type,
+                name,
+                position as "position: _",
+                priority as "priority: _",
+                parent_id as "parent_id: _",
+                parent_type,
+                derived_from_id as "derived_from_id: _",
+                derived_from_type,
+                study_profile_id as "study_profile_id: _",
+                source_id as "source_id: _",
+                created_at as "created_at: _",
+                modified_at as "modified_at: _"
+            FROM meta
+            WHERE element_id != $1
+            ORDER BY priority
+            LIMIT 1 OFFSET $2"#,
+            uuid,
+            offset
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+
+        Ok(row.map(|r| r.into()))
+    }
+
     async fn count_all(&self) -> Result<i64, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
