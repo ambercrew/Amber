@@ -7,6 +7,7 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import { queueLoaded } from "../../../stores/study/studyReducer";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 import { ELEMENT_CREATED } from "../../../types/events/elementCreatedEvent";
+import { PRIORITY_CHANGED } from "../../../types/events/priorityChangedEvent";
 
 // Lets the sidebar preview which elements are due before a session starts,
 // without affecting status/counts/etc. Once a session is active, the queue
@@ -32,6 +33,11 @@ export function useDueElementsPreview() {
 	}, [isStudying, callApi, dispatch]);
 
 	useWindowEvent(ELEMENT_CREATED, () => {
+		if (isStudying) return;
+		refresh();
+	});
+
+	useWindowEvent(PRIORITY_CHANGED, () => {
 		if (isStudying) return;
 		refresh();
 	});
