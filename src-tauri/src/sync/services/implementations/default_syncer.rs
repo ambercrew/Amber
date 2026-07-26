@@ -10,9 +10,8 @@ use uuid::Uuid;
 use crate::{
     backend::{backend_dto::SyncEntityDto, clients::brainy_backend_client::BrainyBackendClient},
     generated_code::{self},
-    local_configurations::{
-        entities::local_configuration::LocalConfiguration,
-        repositories::local_configuration_repository::LocalConfigurationRepository,
+    local_configurations::repositories::local_configuration_repository::{
+        LocalConfigurationRepository, LocalConfigurationRepositoryExt,
     },
     sync::{
         entities::{
@@ -48,19 +47,10 @@ impl Syncer for DefaultSyncer {
 
         let last_sync_date = self
             .local_configuration_repository
-            .get_by_name(LAST_SYNC_DATE_CONFIGURATION_NAME)
+            .get_by_name::<DateTime<Utc>>(LAST_SYNC_DATE_CONFIGURATION_NAME)
             .await?
-            .and_then(|conf| match DateTime::parse_from_rfc3339(&conf.value) {
-                Ok(date) => Some(date.with_timezone(&Utc)),
-                Err(error) => {
-                    log::warn!(
-                        "Failed to parse stored {LAST_SYNC_DATE_CONFIGURATION_NAME} value {:?}: {error}. Falling back to initial date.",
-                        conf.value
-                    );
-                    None
-                }
-            })
-            // Discard stale sync dates so we re-pull data purged from the local DB.
+            // Discard stale (or missing/unparsable) sync dates so we re-pull data purged
+            // from the local DB.
             .filter(|date| Utc::now() - *date <= Duration::days(STALE_SYNC_THRESHOLD_DAYS))
             .unwrap_or(Utc.with_ymd_and_hms(2001, 1, 1, 0, 0, 0).unwrap());
 
@@ -88,13 +78,10 @@ impl Syncer for DefaultSyncer {
         self.send_unsynced_entities_since(last_sync_date, &entities_overwritten_by_server)
             .await?;
 
+        // NOTE: this has to be set now, otherwise the entities sent from this machine will
+        // be refetched on next fetch.
         self.local_configuration_repository
-            .upsert(&LocalConfiguration {
-                name: LAST_SYNC_DATE_CONFIGURATION_NAME.to_string(),
-                // NOTE: this has to be set now, otherwise the entities sent from this machine will
-                // be refetched on next fetch.
-                value: Utc::now().to_rfc3339(),
-            })
+            .set_by_name(LAST_SYNC_DATE_CONFIGURATION_NAME, &Utc::now())
             .await?;
 
         log::info!("Sync is completed.");

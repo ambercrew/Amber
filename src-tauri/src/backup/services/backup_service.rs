@@ -4,12 +4,15 @@ use thiserror::Error;
 use crate::{
     SourceError, common::repository_error::RepositoryError,
     database::database_connection_manager::DatabaseConnectionManagerError,
+    local_configurations::repositories::local_configuration_repository::LocalConfigurationError,
 };
 
 #[derive(Error, Debug)]
 pub enum BackupServiceError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
+    #[error(transparent)]
+    LocalConfiguration(#[from] LocalConfigurationError),
     #[error(transparent)]
     DatabaseConnectionManager(#[from] DatabaseConnectionManagerError),
     #[error("Failed to list entries in the settings folder")]
