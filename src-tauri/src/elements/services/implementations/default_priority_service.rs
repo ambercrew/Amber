@@ -7,7 +7,6 @@ use injector_derive::ScopeInjectable;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::services::priority_service::{PriorityError, PriorityInfo, PriorityService};
 use crate::elements::value_objects::element_id::ElementId;
-use crate::elements::value_objects::meta::Meta;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultPriorityService {
@@ -27,17 +26,13 @@ impl PriorityService for DefaultPriorityService {
         &self,
         source_id: ElementId,
     ) -> Result<FractionalIndex, PriorityError> {
-        let source = self.meta_repository.get_by_id(source_id.id()).await?;
-        let previous = self
-            .meta_repository
-            .get_previous_by_priority(&source)
-            .await?;
-        let priority = match previous {
-            Some(previous) => FractionalIndex::new_between(&previous.priority, &source.priority)
-                .unwrap_or_else(|| FractionalIndex::new_before(&source.priority)),
-            None => FractionalIndex::new_before(&source.priority),
-        };
-        Ok(priority)
+        match self.try_get_inherited_priority(source_id).await {
+            Err(PriorityError::PriorityExhausted) => {
+                self.rebalance_priorities().await?;
+                self.try_get_inherited_priority(source_id).await
+            }
+            other => other,
+        }
     }
 
     async fn get_priority_info(&self, id: ElementId) -> Result<PriorityInfo, PriorityError> {
@@ -82,28 +77,53 @@ impl PriorityService for DefaultPriorityService {
 }
 
 impl DefaultPriorityService {
+    /// Two elements can end up with the same priority (e.g. a duplicate
+    /// introduced by sync), which leaves no midpoint between them. Surface
+    /// that as `PriorityExhausted` rather than silently reusing a key, so
+    /// callers rebalance instead of masking the collision.
+    async fn try_get_inherited_priority(
+        &self,
+        source_id: ElementId,
+    ) -> Result<FractionalIndex, PriorityError> {
+        let source = self.meta_repository.get_by_id(source_id.id()).await?;
+        let previous = self
+            .meta_repository
+            .get_previous_by_priority(&source)
+            .await?;
+        let priority = match previous {
+            Some(previous) => FractionalIndex::new_between(&previous.priority, &source.priority)
+                .ok_or(PriorityError::PriorityExhausted)?,
+            None => FractionalIndex::new_before(&source.priority),
+        };
+        Ok(priority)
+    }
+
     async fn try_set_priority_by_rank(
         &self,
         id: ElementId,
         rank: i64,
     ) -> Result<(), PriorityError> {
-        let ordered = self.meta_repository.get_all_ordered_by_priority().await?;
-        let total = ordered.len() as i64;
+        let total = self.meta_repository.count_all().await?;
         if total == 0 {
             return Ok(());
         }
         let clamped_rank = rank.clamp(1, total);
+        let others_total = total - 1;
+        let index = (clamped_rank - 1).min(others_total);
 
-        let others: Vec<&Meta> = ordered.iter().filter(|m| m.element_id != id).collect();
-        let index = ((clamped_rank - 1) as usize).min(others.len());
         let before = if index > 0 {
-            others.get(index - 1)
+            self.meta_repository
+                .get_at_priority_offset(id, index - 1)
+                .await?
         } else {
             None
         };
-        let after = others.get(index);
+        let after = self
+            .meta_repository
+            .get_at_priority_offset(id, index)
+            .await?;
 
-        let new_priority = match (before, after) {
+        let new_priority = match (&before, &after) {
             (Some(before), Some(after)) => {
                 FractionalIndex::new_between(&before.priority, &after.priority)
                     .ok_or(PriorityError::PriorityExhausted)?
@@ -142,9 +162,12 @@ mod tests {
             repositories::{folder_repository::FolderRepository, meta_repository::MetaRepository},
             value_objects::{element_id::ElementId, meta::Meta},
         },
-        infrastructure::repositories::sqlite::{
-            sqlite_folder_repository::SqliteFolderRepository,
-            sqlite_meta_repository::SqliteMetaRepository,
+        infrastructure::{
+            repositories::sqlite::{
+                sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_meta_repository::SqliteMetaRepository,
+            },
+            value_objects::db_transaction::DbTransaction,
         },
         test_utils::create_test_injector,
     };
@@ -379,5 +402,68 @@ mod tests {
 
         let info = service.get_priority_info(a_id).await.unwrap();
         assert_eq!(2, info.rank);
+    }
+
+    #[tokio::test]
+    async fn get_inherited_priority_previous_and_source_exhausted_rebalances_and_succeeds() {
+        // Arrange — create three folders, then exhaust the space between the
+        // first two via direct SQL so no key can fit strictly between them.
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let meta_repo = scope.resolve::<dyn MetaRepository>().await;
+        let tx = scope.resolve::<DbTransaction>().await;
+
+        let previous = make_folder(FractionalIndex::default());
+        let source = make_folder(FractionalIndex::new_after(&FractionalIndex::default()));
+        let other = make_folder(FractionalIndex::new_after(&FractionalIndex::new_after(
+            &FractionalIndex::default(),
+        )));
+        let previous_id = previous.meta.element_id.id();
+        let source_id = source.meta.element_id;
+        let other_id = other.meta.element_id;
+        folder_repo.create(previous).await.unwrap();
+        folder_repo.create(source).await.unwrap();
+        folder_repo.create(other).await.unwrap();
+
+        let adjacent_before = FractionalIndex::from_bytes(vec![127, 128]).unwrap();
+        let adjacent_after = FractionalIndex::from_bytes(vec![128, 128]).unwrap();
+        {
+            let mut guard = tx.lock().await;
+            let tx_ref = guard.as_mut();
+            sqlx::query!(
+                "UPDATE meta SET priority = $1 WHERE element_id = $2",
+                adjacent_before.as_bytes(),
+                previous_id
+            )
+            .execute(&mut *tx_ref)
+            .await
+            .unwrap();
+            sqlx::query!(
+                "UPDATE meta SET priority = $1 WHERE element_id = $2",
+                adjacent_after.as_bytes(),
+                source_id.id()
+            )
+            .execute(&mut *tx_ref)
+            .await
+            .unwrap();
+        }
+
+        // Act — the priority between previous and source is exhausted, so
+        // the service must rebalance every priority before succeeding.
+
+        let inherited = service.get_inherited_priority(source_id).await.unwrap();
+
+        // Assert — the new priority is a distinct key strictly between the
+        // (rebalanced) previous and source, and overall order is preserved.
+
+        let previous_meta = meta_repo.get_by_id(previous_id).await.unwrap();
+        let source_meta = meta_repo.get_by_id(source_id.id()).await.unwrap();
+        let other_meta = meta_repo.get_by_id(other_id.id()).await.unwrap();
+        assert!(previous_meta.priority < inherited);
+        assert!(inherited < source_meta.priority);
+        assert!(source_meta.priority < other_meta.priority);
     }
 }
