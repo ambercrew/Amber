@@ -20,6 +20,7 @@ import { loadElementDetailsAction } from "../../../stores/elementDetails/element
 import { selectCurrentElementDetails } from "../../../stores/elementDetails/elementDetailsSelectors";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import { ElementId } from "../../../types/elements/elementId";
+import { PRIORITY_CHANGED } from "../../../types/events/priorityChangedEvent";
 import styles from "./PriorityDialog.module.css";
 
 function clamp(value: number, min: number, max: number): number {
@@ -60,7 +61,10 @@ function PriorityDialogBody({
 		const newRank = clamp(Number(value) || 1, 1, total);
 		setRank(newRank);
 		setPercentage(rankToPercentage(newRank));
-		void setElementPriorityByRank(elementId, newRank).then(onCommitted);
+		void setElementPriorityByRank(elementId, newRank).then(() => {
+			window.dispatchEvent(new Event(PRIORITY_CHANGED));
+			onCommitted();
+		});
 	}
 
 	function handlePercentageChange(value: string | number) {
@@ -69,7 +73,10 @@ function PriorityDialogBody({
 		setRank(newRank);
 		setPercentage(rankToPercentage(newRank));
 		void setElementPriorityByPercentage(elementId, newPercentage).then(
-			onCommitted,
+			() => {
+				window.dispatchEvent(new Event(PRIORITY_CHANGED));
+				onCommitted();
+			},
 		);
 	}
 
