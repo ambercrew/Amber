@@ -1,8 +1,10 @@
 import { createImportedReading } from "../../../features/Import/createImportedReading";
+import { htmlToLexicalJson } from "../../../components/Editor/lexicalJsonConversion";
 import { createReadingAction } from "../../../stores/elements/elementsActions";
 import { ImportContext } from "../../../features/Import/importContext";
 
 vi.mock(import("../../../stores/elements/elementsActions"));
+vi.mock(import("../../../components/Editor/lexicalJsonConversion"));
 
 describe("createImportedReading", () => {
 	it("Should dispatch createReadingAction with a generated id, the name, parent, and content", async () => {
@@ -12,6 +14,7 @@ describe("createImportedReading", () => {
 		vi.mocked(createReadingAction).mockReturnValue(
 			thunk as unknown as ReturnType<typeof createReadingAction>,
 		);
+		vi.mocked(htmlToLexicalJson).mockReturnValue('{"root":"json"}');
 		const dispatch = vi.fn().mockResolvedValue(undefined);
 		const navigate = vi.fn().mockResolvedValue(undefined);
 		const parent = {
@@ -33,7 +36,8 @@ describe("createImportedReading", () => {
 		const dto = vi.mocked(createReadingAction).mock.calls[0][0];
 		expect(typeof dto.id).toBe("string");
 		expect(dto.meta).toEqual({ name: "My Title", parent });
-		expect(dto.splits).toEqual(["<p>content</p>"]);
+		expect(htmlToLexicalJson).toHaveBeenCalledWith("<p>content</p>");
+		expect(dto.splits).toEqual(['{"root":"json"}']);
 		expect(dispatch).toHaveBeenCalledWith(thunk);
 	});
 

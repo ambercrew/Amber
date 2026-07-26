@@ -1,5 +1,14 @@
 import { useCallback } from "react";
+import { $createTextNode } from "lexical";
+import { $unwrapMarkNode } from "@lexical/mark";
+import { $dfs } from "@lexical/utils";
+import { serializedNodesToLexicalJson } from "../../components/Editor/lexicalJsonConversion";
 import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import {
+	$createClozeHiddenNode,
+	$isClozeHiddenNode,
+} from "../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
+import { $isHighlightNode } from "../../components/Editor/plugins/HighlightPlugin/HighlightNode";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import {
 	createCardAction,
@@ -7,11 +16,8 @@ import {
 } from "../../stores/elements/elementsActions";
 import { ElementId } from "../../types/elements/elementId";
 import { CLOZE_COLOR } from "./useElementViewerButtons";
-import {
-	CLOZE_HIDDEN_ATTRIBUTE,
-	CLOZE_HIDDEN_TAG_NAME,
-} from "../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
 
+// TODO: not preserving children in cloze
 export function useHighlightCreatedHandler(
 	elementId: ElementId | undefined,
 	sourceId: string | null | undefined,
@@ -19,22 +25,31 @@ export function useHighlightCreatedHandler(
 	const dispatch = useAppDispatch();
 
 	return useCallback(
-		({ id, html, fullHtml, color }: HighlightCreatedPayload) => {
+		({
+			id,
+			selectionNodes,
+			fullNodes,
+			selectionText,
+			fullText,
+			color,
+		}: HighlightCreatedPayload) => {
 			if (color === CLOZE_COLOR) {
 				void dispatch(
 					createCardAction({
 						id,
 						meta: {
-							name: truncateToWords(getPlainText(fullHtml)),
+							name: truncateToWords(fullText),
 							parent: elementId!,
 							derivedFrom: elementId!,
 							sourceId,
 						},
-						front: buildClozeFrontHtml(
-							stripOtherHighlights(fullHtml, id),
-							id,
+						front: serializedNodesToLexicalJson(fullNodes, () => {
+							$stripOtherHighlights(id);
+							$buildClozeFront(id);
+						}),
+						back: serializedNodesToLexicalJson(selectionNodes, () =>
+							$stripOtherHighlights(id),
 						),
-						back: stripOtherHighlights(html, id),
 					}),
 				);
 				return;
@@ -44,23 +59,18 @@ export function useHighlightCreatedHandler(
 				createExtractAction({
 					id,
 					meta: {
-						name: truncateToWords(getPlainText(html)),
+						name: truncateToWords(selectionText),
 						parent: elementId!,
 						derivedFrom: elementId!,
 						sourceId,
 					},
-					content: stripOtherHighlights(html, id),
+					content: serializedNodesToLexicalJson(selectionNodes, () =>
+						$stripOtherHighlights(id),
+					),
 				}),
 			);
 		},
 		[dispatch, elementId, sourceId],
-	);
-}
-
-function getPlainText(html: string): string {
-	return (
-		new DOMParser().parseFromString(html, "text/html").body.textContent ??
-		""
 	);
 }
 
@@ -80,39 +90,31 @@ function truncateToWords(text: string, maxLength = NAME_MAX_LENGTH): string {
 
 // The cloze front is the whole document with the selected phrase swapped for
 // a hidden placeholder, so the reader sees it in context. The back is just
-// the plain selected phrase (see stripOtherHighlights), with no surrounding
+// the plain selected phrase (see $stripOtherHighlights), with no surrounding
 // document and no highlight mark.
-function buildClozeFrontHtml(fullHtml: string, highlightId: string): string {
-	const dom = new DOMParser().parseFromString(fullHtml, "text/html");
-	const marks = dom.querySelectorAll(
-		`mark[data-highlight-id="${highlightId}"]`,
-	);
-	marks.forEach(mark => {
-		mark.removeAttribute("data-highlight-id");
-		mark.removeAttribute("data-highlight-color");
-		mark.removeAttribute("style");
-		mark.removeAttribute("class");
-		mark.setAttribute("data-cloze-hidden", "true");
-	});
-	return dom.body.innerHTML;
+function $buildClozeFront(highlightId: string): void {
+	for (const { node } of $dfs()) {
+		if ($isHighlightNode(node) && node.getHighlightId() === highlightId) {
+			node.replace($createClozeHiddenNode(node.getTextContent()));
+		}
+	}
 }
 
-// Unwraps every highlight and cloze other than the one just created, so a new extract
-// or cloze copied out of the document doesn't drag unrelated highlights
-// along with it. This only touches the HTML being copied into the new
-// element — the source document's own highlights are left untouched.
-function stripOtherHighlights(
-	html: string,
-	currentHighlightId: string,
-): string {
-	const dom = new DOMParser().parseFromString(html, "text/html");
-	const marks = dom.querySelectorAll(
-		`mark[data-highlight-id], ${CLOZE_HIDDEN_TAG_NAME}[${CLOZE_HIDDEN_ATTRIBUTE}=true]`,
-	);
-	marks.forEach(mark => {
-		if (mark.getAttribute("data-highlight-id") === currentHighlightId)
-			return;
-		mark.replaceWith(...mark.childNodes);
-	});
-	return dom.body.innerHTML;
+// Unwraps every highlight and cloze other than the one just created, so a new
+// extract or cloze copied out of the document doesn't drag unrelated
+// highlights along with it. This only touches the standalone node tree being
+// copied into the new element — the source document's own highlights are
+// left untouched. `$dfs()` snapshots the tree up front, so replacing/removing
+// nodes while iterating is safe.
+function $stripOtherHighlights(currentHighlightId: string): void {
+	for (const { node } of $dfs()) {
+		if (
+			$isHighlightNode(node) &&
+			node.getHighlightId() !== currentHighlightId
+		) {
+			$unwrapMarkNode(node);
+		} else if ($isClozeHiddenNode(node)) {
+			node.replace($createTextNode(node.getTextContent()));
+		}
+	}
 }

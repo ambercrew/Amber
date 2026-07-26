@@ -8,6 +8,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::utils::plain_text_extractor::extract_plain_text;
 use crate::elements::value_objects::read_point::ReadPoint;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::reading_row::ReadingRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
@@ -42,11 +43,13 @@ impl ReadingRepository for SqliteReadingRepository {
             .await?;
 
             for split in splits {
+                let content_text = extract_plain_text(&split.content);
                 sqlx::query!(
-                    "INSERT INTO reading_splits (reading_id, seq, content) VALUES ($1, $2, $3)",
+                    "INSERT INTO reading_splits (reading_id, seq, content, content_text) VALUES ($1, $2, $3, $4)",
                     uuid,
                     split.seq,
                     split.content,
+                    content_text,
                 )
                 .execute(&mut *tx)
                 .await?;
@@ -128,7 +131,7 @@ impl ReadingRepository for SqliteReadingRepository {
         let tx = tx.as_mut();
 
         let rows = sqlx::query!(
-            r#"SELECT seq, LENGTH(content) as "char_count!: i64"
+            r#"SELECT seq, LENGTH(content_text) as "char_count!: i64"
             FROM reading_splits
             WHERE reading_id = $1
             ORDER BY seq"#,
@@ -166,11 +169,13 @@ impl ReadingRepository for SqliteReadingRepository {
         split_id: ReadingSplitId,
         content: String,
     ) -> Result<(), RepositoryError> {
+        let content_text = extract_plain_text(&content);
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE reading_splits SET content = $1 WHERE reading_id = $2 AND seq = $3",
+            "UPDATE reading_splits SET content = $1, content_text = $2 WHERE reading_id = $3 AND seq = $4",
             content,
+            content_text,
             split_id.reading_id,
             split_id.seq,
         )
@@ -266,6 +271,12 @@ mod tests {
             created_at: Utc::now(),
             modified_at: Utc::now(),
         }
+    }
+
+    fn split_content_json(text: &str) -> String {
+        format!(
+            r#"{{"root":{{"children":[{{"type":"paragraph","children":[{{"type":"text","text":"{text}"}}]}}]}}}}"#
+        )
     }
 
     fn folder_meta() -> Meta {
@@ -510,11 +521,11 @@ mod tests {
                 vec![
                     ReadingSplit {
                         seq: 1,
-                        content: "abcd".into(),
+                        content: split_content_json("abcd"),
                     },
                     ReadingSplit {
                         seq: 0,
-                        content: "ab".into(),
+                        content: split_content_json("ab"),
                     },
                 ],
             )
