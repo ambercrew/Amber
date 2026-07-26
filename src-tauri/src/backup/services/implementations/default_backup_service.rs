@@ -5,14 +5,15 @@ use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
 use injector_derive::ScopeInjectable;
 use tokio::fs;
 
+#[cfg(test)]
+use crate::local_configurations::entities::local_configuration::LocalConfiguration;
 use crate::{
     backup::services::backup_service::{
         BackupService, BackupServiceError, TIME_BETWEEN_BACKUPS_IN_MINUTES,
     },
     database::database_connection_manager::DatabaseConnectionManager,
-    local_configurations::{
-        entities::local_configuration::LocalConfiguration,
-        repositories::local_configuration_repository::LocalConfigurationRepository,
+    local_configurations::repositories::local_configuration_repository::{
+        LocalConfigurationRepository, LocalConfigurationRepositoryExt,
     },
     settings::repositories::settings_repository::SettingsRepository,
 };
@@ -50,13 +51,8 @@ impl DefaultBackupService {
     async fn get_last_backup_date(&self) -> Result<DateTime<Utc>, BackupServiceError> {
         let last_backup_date = self
             .local_configuration_repository
-            .get_by_name(LAST_BACKUP_DATE_CONFIGURATION_NAME)
+            .get_by_name::<DateTime<Utc>>(LAST_BACKUP_DATE_CONFIGURATION_NAME)
             .await?
-            .map(|conf| {
-                DateTime::parse_from_rfc3339(&conf.value)
-                    .unwrap()
-                    .with_timezone(&Utc)
-            })
             .unwrap_or(Utc.with_ymd_and_hms(2000, 1, 1, 0, 0, 0).unwrap());
 
         log::info!("Last backup date is {}", last_backup_date);
@@ -88,10 +84,7 @@ impl DefaultBackupService {
 
     async fn update_last_backup_date_to_now(&self) -> Result<(), BackupServiceError> {
         self.local_configuration_repository
-            .upsert(&LocalConfiguration {
-                name: LAST_BACKUP_DATE_CONFIGURATION_NAME.to_string(),
-                value: Utc::now().to_rfc3339(),
-            })
+            .set_by_name(LAST_BACKUP_DATE_CONFIGURATION_NAME, &Utc::now())
             .await?;
 
         log::info!("Updating last backup date to now.");
@@ -269,7 +262,7 @@ pub mod tests {
         let configuration = backup_injector_scope
             .resolve::<dyn LocalConfigurationRepository>()
             .await
-            .get_by_name("test_configuration")
+            .get_by_name_raw("test_configuration")
             .await
             .unwrap()
             .unwrap();
@@ -301,16 +294,11 @@ pub mod tests {
         dir_entries.next_entry().await.unwrap().unwrap();
         assert!(dir_entries.next_entry().await.unwrap().is_none());
 
-        let last_backup_date = DateTime::parse_from_rfc3339(
-            &local_configuration_repository
-                .get_by_name(LAST_BACKUP_DATE_CONFIGURATION_NAME)
-                .await
-                .unwrap()
-                .unwrap()
-                .value,
-        )
-        .unwrap()
-        .with_timezone(&Utc);
+        let last_backup_date = local_configuration_repository
+            .get_by_name::<DateTime<Utc>>(LAST_BACKUP_DATE_CONFIGURATION_NAME)
+            .await
+            .unwrap()
+            .unwrap();
 
         assert!((Utc::now() - last_backup_date) <= Duration::seconds(5));
     }

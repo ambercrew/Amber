@@ -5,6 +5,7 @@ use tokio::sync::Mutex;
 use crate::{
     backend::clients::brainy_backend_client::BrainyBackendClientError,
     common::repository_error::RepositoryError,
+    local_configurations::repositories::local_configuration_repository::LocalConfigurationError,
     sync::strategies::sync_entity_strategy::SyncEntityStrategyError,
 };
 
@@ -12,6 +13,8 @@ use crate::{
 pub enum SyncError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
+    #[error(transparent)]
+    LocalConfiguration(#[from] LocalConfigurationError),
     #[error(transparent)]
     Client(#[from] BrainyBackendClientError),
     #[error(transparent)]

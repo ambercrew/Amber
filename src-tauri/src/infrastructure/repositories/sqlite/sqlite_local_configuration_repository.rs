@@ -22,7 +22,10 @@ pub struct SqliteLocalConfigurationRepository {
 
 #[async_trait]
 impl LocalConfigurationRepository for SqliteLocalConfigurationRepository {
-    async fn get_by_name(&self, name: &str) -> Result<Option<LocalConfiguration>, RepositoryError> {
+    async fn get_by_name_raw(
+        &self,
+        name: &str,
+    ) -> Result<Option<LocalConfiguration>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
