@@ -1,7 +1,7 @@
 import { extractPdf, PdfProgress } from "../pdf/extract";
 import { normalize } from "../normalize";
 import { createImportedReading } from "../createImportedReading";
-import { createSource } from "../../../api/sources/api/sourcesApi";
+import { createSourceAction } from "../../../stores/sources/sourcesActions";
 import { ImportContext } from "../importContext";
 
 export type FileImportError =
@@ -28,13 +28,15 @@ export async function runFileImport(
 				plausibleTitle(extraction.title) ??
 				file.name.replace(/\.pdf$/i, "");
 
-			const source = await createSource({
-				title: file.name,
-				authors: extraction.authors,
-				publicationDate: extraction.publicationDate,
-				sourceType: "File",
-				location: location ?? file.name,
-			});
+			const source = await ctx.dispatch(
+				createSourceAction({
+					title: file.name,
+					authors: extraction.authors,
+					publicationDate: extraction.publicationDate,
+					sourceType: "File",
+					location: location ?? file.name,
+				}),
+			);
 
 			await createImportedReading(ctx, title, content, source.id);
 		} catch (err) {

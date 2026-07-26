@@ -17,7 +17,6 @@ import {
 import { ElementId } from "../../types/elements/elementId";
 import { CLOZE_COLOR } from "./useElementViewerButtons";
 
-// TODO: not preserving children in cloze
 export function useHighlightCreatedHandler(
 	elementId: ElementId | undefined,
 	sourceId: string | null | undefined,
