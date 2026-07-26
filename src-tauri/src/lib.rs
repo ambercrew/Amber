@@ -190,6 +190,8 @@ pub async fn run() -> Result<(), String> {
             preview_next_reading,
             finish_reading,
             unfinish_reading,
+            get_fuzz_factor,
+            set_fuzz_factor,
             // Study profiles
             list_study_profiles,
             create_study_profile,

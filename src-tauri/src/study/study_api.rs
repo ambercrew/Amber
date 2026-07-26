@@ -9,6 +9,9 @@ use crate::common::api_error::ApiError;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
+use crate::local_configurations::repositories::local_configuration_repository::{
+    LocalConfigurationRepository, LocalConfigurationRepositoryExt,
+};
 use crate::study::dto::card_due_preview_dto::CardDuePreviewDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
 use crate::study::dto::due_element_dto::DueElementDto;
@@ -18,6 +21,9 @@ use crate::study::repositories::reading_review_repository::ReadingReviewReposito
 use crate::study::services::card_grading_service::CardGradingService;
 use crate::study::services::due_elements_service::DueElementsService;
 use crate::study::services::reading_scheduling_service::ReadingSchedulingService;
+use crate::study::value_objects::fuzz_factor_configuration::{
+    FUZZ_FACTOR_CONFIGURATION_NAME, FuzzFactorConfiguration,
+};
 use crate::study::value_objects::rating::Rating;
 use injector::injector::Injector;
 
@@ -145,6 +151,36 @@ pub async fn finish_reading(
         .await?;
     scope.save_changes().await?;
     Ok(result.into())
+}
+
+#[tauri::command]
+pub async fn get_fuzz_factor(injector: State<'_, Arc<Injector>>) -> Result<u8, ApiError> {
+    let scope = injector.start_scope();
+    let configuration = scope
+        .resolve::<dyn LocalConfigurationRepository>()
+        .await
+        .get_by_name::<FuzzFactorConfiguration>(FUZZ_FACTOR_CONFIGURATION_NAME)
+        .await?
+        .unwrap_or_default();
+    Ok(configuration.fuzz_factor)
+}
+
+#[tauri::command]
+pub async fn set_fuzz_factor(
+    injector: State<'_, Arc<Injector>>,
+    fuzz_factor: u8,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    scope
+        .resolve::<dyn LocalConfigurationRepository>()
+        .await
+        .set_by_name(
+            FUZZ_FACTOR_CONFIGURATION_NAME,
+            &FuzzFactorConfiguration { fuzz_factor },
+        )
+        .await?;
+    scope.save_changes().await?;
+    Ok(())
 }
 
 #[tauri::command]

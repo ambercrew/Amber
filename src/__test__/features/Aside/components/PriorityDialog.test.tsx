@@ -77,6 +77,7 @@ function appStateFor(priorityDialogOpened: boolean): AppState {
 		studyProfileModalOpened: false,
 		settingsModalOpened: false,
 		priorityDialogOpened,
+		studySessionSettingsDialogOpened: false,
 	};
 }
 
