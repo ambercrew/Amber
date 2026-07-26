@@ -10,6 +10,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::extract::Extract;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
+use crate::elements::utils::plain_text_extractor::extract_plain_text;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::extract_row::ExtractRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -25,12 +26,14 @@ impl ExtractRepository for SqliteExtractRepository {
         self.meta_repository.create_meta(&extract.meta).await?;
 
         let uuid = extract.meta.element_id.id();
+        let content_text = extract_plain_text(&extract.content);
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO extracts (id, content, interval_multiplier) VALUES ($1, $2, $3)",
+            "INSERT INTO extracts (id, content, content_text, interval_multiplier) VALUES ($1, $2, $3, $4)",
             uuid,
             extract.content,
+            content_text,
             extract.interval_multiplier,
         )
         .execute(&mut *tx)
@@ -102,11 +105,13 @@ impl ExtractRepository for SqliteExtractRepository {
     }
 
     async fn update_content(&self, id: Uuid, content: String) -> Result<(), RepositoryError> {
+        let content_text = extract_plain_text(&content);
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE extracts SET content = $1 WHERE id = $2",
+            "UPDATE extracts SET content = $1, content_text = $2 WHERE id = $3",
             content,
+            content_text,
             id,
         )
         .execute(&mut *tx)

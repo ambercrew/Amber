@@ -6,6 +6,7 @@ import {
 } from "../../../stores/elements/elementsActions";
 import { ElementId } from "../../../types/elements/elementId";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { type SerializedLexicalNodeTree } from "../../../components/Editor/lexicalJsonConversion";
 
 vi.mock(import("../../../stores/elements/elementsActions"));
 
@@ -32,55 +33,115 @@ function renderHandler() {
 	return handleHighlightCreated;
 }
 
+// Serialized-node fixture builders, standing in for what
+// `$generateJSONFromSelectedNodes` would produce from the live editor.
+function text(value: string): SerializedLexicalNodeTree {
+	return { type: "text", version: 1, text: value };
+}
+function paragraph(
+	children: SerializedLexicalNodeTree[],
+): SerializedLexicalNodeTree {
+	return { type: "paragraph", version: 1, children };
+}
+function highlight(
+	id: string,
+	color: string,
+	children: SerializedLexicalNodeTree[],
+): SerializedLexicalNodeTree {
+	return { type: "highlight", version: 1, ids: [id], color, children };
+}
+function clozeHidden(value: string): SerializedLexicalNodeTree {
+	return { type: "cloze-hidden", version: 1, text: value };
+}
+
+// Assertion helpers over the persisted editor-state JSON produced by the
+// handler (parsing it back out is the simplest way to verify the real
+// strip/cloze-build logic ran against real Lexical nodes).
+function parseRoot(json: string): SerializedLexicalNodeTree {
+	return (JSON.parse(json) as { root: SerializedLexicalNodeTree }).root;
+}
+function collectText(node: SerializedLexicalNodeTree): string {
+	if (typeof node.text === "string") return node.text;
+	return (node.children ?? []).map(collectText).join("");
+}
+function collectByType(
+	node: SerializedLexicalNodeTree,
+	type: string,
+	out: SerializedLexicalNodeTree[] = [],
+): SerializedLexicalNodeTree[] {
+	if (node.type === type) out.push(node);
+	(node.children ?? []).forEach(child => collectByType(child, type, out));
+	return out;
+}
+
 describe("useHighlightCreatedHandler", () => {
 	it("Should create a card with a hidden cloze front and a plain-text back when color is blue", () => {
 		// Arrange
 
 		const handleHighlightCreated = renderHandler();
-		const fullHtml =
-			'<p>A <mark data-highlight-id="other-id" data-highlight-color="yellow">Old</mark> B ' +
-			'<mark data-highlight-id="new-id" data-highlight-color="blue">New Text</mark> C</p>';
+		const fullNodes = [
+			paragraph([
+				text("A "),
+				highlight("other-id", "yellow", [text("Old")]),
+				text(" B "),
+				highlight("new-id", "blue", [text("New Text")]),
+				text(" C"),
+			]),
+		];
 
 		// Act
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: "New Text",
-			fullHtml,
+			selectionNodes: [text("New Text")],
+			fullNodes,
+			selectionText: "New Text",
+			fullText: "A Old B New Text C",
 			color: "blue",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createCardAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "A Old B New Text C",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			front: '<p>A Old B <mark data-cloze-hidden="true">New Text</mark> C</p>',
-			back: "New Text",
+		const dto = vi.mocked(createCardAction).mock.calls[0][0];
+		expect(dto.id).toBe("new-id");
+		expect(dto.meta).toEqual({
+			name: "A Old B New Text C",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+
+		const frontRoot = parseRoot(dto.front);
+		expect(collectText(frontRoot)).toBe("A Old B New Text C");
+		expect(collectByType(frontRoot, "highlight")).toHaveLength(0);
+		const frontClozes = collectByType(frontRoot, "cloze-hidden");
+		expect(frontClozes).toHaveLength(1);
+		expect(frontClozes[0].text).toBe("New Text");
+
+		expect(collectText(parseRoot(dto.back))).toBe("New Text");
 	});
 
 	it("Should name the card from the full document's plain text rather than the back text", () => {
 		// Arrange
 
 		const handleHighlightCreated = renderHandler();
-		const fullHtml =
-			"<p>Some context before " +
-			'<mark data-highlight-id="new-id" data-highlight-color="blue">the answer</mark>' +
-			" and after</p>";
+		const fullNodes = [
+			paragraph([
+				text("Some context before "),
+				highlight("new-id", "blue", [text("the answer")]),
+				text(" and after"),
+			]),
+		];
 
 		// Act
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: "the answer",
-			fullHtml,
+			selectionNodes: [text("the answer")],
+			fullNodes,
+			selectionText: "the answer",
+			fullText: "Some context before the answer and after",
 			color: "blue",
 			endBlockIndex: 0,
 		});
@@ -106,8 +167,12 @@ describe("useHighlightCreatedHandler", () => {
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: longText,
-			fullHtml: `<p><mark data-highlight-id="new-id" data-highlight-color="blue">${longText}</mark></p>`,
+			selectionNodes: [text(longText)],
+			fullNodes: [
+				paragraph([highlight("new-id", "blue", [text(longText)])]),
+			],
+			selectionText: longText,
+			fullText: longText,
 			color: "blue",
 			endBlockIndex: 0,
 		});
@@ -132,24 +197,30 @@ describe("useHighlightCreatedHandler", () => {
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: '<mark data-highlight-id="other-id" data-highlight-color="yellow">Nested</mark> Rest',
-			fullHtml: "<p>irrelevant</p>",
+			selectionNodes: [
+				paragraph([
+					highlight("other-id", "yellow", [text("Nested")]),
+					text(" Rest"),
+				]),
+			],
+			fullNodes: [paragraph([text("irrelevant")])],
+			selectionText: "Nested Rest",
+			fullText: "irrelevant",
 			color: "yellow",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createExtractAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "Nested Rest",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			content: "Nested Rest",
+		const dto = vi.mocked(createExtractAction).mock.calls[0][0];
+		expect(dto.id).toBe("new-id");
+		expect(dto.meta).toEqual({
+			name: "Nested Rest",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+		expect(collectText(parseRoot(dto.content))).toBe("Nested Rest");
 		expect(createCardAction).not.toHaveBeenCalled();
 	});
 
@@ -157,70 +228,106 @@ describe("useHighlightCreatedHandler", () => {
 		// Arrange
 
 		const handleHighlightCreated = renderHandler();
-		const fullHtml =
-			'<p><mark data-highlight-id="other-id-1" data-highlight-color="yellow">First</mark> ' +
-			'<mark data-highlight-id="other-id-2" data-highlight-color="yellow">Second</mark> ' +
-			'<mark data-highlight-id="new-id" data-highlight-color="blue">New Text</mark> ' +
-			'<mark data-highlight-id="other-id-3" data-highlight-color="blue">Third</mark></p>';
-		const html =
-			'<mark data-highlight-id="other-id-4" data-highlight-color="yellow">Old</mark> New Text';
+		const fullNodes = [
+			paragraph([
+				highlight("other-id-1", "yellow", [text("First")]),
+				text(" "),
+				highlight("other-id-2", "yellow", [text("Second")]),
+				text(" "),
+				highlight("new-id", "blue", [text("New Text")]),
+				text(" "),
+				highlight("other-id-3", "blue", [text("Third")]),
+			]),
+		];
+		const selectionNodes = [
+			paragraph([
+				highlight("other-id-4", "yellow", [text("Old")]),
+				text(" New Text"),
+			]),
+		];
 
 		// Act
 
 		handleHighlightCreated({
 			id: "new-id",
-			html,
-			fullHtml,
+			selectionNodes,
+			fullNodes,
+			selectionText: "Old New Text",
+			fullText: "First Second New Text Third",
 			color: "blue",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createCardAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "First Second New Text Third",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			front: '<p>First Second <mark data-cloze-hidden="true">New Text</mark> Third</p>',
-			back: "Old New Text",
+		const dto = vi.mocked(createCardAction).mock.calls[0][0];
+		expect(dto.meta).toEqual({
+			name: "First Second New Text Third",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+
+		const frontRoot = parseRoot(dto.front);
+		expect(collectText(frontRoot)).toBe("First Second New Text Third");
+		expect(collectByType(frontRoot, "highlight")).toHaveLength(0);
+		const frontClozes = collectByType(frontRoot, "cloze-hidden");
+		expect(frontClozes).toHaveLength(1);
+		expect(frontClozes[0].text).toBe("New Text");
+
+		expect(collectText(parseRoot(dto.back))).toBe("Old New Text");
 	});
 
 	it("Should unwrap a pre-existing cloze-hidden marker from the front and back when creating a new cloze card", () => {
 		// Arrange
 
 		const handleHighlightCreated = renderHandler();
-		const fullHtml =
-			'<p><mark data-cloze-hidden="true">Old Cloze</mark> ' +
-			'<mark data-highlight-id="new-id" data-highlight-color="blue">New Text</mark></p>';
+		const fullNodes = [
+			paragraph([
+				clozeHidden("Old Cloze"),
+				text(" "),
+				highlight("new-id", "blue", [text("New Text")]),
+			]),
+		];
+		const selectionNodes = [
+			paragraph([
+				text("Before "),
+				clozeHidden("Old Cloze"),
+				text(" New Text"),
+			]),
+		];
 
 		// Act
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> New Text',
-			fullHtml,
+			selectionNodes,
+			fullNodes,
+			selectionText: "Before Old Cloze New Text",
+			fullText: "Old Cloze New Text",
 			color: "blue",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createCardAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "Old Cloze New Text",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			front: '<p>Old Cloze <mark data-cloze-hidden="true">New Text</mark></p>',
-			back: "Before Old Cloze New Text",
+		const dto = vi.mocked(createCardAction).mock.calls[0][0];
+		expect(dto.meta).toEqual({
+			name: "Old Cloze New Text",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+
+		const frontRoot = parseRoot(dto.front);
+		expect(collectText(frontRoot)).toBe("Old Cloze New Text");
+		const frontClozes = collectByType(frontRoot, "cloze-hidden");
+		expect(frontClozes).toHaveLength(1);
+		expect(frontClozes[0].text).toBe("New Text");
+
+		expect(collectText(parseRoot(dto.back))).toBe(
+			"Before Old Cloze New Text",
+		);
 	});
 
 	it("Should unwrap a pre-existing cloze-hidden marker from the extract content when creating a new extract", () => {
@@ -232,24 +339,32 @@ describe("useHighlightCreatedHandler", () => {
 
 		handleHighlightCreated({
 			id: "new-id",
-			html: 'Before <mark data-cloze-hidden="true">Old Cloze</mark> Rest',
-			fullHtml: "<p>irrelevant</p>",
+			selectionNodes: [
+				paragraph([
+					text("Before "),
+					clozeHidden("Old Cloze"),
+					text(" Rest"),
+				]),
+			],
+			fullNodes: [paragraph([text("irrelevant")])],
+			selectionText: "Before Old Cloze Rest",
+			fullText: "irrelevant",
 			color: "yellow",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createExtractAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "Before Old Cloze Rest",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			content: "Before Old Cloze Rest",
+		const dto = vi.mocked(createExtractAction).mock.calls[0][0];
+		expect(dto.meta).toEqual({
+			name: "Before Old Cloze Rest",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+		expect(collectText(parseRoot(dto.content))).toBe(
+			"Before Old Cloze Rest",
+		);
 	});
 
 	it("Should strip every other highlight from the extract content when there is more than one", () => {
@@ -261,26 +376,29 @@ describe("useHighlightCreatedHandler", () => {
 
 		handleHighlightCreated({
 			id: "new-id",
-			html:
-				'<mark data-highlight-id="other-id-1" data-highlight-color="yellow">First</mark> ' +
-				"Middle " +
-				'<mark data-highlight-id="other-id-2" data-highlight-color="blue">Second</mark>',
-			fullHtml: "<p>irrelevant</p>",
+			selectionNodes: [
+				paragraph([
+					highlight("other-id-1", "yellow", [text("First")]),
+					text(" Middle "),
+					highlight("other-id-2", "blue", [text("Second")]),
+				]),
+			],
+			fullNodes: [paragraph([text("irrelevant")])],
+			selectionText: "First Middle Second",
+			fullText: "irrelevant",
 			color: "yellow",
 			endBlockIndex: 0,
 		});
 
 		// Assert
 
-		expect(createExtractAction).toHaveBeenCalledWith({
-			id: "new-id",
-			meta: {
-				name: "First Middle Second",
-				parent: ELEMENT_ID,
-				derivedFrom: ELEMENT_ID,
-				sourceId: SOURCE_ID,
-			},
-			content: "First Middle Second",
+		const dto = vi.mocked(createExtractAction).mock.calls[0][0];
+		expect(dto.meta).toEqual({
+			name: "First Middle Second",
+			parent: ELEMENT_ID,
+			derivedFrom: ELEMENT_ID,
+			sourceId: SOURCE_ID,
 		});
+		expect(collectText(parseRoot(dto.content))).toBe("First Middle Second");
 	});
 });

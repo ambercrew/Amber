@@ -1,3 +1,4 @@
+import { htmlToLexicalJson } from "../../components/Editor/lexicalJsonConversion";
 import { paths } from "../../paths";
 import { createReadingAction } from "../../stores/elements/elementsActions";
 import { ImportContext } from "./importContext";
@@ -14,7 +15,7 @@ export async function createImportedReading(
 		createReadingAction({
 			id,
 			meta: { name, parent: ctx.parent, sourceId },
-			splits: splitContent(content),
+			splits: splitContent(content).map(html => htmlToLexicalJson(html)),
 		}),
 	);
 	await ctx.navigate(paths.element("reading", id));

@@ -1,0 +1,41 @@
+import { CodeShikiExtension } from "@lexical/code-shiki";
+import {
+	ClickAfterLastBlockExtension,
+	SelectBlockExtension,
+	TabIndentationExtension,
+} from "@lexical/extension";
+import { HistoryExtension } from "@lexical/history";
+import { ListExtension } from "@lexical/list";
+import { RichTextExtension } from "@lexical/rich-text";
+import { TableExtension } from "@lexical/table";
+import { configExtension } from "lexical";
+import { ClozeHiddenNode } from "./plugins/ClozePlugin/ClozeHiddenNode";
+import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
+import { HighlightNode } from "./plugins/HighlightPlugin/HighlightNode";
+import { ImageNode } from "./plugins/ImagePlugin/ImageNode";
+
+/**
+ * Custom node types and extension dependencies shared by the interactive
+ * editor (Editor.tsx) and the headless HTML-to-JSON converter used by
+ * Import, so both parse the same set of node types from HTML/JSON.
+ */
+export const editorNodes = [
+	EquationNode,
+	HighlightNode,
+	ClozeHiddenNode,
+	ImageNode,
+];
+
+export const editorExtensionDependencies = [
+	RichTextExtension,
+	HistoryExtension,
+	ListExtension,
+	TableExtension,
+	TabIndentationExtension,
+	ClickAfterLastBlockExtension,
+	SelectBlockExtension,
+	configExtension(CodeShikiExtension, {
+		// Only keeping it to get code block background color.
+		disabled: true,
+	}),
+];

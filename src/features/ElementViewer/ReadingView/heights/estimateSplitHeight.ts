@@ -1,6 +1,5 @@
 import {
 	READING_ESTIMATE_CHAR_AREA_IN_PX,
-	READING_ESTIMATE_SCALE,
 	READING_SPLIT_MIN_HEIGHT_IN_PX,
 } from "../readingViewConstants";
 
@@ -15,10 +14,6 @@ export function estimateSplitHeight(
 	contentWidth: number,
 ): number {
 	const width = contentWidth > 0 ? contentWidth : 1;
-	const raw =
-		(charCount *
-			READING_ESTIMATE_CHAR_AREA_IN_PX *
-			READING_ESTIMATE_SCALE) /
-		width;
+	const raw = (charCount * READING_ESTIMATE_CHAR_AREA_IN_PX) / width;
 	return Math.max(READING_SPLIT_MIN_HEIGHT_IN_PX, Math.round(raw));
 }

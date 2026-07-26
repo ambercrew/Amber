@@ -10,6 +10,7 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::entities::card::Card;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
+use crate::elements::utils::plain_text_extractor::extract_plain_text;
 use crate::infrastructure::repositories::sqlite::sqlite_rows::card_row::CardRow;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
@@ -25,13 +26,17 @@ impl CardRepository for SqliteCardRepository {
         self.meta_repository.create_meta(&card.meta).await?;
 
         let uuid = card.meta.element_id.id();
+        let front_text = extract_plain_text(&card.front);
+        let back_text = extract_plain_text(&card.back);
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO cards (id, front, back) VALUES ($1, $2, $3)",
+            "INSERT INTO cards (id, front, back, front_text, back_text) VALUES ($1, $2, $3, $4, $5)",
             uuid,
             card.front,
             card.back,
+            front_text,
+            back_text,
         )
         .execute(&mut *tx)
         .await?;
@@ -107,12 +112,16 @@ impl CardRepository for SqliteCardRepository {
         front: String,
         back: String,
     ) -> Result<(), RepositoryError> {
+        let front_text = extract_plain_text(&front);
+        let back_text = extract_plain_text(&back);
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "UPDATE cards SET front = $1, back = $2 WHERE id = $3",
+            "UPDATE cards SET front = $1, back = $2, front_text = $3, back_text = $4 WHERE id = $5",
             front,
             back,
+            front_text,
+            back_text,
             id,
         )
         .execute(&mut *tx)

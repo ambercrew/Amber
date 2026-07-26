@@ -178,19 +178,23 @@ CREATE TABLE reading_splits(
     reading_id  TEXT    NOT NULL REFERENCES readings(id) ON DELETE CASCADE,
     seq         INTEGER NOT NULL,
     content     TEXT    NOT NULL,
+    content_text TEXT    NOT NULL DEFAULT '',
     PRIMARY KEY (reading_id, seq)
 );
 
 CREATE TABLE extracts(
     id       TEXT NOT NULL PRIMARY KEY,
     content  TEXT NOT NULL,
+    content_text TEXT NOT NULL DEFAULT '',
     interval_multiplier REAL NOT NULL DEFAULT 1.2
 );
 
 CREATE TABLE cards(
     id    TEXT NOT NULL PRIMARY KEY,
     front TEXT NOT NULL,
-    back  TEXT NOT NULL
+    back  TEXT NOT NULL,
+    front_text TEXT NOT NULL DEFAULT '',
+    back_text  TEXT NOT NULL DEFAULT ''
 );
 
 -------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
+	$getRoot,
 	$getSelection,
 	$isRangeSelection,
 	COMMAND_PRIORITY_EDITOR,
 } from "lexical";
 import { $wrapSelectionInMarkNode } from "@lexical/mark";
-import { $generateHtmlFromNodes } from "@lexical/html";
+import { $generateJSONFromSelectedNodes } from "@lexical/clipboard";
+import { type SerializedLexicalNodeTree } from "../../lexicalJsonConversion";
 import { $createHighlightNode, HighlightNode } from "./HighlightNode";
 import {
 	CREATE_HIGHLIGHT_COMMAND,
@@ -33,10 +35,14 @@ export function HighlightPlugin({ onHighlightCreated }: Props) {
 				if (!$isRangeSelection(selection) || selection.isCollapsed()) {
 					return false;
 				}
-				const text = selection.getTextContent();
-				if (!text?.trim()) return false;
+				const selectionText = selection.getTextContent();
+				if (!selectionText?.trim()) return false;
 
-				const html = $generateHtmlFromNodes(editor, selection);
+				const { nodes: selectionNodes } =
+					$generateJSONFromSelectedNodes<SerializedLexicalNodeTree>(
+						editor,
+						selection,
+					);
 				// Whichever point comes later in document order is the end of
 				// the extracted range, regardless of which way the user dragged.
 				const endPoint = selection.isBackward()
@@ -54,11 +60,22 @@ export function HighlightPlugin({ onHighlightCreated }: Props) {
 					id,
 					ids => $createHighlightNode(ids, color),
 				);
-				const fullHtml = $generateHtmlFromNodes(editor);
+				// A `null` selection tells $generateJSONFromSelectedNodes to
+				// include every node, i.e. the whole document — read live from
+				// the active (not-yet-committed) update, unlike
+				// `editor.getEditorState()`.
+				const { nodes: fullNodes } =
+					$generateJSONFromSelectedNodes<SerializedLexicalNodeTree>(
+						editor,
+						null,
+					);
+				const fullText = $getRoot().getTextContent();
 				onHighlightCreated?.({
 					id,
-					html,
-					fullHtml,
+					selectionNodes,
+					fullNodes,
+					selectionText,
+					fullText,
 					color,
 					endBlockIndex,
 				});
