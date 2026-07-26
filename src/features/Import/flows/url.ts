@@ -1,6 +1,6 @@
 import { Readability } from "@mozilla/readability";
 import { fetchPage } from "../../../api/import/api/importApi";
-import { createSource } from "../../../api/sources/api/sourcesApi";
+import { createSourceAction } from "../../../stores/sources/sourcesActions";
 import errorToString from "../../../utils/errorToString";
 import { normalize } from "../normalize";
 import { hydrateLazyImages } from "../normalize/hydrateLazyImages";
@@ -95,13 +95,15 @@ async function importArticleHtml(
 			? trimmedTitle
 			: deriveTitle(content, "");
 
-	const source = await createSource({
-		title: finalTitle,
-		authors,
-		publicationDate,
-		sourceType: "WebPage",
-		location: baseUrl,
-	});
+	const source = await ctx.dispatch(
+		createSourceAction({
+			title: finalTitle,
+			authors,
+			publicationDate,
+			sourceType: "WebPage",
+			location: baseUrl,
+		}),
+	);
 
 	await createImportedReading(ctx, finalTitle, content, source.id);
 }
