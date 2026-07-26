@@ -7,7 +7,7 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
 
   <Identity
-    Name="RamiAlkawadri.BrainyLearn"
+    Name="RamiAlkawadri.TODO"
     Publisher="{{PUBLISHER}}"
     Version="{{VERSION}}"
     ProcessorArchitecture="{{ARCH}}" />
