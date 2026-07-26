@@ -31,6 +31,7 @@ function renderModal(opened: boolean) {
 				studyProfileModalOpened: false,
 				settingsModalOpened: opened,
 				priorityDialogOpened: false,
+				studySessionSettingsDialogOpened: false,
 			},
 			settings: { settings },
 		},

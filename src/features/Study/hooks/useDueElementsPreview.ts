@@ -8,6 +8,7 @@ import { queueLoaded } from "../../../stores/study/studyReducer";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
 import { ELEMENT_CREATED } from "../../../types/events/elementCreatedEvent";
 import { PRIORITY_CHANGED } from "../../../types/events/priorityChangedEvent";
+import { STUDY_SESSION_SETTINGS_CHANGED } from "../../../types/events/studySessionSettingsChangedEvent";
 
 // Lets the sidebar preview which elements are due before a session starts,
 // without affecting status/counts/etc. Once a session is active, the queue
@@ -38,6 +39,11 @@ export function useDueElementsPreview() {
 	});
 
 	useWindowEvent(PRIORITY_CHANGED, () => {
+		if (isStudying) return;
+		refresh();
+	});
+
+	useWindowEvent(STUDY_SESSION_SETTINGS_CHANGED, () => {
 		if (isStudying) return;
 		refresh();
 	});

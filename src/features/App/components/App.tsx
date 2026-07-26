@@ -26,6 +26,7 @@ import ImportModal from "../../Import/components/ImportModal.tsx";
 import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import SettingsModal from "../../Settings/components/SettingsModal.tsx";
 import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
+import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 
@@ -127,6 +128,7 @@ function App() {
 			<StudyProfileModal />
 			<SettingsModal />
 			<PriorityDialog />
+			<StudySessionSettingsDialog />
 			<Notifications />
 
 			<AppShell.Header>

@@ -83,6 +83,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: false,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -105,6 +106,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -137,6 +139,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 				elements: elementsStateFor(cardElement("1")),
 			},
@@ -175,6 +178,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 				elements: elementsStateFor(null),
 			},
@@ -202,6 +206,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -235,6 +240,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -268,6 +274,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -300,6 +307,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});
@@ -330,6 +338,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityDialogOpened: false,
+					studySessionSettingsDialogOpened: false,
 				},
 			},
 		});

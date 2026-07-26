@@ -11,19 +11,21 @@ use rand::seq::SliceRandom;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::element_id_with_priority::ElementIdWithPriority;
+use crate::local_configurations::repositories::local_configuration_repository::{
+    LocalConfigurationRepository, LocalConfigurationRepositoryExt,
+};
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
 use crate::study::services::due_elements_service::DueElementsService;
-
-/// Degree of randomization applied to the priority-sorted due queue, from
-/// 0 (strict priority order) to 100 (fully random). Hard-coded until a
-/// user-facing "queue fuzz" setting exists.
-const DEFAULT_FUZZ_FACTOR: u8 = 10;
+use crate::study::value_objects::fuzz_factor_configuration::{
+    FUZZ_FACTOR_CONFIGURATION_NAME, FuzzFactorConfiguration,
+};
 
 #[derive(ScopeInjectable)]
 pub struct DefaultDueElementsService {
     card_review_repository: Arc<dyn CardReviewRepository>,
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
+    local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
 }
 
 #[async_trait]
@@ -39,9 +41,18 @@ impl DueElementsService for DefaultDueElementsService {
                 .await?,
         );
 
+        let fuzz_factor = self
+            .local_configuration_repository
+            .get_by_name::<FuzzFactorConfiguration>(FUZZ_FACTOR_CONFIGURATION_NAME)
+            .await
+            .ok()
+            .flatten()
+            .unwrap_or_default()
+            .fuzz_factor;
+
         Ok(order_by_priority_with_fuzz(
             due,
-            DEFAULT_FUZZ_FACTOR,
+            fuzz_factor,
             &mut rand::rng(),
         ))
     }
@@ -91,6 +102,7 @@ mod tests {
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
+            sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
             sqlite_meta_repository::SqliteMetaRepository,
             sqlite_reading_repository::SqliteReadingRepository,
             sqlite_reading_review_repository::SqliteReadingReviewRepository,
@@ -115,6 +127,11 @@ mod tests {
             injector,
             dyn ReadingReviewRepository,
             SqliteReadingReviewRepository
+        );
+        register_scope!(
+            injector,
+            dyn LocalConfigurationRepository,
+            SqliteLocalConfigurationRepository
         );
         register_scope!(injector, dyn DueElementsService, DefaultDueElementsService);
         injector

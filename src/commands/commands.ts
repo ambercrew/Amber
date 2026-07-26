@@ -10,6 +10,7 @@ import {
 	GearIcon,
 	MapPinIcon,
 	MoonIcon,
+	SlidersHorizontalIcon,
 	UploadSimpleIcon,
 } from "@phosphor-icons/react";
 import { AppDispatch, RootState } from "../stores/store";
@@ -18,6 +19,7 @@ import {
 	openPriorityDialog,
 	openSettingsModal,
 	openStudyProfileModal,
+	openStudySessionSettingsDialog,
 } from "../stores/app/appReducer";
 import { startStudySession } from "../stores/study/studyActions";
 import { sessionStopped } from "../stores/study/studyReducer";
@@ -47,6 +49,7 @@ export const commandIds = [
 	"clear-read-point",
 	"go-to-read-point",
 	"open-priority-dialog",
+	"open-study-session-settings",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
@@ -171,6 +174,13 @@ export const commandsById: Record<CommandId, Command> = {
 		icon: createElement(ArrowsDownUpIcon),
 		enabled: state => selectCurrentElement(state) !== null,
 		execute: dispatch => dispatch(openPriorityDialog()),
+	},
+	"open-study-session-settings": {
+		id: "open-study-session-settings",
+		group: "Study",
+		label: "Study session settings",
+		icon: createElement(SlidersHorizontalIcon),
+		execute: dispatch => dispatch(openStudySessionSettingsDialog()),
 	},
 };
 

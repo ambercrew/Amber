@@ -49,3 +49,11 @@ export function getReadingReview(
 ): Promise<ReadingReviewDto | null> {
 	return invoke("get_reading_review", { elementId });
 }
+
+export function getFuzzFactor(): Promise<number> {
+	return invoke("get_fuzz_factor");
+}
+
+export function setFuzzFactor(fuzzFactor: number): Promise<void> {
+	return invoke("set_fuzz_factor", { fuzzFactor });
+}
