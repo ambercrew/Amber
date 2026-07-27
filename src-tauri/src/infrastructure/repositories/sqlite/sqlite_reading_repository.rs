@@ -5,7 +5,9 @@ use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
-use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
+use crate::elements::entities::reading::{
+    Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta, ReadingSplitText,
+};
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::utils::plain_text_extractor::extract_plain_text;
@@ -145,6 +147,32 @@ impl ReadingRepository for SqliteReadingRepository {
             .map(|row| ReadingSplitMeta {
                 seq: row.seq as u32,
                 char_count: row.char_count as u32,
+            })
+            .collect())
+    }
+
+    async fn get_split_texts(
+        &self,
+        reading_id: Uuid,
+    ) -> Result<Vec<ReadingSplitText>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let rows = sqlx::query!(
+            r#"SELECT seq, content_text
+            FROM reading_splits
+            WHERE reading_id = $1
+            ORDER BY seq"#,
+            reading_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
+
+        Ok(rows
+            .into_iter()
+            .map(|row| ReadingSplitText {
+                seq: row.seq as u32,
+                text: row.content_text,
             })
             .collect())
     }
@@ -550,6 +578,68 @@ mod tests {
                 ReadingSplitMeta {
                     seq: 1,
                     char_count: 4,
+                },
+            ],
+            actual
+        );
+    }
+
+    #[tokio::test]
+    async fn get_split_texts_multiple_splits_returns_ordered_plain_text() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+
+        let folder = Folder {
+            meta: folder_meta(),
+        };
+        let reading = Reading {
+            interval_multiplier: 1.2,
+            meta: Meta {
+                parent: Some(folder.meta.element_id),
+                ..reading_meta()
+            },
+            read_point: ReadPoint::default(),
+        };
+        folder_repo.create(folder).await.unwrap();
+        reading_repo
+            .create(
+                reading.clone(),
+                vec![
+                    ReadingSplit {
+                        seq: 1,
+                        content: split_content_json("second"),
+                    },
+                    ReadingSplit {
+                        seq: 0,
+                        content: split_content_json("first"),
+                    },
+                ],
+            )
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = reading_repo
+            .get_split_texts(reading.meta.element_id.id())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(
+            vec![
+                ReadingSplitText {
+                    seq: 0,
+                    text: "first".into(),
+                },
+                ReadingSplitText {
+                    seq: 1,
+                    text: "second".into(),
                 },
             ],
             actual

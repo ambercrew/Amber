@@ -21,10 +21,10 @@ import { type MantineColor } from "@mantine/core";
 import {
 	$createHighlightNode,
 	HighlightNode,
-} from "../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
-import { CREATE_HIGHLIGHT_COMMAND } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
-import { useElementViewerButtons } from "../../../features/ElementViewer/useElementViewerButtons";
-import { FloatingMenuButton } from "../../../components/Editor/plugins/FloatingMenuPlugin";
+} from "../../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
+import { CREATE_HIGHLIGHT_COMMAND } from "../../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { useElementViewerButtons } from "../../../../features/ElementViewer/hooks/useElementViewerButtons";
+import { FloatingMenuButton } from "../../../../components/Editor/plugins/FloatingMenuPlugin";
 
 const { mockNavigate } = vi.hoisted(() => ({ mockNavigate: vi.fn() }));
 

@@ -1,14 +1,14 @@
-import { useHighlightCreatedHandler } from "../../../features/ElementViewer/useHighlightCreatedHandler";
-import { renderWithProviders } from "../../test-utils/renderWithProviders";
+import { useHighlightCreatedHandler } from "../../../../features/ElementViewer/hooks/useHighlightCreatedHandler";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	createCardAction,
 	createExtractAction,
-} from "../../../stores/elements/elementsActions";
-import { ElementId } from "../../../types/elements/elementId";
-import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
-import { type SerializedLexicalNodeTree } from "../../../components/Editor/lexicalJsonConversion";
+} from "../../../../stores/elements/elementsActions";
+import { ElementId } from "../../../../types/elements/elementId";
+import { HighlightCreatedPayload } from "../../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { type SerializedLexicalNodeTree } from "../../../../components/Editor/lexicalJsonConversion";
 
-vi.mock(import("../../../stores/elements/elementsActions"));
+vi.mock(import("../../../../stores/elements/elementsActions"));
 
 const ELEMENT_ID: ElementId = { type: "reading", id: "reading-1" };
 const SOURCE_ID = "source-1";

@@ -11,8 +11,20 @@ import { HighlightCreatedPayload } from "../../components/Editor/plugins/Highlig
 import RootElementPlugin from "../../components/Editor/plugins/RootElementPlugin";
 import ReadPointMarkerPlugin from "../../components/Editor/plugins/ReadPointMarkerPlugin";
 import CursorTrackerPlugin from "../../components/Editor/plugins/CursorTrackerPlugin";
+import SearchHighlightPlugin from "../../components/Editor/plugins/SearchHighlightPlugin/SearchHighlightPlugin";
 import useApi from "../../hooks/useApi";
 import useAutoSave from "./hooks/useAutoSave";
+
+export interface ElementEditorSearchProps {
+	/** Unique key identifying this editor instance among any others on screen. */
+	editorKey: string;
+	query: string;
+	caseSensitive: boolean;
+	/** Local index (within this instance's own matches) of the globally-current match, or null if this instance doesn't own it. */
+	currentMatchLocalIndex: number | null;
+	/** Reports this instance's own match count — authoritative for it. */
+	onMatches: (editorKey: string, count: number) => void;
+}
 
 interface ElementEditorProps {
 	initialContent: string;
@@ -28,6 +40,8 @@ interface ElementEditorProps {
 	onCursorMove?: (blockIndex: number) => void;
 	/** Extra items for the editor's right-click menu, if any. */
 	contextMenuItems?: React.ReactNode;
+	/** Find-in-page search wiring for this editor instance, if search is active here. */
+	search?: ElementEditorSearchProps;
 }
 
 export default function ElementEditor({
@@ -40,6 +54,7 @@ export default function ElementEditor({
 	markerBlockIndex,
 	onCursorMove,
 	contextMenuItems,
+	search,
 }: ElementEditorProps) {
 	const { callApi, errorMessage, clearErrorMessage } = useApi();
 	const handleSave = useCallback(
@@ -94,6 +109,15 @@ export default function ElementEditor({
 				)}
 				{onCursorMove && (
 					<CursorTrackerPlugin onCursorMove={onCursorMove} />
+				)}
+				{search && (
+					<SearchHighlightPlugin
+						editorKey={search.editorKey}
+						query={search.query}
+						caseSensitive={search.caseSensitive}
+						currentMatchLocalIndex={search.currentMatchLocalIndex}
+						onMatches={search.onMatches}
+					/>
 				)}
 			</Editor>
 		</>

@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use uuid::Uuid;
 
 use crate::common::repository_error::RepositoryError;
-use crate::elements::entities::reading::{Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta};
+use crate::elements::entities::reading::{
+    Reading, ReadingSplit, ReadingSplitId, ReadingSplitMeta, ReadingSplitText,
+};
 use crate::elements::value_objects::read_point::ReadPoint;
 
 #[async_trait]
@@ -22,6 +24,12 @@ pub trait ReadingRepository: Send + Sync {
     ) -> Result<Vec<ReadingSplitMeta>, RepositoryError>;
     /// Content of a single split, loaded on demand as it is about to be mounted.
     async fn get_split_content(&self, split_id: ReadingSplitId) -> Result<String, RepositoryError>;
+    /// Plain-text content of every split, ordered by `seq`. Used by find-in-page to
+    /// search splits that aren't currently mounted (and so have no live editor).
+    async fn get_split_texts(
+        &self,
+        reading_id: Uuid,
+    ) -> Result<Vec<ReadingSplitText>, RepositoryError>;
     async fn update_content(
         &self,
         split_id: ReadingSplitId,

@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Container } from "@mantine/core";
 import CardElementViewer from "./CardElementViewer";
-import ContentSourcePanel from "./ContentSourcePanel";
-import ElementEditor from "./ElementEditor";
+import ExtractElementViewer from "./ExtractElementViewer";
+import FindInPageBar from "./FindInPageBar";
 import FolderView from "./FolderView";
 import ReadingView from "./ReadingView/ReadingView";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
 import { selectStudyStatus } from "../../stores/study/studySelectors";
 import { updateCard, updateExtract } from "../../api/elements/api/elementsApi";
-import { useElementViewerButtons } from "./useElementViewerButtons";
-import { useHighlightCreatedHandler } from "./useHighlightCreatedHandler";
+import { useElementViewerButtons } from "./hooks/useElementViewerButtons";
+import { useHighlightCreatedHandler } from "./hooks/useHighlightCreatedHandler";
 
 export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
@@ -67,52 +66,44 @@ export default function ElementViewer() {
 		[elementId],
 	);
 
-	if (!currentElement || !elementId) {
+	if (!currentElement || !elementId || currentElement.type === "folder") {
 		return <FolderView />;
-	}
-
-	if (currentElement.type === "folder") {
-		return <FolderView />;
-	}
-
-	if (currentElement.type === "card") {
-		return (
-			<CardElementViewer
-				elementId={elementId}
-				card={currentElement.data}
-				buttons={buttons}
-				onFrontChange={handleFrontChange}
-				onBackChange={handleBackChange}
-				onHighlightCreated={handleHighlightCreated}
-			/>
-		);
-	}
-
-	if (currentElement.type === "reading") {
-		return (
-			<ReadingView
-				key={`reading-${elementId.id}`}
-				readingId={elementId.id}
-				readPoint={currentElement.data.readPoint}
-				meta={currentElement.data.meta}
-				buttons={buttons}
-				onHighlightCreated={handleHighlightCreated}
-				autoFocus={studyStatus === "editing"}
-			/>
-		);
 	}
 
 	return (
-		<Container size="sm" py="lg">
-			<ElementEditor
-				key={`${elementId.type}-${elementId.id}`}
-				initialContent={currentElement.data.content}
-				buttons={buttons}
-				onChange={handleChange}
-				onHighlightCreated={handleHighlightCreated}
-				autoFocus={studyStatus === "editing"}
-			/>
-			<ContentSourcePanel meta={currentElement.data.meta} />
-		</Container>
+		<>
+			<FindInPageBar />
+			{currentElement.type === "card" && (
+				<CardElementViewer
+					elementId={elementId}
+					card={currentElement.data}
+					buttons={buttons}
+					onFrontChange={handleFrontChange}
+					onBackChange={handleBackChange}
+					onHighlightCreated={handleHighlightCreated}
+				/>
+			)}
+			{currentElement.type === "reading" && (
+				<ReadingView
+					key={`reading-${elementId.id}`}
+					readingId={elementId.id}
+					readPoint={currentElement.data.readPoint}
+					meta={currentElement.data.meta}
+					buttons={buttons}
+					onHighlightCreated={handleHighlightCreated}
+					autoFocus={studyStatus === "editing"}
+				/>
+			)}
+			{currentElement.type === "extract" && (
+				<ExtractElementViewer
+					elementId={elementId}
+					extract={currentElement.data}
+					buttons={buttons}
+					autoFocus={studyStatus === "editing"}
+					onChange={handleChange}
+					onHighlightCreated={handleHighlightCreated}
+				/>
+			)}
+		</>
 	);
 }

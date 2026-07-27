@@ -8,6 +8,7 @@ import {
 	EraserIcon,
 	FadersHorizontalIcon,
 	GearIcon,
+	MagnifyingGlassIcon,
 	MapPinIcon,
 	MoonIcon,
 	PencilSimpleIcon,
@@ -22,6 +23,7 @@ import {
 	openStudyProfileModal,
 	openStudySessionSettingsDialog,
 } from "../stores/app/appReducer";
+import { openSearch } from "../stores/search/searchReducer";
 import { startStudySession } from "../stores/study/studyActions";
 import { sessionStopped } from "../stores/study/studyReducer";
 import { selectStudyStatus } from "../stores/study/studySelectors";
@@ -39,6 +41,7 @@ export const TOGGLE_STUDY_SESSION_SHORTCUT = "mod+L";
 export const OPEN_SETTINGS_SHORTCUT = "mod+P";
 export const SET_READ_POINT_SHORTCUT = "mod+shift+R";
 export const OPEN_PRIORITY_DIALOG_SHORTCUT = "alt+P";
+export const FIND_IN_PAGE_SHORTCUT = "mod+F";
 
 export const commandIds = [
 	"import",
@@ -52,6 +55,7 @@ export const commandIds = [
 	"go-to-read-point",
 	"open-priority-dialog",
 	"open-study-session-settings",
+	"find-in-page",
 ] as const;
 export type CommandId = (typeof commandIds)[number];
 
@@ -186,6 +190,15 @@ export const commandsById: Record<CommandId, Command> = {
 		label: "Study session settings",
 		icon: createElement(ShuffleIcon),
 		execute: dispatch => dispatch(openStudySessionSettingsDialog()),
+	},
+	"find-in-page": {
+		id: "find-in-page",
+		group: "General",
+		label: "Find in page",
+		shortcut: FIND_IN_PAGE_SHORTCUT,
+		icon: createElement(MagnifyingGlassIcon),
+		enabled: state => selectCurrentElement(state) !== null,
+		execute: dispatch => dispatch(openSearch()),
 	},
 };
 

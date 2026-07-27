@@ -13,6 +13,7 @@ use crate::elements::dto::element_details_dto::ElementDetailsResponseDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
 use crate::elements::dto::reading_split_id_dto::ReadingSplitIdDto;
 use crate::elements::dto::reading_split_meta_dto::ReadingSplitMetaDto;
+use crate::elements::dto::reading_split_text_dto::ReadingSplitTextDto;
 use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::dto::update_card_dto::UpdateCardDto;
@@ -181,6 +182,20 @@ pub async fn get_reading_split_manifest(
         .into_iter()
         .map(ReadingSplitMetaDto::from)
         .collect())
+}
+
+#[tauri::command]
+pub async fn get_reading_split_texts(
+    injector: State<'_, Arc<Injector>>,
+    reading_id: Uuid,
+) -> Result<Vec<ReadingSplitTextDto>, ApiError> {
+    let scope = injector.start_scope();
+    let texts = scope
+        .resolve::<dyn ReadingRepository>()
+        .await
+        .get_split_texts(reading_id)
+        .await?;
+    Ok(texts.into_iter().map(ReadingSplitTextDto::from).collect())
 }
 
 #[tauri::command]

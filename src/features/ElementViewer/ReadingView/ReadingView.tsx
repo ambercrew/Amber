@@ -6,15 +6,30 @@ import { getReadingSplitManifest } from "../../../api/elements/api/elementsApi";
 import { MetaResponseDto } from "../../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { searchHighlightRegistry } from "../../../components/Editor/plugins/SearchHighlightPlugin/searchHighlightRegistry";
+import useAppSelector from "../../../hooks/useAppSelector";
+import {
+	selectSearchCaseSensitive,
+	selectSearchCurrentIndex,
+	selectSearchQuery,
+} from "../../../stores/search/searchSelectors";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { ReadPoint } from "../../../types/elements/readPoint";
 import { READ_POINT_MANUAL_GOTO_REQUESTED } from "../../../types/events/readPointManualGotoRequestedEvent";
 import ContentSourcePanel from "../ContentSourcePanel";
+import { useSyncSearchMatches } from "../hooks/useSyncSearchMatches";
 import SplitSlot from "./SplitSlot";
+import {
+	findNearestMatchAtOrBelowViewport,
+	type MatchTarget as InitialMatchTarget,
+} from "./findNearestMatchAtOrBelowViewport";
 import { NO_READ_POINT, useReadPoint } from "./useReadPoint";
 import { useReadPointScroll } from "./useReadPointScroll";
+import { useReadingSearch, type MatchTarget } from "./useReadingSearch";
+import { useSearchNavigation } from "./useSearchNavigation";
 import { useSplitHeights } from "./heights/useSplitHeights";
 import { useSplitMountWindow } from "./useSplitMountWindow";
+import { READING_VIEWPORT_TOP_OFFSET_IN_PX } from "./readingViewConstants";
 
 interface ReadingViewProps {
 	readingId: string;
@@ -94,6 +109,69 @@ export default function ReadingView({
 		readingId,
 		contentWidth,
 	);
+
+	const searchQuery = useAppSelector(selectSearchQuery);
+	const searchCaseSensitive = useAppSelector(selectSearchCaseSensitive);
+	const searchCurrentIndex = useAppSelector(selectSearchCurrentIndex);
+	const {
+		onSplitMatches,
+		totalMatches,
+		countsBySeq,
+		resolveMatchTarget,
+		toGlobalIndex,
+	} = useReadingSearch({
+		readingId,
+		splits: splits ?? [],
+		query: searchQuery,
+		caseSensitive: searchCaseSensitive,
+		mountedSeqs,
+	});
+	const { goToMatch, notifySearchTargetReady } = useSearchNavigation({
+		splits: splits ?? [],
+		getContentRoot,
+		getHeight,
+		jumpTo: lockTo,
+		releaseJump: unlock,
+	});
+	const handleSearchNavigate = useCallback(
+		(target: MatchTarget) => goToMatch(target.seq, target.localIndex),
+		[goToMatch],
+	);
+	const resolveLocalMatchAtOrBelow = useCallback((seq: number) => {
+		const ranges = searchHighlightRegistry.getRanges(String(seq));
+		if (!ranges) return null;
+		const index = ranges.findIndex(
+			range =>
+				range.getBoundingClientRect().top >=
+				READING_VIEWPORT_TOP_OFFSET_IN_PX,
+		);
+		return index === -1 ? null : index;
+	}, []);
+	const resolveInitialSearchIndex = useCallback(() => {
+		const target: InitialMatchTarget | null =
+			findNearestMatchAtOrBelowViewport(
+				splits ?? [],
+				countsBySeq,
+				primarySeq,
+				resolveLocalMatchAtOrBelow,
+			);
+		return target ? toGlobalIndex(target) : 0;
+	}, [
+		splits,
+		countsBySeq,
+		primarySeq,
+		resolveLocalMatchAtOrBelow,
+		toGlobalIndex,
+	]);
+	useSyncSearchMatches({
+		totalMatches,
+		resolveMatchTarget,
+		onNavigate: handleSearchNavigate,
+		resolveInitialIndex: resolveInitialSearchIndex,
+	});
+	const currentSearchTarget =
+		searchCurrentIndex >= 0 ? resolveMatchTarget(searchCurrentIndex) : null;
+
 	const { recordExtractReadPoint, trackCursor, getCurrentReadPoint } =
 		useReadPoint({
 			readingId,
@@ -136,8 +214,9 @@ export default function ReadingView({
 		(seq: number) => {
 			if (seq === readPoint.split) setPendingAutoFocus(false);
 			notifySplitReady(seq);
+			notifySearchTargetReady(seq);
 		},
-		[readPoint.split, notifySplitReady],
+		[readPoint.split, notifySplitReady, notifySearchTargetReady],
 	);
 
 	// Cached per seq so the ref callback's identity is stable across renders
@@ -209,6 +288,16 @@ export default function ReadingView({
 								? readPoint.block
 								: undefined
 						}
+						search={{
+							editorKey: String(split.seq),
+							query: searchQuery,
+							caseSensitive: searchCaseSensitive,
+							currentMatchLocalIndex:
+								currentSearchTarget?.seq === split.seq
+									? currentSearchTarget.localIndex
+									: null,
+							onMatches: onSplitMatches,
+						}}
 					/>
 				))}
 			<ContentSourcePanel meta={meta} />

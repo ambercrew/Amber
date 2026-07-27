@@ -1,0 +1,13 @@
+::highlight(amber-find-all) {
+	background-color: light-dark(
+		var(--mantine-color-amber-3),
+		var(--mantine-color-amber-4)
+	);
+}
+
+::highlight(amber-find-current) {
+	background-color: light-dark(
+		var(--mantine-color-amber-6),
+		var(--mantine-color-amber-7)
+	);
+}

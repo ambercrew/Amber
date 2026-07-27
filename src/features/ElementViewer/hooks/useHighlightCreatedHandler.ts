@@ -2,19 +2,19 @@ import { useCallback } from "react";
 import { $createTextNode } from "lexical";
 import { $unwrapMarkNode } from "@lexical/mark";
 import { $dfs } from "@lexical/utils";
-import { serializedNodesToLexicalJson } from "../../components/Editor/lexicalJsonConversion";
-import { HighlightCreatedPayload } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { serializedNodesToLexicalJson } from "../../../components/Editor/lexicalJsonConversion";
+import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import {
 	$createClozeHiddenNode,
 	$isClozeHiddenNode,
-} from "../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
-import { $isHighlightNode } from "../../components/Editor/plugins/HighlightPlugin/HighlightNode";
-import useAppDispatch from "../../hooks/useAppDispatch";
+} from "../../../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
+import { $isHighlightNode } from "../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
+import useAppDispatch from "../../../hooks/useAppDispatch";
 import {
 	createCardAction,
 	createExtractAction,
-} from "../../stores/elements/elementsActions";
-import { ElementId } from "../../types/elements/elementId";
+} from "../../../stores/elements/elementsActions";
+import { ElementId } from "../../../types/elements/elementId";
 import { CLOZE_COLOR } from "./useElementViewerButtons";
 
 export function useHighlightCreatedHandler(
