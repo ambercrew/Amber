@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Container, Divider, Group, Stack, Text } from "@mantine/core";
 import { QuestionIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import ContentSourcePanel from "./ContentSourcePanel";
@@ -11,6 +12,7 @@ import {
 	selectStudyStatus,
 } from "../../stores/study/studySelectors";
 import { ElementId } from "../../types/elements/elementId";
+import { useEditorFindInPage } from "./hooks/useEditorFindInPage";
 
 interface CardElementViewerProps {
 	elementId: ElementId;
@@ -33,6 +35,13 @@ export default function CardElementViewer({
 	const cardPhase = useAppSelector(selectStudyCardPhase);
 	const answerHidden = status === "studying" && cardPhase === "question";
 
+	const editorKeys = useMemo(
+		() => (answerHidden ? ["front"] : ["front", "back"]),
+		[answerHidden],
+	);
+	const { query, caseSensitive, onMatches, matchIndexFor } =
+		useEditorFindInPage(editorKeys);
+
 	return (
 		<Container size="sm" py="lg">
 			<Stack key={`card-${elementId.id}`} gap="xl">
@@ -49,6 +58,13 @@ export default function CardElementViewer({
 						onChange={onFrontChange}
 						onHighlightCreated={onHighlightCreated}
 						autoFocus={status === "editing"}
+						search={{
+							editorKey: "front",
+							query,
+							caseSensitive,
+							currentMatchLocalIndex: matchIndexFor("front"),
+							onMatches,
+						}}
 					/>
 				</Stack>
 				<Divider />
@@ -69,6 +85,13 @@ export default function CardElementViewer({
 							buttons={buttons}
 							onChange={onBackChange}
 							onHighlightCreated={onHighlightCreated}
+							search={{
+								editorKey: "back",
+								query,
+								caseSensitive,
+								currentMatchLocalIndex: matchIndexFor("back"),
+								onMatches,
+							}}
 						/>
 					)}
 				</Stack>

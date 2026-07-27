@@ -177,6 +177,7 @@ pub async fn run() -> Result<(), String> {
             update_read_point,
             get_reading_split_manifest,
             get_reading_split_content,
+            get_reading_split_texts,
             update_extract,
             update_card,
             update_interval_multiplier,

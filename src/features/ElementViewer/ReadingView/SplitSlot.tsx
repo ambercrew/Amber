@@ -7,7 +7,7 @@ import {
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { HighlightCreatedPayload } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import ReadPointMenu from "../../../components/Editor/plugins/ReadPointMenu";
-import ElementEditor from "../ElementEditor";
+import ElementEditor, { ElementEditorSearchProps } from "../ElementEditor";
 import SplitPlaceholder from "./SplitPlaceholder";
 
 interface SplitSlotProps {
@@ -36,6 +36,8 @@ interface SplitSlotProps {
 	markerBlockIndex?: number;
 	/** Called with the block index containing the caret, whenever it moves in this split. */
 	onCursorMove?: (seq: number, blockIndex: number) => void;
+	/** Find-in-page search wiring for this split's editor instance. */
+	search?: ElementEditorSearchProps;
 }
 
 /**
@@ -59,6 +61,7 @@ export default function SplitSlot({
 	onContentReady,
 	markerBlockIndex,
 	onCursorMove,
+	search,
 }: SplitSlotProps) {
 	const [content, setContent] = useState<string | null>(null);
 	const contentElementRef = useRef<HTMLDivElement | null>(null);
@@ -135,6 +138,7 @@ export default function SplitSlot({
 						markerBlockIndex={markerBlockIndex}
 						onCursorMove={handleCursorMove}
 						contextMenuItems={<ReadPointMenu />}
+						search={search}
 					/>
 				)}
 			</div>

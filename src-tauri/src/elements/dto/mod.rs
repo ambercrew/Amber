@@ -9,6 +9,7 @@ pub mod move_element_dto;
 pub mod priority_info_dto;
 pub mod reading_split_id_dto;
 pub mod reading_split_meta_dto;
+pub mod reading_split_text_dto;
 pub mod tag_dto;
 pub mod tree_dto;
 pub mod update_card_dto;

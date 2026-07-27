@@ -13,13 +13,13 @@ import {
 	RangeSelection,
 } from "lexical";
 import { $unwrapMarkNode } from "@lexical/mark";
-import { FloatingMenuItem } from "../../components/Editor/plugins/FloatingMenuPlugin";
-import { CREATE_HIGHLIGHT_COMMAND } from "../../components/Editor/plugins/HighlightPlugin/highlightCommands";
+import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
+import { CREATE_HIGHLIGHT_COMMAND } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import {
 	$isHighlightNode,
 	HighlightNode,
-} from "../../components/Editor/plugins/HighlightPlugin/HighlightNode";
-import { paths } from "../../paths";
+} from "../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
+import { paths } from "../../../paths";
 
 export const CLOZE_COLOR = "blue";
 

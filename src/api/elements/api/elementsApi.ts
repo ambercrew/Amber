@@ -10,6 +10,7 @@ import { UpdateReadingDto } from "../../../types/elements/updateReadingDto";
 import { UpdateReadPointDto } from "../../../types/elements/updateReadPointDto";
 import { ReadingSplitIdDto } from "../../../types/elements/readingSplitIdDto";
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
+import { ReadingSplitTextDto } from "../../../types/elements/readingSplitTextDto";
 import { AnyElementDto } from "../dto/anyElementDto";
 import { ElementDetailsResponseDto } from "../dto/elementDetailsDto";
 import { NodeDto } from "../dto/nodeDto";
@@ -59,6 +60,12 @@ export function getReadingSplitContent(
 	splitId: ReadingSplitIdDto,
 ): Promise<string> {
 	return invoke("get_reading_split_content", { dto: splitId });
+}
+
+export function getReadingSplitTexts(
+	readingId: string,
+): Promise<ReadingSplitTextDto[]> {
+	return invoke("get_reading_split_texts", { readingId });
 }
 
 export function updateReadPoint(dto: UpdateReadPointDto): Promise<void> {

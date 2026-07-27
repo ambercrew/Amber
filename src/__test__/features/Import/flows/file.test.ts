@@ -5,6 +5,9 @@ import { createImportedReading } from "../../../../features/Import/createImporte
 import { createSource } from "../../../../api/sources/api/sourcesApi";
 import { SourceResponseDto } from "../../../../api/sources/dto/sourceDto";
 import { ImportContext } from "../../../../features/Import/importContext";
+import { AppDispatch, RootState } from "../../../../stores/store";
+
+type Thunk = (dispatch: AppDispatch, getState: () => RootState) => unknown;
 
 vi.mock(import("../../../../features/Import/pdf/extract"));
 vi.mock(import("../../../../features/Import/normalize"));
@@ -29,8 +32,13 @@ function makeSource(
 }
 
 function makeCtx(): ImportContext {
+	const dispatch: AppDispatch = vi.fn((action: unknown) =>
+		typeof action === "function"
+			? (action as Thunk)(dispatch, () => ({}) as RootState)
+			: action,
+	) as unknown as AppDispatch;
 	return {
-		dispatch: vi.fn() as unknown as ImportContext["dispatch"],
+		dispatch,
 		navigate: vi.fn() as unknown as ImportContext["navigate"],
 		parent: null,
 	};

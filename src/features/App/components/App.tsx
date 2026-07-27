@@ -32,11 +32,13 @@ import { isMobile } from "../../../utils/tauriUtils.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
+// Shared with anything that needs to mirror the header's pinned state.
+export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
 function App() {
-	const { pinned } = useHeadroom({ fixedAt: 120 });
+	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 
 	const [sidebarExpanded, setSidebarExpanded] = useState(true);
 	const [asideExpanded, setAsideExpanded] = useState(false);
