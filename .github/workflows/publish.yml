@@ -51,10 +51,18 @@ jobs:
             args: "--target x86_64-apple-darwin"
           - platform: "ubuntu-24.04"
             args: ""
+            # Linux builds with the CEF runtime, which only the feat/cef fork of
+            # the Tauri CLI knows how to bundle. See the install step below.
+            tauriScript: "cargo tauri"
           - platform: "windows-latest"
             args: ""
 
     runs-on: ${{ matrix.platform }}
+    # Must match the `tauri` revision resolved in src-tauri/Cargo.lock. The npm
+    # `@tauri-apps/cli` is upstream and has no CEF support, so the Linux job
+    # builds the CLI from the same fork the crates are patched to.
+    env:
+      TAURI_CLI_REV: 64606e20f18c7dafa73426c282a750f91e8219e6
     steps:
       - uses: actions/checkout@v5
       - name: setup node
@@ -76,7 +84,23 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2t64
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      # The AppImage/deb/rpm bundlers only ship libcef.so and the CEF resource
+      # files when the CLI resolves a `cef_path`, which upstream cannot do.
+      - name: cache tauri CLI (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04'
+        id: tauri-cli-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-tauri
+          key: cargo-tauri-${{ runner.os }}-${{ env.TAURI_CLI_REV }}
+
+      - name: install tauri CLI from feat/cef fork (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04' && steps.tauri-cli-cache.outputs.cache-hit != 'true'
+        run: |
+          cargo install --git https://github.com/tauri-apps/tauri \
+            --rev "$TAURI_CLI_REV" tauri-cli --locked
 
       - name: install protoc
         uses: arduino/setup-protoc@v3
@@ -94,6 +118,8 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
+          # Empty on macOS/Windows, which fall back to the npm CLI.
+          tauriScript: ${{ matrix.tauriScript }}
 
       # Producing snap file
       # - name: install snapcraft
