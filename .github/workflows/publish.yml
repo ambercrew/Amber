@@ -76,15 +76,12 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf protobuf-compiler
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: install dependencies (macos)
-        if: matrix.platform == 'macos-latest'
-        run: brew install protobuf
-
-      - name: install dependencies (windows)
-        if: matrix.platform == 'windows-latest'
-        run: choco install protoc
+      - name: install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: install frontend dependencies
         run: npm ci
@@ -94,6 +91,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPIMAGE_EXTRACT_AND_RUN: 1
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
@@ -218,10 +216,10 @@ jobs:
           echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> $GITHUB_ENV
           echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
 
-      - name: install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+      - name: install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: install frontend dependencies
         run: npm ci
