@@ -1,4 +1,4 @@
-package app.brainylearn
+package dev.amberapp.amber
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

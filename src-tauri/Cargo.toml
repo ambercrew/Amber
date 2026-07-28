@@ -56,22 +56,23 @@ uuid = { version = "1.23.4", features = [ "v4", "serde" ] }
 fractional_index = "2.0.2"
 fsrs = "6.6.1"
 
-# Runtime is picked per target OS: CEF on Linux, wry everywhere else
-# (mobile has no CEF support).
-[target.'cfg(target_os = "linux")'.dependencies.tauri]
+# No default runtime feature on purpose: every platform states its runtime
+# explicitly via its own tauri.<platform>.conf.json ("build.features"),
+# e.g. tauri.linux.conf.json -> ["cef"], tauri.windows.conf.json -> ["wry"].
+# Relying on a Cargo "default" feature here is fragile — it only gets
+# stripped from a platform's build if that platform's invocation happens to
+# pass `--no-default-features` (true for `tauri dev`/`build` via a platform
+# config override, NOT true for `tauri android build`), so a default would
+# silently combine with whatever a platform opts into via config.
+#
+# Do NOT enable "cef" directly on a per-target dependency table — `tauri
+# build`/`tauri dev` normalizes the "tauri" dependency's features across
+# all target-cfg tables and will silently copy it into every table.
+[dependencies.tauri]
 version = "2"
 default-features = false
 features = [
   "test",
-  "cef",
-]
-
-[target.'cfg(not(target_os = "linux"))'.dependencies.tauri]
-version = "2"
-default-features = false
-features = ["cef",
-  "test",
-  "wry",
 ]
 
 [dev-dependencies]
@@ -84,6 +85,8 @@ tauri-plugin-window-state = "2.4.1"
 
 [features]
 store = []
+wry = ["tauri/wry"]
+cef = ["tauri/cef"]
 
 [target.'cfg(target_os = "android")'.dependencies]
 openssl = { version = "*", features = ["vendored"] }
