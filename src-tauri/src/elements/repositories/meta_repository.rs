@@ -74,17 +74,11 @@ pub trait MetaRepository: Send + Sync {
         new_priority: FractionalIndex,
     ) -> Result<(), RepositoryError>;
 
-    /// Highest priority (i.e. lowest-ranked, "back of the queue") across all elements.
-    async fn get_last_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError>;
-
     /// Lowest priority (i.e. highest-ranked, "front of the queue") across all elements.
     async fn get_first_priority(&self) -> Result<Option<FractionalIndex>, RepositoryError>;
 
     /// Return the element immediately before this one in global priority order.
     async fn get_previous_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError>;
-
-    /// Return the element immediately after this one in global priority order.
-    async fn get_next_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError>;
 
     /// All elements, ordered by priority ascending (front of queue first).
     async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError>;
