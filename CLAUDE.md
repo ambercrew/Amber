@@ -1,6 +1,10 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 ## Overview
+
+Amber is a Tauri 2 desktop app (React 19 frontend, Rust backend) for incremental learning.
 
 ## UI Guidelines
 
@@ -12,27 +16,37 @@
 
 ```bash
 # Development
-npm run tauri dev       # Start full Tauri dev environment
-npm run dev             # Vite dev server only (no Tauri shell)
+npm run tauri dev        # Start full Tauri dev environment
+npm run dev               # Vite dev server only (no Tauri shell)
 
 # Build
-npm run tauri build     # Production build
-npm run build           # TypeScript check + Vite build only
+npm run tauri build       # Production build
+npm run build             # TypeScript check + Vite build only
+npm run android:dev       # Tauri Android dev build
+npm run android:build     # Tauri Android production build
 
 # Linting & Formatting
-npm run lint            # ESLint
-npm run format          # Prettier
+npm run lint               # ESLint
+npm run format             # Prettier
 
 # Testing
-npm run test            # Vitest unit tests
-npm run coverage        # Coverage report
-
-# Rust backend only
-cd src-tauri && cargo test
-cd src-tauri && cargo clippy
+npm run test               # Vitest unit tests
+npm run uitest              # Vitest with the interactive UI
+npm run coverage            # Coverage report
 ```
 
-`npm run prepare` installs husky and sets up Rust tools (rustfmt, clippy, sqlx-cli) — run once after cloning.
+### Rust backend
+
+```bash
+cd src-tauri
+cargo build --features wry
+cargo test --workspace --features wry
+cargo clippy --all-targets --features wry
+```
+
+`Cargo.toml` deliberately has **no default runtime feature** — each platform's `tauri.<platform>.conf.json` opts into its own runtime via `build.features`: **CEF on Linux, WRY everywhere else** (Windows, macOS, Android). Because of this, running bare `cargo build`/`cargo test`/`cargo clippy` without `--features wry` (or `--features cef`) fails to compile (`tauri::Wry` not found). Always pass `--features wry` for local Rust dev/CI, regardless of host OS. Never add a `default` feature to fix this — it would silently combine with whatever a platform's config already opts into.
+
+The `[patch.crates-io]` block in `Cargo.toml` redirects `tauri` and all `tauri-plugin-*`/`tauri-runtime-wry` crates to a `feat/cef` branch fork (for CEF runtime support not yet in upstream Tauri). Keep this in mind when debugging anything that looks like an upstream Tauri bug — behavior may differ from the published crate.
 
 ## Backend Architecture (`src-tauri/src/`)
 
@@ -40,12 +54,12 @@ The backend follows **onion architecture** (Clean Architecture) with custom depe
 
 ### Layers (inner → outer)
 
-| Layer          | Directory                                         | Role                                                                    |
-| -------------- | ------------------------------------------------- | ----------------------------------------------------------------------- |
-| Domain         | `entities/`, `value_objects/`                     | Pure data models, no I/O                                                |
-| Application    | `services/`                                       | Reusable business logic; keeps presentation handlers thin               |
-| Presentation   | `api/`                                            | Tauri command handlers; resolves dependencies and delegates to services |
-| Infrastructure | `repositories/infrastructure/`, `infrastructure/` | SQLite, HTTP clients                                                    |
+| Layer          | Directory                                                                 | Role                                                                    |
+| -------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Domain         | `entities/`, `value_objects/`                                             | Pure data models, no I/O                                                |
+| Application    | `services/`                                                               | Reusable business logic; keeps presentation handlers thin               |
+| Presentation   | `<module>_api.rs` (or an `api/` subdir for larger modules like `backend`) | Tauri command handlers; resolves dependencies and delegates to services |
+| Infrastructure | `repositories/infrastructure/`, `infrastructure/`                         | SQLite, HTTP clients                                                    |
 
 ### Dependency Injection
 
@@ -65,12 +79,17 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 ### Domain Modules
 
 - **elements** — Core content tree: `Folder`, `Reading`, `Extract`, `Card` (see Element Duplication below)
-- **fsrs** — Spaced repetition profiles (FSRS algorithm config)
+- **study** — FSRS spaced-repetition scheduling (study profiles, card grading) and the global review-priority queue (`MetaRepository`'s priority-ordering methods)
+- **sources** — Registry of original works (book, article, video, etc.) that elements are imported from; one `Source` is shared by every element derived from it (`Meta::source_id`)
+- **import** — PDF/HTML/URL content import pipeline (extraction, conversion to elements)
 - **backend** — Remote auth (sign-up, sign-in, etc.)
 - **secrets** — `SecretsRepository` trait for reading/writing OS-level secrets; keyring implementation lives in `infrastructure/repositories/keyring/`
 - **settings** — User preferences
+- **local_configurations** — Per-machine config not synced to the cloud (e.g. database location)
 - **sync** — Cloud sync via protobuf messages
 - **backup** — Background auto-backup service
+- **app_info** — Small app-level queries (e.g. store-build detection)
+- **database** — SQLite connection management
 
 ### Naming Conventions
 
@@ -81,7 +100,7 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 
 ### Element Duplication
 
-Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent`). Avoid duplicating logic that can be expressed through these traits:
+Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent`). These traits live in `elements/entities/traits.rs`. Avoid duplicating logic that can be expressed through these traits:
 
 - Use `element.meta()` (via `Element`) instead of repeating `element.meta.id / .name / .position` patterns across element types.
 - Use `tag_strings(tagged)` or equivalent helpers rather than inlining `.tags().iter().map(|t| t.to_string()).collect()` per element.
@@ -94,10 +113,10 @@ Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure �
 
 ### Key Directories
 
-- `api/` — Typed wrappers around `invoke()` calls, mirroring backend modules (`elements`, `fsrs`, `settings`, `sync`, `backend`, `appInfo`)
-- `features/` — Route-scoped feature modules: `App` (root shell), `ElementViewer` (editor/reviewer for a selected element), `Sidebar` (file tree), `Updater`
+- `api/` — Typed wrappers around `invoke()` calls, mirroring backend modules (`elements`, `study`, `settings`, `sync`, `backend`, `sources`, `appInfo`)
+- `features/` — Route-scoped feature modules, e.g. `App` (root shell), `ElementViewer` (editor/reviewer for a selected element), `Sidebar` (file tree), `Study`, `Import`, `Settings`, `Aside`, `Updater`
 - `components/` — Shared cross-feature components (e.g. `Editor`, the Lexical-based rich text editor)
-- `stores/` — Redux slices: `elements`, `user`, `sync`, `settings`, `app`
+- `stores/` — Redux slices: `elements`, `elementDetails`, `user`, `sync`, `settings`, `sources`, `study`, `search`, `app`
 - `hooks/` — Reusable hooks; notably `useApi` for loading/error state around API calls
 - `managers/`, `utils/`, `config/`, `types/` — Helpers, constants, shared types
 
@@ -118,9 +137,14 @@ Routes are defined in `src/router.tsx`. For type-safe navigation and param readi
 
 The `useApi` hook standardizes async calls.
 
-### Rich Text
+### Rich Text (Lexical)
 
-The editor uses **Lexical**. Cell content is stored and transferred as Lexical JSON.
+The editor uses **Lexical**, built via its extension system (`@lexical/extension`'s `defineExtension`/`buildEditorFromExtensions`) rather than the older plugin-array API. `src/components/Editor/editorExtension.ts` exports the shared `editorNodes`, `editorExtensionDependencies`, and static `editorTheme` used by **both**:
+
+- `Editor.tsx` — the interactive editor (adds its own `AutoFocusExtension` config and dynamic theme entries like Shiki code-block classes)
+- `lexicalJsonConversion.ts` — a headless editor (`runHeadless`) used to convert HTML/serialized-node fragments to Lexical JSON outside of React (e.g. for Import and for building extract/card content from a highlight)
+
+Keep node types, extension dependencies, and the static theme in sync between these two consumers — a mismatch (e.g. a theme key some extension needs, such as `tableScrollableWrapper`) causes divergent behavior (or dev-only console warnings) between the interactive editor and the headless conversion path. Cell content is stored and transferred as Lexical JSON.
 
 ### Command Palette (`src/commands/`)
 
@@ -196,7 +220,14 @@ it("Should <expected behavior> when <input>", () => {
 - Rust: inline `#[cfg(test)] mod tests { ... }` at the bottom of the source file
 - TypeScript: `src/__test__/` mirroring the source tree
 
+### React `act()` warnings in Vitest
+
+Two recurring sources of "not wrapped in act(...)" warnings in this codebase, both caused by state updates that settle a tick after a synchronous `act()`/`fireEvent` call returns:
+
+- Fake-timer-driven async work (e.g. a debounced auto-save that awaits an API call): use `await vi.runAllTimersAsync()` / `await vi.advanceTimersByTimeAsync(ms)` inside `await act(async () => { ... })` instead of the synchronous `vi.runAllTimers()`/`vi.advanceTimersByTime()`.
+- `@mantine/hooks`' `useLocalStorage`: its cross-instance sync event is dispatched via `queueMicrotask`, so a functional state update settles one microtask tick later. Flush it with `await act(async () => {})` after the triggering render/action.
+
 ## Adding a Feature
 
-1. **Backend:** Add entity/DTO → repository trait + SQLite impl → service → register in `create_injector.rs` → expose as Tauri command in `api/`
+1. **Backend:** Add entity/DTO → repository trait + SQLite impl → service → register in `create_injector.rs` → expose as a Tauri command (`<module>_api.rs`)
 2. **Frontend:** Add typed wrapper in `src/api/` → build UI in the appropriate `features/` module → dispatch to Redux if global state is needed
