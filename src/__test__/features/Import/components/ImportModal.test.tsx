@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import ImportModal from "../../../../features/Import/components/ImportModal";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { runFileImport } from "../../../../features/Import/flows/file";
@@ -51,7 +51,7 @@ describe("ImportModal", () => {
 		expect(runFileImport).not.toHaveBeenCalled();
 	});
 
-	it("Should start file import only when Import is clicked", () => {
+	it("Should start file import only when Import is clicked", async () => {
 		// Arrange
 
 		renderOpenedModal();
@@ -65,11 +65,13 @@ describe("ImportModal", () => {
 
 		// Assert
 
-		expect(runFileImport).toHaveBeenCalledWith(
-			[file],
-			expect.anything(),
-			expect.any(Function),
-		);
+		await waitFor(() => {
+			expect(runFileImport).toHaveBeenCalledWith(
+				[file],
+				expect.anything(),
+				expect.any(Function),
+			);
+		});
 	});
 
 	it("Should show one row per file when multiple files are pasted", () => {

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { PropsWithChildren } from "react";
 import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router";
@@ -189,7 +189,12 @@ describe("useCurrentElementSync", () => {
 
 		// Act
 
-		store.dispatch({ type: "elements/setTree", payload: [FOLDER_NODE] });
+		act(() => {
+			store.dispatch({
+				type: "elements/setTree",
+				payload: [FOLDER_NODE],
+			});
+		});
 
 		// Assert
 

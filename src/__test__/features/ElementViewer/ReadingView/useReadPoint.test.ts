@@ -108,7 +108,7 @@ describe("useReadPoint", () => {
 		vi.useRealTimers();
 	});
 
-	it("Should not persist the read point on scroll before restore has landed", () => {
+	it("Should not persist the read point on scroll before restore has landed", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -123,9 +123,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -133,7 +133,7 @@ describe("useReadPoint", () => {
 		expect(updateReadPointMock).not.toHaveBeenCalled();
 	});
 
-	it("Should persist the top visible block after scrolling once restored", () => {
+	it("Should persist the top visible block after scrolling once restored", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -148,9 +148,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -161,7 +161,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should clear the read point when scrolling reaches the absolute end of the last split", () => {
+	it("Should clear the read point when scrolling reaches the absolute end of the last split", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -180,9 +180,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -193,7 +193,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should not clear when the primary split is not the reading's last split", () => {
+	it("Should not clear when the primary split is not the reading's last split", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -209,9 +209,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -222,7 +222,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should not persist a read point identical to the last saved one", () => {
+	it("Should not persist a read point identical to the last saved one", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -239,9 +239,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -249,7 +249,7 @@ describe("useReadPoint", () => {
 		expect(updateReadPointMock).not.toHaveBeenCalled();
 	});
 
-	it("Should flush the pending read point when unmounting before the debounce fires", () => {
+	it("Should flush the pending read point when unmounting before the debounce fires", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -265,9 +265,9 @@ describe("useReadPoint", () => {
 		// Act
 
 		// Run the scroll's rAF (records the read point) but not the autosave debounce.
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.advanceTimersByTime(20);
+			await vi.advanceTimersByTimeAsync(20);
 		});
 		const savedBeforeUnmount = updateReadPointMock.mock.calls.length;
 		act(() => {
@@ -283,7 +283,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should not flush anything on unmount when the debounce delay has already elapsed", () => {
+	it("Should not flush anything on unmount when the debounce delay has already elapsed", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -298,9 +298,11 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.advanceTimersByTime(20 + AUTO_SAVE_DELAY_IN_MILLISECONDS);
+			await vi.advanceTimersByTimeAsync(
+				20 + AUTO_SAVE_DELAY_IN_MILLISECONDS,
+			);
 		});
 		act(() => {
 			unmount();
@@ -311,7 +313,7 @@ describe("useReadPoint", () => {
 		expect(updateReadPointMock).toHaveBeenCalledTimes(1);
 	});
 
-	it("Should persist the read point when an extract is created", () => {
+	it("Should persist the read point when an extract is created", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -325,9 +327,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			result.current.recordExtractReadPoint(4, 3);
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -338,7 +340,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should stop automatic tracking after an extract is created", () => {
+	it("Should stop automatic tracking after an extract is created", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -353,13 +355,13 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			result.current.recordExtractReadPoint(4, 3);
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -371,7 +373,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should not let an extract relocate a read point that was already set manually", () => {
+	it("Should not let an extract relocate a read point that was already set manually", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -389,9 +391,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			result.current.recordExtractReadPoint(4, 1);
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -403,7 +405,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should let a manual set override a read point that was already set by an extract", () => {
+	it("Should let a manual set override a read point that was already set by an extract", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -414,11 +416,11 @@ describe("useReadPoint", () => {
 			initial: { split: 4, block: 0 },
 			restoredRef,
 		});
-		act(() => {
+		await act(async () => {
 			result.current.recordExtractReadPoint(4, 1);
 			result.current.trackCursor(4, 3);
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -430,7 +432,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should persist the last tracked cursor position when a manual set is requested", () => {
+	it("Should persist the last tracked cursor position when a manual set is requested", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -447,9 +449,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -460,7 +462,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should fall back to the top visible block when a manual set is requested and no cursor has been tracked yet", () => {
+	it("Should fall back to the top visible block when a manual set is requested and no cursor has been tracked yet", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -475,9 +477,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -488,7 +490,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should stop automatic tracking after a manual set is requested", () => {
+	it("Should stop automatic tracking after a manual set is requested", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -506,13 +508,13 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -524,7 +526,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should clear the read point when a manual clear is requested", () => {
+	it("Should clear the read point when a manual clear is requested", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -538,9 +540,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -551,7 +553,7 @@ describe("useReadPoint", () => {
 		});
 	});
 
-	it("Should stop automatic tracking after a manual clear is requested", () => {
+	it("Should stop automatic tracking after a manual clear is requested", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -566,13 +568,13 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
-		act(() => {
+		await act(async () => {
 			window.dispatchEvent(new Event("scroll"));
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 
 		// Assert
@@ -605,7 +607,7 @@ describe("useReadPoint", () => {
 		expect(actual).toEqual({ split: 4, block: 3 });
 	});
 
-	it("Should reflect the latest recorded read point from getCurrentReadPoint", () => {
+	it("Should reflect the latest recorded read point from getCurrentReadPoint", async () => {
 		// Arrange
 
 		const root = makeRoot(5);
@@ -619,9 +621,9 @@ describe("useReadPoint", () => {
 
 		// Act
 
-		act(() => {
+		await act(async () => {
 			result.current.recordExtractReadPoint(4, 3);
-			vi.runAllTimers();
+			await vi.runAllTimersAsync();
 		});
 		const actual = result.current.getCurrentReadPoint();
 

@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import ElementProfileRow from "../../../../features/Study/components/ElementProfileRow";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import { assignStudyProfile } from "../../../../api/study/api/studyProfileApi";
@@ -64,6 +65,7 @@ describe("ElementProfileRow", () => {
 		vi.mocked(assignStudyProfile).mockResolvedValue(undefined);
 		vi.mocked(getElementDetails).mockResolvedValue(makeDetails());
 		const details = makeDetails();
+		const user = userEvent.setup();
 
 		renderWithProviders(
 			<ElementProfileRow elementId={cardElementId} details={details} />,
@@ -71,7 +73,9 @@ describe("ElementProfileRow", () => {
 
 		// Act
 
-		document.querySelector("input")?.click();
+		const input = document.querySelector("input");
+		if (!input) throw new Error("input not found");
+		await user.click(input);
 		const option = await vi.waitFor(() => {
 			const options = document.querySelectorAll("[role='option']");
 			// [0] is "Inherit from parent", [1] is the "Default" profile.
@@ -79,7 +83,7 @@ describe("ElementProfileRow", () => {
 			if (!found) throw new Error("option not found");
 			return found;
 		});
-		(option as HTMLElement).click();
+		await user.click(option as HTMLElement);
 
 		// Assert
 

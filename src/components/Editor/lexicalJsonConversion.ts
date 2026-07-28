@@ -2,7 +2,11 @@ import { $generateNodesFromSerializedNodes } from "@lexical/clipboard";
 import { buildEditorFromExtensions, defineExtension } from "@lexical/extension";
 import { $generateNodesFromDOM } from "@lexical/html";
 import { $insertNodes, $setSelection, type LexicalEditor } from "lexical";
-import { editorExtensionDependencies, editorNodes } from "./editorExtension";
+import {
+	editorExtensionDependencies,
+	editorNodes,
+	editorTheme,
+} from "./editorExtension";
 
 // Stand-in for @lexical/clipboard's non-exported `BaseSerializedNode`.
 export interface SerializedLexicalNodeTree {
@@ -19,6 +23,7 @@ function runHeadless(populate: (editor: LexicalEditor) => void): string {
 			namespace: "headless",
 			nodes: editorNodes,
 			dependencies: editorExtensionDependencies,
+			theme: editorTheme,
 		}),
 	);
 

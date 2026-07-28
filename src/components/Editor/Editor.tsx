@@ -15,7 +15,11 @@ import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
 import { HighlightPlugin } from "./plugins/HighlightPlugin/HighlightPlugin";
 import { HighlightCreatedPayload } from "./plugins/HighlightPlugin/highlightCommands";
 import { ImagePlugin } from "./plugins/ImagePlugin/ImagePlugin";
-import { editorExtensionDependencies, editorNodes } from "./editorExtension";
+import {
+	editorExtensionDependencies,
+	editorNodes,
+	editorTheme,
+} from "./editorExtension";
 import styles from "./Editor.module.css";
 
 // @lexical/code-shiki bakes the Shiki theme used at highlight time into
@@ -60,8 +64,7 @@ export default function Editor({
 					}),
 				],
 				theme: {
-					tableScrollableWrapper: styles["table-scrollable-wrapper"],
-					tableCellHeader: styles["table-cell-header"],
+					...editorTheme,
 					text: {
 						code: styles["inline-code"],
 					},
