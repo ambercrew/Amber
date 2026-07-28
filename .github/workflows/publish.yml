@@ -27,7 +27,7 @@ jobs:
           if [ -z "$id" ]; then
             id=$(gh api repos/${{ github.repository }}/releases \
               -f tag_name="v${{ steps.version.outputs.version }}" \
-              -f name="Brainy v${{ steps.version.outputs.version }}" \
+              -f name="Amber v${{ steps.version.outputs.version }}" \
               -f target_commitish=release \
               -f body="" \
               -F draft=true \
@@ -118,7 +118,7 @@ jobs:
         if: matrix.platform == 'ubuntu-24.04'
         run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
 
-      # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`
+      # To generate new credentials `snapcraft export-login --snaps amber --channels stable -`
       - name: publish snap to store
         if: matrix.platform == 'ubuntu-24.04'
         env:

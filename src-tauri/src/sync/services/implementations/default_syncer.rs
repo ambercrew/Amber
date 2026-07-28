@@ -8,7 +8,7 @@ use prost::Message;
 use uuid::Uuid;
 
 use crate::{
-    backend::{backend_dto::SyncEntityDto, clients::brainy_backend_client::BrainyBackendClient},
+    backend::{backend_dto::SyncEntityDto, clients::amber_backend_client::AmberBackendClient},
     generated_code::{self},
     local_configurations::repositories::local_configuration_repository::{
         LocalConfigurationRepository, LocalConfigurationRepositoryExt,
@@ -29,7 +29,7 @@ const STALE_SYNC_THRESHOLD_DAYS: i64 = 183;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultSyncer {
-    backend_client: Arc<dyn BrainyBackendClient>,
+    backend_client: Arc<dyn AmberBackendClient>,
     sync_repository: Arc<dyn SyncRepository>,
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
     sync_lock: Arc<SyncLock>,

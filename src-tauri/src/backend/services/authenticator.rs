@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::{
     backend::{
-        backend_dto::UserInformationDto, clients::brainy_backend_client::BrainyBackendClientError,
+        backend_dto::UserInformationDto, clients::amber_backend_client::AmberBackendClientError,
         dto::sign_up_request_dto::SignUpRequestDto,
     },
     settings::services::settings_updater::SettingsUpdaterError,
@@ -12,7 +12,7 @@ use crate::{
 #[derive(Error, Debug)]
 pub enum AuthenticatorError {
     #[error(transparent)]
-    BrainyBackendClient(#[from] BrainyBackendClientError),
+    AmberBackendClient(#[from] AmberBackendClientError),
     #[error(transparent)]
     SettingsUpdater(#[from] SettingsUpdaterError),
 }

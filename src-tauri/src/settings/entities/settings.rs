@@ -7,9 +7,9 @@ use crate::settings::value_objects::{
 };
 
 #[cfg(not(debug_assertions))]
-const DATABASE_FILE_NAME: &str = "brainy.db";
+const DATABASE_FILE_NAME: &str = "amber.db";
 #[cfg(debug_assertions)]
-const DATABASE_FILE_NAME: &str = "brainy.dev.db";
+const DATABASE_FILE_NAME: &str = "amber.dev.db";
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,7 +59,7 @@ mod tests {
     pub fn database_directory_default_profile_returned_base_directory() {
         // Arrange
 
-        let base = PathBuf::from("/data/brainy");
+        let base = PathBuf::from("/data/amber");
         let settings = Settings::new(base.clone(), SettingsProfile::Default);
 
         // Act
@@ -75,7 +75,7 @@ mod tests {
     pub fn database_directory_user_profile_returned_correct_directory() {
         // Arrange
 
-        let base = PathBuf::from("/data/brainy");
+        let base = PathBuf::from("/data/amber");
         let settings = Settings::new(base.clone(), SettingsProfile::User("user1".into()));
 
         // Act

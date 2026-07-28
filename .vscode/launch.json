@@ -5,7 +5,7 @@
         "name": "Debug Tauri application",
         "type": "rust-gdb",
         "request": "launch",
-        "program": "./src-tauri/target/debug/Brainy",
+        "program": "./src-tauri/target/debug/Amber",
         "cwd": "${workspaceFolder}",
         "stopAtBeginningOfMainSubprogram": false,
         "preLaunchTask": "build:debug"

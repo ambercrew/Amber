@@ -18,13 +18,7 @@
             "identifier": "opener:allow-open-url",
             "allow": [
                 {
-                    "url": "https://help.brainylearn.app/"
-                },
-                {
-                    "url": "https://brainylearn.app/legal"
-                },
-                {
-                    "url": "https://github.com/brainylearn/brainy-app/issues/new*"
+                    "url": "https://github.com/ambercrew/amber/issues/new*"
                 }
             ]
         },

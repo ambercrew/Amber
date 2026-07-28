@@ -9,7 +9,7 @@ use crate::backend::{
         ProblemDetails, SignInDto, SignUpDto, SyncEntityDto, SyncedEntitiesPageDto,
         UpdatePasswordDto, UpdateUserInformationDto, UserInformationDto, VerifyEmailDto,
     },
-    clients::brainy_backend_client::{BrainyBackendClient, BrainyBackendClientError},
+    clients::amber_backend_client::{AmberBackendClient, AmberBackendClientError},
     dto::sign_up_request_dto::SignUpRequestDto,
 };
 use crate::secrets::repositories::secrets_repository::SecretsRepository;
@@ -22,14 +22,14 @@ use tauri_plugin_http::reqwest::{Response, StatusCode, Url};
 
 const COOKIES_SECRET_KEY: &str = "backend-cookies";
 
-pub struct BrainyBackendHttpClient {
+pub struct AmberBackendHttpClient {
     backend_url: Url,
     reqwest_client: ClientWithMiddleware,
     cookie_store: Arc<CookieStoreMutex>,
     secrets_repository: Arc<dyn SecretsRepository>,
 }
 
-impl BrainyBackendHttpClient {
+impl AmberBackendHttpClient {
     pub async fn new(
         backend_url: Url,
         secrets_repository: Arc<dyn SecretsRepository>,
@@ -81,12 +81,12 @@ impl BrainyBackendHttpClient {
 }
 
 #[async_trait]
-impl BrainyBackendClient for BrainyBackendHttpClient {
+impl AmberBackendClient for AmberBackendHttpClient {
     async fn sign_in(
         &self,
         username: String,
         password: String,
-    ) -> Result<UserInformationDto, BrainyBackendClientError> {
+    ) -> Result<UserInformationDto, AmberBackendClientError> {
         let dto = SignInDto { username, password };
 
         log::info!("Signing-in...");
@@ -100,9 +100,9 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let status = ensure_success_response(response).await;
 
         if let Err(ref err) = status
-            && err == &BrainyBackendClientError::Unauthorized
+            && err == &AmberBackendClientError::Unauthorized
         {
-            return Err(BrainyBackendClientError::InvalidCredentials);
+            return Err(AmberBackendClientError::InvalidCredentials);
         }
         let response = status?;
 
@@ -110,14 +110,14 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
+            Err(err) => Err(AmberBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
     async fn sign_up(
         &self,
         request: SignUpRequestDto,
-    ) -> Result<UserInformationDto, BrainyBackendClientError> {
+    ) -> Result<UserInformationDto, AmberBackendClientError> {
         let dto = SignUpDto {
             first_name: request.first_name,
             last_name: request.last_name,
@@ -139,11 +139,11 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
 
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
+            Err(err) => Err(AmberBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
-    async fn sign_out(&self) -> Result<(), BrainyBackendClientError> {
+    async fn sign_out(&self) -> Result<(), AmberBackendClientError> {
         log::info!("Signing-out...");
         let response = self
             .reqwest_client
@@ -158,7 +158,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
     async fn verify_user_email(
         &self,
         verification_code: String,
-    ) -> Result<(), BrainyBackendClientError> {
+    ) -> Result<(), AmberBackendClientError> {
         log::info!("Verifying email with code '{verification_code}'");
 
         let dto = VerifyEmailDto {
@@ -178,7 +178,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn resend_email_verification_code(&self) -> Result<(), BrainyBackendClientError> {
+    async fn resend_email_verification_code(&self) -> Result<(), AmberBackendClientError> {
         let response = self
             .reqwest_client
             .post(
@@ -193,7 +193,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn get_user_information(&self) -> Result<UserInformationDto, BrainyBackendClientError> {
+    async fn get_user_information(&self) -> Result<UserInformationDto, AmberBackendClientError> {
         let response = self
             .reqwest_client
             .get(self.backend_url.join("/api/v1/user").unwrap())
@@ -203,16 +203,16 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<UserInformationDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
+            Err(err) => Err(AmberBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
-    fn is_signed_in(&self) -> Result<bool, BrainyBackendClientError> {
+    fn is_signed_in(&self) -> Result<bool, AmberBackendClientError> {
         let store = match self.cookie_store.lock() {
             Ok(store) => store,
             Err(err) => {
                 log::error!("Cookie store mutex poisoned: {:?}", err);
-                return Err(BrainyBackendClientError::CannotLoadStoredCookies);
+                return Err(AmberBackendClientError::CannotLoadStoredCookies);
             }
         };
 
@@ -229,7 +229,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         &self,
         first_name: Option<String>,
         last_name: Option<String>,
-    ) -> Result<(), BrainyBackendClientError> {
+    ) -> Result<(), AmberBackendClientError> {
         let dto = UpdateUserInformationDto {
             first_name,
             last_name,
@@ -252,7 +252,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         &self,
         date: DateTime<Utc>,
         page: u32,
-    ) -> Result<SyncedEntitiesPageDto, BrainyBackendClientError> {
+    ) -> Result<SyncedEntitiesPageDto, AmberBackendClientError> {
         log::info!("Getting synced entity after {date} and for the page {page}...");
 
         let response = self
@@ -265,14 +265,14 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         let response = ensure_success_response(response).await?;
         match response.json::<SyncedEntitiesPageDto>().await {
             Ok(result) => Ok(result),
-            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
+            Err(err) => Err(AmberBackendClientError::Deserialization(Box::new(err))),
         }
     }
 
     async fn send_synced_entities(
         &self,
         entities: &[SyncEntityDto],
-    ) -> Result<(), BrainyBackendClientError> {
+    ) -> Result<(), AmberBackendClientError> {
         log::info!(
             "Sending synced entities, a total of {} entities",
             entities.len()
@@ -290,7 +290,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn delete_user(&self) -> Result<(), BrainyBackendClientError> {
+    async fn delete_user(&self) -> Result<(), AmberBackendClientError> {
         log::info!("Deleting user email.");
 
         let response = self
@@ -305,10 +305,7 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
         Ok(())
     }
 
-    async fn update_password(
-        &self,
-        dto: UpdatePasswordDto,
-    ) -> Result<(), BrainyBackendClientError> {
+    async fn update_password(&self, dto: UpdatePasswordDto) -> Result<(), AmberBackendClientError> {
         log::info!("Updating user password.");
 
         let response = self
@@ -329,15 +326,15 @@ impl BrainyBackendClient for BrainyBackendHttpClient {
     }
 }
 
-impl BrainyBackendHttpClient {
-    async fn persist_cookies(&self) -> Result<(), BrainyBackendClientError> {
+impl AmberBackendHttpClient {
+    async fn persist_cookies(&self) -> Result<(), AmberBackendClientError> {
         let cookies_json = {
             let mut writer = std::io::BufWriter::new(Vec::new());
             let store = match self.cookie_store.lock() {
                 Ok(store) => store,
                 Err(err) => {
                     log::error!("Cookie store mutex poisoned: {:?}", err);
-                    return Err(BrainyBackendClientError::CannotLoadStoredCookies);
+                    return Err(AmberBackendClientError::CannotLoadStoredCookies);
                 }
             };
             cookie_store::serde::json::save(&store, &mut writer).unwrap();
@@ -352,7 +349,7 @@ impl BrainyBackendHttpClient {
             .set_secret(COOKIES_SECRET_KEY, &cookies_json)
             .await
         {
-            return Err(BrainyBackendClientError::CannotSaveAuthenticationCookies(
+            return Err(AmberBackendClientError::CannotSaveAuthenticationCookies(
                 Box::new(err),
             ));
         }
@@ -368,7 +365,7 @@ impl BrainyBackendHttpClient {
 /// an appropriate error.
 async fn ensure_success_response(
     response: Result<Response, reqwest_middleware::Error>,
-) -> Result<Response, BrainyBackendClientError> {
+) -> Result<Response, AmberBackendClientError> {
     if let Err(err) = response {
         // reqwest_retry wraps the final error as:
         //   reqwest_middleware::Error::Middleware(anyhow<RetryError>)
@@ -385,11 +382,11 @@ async fn ensure_success_response(
         };
 
         if inner.is_some_and(|e| e.is_connect()) {
-            return Err(BrainyBackendClientError::Connect);
+            return Err(AmberBackendClientError::Connect);
         } else if inner.is_some_and(|e| e.is_timeout()) {
-            return Err(BrainyBackendClientError::Timeout);
+            return Err(AmberBackendClientError::Timeout);
         } else {
-            return Err(BrainyBackendClientError::Unknown(Box::new(err)));
+            return Err(AmberBackendClientError::Unknown(Box::new(err)));
         }
     }
 
@@ -403,13 +400,11 @@ async fn ensure_success_response(
 
     match response.status() {
         status if status.is_success() => Ok(response),
-        StatusCode::UNAUTHORIZED => Err(BrainyBackendClientError::Unauthorized),
+        StatusCode::UNAUTHORIZED => Err(AmberBackendClientError::Unauthorized),
         StatusCode::BAD_REQUEST => match response.json::<ProblemDetails>().await {
-            Ok(problem_details) => {
-                Err(BrainyBackendClientError::BadRequest(problem_details.detail))
-            }
-            Err(err) => Err(BrainyBackendClientError::Deserialization(Box::new(err))),
+            Ok(problem_details) => Err(AmberBackendClientError::BadRequest(problem_details.detail)),
+            Err(err) => Err(AmberBackendClientError::Deserialization(Box::new(err))),
         },
-        _ => Err(BrainyBackendClientError::UnexpectedResponse),
+        _ => Err(AmberBackendClientError::UnexpectedResponse),
     }
 }
