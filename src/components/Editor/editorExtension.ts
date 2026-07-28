@@ -13,6 +13,7 @@ import { ClozeHiddenNode } from "./plugins/ClozePlugin/ClozeHiddenNode";
 import { EquationNode } from "./plugins/EquationPlugin/EquationNode";
 import { HighlightNode } from "./plugins/HighlightPlugin/HighlightNode";
 import { ImageNode } from "./plugins/ImagePlugin/ImageNode";
+import styles from "./Editor.module.css";
 
 /**
  * Custom node types and extension dependencies shared by the interactive
@@ -25,6 +26,16 @@ export const editorNodes = [
 	ClozeHiddenNode,
 	ImageNode,
 ];
+
+/**
+ * Static portion of the editor theme, shared by the interactive editor
+ * (Editor.tsx) and the headless HTML/JSON converter — TableExtension warns
+ * if a table-scrollable editor is built without `tableScrollableWrapper` set.
+ */
+export const editorTheme = {
+	tableScrollableWrapper: styles["table-scrollable-wrapper"],
+	tableCellHeader: styles["table-cell-header"],
+};
 
 export const editorExtensionDependencies = [
 	RichTextExtension,

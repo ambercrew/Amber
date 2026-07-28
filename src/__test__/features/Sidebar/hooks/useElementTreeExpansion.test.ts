@@ -22,6 +22,17 @@ const DATA: TreeNodeData[] = [
 	leaf("art-folder"),
 ];
 
+// @mantine/hooks' useLocalStorage dispatches its cross-instance sync event via
+// `queueMicrotask`, so a functional state update (used for expanded-state
+// persistence here) settles one microtask tick after the triggering act().
+// Flush it inside another act() so the resulting re-render isn't reported as
+// an update outside of act.
+async function flushMicrotasks() {
+	await act(async () => {
+		/* Nothing */
+	});
+}
+
 describe("useElementTreeExpansion", () => {
 	beforeEach(() => window.localStorage.clear());
 
@@ -85,11 +96,12 @@ describe("useElementTreeExpansion", () => {
 		expect(result.current.filteredData).toBe(DATA);
 	});
 
-	it("Should restore pre-search expanded state when search is cleared", () => {
+	it("Should restore pre-search expanded state when search is cleared", async () => {
 		// Arrange — start with science-folder manually expanded
 
 		const { result } = renderHook(() => useElementTreeExpansion(DATA));
 		act(() => result.current.treeController.expand("science-folder"));
+		await flushMicrotasks();
 
 		act(() => result.current.handleSearchChange("art"));
 
@@ -101,6 +113,7 @@ describe("useElementTreeExpansion", () => {
 		// Act
 
 		act(() => result.current.handleSearchChange(""));
+		await flushMicrotasks();
 
 		// Assert — pre-search state is restored
 
@@ -109,15 +122,17 @@ describe("useElementTreeExpansion", () => {
 		).toBe(true);
 	});
 
-	it("Should expand ancestors of the selected node when search is cleared", () => {
+	it("Should expand ancestors of the selected node when search is cleared", async () => {
 		// Arrange — cell-card is selected; nothing was expanded before searching
 
 		const { result } = renderHook(() =>
 			useElementTreeExpansion(DATA, "cell-card"),
 		);
+		await flushMicrotasks();
 
 		act(() => result.current.handleSearchChange("art"));
 		act(() => result.current.handleSearchChange(""));
+		await flushMicrotasks();
 
 		// Assert — the path to cell-card must be open: science-folder and biology-reading
 
@@ -129,16 +144,18 @@ describe("useElementTreeExpansion", () => {
 		).toBe(true);
 	});
 
-	it("Should merge pre-search expanded state with selected ancestors on clear", () => {
+	it("Should merge pre-search expanded state with selected ancestors on clear", async () => {
 		// Arrange — art-folder was expanded before searching; biology-reading is selected
 
 		const { result } = renderHook(() =>
 			useElementTreeExpansion(DATA, "biology-reading"),
 		);
 		act(() => result.current.treeController.expand("art-folder"));
+		await flushMicrotasks();
 
 		act(() => result.current.handleSearchChange("cell"));
 		act(() => result.current.handleSearchChange(""));
+		await flushMicrotasks();
 
 		// Assert — both pre-search expansion and selected ancestors are present
 
@@ -163,12 +180,13 @@ describe("useElementTreeExpansion", () => {
 		expect(result.current.treeController.expandedState).toEqual({});
 	});
 
-	it("Should expand ancestors of the selected node on initial render", () => {
+	it("Should expand ancestors of the selected node on initial render", async () => {
 		// Arrange / Act — cell-card is selected from the very first render, no search involved
 
 		const { result } = renderHook(() =>
 			useElementTreeExpansion(DATA, "cell-card"),
 		);
+		await flushMicrotasks();
 
 		// Assert — the path to cell-card is opened automatically
 
@@ -180,7 +198,7 @@ describe("useElementTreeExpansion", () => {
 		).toBe(true);
 	});
 
-	it("Should expand ancestors of the newly selected node when navigating without searching", () => {
+	it("Should expand ancestors of the newly selected node when navigating without searching", async () => {
 		// Arrange — nothing selected initially
 
 		const { result, rerender } = renderHook<
@@ -195,6 +213,7 @@ describe("useElementTreeExpansion", () => {
 		// Act — simulate navigating to cell-card
 
 		rerender({ selectedId: "cell-card" });
+		await flushMicrotasks();
 
 		// Assert — the path to cell-card is revealed
 
