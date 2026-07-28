@@ -8,10 +8,9 @@ import {
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { getAppVersion } from "../../../utils/tauriUtils";
 
-// TODO: replace with the real links and add them to permissions
-const GITHUB_URL = "TODO";
-const FEEDBACK_URL = "TODO";
-const DISCORD_URL = "TODO";
+const GITHUB_URL = "https://github.com/ambercrew/amber";
+const FEEDBACK_URL = "https://github.com/ambercrew/amber/issues/new";
+const DISCORD_URL = "https://discord.gg/krb7uWTQjt";
 
 function AboutTab() {
 	const [version, setVersion] = useState<string | null>(null);
