@@ -1,15 +1,15 @@
-name: brainy-learn
+name: amber
 base: core24
-title: Brainy Learn
+title: Amber
 version: '1.0.0'
 license: AGPL-3.0
 summary: Open-source, AI-integrated learning app built around spaced repetition
 description: |
-  Brainy is an open-source, AI-integrated learning app that combines note-taking and studying in one place. Organize your materials in a notebook-and-folder structure, create flashcards, cloze deletions, true/false questions, and more — or let AI generate a complete card set from any PDF, textbook, or lecture notes instantly. You can also ask the AI questions directly about your uploaded content to deepen your understanding.
+  Amber is an open-source, AI-integrated learning app that combines note-taking and studying in one place. Organize your materials in a notebook-and-folder structure, create flashcards, cloze deletions, true/false questions, and more — or let AI generate a complete card set from any PDF, textbook, or lecture notes instantly. You can also ask the AI questions directly about your uploaded content to deepen your understanding.
   The FSRS spaced repetition algorithm adapts to your performance and schedules each review at the optimal moment, so knowledge is retained long-term. Sync your progress across devices, with automatic backups to keep your data safe.
-website: https://brainylearn.app
-issues: https://github.com/brainylearn/brainy-app/issues/new
-source-code: https://github.com/brainylearn/brainy-app
+website: https://amberapp.dev
+issues: https://github.com/ambercrew/amber/issues/new
+source-code: https://github.com/ambercrew/amber
 donation: https://ko-fi.com/ramikw
 
 grade: stable
@@ -20,9 +20,9 @@ layout:
     bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/webkit2gtk-4.1
 
 apps:
-  brainy:
-    command: usr/bin/BrainyLearn
-    desktop: "usr/share/applications/Brainy Learn.desktop"
+  amber:
+    command: usr/bin/Amber
+    desktop: "usr/share/applications/Amber.desktop"
     extensions: [gnome]
     plugs:
       - network
@@ -37,13 +37,13 @@ slots:
   single-instance:
     interface: dbus
     bus: session
-    name: org.app_brainylearn.SingleInstance
+    name: org.dev_amberapp.SingleInstance
 
 plugs:
   single-instance-plug:
     interface: dbus
     bus: session
-    name: org.app_brainylearn.SingleInstance
+    name: org.dev_amberapp.SingleInstance
 
 
 parts:
@@ -86,4 +86,4 @@ parts:
       npm install
       npm run tauri build -- --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}' -- --features store
       dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
-      sed -i -e "s|Icon=BrainyLearn|Icon=/usr/share/icons/hicolor/128x128/apps/BrainyLearn.png|g" "$SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy Learn.desktop"
+      sed -i -e "s|Icon=Amber|Icon=/usr/share/icons/hicolor/128x128/apps/Amber.png|g" "$SNAPCRAFT_PART_INSTALL/usr/share/applications/Amber.desktop"

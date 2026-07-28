@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::{
     backend::{
         backend_dto::{UpdatePasswordDto, UserInformationDto},
-        clients::brainy_backend_client::BrainyBackendClient,
+        clients::amber_backend_client::AmberBackendClient,
         dto::sign_up_request_dto::SignUpRequestDto,
         services::authenticator::Authenticator,
     },
@@ -56,7 +56,7 @@ pub async fn sign_out(injector: State<'_, Arc<Injector>>) -> Result<(), ApiError
 pub async fn is_signed_in(injector: State<'_, Arc<Injector>>) -> Result<bool, ApiError> {
     let scope = injector.start_scope();
     Ok(scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .is_signed_in()?)
 }
@@ -68,7 +68,7 @@ pub async fn verify_user_email(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .verify_user_email(verification_code)
         .await?;
@@ -81,7 +81,7 @@ pub async fn resend_email_verification_code(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .resend_email_verification_code()
         .await?;
@@ -96,7 +96,7 @@ pub async fn update_password(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .update_password(UpdatePasswordDto {
             old_password,

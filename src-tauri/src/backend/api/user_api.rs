@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    backend::{
-        backend_dto::UserInformationDto, clients::brainy_backend_client::BrainyBackendClient,
-    },
+    backend::{backend_dto::UserInformationDto, clients::amber_backend_client::AmberBackendClient},
     common::api_error::ApiError,
 };
 use injector::injector::Injector;
@@ -15,7 +13,7 @@ pub async fn get_user_information(
 ) -> Result<UserInformationDto, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .get_user_information()
         .await?;
@@ -30,7 +28,7 @@ pub async fn update_user_information(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .update_user_information(first_name, last_name)
         .await?;
@@ -41,7 +39,7 @@ pub async fn update_user_information(
 pub async fn delete_user(injector: State<'_, Arc<Injector>>) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn BrainyBackendClient>()
+        .resolve::<dyn AmberBackendClient>()
         .await
         .delete_user()
         .await?;

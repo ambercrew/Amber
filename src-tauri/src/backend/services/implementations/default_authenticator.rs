@@ -6,7 +6,7 @@ use injector_derive::ScopeInjectable;
 use crate::{
     backend::{
         backend_dto::UserInformationDto,
-        clients::brainy_backend_client::BrainyBackendClient,
+        clients::amber_backend_client::AmberBackendClient,
         dto::sign_up_request_dto::SignUpRequestDto,
         services::authenticator::{Authenticator, AuthenticatorError},
     },
@@ -19,7 +19,7 @@ use crate::{
 
 #[derive(ScopeInjectable)]
 pub struct DefaultAuthenticator {
-    backend_client: Arc<dyn BrainyBackendClient>,
+    backend_client: Arc<dyn AmberBackendClient>,
     settings_updater: Arc<dyn SettingsUpdater>,
 }
 

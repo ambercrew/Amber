@@ -183,7 +183,7 @@ pub mod tests {
     };
 
     async fn initialize_test_injector() -> Injector {
-        let path = create_temp_directory().await.join("brainy.db");
+        let path = create_temp_directory().await.join("amber.db");
         create_injector_for_sqlite_path(&path).await
     }
 

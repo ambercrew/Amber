@@ -3,5 +3,5 @@
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    brainy_app_lib::run().await
+    amber_app_lib::run().await
 }

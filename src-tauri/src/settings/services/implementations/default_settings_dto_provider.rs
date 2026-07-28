@@ -62,7 +62,7 @@ mod tests {
     pub async fn get_settings_dto_mapped_all_settings_fields_correctly() {
         // Arrange
 
-        let base_dir = PathBuf::from_str("/data/brainy").unwrap();
+        let base_dir = PathBuf::from_str("/data/amber").unwrap();
         let settings = Settings::new(base_dir.clone(), SettingsProfile::Default);
 
         let injector = initialize_test_injector(settings).await;
@@ -75,6 +75,6 @@ mod tests {
 
         // Assert
 
-        assert_eq!("/data/brainy", actual.base_database_directory);
+        assert_eq!("/data/amber", actual.base_database_directory);
     }
 }

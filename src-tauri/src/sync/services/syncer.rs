@@ -3,7 +3,7 @@ use thiserror::Error;
 use tokio::sync::Mutex;
 
 use crate::{
-    backend::clients::brainy_backend_client::BrainyBackendClientError,
+    backend::clients::amber_backend_client::AmberBackendClientError,
     common::repository_error::RepositoryError,
     local_configurations::repositories::local_configuration_repository::LocalConfigurationError,
     sync::strategies::sync_entity_strategy::SyncEntityStrategyError,
@@ -16,7 +16,7 @@ pub enum SyncError {
     #[error(transparent)]
     LocalConfiguration(#[from] LocalConfigurationError),
     #[error(transparent)]
-    Client(#[from] BrainyBackendClientError),
+    Client(#[from] AmberBackendClientError),
     #[error(transparent)]
     Strategy(#[from] SyncEntityStrategyError),
     #[error("Failed to decode base64-encoded sync entity data.")]

@@ -11,7 +11,7 @@ vi.mock("../../../../utils/tauriUtils", () => ({
 }));
 
 const settings: UpdateSettingsRequestDto = {
-	baseDatabaseDirectory: "/home/user/brainy",
+	baseDatabaseDirectory: "/home/user/amber",
 	theme: "Light",
 	zoomPercentage: 100,
 	autoSync: true,

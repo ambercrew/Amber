@@ -30,7 +30,7 @@ use crate::elements::services::implementations::default_element_tree_service::De
 use crate::elements::services::implementations::default_priority_service::DefaultPriorityService;
 use crate::elements::services::priority_service::PriorityService;
 use crate::generated_code;
-use crate::infrastructure::clients::brainy_backend_http_client::BrainyBackendHttpClient;
+use crate::infrastructure::clients::amber_backend_http_client::AmberBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
@@ -76,7 +76,7 @@ use crate::study::services::reading_scheduling_service::ReadingSchedulingService
 use crate::study::services::study_profile_service::StudyProfileService;
 use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
-    backend::clients::brainy_backend_client::BrainyBackendClient,
+    backend::clients::amber_backend_client::AmberBackendClient,
     backup::services::{
         backup_service::BackupService,
         implementations::default_backup_service::DefaultBackupService,
@@ -146,11 +146,10 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     #[cfg(debug_assertions)]
     let backend_url = Url::parse("http://localhost:5078").expect("Cannot construct backend url");
     #[cfg(not(debug_assertions))]
-    let backend_url =
-        Url::parse("https://api.brainylearn.app").expect("Cannot construct backend url");
+    let backend_url = Url::parse("https://api.amberapp.dev").expect("Cannot construct backend url");
 
-    injector.register_singleton::<dyn BrainyBackendClient>(Arc::new(
-        BrainyBackendHttpClient::new(backend_url, secrets_repository)
+    injector.register_singleton::<dyn AmberBackendClient>(Arc::new(
+        AmberBackendHttpClient::new(backend_url, secrets_repository)
             .await
             .expect("Cannot create backend client"),
     ));
