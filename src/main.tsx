@@ -19,7 +19,7 @@ function forwardConsole(
 	fnName: "log" | "debug" | "info" | "warn" | "error",
 	logger: (message: string) => Promise<void>,
 ) {
-	// eslint-disable-next-line no-console
+	// eslint-disable-next-line no-console, @typescript-eslint/unbound-method
 	const original = console[fnName];
 	// eslint-disable-next-line no-console
 	console[fnName] = (...data: unknown[]) => {
