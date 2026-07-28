@@ -25,7 +25,7 @@
     },
     "plugins": {
         "updater": {
-            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI2ODNEQzdDRjc3QTA2NTQKUldSVUJucjNmTnlESnZ3YzJ6aDNNWlptRmExQ3o1L2tmMnM3ZzR3R0xyczAwMHJPQW50RVoyZ0QK",
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzRUY3RUM0RUYwNTIwNUIKUldSYklBWHZ4SDd2MHczWVh0dGRsVTJBZmNRcXF2T3lZSnBaVitsREdDOVhLU3E3NjdOZjU0V3EK",
             "endpoints": [
                 "https://github.com/ambercrew/amber/releases/download/latest/latest.json"
             ]
