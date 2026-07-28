@@ -233,7 +233,7 @@ jobs:
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
 
       - name: build Android APK and AAB
-        run: npm run tauri android build -- --apk --aab
+        run: npm run android:build -- --apk --aab
 
       - name: upload Android artifacts to release
         uses: softprops/action-gh-release@v2

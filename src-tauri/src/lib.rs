@@ -47,9 +47,9 @@ pub mod generated_code {
     include!(concat!(env!("OUT_DIR"), "/generated_code.rs"));
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(feature = "cef")]
 type AppRuntime = tauri::Cef;
-#[cfg(not(target_os = "linux"))]
+#[cfg(not(feature = "cef"))]
 type AppRuntime = tauri::Wry;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

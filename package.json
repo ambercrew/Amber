@@ -8,6 +8,8 @@
 		"build": "tsc && vite build",
 		"preview": "vite preview",
 		"tauri": "tauri",
+		"android:dev": "tauri android dev --features wry",
+		"android:build": "tauri android build --features wry",
 		"lint": "eslint .",
 		"test": "vitest",
 		"uitest": "vitest --ui",

@@ -23,9 +23,9 @@
 
 # Custom
 # Keep Tauri/Wry JNI bridge classes
--keep class app.brainylearn.** { *; }
--keep class app.brainylearn.WryActivity { *; }
--keep class app.brainylearn.Rust { *; }
+-keep class dev.amberapp.amber.** { *; }
+-keep class dev.amberapp.amber.WryActivity { *; }
+-keep class dev.amberapp.amber.Rust { *; }
 
 # Keep WebView JavaScript interface
 -keepclassmembers class * {
