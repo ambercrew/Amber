@@ -24,7 +24,7 @@ jobs:
       - name: Build Rust Project
         run: |
           cd src-tauri
-          cargo build
+          cargo build --features wry
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -34,7 +34,7 @@ jobs:
       - name: Run Rust Tests
         run: |
           cd src-tauri
-          cargo test --workspace --verbose
+          cargo test --workspace --features wry --verbose
 
   build_node:
     runs-on: ubuntu-latest
