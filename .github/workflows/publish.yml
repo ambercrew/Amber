@@ -93,88 +93,90 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
 
       # Producing snap file
-      - name: install snapcraft
-        if: matrix.platform == 'ubuntu-24.04'
-        run: sudo snap install snapcraft --classic
+      # - name: install snapcraft
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   run: sudo snap install snapcraft --classic
 
-      - name: sync snapcraft version
-        if: matrix.platform == 'ubuntu-24.04'
-        run: |
-          sed -i "s/^version: .*/version: '${{ needs.create-release.outputs.version }}'/" snapcraft.yaml
+      # - name: sync snapcraft version
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   run: |
+      #     sed -i "s/^version: .*/version: '${{ needs.create-release.outputs.version }}'/" snapcraft.yaml
 
-      - name: build snap
-        if: matrix.platform == 'ubuntu-24.04'
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          STORE_BUILD: "1"
-        run: sudo -E snapcraft pack --destructive-mode
+      # - name: build snap
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   env:
+      #     TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      #     TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      #     STORE_BUILD: "1"
+      #   run: sudo -E snapcraft pack --destructive-mode
 
-      - name: fix snapcraft permissions
-        if: matrix.platform == 'ubuntu-24.04'
-        run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
+      # - name: fix snapcraft permissions
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
 
       # To generate new credentials `snapcraft export-login --snaps amber --channels stable -`
-      - name: publish snap to store
-        if: matrix.platform == 'ubuntu-24.04'
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        run: |
-          output=$(snapcraft upload *.snap --release=stable 2>&1) && echo "$output" || {
-            echo "$output"
-            if echo "$output" | grep -q "review"; then
-              echo "Snap uploaded but pending human review — release to stable will happen after manual approval."
-            else
-              exit 1
-            fi
-          }
+      # - name: publish snap to store
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   env:
+      #     SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      #   run: |
+      #     output=$(snapcraft upload *.snap --release=stable 2>&1) && echo "$output" || {
+      #       echo "$output"
+      #       if echo "$output" | grep -q "review"; then
+      #         echo "Snap uploaded but pending human review — release to stable will happen after manual approval."
+      #       else
+      #         exit 1
+      #       fi
+      #     }
 
-      - name: upload snap to release
-        if: matrix.platform == 'ubuntu-24.04'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ needs.create-release.outputs.version }}
-          draft: true
-          files: "*.snap"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: upload snap to release
+      #   if: matrix.platform == 'ubuntu-24.04'
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     tag_name: v${{ needs.create-release.outputs.version }}
+      #     draft: true
+      #     files: "*.snap"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Producing MSIX bundle
-      - name: install msixbundle-cli
-        if: matrix.platform == 'windows-latest'
-        run: cargo install msixbundle-cli
+      # - name: install msixbundle-cli
+      #   if: matrix.platform == 'windows-latest'
+      #   run: cargo install msixbundle-cli
 
-      - name: install tauri-cli
-        if: matrix.platform == 'windows-latest'
-        run: cargo install tauri-cli
+      # - name: install tauri-cli
+      #   if: matrix.platform == 'windows-latest'
+      #   run: cargo install tauri-cli
 
-      - name: build MSIX
-        if: matrix.platform == 'windows-latest'
-        run: npm run tauri:windows:build -- --arch x64,arm64
+      # - name: build MSIX
+      #   if: matrix.platform == 'windows-latest'
+      #   run: npm run tauri:windows:build -- --arch x64,arm64
 
-      - name: configure Microsoft Store CLI
-        if: matrix.platform == 'windows-latest'
-        uses: microsoft/store-submission@v1
-        with:
-          command: configure
-          type: msix
-          seller-id: ${{ secrets.MS_STORE_SELLER_ID }}
-          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
-          tenant-id: ${{ secrets.MS_STORE_TENANT_ID }}
-          client-id: ${{ secrets.MS_STORE_CLIENT_ID }}
-          client-secret: ${{ secrets.MS_STORE_CLIENT_SECRET }}
+      # - name: configure Microsoft Store CLI
+      #   if: matrix.platform == 'windows-latest'
+      #   uses: microsoft/store-submission@v1
+      #   with:
+      #     command: configure
+      #     type: msix
+      #     seller-id: ${{ secrets.MS_STORE_SELLER_ID }}
+      #     product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+      #     tenant-id: ${{ secrets.MS_STORE_TENANT_ID }}
+      #     client-id: ${{ secrets.MS_STORE_CLIENT_ID }}
+      #     client-secret: ${{ secrets.MS_STORE_CLIENT_SECRET }}
 
-      - name: publish MSIX to Microsoft Store
-        if: matrix.platform == 'windows-latest'
-        uses: microsoft/store-submission@v1
-        with:
-          command: publish
-          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
-          package-path: src-tauri/target/msix/*.msixbundle
+      # - name: publish MSIX to Microsoft Store
+      #   if: matrix.platform == 'windows-latest'
+      #   uses: microsoft/store-submission@v1
+      #   with:
+      #     command: publish
+      #     product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+      #     package-path: src-tauri/target/msix/*.msixbundle
 
   publish-tauri-android:
     needs: create-release
