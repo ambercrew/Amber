@@ -363,6 +363,7 @@ function ImportModal() {
 						right={0}
 						bottom={0}
 						style={{
+							// TODO: use mantine primary color
 							border: "2px dashed var(--mantine-color-blue-5)",
 							borderRadius: "var(--mantine-radius-md)",
 							backgroundColor: "var(--mantine-color-blue-0)",
