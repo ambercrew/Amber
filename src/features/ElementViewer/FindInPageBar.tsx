@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-	ActionIcon,
-	Group,
-	Paper,
-	Text,
-	TextInput,
-	Transition,
-} from "@mantine/core";
+import { ActionIcon, Group, Paper, Text, Transition } from "@mantine/core";
 import { useDebouncedCallback, useHeadroom } from "@mantine/hooks";
 import {
 	CaretDownIcon,
@@ -15,6 +8,7 @@ import {
 	TextAaIcon,
 	XIcon,
 } from "@phosphor-icons/react";
+import AutosizeTextInput from "../../components/AutosizeTextInput/AutosizeTextInput";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import {
@@ -73,7 +67,7 @@ export default function FindInPageBar() {
 		dispatchQuery(value);
 	};
 
-	const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		switch (event.key) {
 			case "Enter":
 				event.preventDefault();
@@ -122,7 +116,7 @@ export default function FindInPageBar() {
 					}}
 					w={{ base: "auto", sm: 440 }}>
 					<Group gap={6} wrap="nowrap">
-						<TextInput
+						<AutosizeTextInput
 							flex={1}
 							leftSection={<MagnifyingGlassIcon size={18} />}
 							placeholder="Find in page..."

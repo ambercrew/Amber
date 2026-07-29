@@ -3,7 +3,8 @@ import "katex/dist/katex.min.css";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getNodeByKey } from "lexical";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Box, TextInput } from "@mantine/core";
+import { Box } from "@mantine/core";
+import AutosizeTextInput from "../../../AutosizeTextInput/AutosizeTextInput";
 import { $isEquationNode } from "./EquationNode";
 
 interface Props {
@@ -15,7 +16,7 @@ export default function EquationComponent({ equation, nodeKey }: Props) {
 	const [editor] = useLexicalComposerContext();
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState(equation);
-	const inputRef = useRef<HTMLInputElement | null>(null);
+	const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
 	useEffect(() => {
 		if (editing) {
@@ -50,7 +51,7 @@ export default function EquationComponent({ equation, nodeKey }: Props) {
 		setEditing(false);
 	}
 
-	function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (e.key === "Enter") {
 			e.preventDefault();
 			commit(draft);
@@ -67,7 +68,7 @@ export default function EquationComponent({ equation, nodeKey }: Props) {
 
 	if (editing) {
 		return (
-			<TextInput
+			<AutosizeTextInput
 				ref={inputRef}
 				value={draft}
 				onChange={e => setDraft(e.target.value)}
@@ -79,6 +80,7 @@ export default function EquationComponent({ equation, nodeKey }: Props) {
 						font: "inherit",
 						fieldSizing: "content",
 						minWidth: "4ch",
+						maxWidth: "100%",
 					},
 				}}
 			/>

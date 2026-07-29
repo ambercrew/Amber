@@ -1,6 +1,6 @@
-import { TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useEffect, useRef } from "react";
+import AutosizeTextInput from "../../../../components/AutosizeTextInput/AutosizeTextInput";
 import { useDispatch } from "react-redux";
 import { renameElementAction } from "../../../../stores/elements/elementsActions";
 import { AppDispatch } from "../../../../stores/store";
@@ -18,7 +18,7 @@ function RenameElementForm({
 	onClose,
 }: RenameElementFormProps) {
 	const dispatch = useDispatch<AppDispatch>();
-	const inputRef = useRef<HTMLInputElement>(null);
+	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const form = useForm({
 		initialValues: { name: initialName },
 		validate: { name: value => (value.length > 0 ? null : "Required") },
@@ -40,7 +40,7 @@ function RenameElementForm({
 
 	return (
 		<form style={{ flex: 1 }} onSubmit={form.onSubmit(handleSubmit)}>
-			<TextInput
+			<AutosizeTextInput
 				ref={inputRef}
 				w="100%"
 				size="sm"
@@ -51,6 +51,9 @@ function RenameElementForm({
 				onKeyDown={e => {
 					e.stopPropagation();
 					if (e.key === "Escape") onClose();
+					// The field is a textarea, so Enter does not submit implicitly.
+					if (e.key === "Enter")
+						e.currentTarget.form?.requestSubmit();
 				}}
 			/>
 		</form>
