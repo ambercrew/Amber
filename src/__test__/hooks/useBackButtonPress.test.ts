@@ -1,119 +1,143 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { onBackButtonPress } from "@tauri-apps/api/app";
-import { PluginListener } from "@tauri-apps/api/core";
+import { renderHook } from "@testing-library/react";
+import { Mock, MockInstance } from "vitest";
 import useBackButtonPress from "../../hooks/useBackButtonPress";
-
-vi.mock(import("@tauri-apps/api/app"));
-vi.mock(import("../../utils/tauriUtils.ts"), () => ({
-	isAndroid: vi.fn(() => true),
-}));
-
-function makeListener(unregister = vi.fn()): PluginListener {
-	return { unregister } as unknown as PluginListener;
-}
+import {
+	BackButtonManager,
+	BackButtonPriority,
+	defaultBackButtonManager,
+} from "../../managers/backButtonManager";
 
 describe("useBackButtonPress", () => {
+	let addHandler: MockInstance<BackButtonManager["addHandler"]>;
+	let removeHandler: Mock<() => void>;
+
 	beforeEach(() => {
-		vi.mocked(onBackButtonPress).mockResolvedValue(makeListener());
+		removeHandler = vi.fn();
+		addHandler = vi
+			.spyOn(defaultBackButtonManager, "addHandler")
+			.mockReturnValue(removeHandler);
 	});
 
-	it("Should register the callback with onBackButtonPress when mounted", async () => {
+	/** The handler the hook registered, as the manager received it. */
+	function registeredHandler(): () => void {
+		return addHandler.mock.calls[0][0];
+	}
+
+	it("Should register the handler when mounted", () => {
+		// Arrange, Act
+
+		renderHook(() => useBackButtonPress(vi.fn()));
+
+		// Assert
+
+		expect(addHandler).toHaveBeenCalledTimes(1);
+	});
+
+	it("Should register with the given priority when one is passed", () => {
+		// Arrange, Act
+
+		renderHook(() =>
+			useBackButtonPress(vi.fn(), true, BackButtonPriority.High),
+		);
+
+		// Assert
+
+		expect(addHandler.mock.calls[0][1]).toBe(BackButtonPriority.High);
+	});
+
+	it("Should register with medium priority when none is passed", () => {
+		// Arrange, Act
+
+		renderHook(() => useBackButtonPress(vi.fn()));
+
+		// Assert
+
+		expect(addHandler.mock.calls[0][1]).toBe(BackButtonPriority.Medium);
+	});
+
+	it("Should call the callback when the registered handler runs", () => {
 		// Arrange
 
 		const cb = vi.fn();
-
-		// Act
-
 		renderHook(() => useBackButtonPress(cb));
 
-		// Assert
-
-		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalledWith(cb));
-	});
-
-	it("Should unregister the listener on unmount", async () => {
-		// Arrange
-
-		const unregister = vi.fn();
-		vi.mocked(onBackButtonPress).mockResolvedValue(
-			makeListener(unregister),
-		);
-		const { unmount } = renderHook(() => useBackButtonPress(vi.fn()));
-		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalled());
-
 		// Act
 
-		unmount();
+		registeredHandler()();
 
 		// Assert
 
-		expect(unregister).toHaveBeenCalled();
+		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
-	it("Should unregister the listener when unmounted before registration resolves", async () => {
+	it("Should call the latest callback when it changed since registering", () => {
 		// Arrange
 
-		const unregister = vi.fn();
-		let resolveListener!: (l: PluginListener) => void;
-		vi.mocked(onBackButtonPress).mockReturnValue(
-			new Promise(resolve => {
-				resolveListener = resolve;
-			}),
-		);
-		const { unmount } = renderHook(() => useBackButtonPress(vi.fn()));
-
-		// Act
-
-		unmount();
-		resolveListener(makeListener(unregister));
-
-		// Assert
-
-		await waitFor(() => expect(unregister).toHaveBeenCalled());
-	});
-
-	it("Should re-register when the callback reference changes", async () => {
-		// Arrange
-
-		const cb1 = vi.fn();
-		const cb2 = vi.fn();
+		const first = vi.fn();
+		const second = vi.fn();
 		const { rerender } = renderHook(({ cb }) => useBackButtonPress(cb), {
-			initialProps: { cb: cb1 },
+			initialProps: { cb: first },
 		});
-		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalledTimes(1));
 
 		// Act
 
-		rerender({ cb: cb2 });
+		rerender({ cb: second });
+		registeredHandler()();
 
 		// Assert
 
-		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalledTimes(2));
-		expect(vi.mocked(onBackButtonPress).mock.calls[1][0]).toBe(cb2);
+		expect(second).toHaveBeenCalledTimes(1);
+		expect(first).not.toHaveBeenCalled();
 	});
 
-	it("Should not register the listener when disabled", () => {
+	it("Should not re-register when only the callback reference changes", () => {
+		// Arrange
+
+		const { rerender } = renderHook(({ cb }) => useBackButtonPress(cb), {
+			initialProps: { cb: vi.fn() },
+		});
+
+		// Act
+
+		rerender({ cb: vi.fn() });
+
+		// Assert
+
+		expect(addHandler).toHaveBeenCalledTimes(1);
+		expect(removeHandler).not.toHaveBeenCalled();
+	});
+
+	it("Should not register the handler when disabled", () => {
 		// Arrange, Act
 
 		renderHook(() => useBackButtonPress(vi.fn(), false));
 
 		// Assert
 
-		expect(onBackButtonPress).not.toHaveBeenCalled();
+		expect(addHandler).not.toHaveBeenCalled();
 	});
 
-	it("Should unregister the listener when it becomes disabled", async () => {
+	it("Should remove the handler when unmounted", () => {
 		// Arrange
 
-		const unregister = vi.fn();
-		vi.mocked(onBackButtonPress).mockResolvedValue(
-			makeListener(unregister),
-		);
+		const { unmount } = renderHook(() => useBackButtonPress(vi.fn()));
+
+		// Act
+
+		unmount();
+
+		// Assert
+
+		expect(removeHandler).toHaveBeenCalledTimes(1);
+	});
+
+	it("Should remove the handler when it becomes disabled", () => {
+		// Arrange
+
 		const { rerender } = renderHook(
 			({ enabled }) => useBackButtonPress(vi.fn(), enabled),
 			{ initialProps: { enabled: true } },
 		);
-		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalled());
 
 		// Act
 
@@ -121,6 +145,6 @@ describe("useBackButtonPress", () => {
 
 		// Assert
 
-		expect(unregister).toHaveBeenCalled();
+		expect(removeHandler).toHaveBeenCalledTimes(1);
 	});
 });

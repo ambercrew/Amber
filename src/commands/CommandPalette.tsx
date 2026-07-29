@@ -5,6 +5,7 @@ import GlobalHotkeys from "./GlobalHotkeys";
 import { useSpotlightActions } from "./useSpotlightActions";
 import { SPOTLIGHT_SHORTCUT } from "./commands";
 import useBackButtonPress from "../hooks/useBackButtonPress";
+import { BackButtonPriority } from "../managers/backButtonManager";
 
 function CommandPalette() {
 	const { actions, refresh } = useSpotlightActions();
@@ -12,7 +13,7 @@ function CommandPalette() {
 
 	// The palette covers the screen on mobile, so back has to dismiss it
 	// rather than navigate.
-	useBackButtonPress(spotlight.close, opened);
+	useBackButtonPress(spotlight.close, opened, BackButtonPriority.Medium);
 
 	return (
 		<>
