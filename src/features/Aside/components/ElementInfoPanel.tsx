@@ -4,9 +4,9 @@ import {
 	Group,
 	Stack,
 	Text,
-	TextInput,
 	TagsInput,
 } from "@mantine/core";
+import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "@mantine/hooks";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -19,6 +19,7 @@ import { ElementId } from "../../../types/elements/elementId";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import { openPriorityDialog } from "../../../stores/app/appReducer";
 import { commandIcon } from "../../../commands/commandIcon";
+import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 import ElementProfileRow from "../../Study/components/ElementProfileRow";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
@@ -65,6 +66,18 @@ function ElementInfoPanel() {
 		500,
 	);
 
+	const storedName = storedMeta?.name ?? "";
+	const nameRef = useRef<HTMLTextAreaElement>(null);
+	const [name, setName] = useState(storedName);
+
+	useEffect(() => {
+		// Renames from elsewhere (e.g. the sidebar) must land in the field, but
+		// the echo of our own debounced rename must not clobber what is being
+		// typed here.
+		if (document.activeElement === nameRef.current) return;
+		setName(storedName);
+	}, [storedName]);
+
 	if (!storedMeta) {
 		return (
 			<Text size="sm" c="dimmed" ta="center" px="md" py="xl">
@@ -79,16 +92,17 @@ function ElementInfoPanel() {
 		<Stack gap="lg" px="md" py="sm">
 			<InfoGroup title="Details" storageKey="details">
 				<InfoField label="Name">
-					<TextInput
-						key={`name-${storedMeta.elementId.id}`}
+					<AutosizeTextInput
+						ref={nameRef}
 						size="sm"
-						defaultValue={storedMeta.name}
-						onChange={e =>
+						value={name}
+						onChange={e => {
+							setName(e.currentTarget.value);
 							debouncedRename(
 								storedMeta.elementId,
 								e.currentTarget.value,
-							)
-						}
+							);
+						}}
 					/>
 				</InfoField>
 				<InfoField label="Tags">

@@ -1,13 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
-import {
-	ActionIcon,
-	Anchor,
-	Group,
-	Select,
-	Text,
-	TextInput,
-} from "@mantine/core";
+import { ActionIcon, Anchor, Group, Select, Text } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { TrashIcon, XIcon } from "@phosphor-icons/react";
@@ -32,6 +25,7 @@ import {
 import { selectSources } from "../../../stores/sources/sourcesSelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { paths } from "../../../paths";
+import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
 
@@ -205,7 +199,7 @@ function SourceSection({
 			{selectedSource && (
 				<>
 					<InfoField label="Title">
-						<TextInput
+						<AutosizeTextInput
 							key={`source-title-${selectedSource.id}`}
 							size="sm"
 							defaultValue={selectedSource.title}
@@ -218,7 +212,7 @@ function SourceSection({
 						/>
 					</InfoField>
 					<InfoField label="Authors">
-						<TextInput
+						<AutosizeTextInput
 							key={`source-authors-${selectedSource.id}`}
 							size="sm"
 							defaultValue={selectedSource.authors ?? ""}
@@ -231,7 +225,7 @@ function SourceSection({
 						/>
 					</InfoField>
 					<InfoField label="Publication date">
-						<TextInput
+						<AutosizeTextInput
 							key={`source-date-${selectedSource.id}`}
 							size="sm"
 							defaultValue={selectedSource.publicationDate ?? ""}
@@ -260,7 +254,7 @@ function SourceSection({
 						/>
 					</InfoField>
 					<InfoField label="Location">
-						<TextInput
+						<AutosizeTextInput
 							key={`source-location-${selectedSource.id}`}
 							size="sm"
 							defaultValue={selectedSource.location ?? ""}

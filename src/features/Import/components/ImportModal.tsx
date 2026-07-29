@@ -10,10 +10,10 @@ import {
 	Progress,
 	Stack,
 	Text,
-	TextInput,
 } from "@mantine/core";
 import { Dropzone, PDF_MIME_TYPE } from "@mantine/dropzone";
 import { ArrowsInSimpleIcon, FileIcon, XIcon } from "@phosphor-icons/react";
+import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import errorToString from "../../../utils/errorToString";
@@ -175,7 +175,7 @@ function ImportModal() {
 		void startUrlImport(url);
 	}
 
-	function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
+	function handlePaste(e: ClipboardEvent<HTMLTextAreaElement>) {
 		const input = classifyPaste(e.clipboardData);
 		switch (input.kind) {
 			case "url":
@@ -287,10 +287,16 @@ function ImportModal() {
 									))}
 								</Stack>
 							) : (
-								<TextInput
+								<AutosizeTextInput
 									placeholder="Paste a link or content"
 									data-autofocus
 									value={value}
+									onKeyDown={e => {
+										// The field is a textarea, so Enter does
+										// not submit implicitly.
+										if (e.key === "Enter")
+											e.currentTarget.form?.requestSubmit();
+									}}
 									error={
 										phase.kind === "error"
 											? phase.message
