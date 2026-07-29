@@ -52,7 +52,7 @@ function makeCtx(): ImportContext {
 }
 
 const ARTICLE_BODY_TEXT =
-	"Enough body content to make Readability treat this as a real article instead of discarding it as noise. ".repeat(
+	"Enough body content to make Defuddle treat this as a real article instead of discarding it as noise. ".repeat(
 		5,
 	);
 const ARTICLE_HTML = `<html><head><title>Article Title</title></head><body><article><h1>Article Title</h1><p>${ARTICLE_BODY_TEXT}</p></article></body></html>`;
@@ -168,7 +168,7 @@ describe("runUrlImport", () => {
 		expect(hydrateLazyImages).toHaveBeenCalledTimes(1);
 	});
 
-	it("Should return no-article with the raw html and source url when Readability finds no article", async () => {
+	it("Should return no-article with the raw html and source url when Defuddle finds no content", async () => {
 		// Arrange
 
 		vi.mocked(fetchPage).mockResolvedValue({
@@ -250,6 +250,30 @@ describe("runUrlImport", () => {
 			"<p>normalized</p>",
 			"source-1",
 		);
+	});
+
+	it("Should keep the see also section when importing a wiki page", async () => {
+		// Arrange
+
+		const prose = `<p>${ARTICLE_BODY_TEXT}</p>`;
+		const wikiHtml = `<html><head><title>Article Title - Wikipedia</title><meta property="og:title" content="Article Title - Wikipedia"></head><body><div id="mw-content-text"><div class="mw-parser-output">${prose}${prose}<div class="mw-heading mw-heading2"><h2 id="See_also">See also</h2></div><ul><li><a href="/wiki/Related">Related</a></li></ul></div></div></body></html>`;
+		vi.mocked(fetchPage).mockResolvedValue({
+			kind: "html",
+			finalUrl: "https://en.wikipedia.org/wiki/Article",
+			text: wikiHtml,
+		});
+		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
+		vi.mocked(createSource).mockResolvedValue(makeSource());
+		const ctx = makeCtx();
+
+		// Act
+
+		await runUrlImport("https://en.wikipedia.org/wiki/Article", ctx);
+
+		// Assert
+
+		const [extracted] = vi.mocked(normalize).mock.calls[0];
+		expect(extracted).toContain("See also");
 	});
 
 	it("Should fill the source's authors and publication date from the article's byline and published time", async () => {
