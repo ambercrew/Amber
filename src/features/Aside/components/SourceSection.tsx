@@ -167,6 +167,7 @@ function SourceSection({
 						searchable
 						withAlignedLabels
 						placeholder="None"
+						comboboxProps={{ floatingStrategy: "fixed" }}
 						data={[
 							...sources.map(s => ({
 								value: s.id,
@@ -242,6 +243,7 @@ function SourceSection({
 							size="sm"
 							allowDeselect={false}
 							withAlignedLabels
+							comboboxProps={{ floatingStrategy: "fixed" }}
 							data={SOURCE_TYPE_OPTIONS}
 							value={selectedSource.sourceType}
 							onChange={value =>
