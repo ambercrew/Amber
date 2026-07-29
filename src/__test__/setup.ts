@@ -6,6 +6,12 @@ vi.mock("@tauri-apps/api/app", () => ({
 	onBackButtonPress: vi.fn().mockResolvedValue({ unregister: vi.fn() }),
 }));
 
+// Reads a global the Tauri shell injects, so it has to be stubbed here. Tests
+// that care about the platform mock `utils/tauriUtils` instead.
+vi.mock("@tauri-apps/plugin-os", () => ({
+	type: vi.fn().mockReturnValue("linux"),
+}));
+
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { getComputedStyle } = window;
 window.getComputedStyle = elt => getComputedStyle(elt);

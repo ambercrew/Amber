@@ -91,4 +91,36 @@ describe("useBackButtonPress", () => {
 		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalledTimes(2));
 		expect(vi.mocked(onBackButtonPress).mock.calls[1][0]).toBe(cb2);
 	});
+
+	it("Should not register the listener when disabled", () => {
+		// Arrange, Act
+
+		renderHook(() => useBackButtonPress(vi.fn(), false));
+
+		// Assert
+
+		expect(onBackButtonPress).not.toHaveBeenCalled();
+	});
+
+	it("Should unregister the listener when it becomes disabled", async () => {
+		// Arrange
+
+		const unregister = vi.fn();
+		vi.mocked(onBackButtonPress).mockResolvedValue(
+			makeListener(unregister),
+		);
+		const { rerender } = renderHook(
+			({ enabled }) => useBackButtonPress(vi.fn(), enabled),
+			{ initialProps: { enabled: true } },
+		);
+		await waitFor(() => expect(onBackButtonPress).toHaveBeenCalled());
+
+		// Act
+
+		rerender({ enabled: false });
+
+		// Assert
+
+		expect(unregister).toHaveBeenCalled();
+	});
 });
