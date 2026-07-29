@@ -80,7 +80,7 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 
 - **elements** — Core content tree: `Folder`, `Reading`, `Extract`, `Card` (see Element Duplication below)
 - **study** — FSRS spaced-repetition scheduling (study profiles, card grading) and the global review-priority queue (`MetaRepository`'s priority-ordering methods)
-- **sources** — Registry of original works (book, article, video, etc.) that elements are imported from; one `Source` is shared by every element derived from it (`Meta::source_id`)
+- **bibliographical_sources** — Registry of original works (book, article, video, etc.) that elements are imported from; one `BibliographicalSource` is shared by every element derived from it (`Meta::bibliographical_source_id`). The UI pairs it with the per-element `derived_from` lineage under the umbrella term **origin**
 - **import** — PDF/HTML/URL content import pipeline (extraction, conversion to elements)
 - **backend** — Remote auth (sign-up, sign-in, etc.)
 - **secrets** — `SecretsRepository` trait for reading/writing OS-level secrets; keyring implementation lives in `infrastructure/repositories/keyring/`
@@ -113,10 +113,10 @@ Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure �
 
 ### Key Directories
 
-- `api/` — Typed wrappers around `invoke()` calls, mirroring backend modules (`elements`, `study`, `settings`, `sync`, `backend`, `sources`, `appInfo`)
+- `api/` — Typed wrappers around `invoke()` calls, mirroring backend modules (`elements`, `study`, `settings`, `sync`, `backend`, `bibliographicalSources`, `appInfo`)
 - `features/` — Route-scoped feature modules, e.g. `App` (root shell), `ElementViewer` (editor/reviewer for a selected element), `Sidebar` (file tree), `Study`, `Import`, `Settings`, `Aside`, `Updater`
 - `components/` — Shared cross-feature components (e.g. `Editor`, the Lexical-based rich text editor)
-- `stores/` — Redux slices: `elements`, `elementDetails`, `user`, `sync`, `settings`, `sources`, `study`, `search`, `app`
+- `stores/` — Redux slices: `elements`, `elementDetails`, `user`, `sync`, `settings`, `bibliographicalSources`, `study`, `search`, `app`
 - `hooks/` — Reusable hooks; notably `useApi` for loading/error state around API calls
 - `managers/`, `utils/`, `config/`, `types/` — Helpers, constants, shared types
 

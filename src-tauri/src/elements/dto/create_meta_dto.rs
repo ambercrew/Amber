@@ -11,5 +11,5 @@ pub struct CreateMetaDto {
     #[serde(default)]
     pub derived_from: Option<ElementId>,
     #[serde(default)]
-    pub source_id: Option<Uuid>,
+    pub bibliographical_source_id: Option<Uuid>,
 }

@@ -4,11 +4,11 @@ import {
 	EffectiveProfileDto,
 	StudyProfileDto,
 } from "../../study/dto/studyProfileDto";
-import { SourceResponseDto } from "../../sources/dto/sourceDto";
+import { BibliographicalSourceResponseDto } from "../../bibliographicalSources/dto/bibliographicalSourceDto";
 import { PriorityInfoDto } from "./priorityInfoDto";
 
 export interface ElementDetailsResponseDto {
-	source: SourceResponseDto | null;
+	bibliographicalSource: BibliographicalSourceResponseDto | null;
 	derivedFromName: string | null;
 	cardReview: CardReviewDto | null;
 	readingReview: ReadingReviewDto | null;

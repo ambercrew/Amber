@@ -1,10 +1,10 @@
 use async_trait::async_trait;
 use thiserror::Error;
 
+use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceWithElementCount;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::services::priority_service::{PriorityError, PriorityInfo};
 use crate::elements::value_objects::element_id::ElementId;
-use crate::sources::services::source_service::SourceWithElementCount;
 use crate::study::entities::card_review::CardReview;
 use crate::study::entities::reading_review::ReadingReview;
 use crate::study::entities::study_profile::StudyProfile;
@@ -16,7 +16,7 @@ use crate::study::services::profile_resolution_service::{
 /// one round trip instead of one call per section.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ElementDetails {
-    pub source: Option<SourceWithElementCount>,
+    pub bibliographical_source: Option<BibliographicalSourceWithElementCount>,
     pub derived_from_name: Option<String>,
     pub card_review: Option<CardReview>,
     pub reading_review: Option<ReadingReview>,

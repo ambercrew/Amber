@@ -24,12 +24,16 @@ impl PriorityService for DefaultPriorityService {
 
     async fn get_inherited_priority(
         &self,
-        source_id: ElementId,
+        bibliographical_source_id: ElementId,
     ) -> Result<FractionalIndex, PriorityError> {
-        match self.try_get_inherited_priority(source_id).await {
+        match self
+            .try_get_inherited_priority(bibliographical_source_id)
+            .await
+        {
             Err(PriorityError::PriorityExhausted) => {
                 self.rebalance_priorities().await?;
-                self.try_get_inherited_priority(source_id).await
+                self.try_get_inherited_priority(bibliographical_source_id)
+                    .await
             }
             other => other,
         }
@@ -83,9 +87,12 @@ impl DefaultPriorityService {
     /// callers rebalance instead of masking the collision.
     async fn try_get_inherited_priority(
         &self,
-        source_id: ElementId,
+        bibliographical_source_id: ElementId,
     ) -> Result<FractionalIndex, PriorityError> {
-        let source = self.meta_repository.get_by_id(source_id.id()).await?;
+        let source = self
+            .meta_repository
+            .get_by_id(bibliographical_source_id.id())
+            .await?;
         let previous = self
             .meta_repository
             .get_previous_by_priority(&source)
@@ -191,7 +198,7 @@ mod tests {
                 position: FractionalIndex::default(),
                 priority,
                 study_profile_id: None,
-                source_id: None,
+                bibliographical_source_id: None,
                 derived_from: None,
                 created_at: Utc::now(),
                 modified_at: Utc::now(),
@@ -247,12 +254,15 @@ mod tests {
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
 
         let source = make_folder(FractionalIndex::default());
-        let source_id = source.meta.element_id;
+        let bibliographical_source_id = source.meta.element_id;
         folder_repo.create(source).await.unwrap();
 
         // Act
 
-        let actual = service.get_inherited_priority(source_id).await.unwrap();
+        let actual = service
+            .get_inherited_priority(bibliographical_source_id)
+            .await
+            .unwrap();
 
         // Assert
 
@@ -272,13 +282,16 @@ mod tests {
         let source_priority = FractionalIndex::new_after(&previous_priority);
         let previous = make_folder(previous_priority.clone());
         let source = make_folder(source_priority.clone());
-        let source_id = source.meta.element_id;
+        let bibliographical_source_id = source.meta.element_id;
         folder_repo.create(previous).await.unwrap();
         folder_repo.create(source).await.unwrap();
 
         // Act
 
-        let actual = service.get_inherited_priority(source_id).await.unwrap();
+        let actual = service
+            .get_inherited_priority(bibliographical_source_id)
+            .await
+            .unwrap();
 
         // Assert
 
@@ -422,7 +435,7 @@ mod tests {
             &FractionalIndex::default(),
         )));
         let previous_id = previous.meta.element_id.id();
-        let source_id = source.meta.element_id;
+        let bibliographical_source_id = source.meta.element_id;
         let other_id = other.meta.element_id;
         folder_repo.create(previous).await.unwrap();
         folder_repo.create(source).await.unwrap();
@@ -444,7 +457,7 @@ mod tests {
             sqlx::query!(
                 "UPDATE meta SET priority = $1 WHERE element_id = $2",
                 adjacent_after.as_bytes(),
-                source_id.id()
+                bibliographical_source_id.id()
             )
             .execute(&mut *tx_ref)
             .await
@@ -454,13 +467,19 @@ mod tests {
         // Act — the priority between previous and source is exhausted, so
         // the service must rebalance every priority before succeeding.
 
-        let inherited = service.get_inherited_priority(source_id).await.unwrap();
+        let inherited = service
+            .get_inherited_priority(bibliographical_source_id)
+            .await
+            .unwrap();
 
         // Assert — the new priority is a distinct key strictly between the
         // (rebalanced) previous and source, and overall order is preserved.
 
         let previous_meta = meta_repo.get_by_id(previous_id).await.unwrap();
-        let source_meta = meta_repo.get_by_id(source_id.id()).await.unwrap();
+        let source_meta = meta_repo
+            .get_by_id(bibliographical_source_id.id())
+            .await
+            .unwrap();
         let other_meta = meta_repo.get_by_id(other_id.id()).await.unwrap();
         assert!(previous_meta.priority < inherited);
         assert!(inherited < source_meta.priority);

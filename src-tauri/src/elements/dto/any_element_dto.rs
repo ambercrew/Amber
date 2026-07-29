@@ -21,7 +21,7 @@ pub struct MetaResponseDto {
     pub tags: Vec<TagResponseDto>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
-    pub source_id: Option<Uuid>,
+    pub bibliographical_source_id: Option<Uuid>,
     pub derived_from: Option<ElementId>,
 }
 
@@ -35,7 +35,7 @@ impl From<Meta> for MetaResponseDto {
             tags: Vec::new(),
             created_at: meta.created_at,
             modified_at: meta.modified_at,
-            source_id: meta.source_id,
+            bibliographical_source_id: meta.bibliographical_source_id,
             derived_from: meta.derived_from,
         }
     }

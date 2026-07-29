@@ -28,7 +28,7 @@ function makeDetails(
 	overrides: Partial<ElementDetailsResponseDto> = {},
 ): ElementDetailsResponseDto {
 	return {
-		source: null,
+		bibliographicalSource: null,
 		derivedFromName: null,
 		cardReview: null,
 		readingReview: null,

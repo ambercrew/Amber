@@ -24,7 +24,7 @@ import ElementProfileRow from "../../Study/components/ElementProfileRow";
 import InfoField from "./InfoField";
 import InfoGroup from "./InfoGroup";
 import ReviewDetails from "./ReviewDetails";
-import SourceSection from "./SourceSection";
+import OriginSection from "./OriginSection";
 
 function formatDue(due: string | null, finished: boolean): string {
 	if (finished) return "Finished";
@@ -167,10 +167,10 @@ function ElementInfoPanel() {
 
 			<Divider />
 
-			<SourceSection
+			<OriginSection
 				key={storedMeta.elementId.id}
 				elementId={storedMeta.elementId}
-				sourceId={storedMeta.sourceId}
+				bibliographicalSourceId={storedMeta.bibliographicalSourceId}
 				derivedFrom={storedMeta.derivedFrom}
 				details={details}
 			/>

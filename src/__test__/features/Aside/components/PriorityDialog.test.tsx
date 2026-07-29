@@ -41,7 +41,7 @@ function cardElement(): AnyElementDto {
 				tags: [],
 				createdAt: "2024-01-01T00:00:00Z",
 				modifiedAt: "2024-01-01T00:00:00Z",
-				sourceId: null,
+				bibliographicalSourceId: null,
 				derivedFrom: null,
 			},
 			front: "Front",
@@ -54,7 +54,7 @@ function makeDetails(
 	overrides: Partial<ElementDetailsResponseDto> = {},
 ): ElementDetailsResponseDto {
 	return {
-		source: null,
+		bibliographicalSource: null,
 		derivedFromName: null,
 		cardReview: null,
 		readingReview: null,

@@ -2,8 +2,8 @@ import { runFileImport } from "../../../../features/Import/flows/file";
 import { extractPdf } from "../../../../features/Import/pdf/extract";
 import { normalize } from "../../../../features/Import/normalize";
 import { createImportedReading } from "../../../../features/Import/createImportedReading";
-import { createSource } from "../../../../api/sources/api/sourcesApi";
-import { SourceResponseDto } from "../../../../api/sources/dto/sourceDto";
+import { createBibliographicalSource } from "../../../../api/bibliographicalSources/api/bibliographicalSourcesApi";
+import { BibliographicalSourceResponseDto } from "../../../../api/bibliographicalSources/dto/bibliographicalSourceDto";
 import { ImportContext } from "../../../../features/Import/importContext";
 import { AppDispatch, RootState } from "../../../../stores/store";
 
@@ -12,11 +12,13 @@ type Thunk = (dispatch: AppDispatch, getState: () => RootState) => unknown;
 vi.mock(import("../../../../features/Import/pdf/extract"));
 vi.mock(import("../../../../features/Import/normalize"));
 vi.mock(import("../../../../features/Import/createImportedReading"));
-vi.mock(import("../../../../api/sources/api/sourcesApi"));
+vi.mock(
+	import("../../../../api/bibliographicalSources/api/bibliographicalSourcesApi"),
+);
 
 function makeSource(
-	overrides: Partial<SourceResponseDto> = {},
-): SourceResponseDto {
+	overrides: Partial<BibliographicalSourceResponseDto> = {},
+): BibliographicalSourceResponseDto {
 	return {
 		id: "source-1",
 		createdAt: "2024-01-01T00:00:00Z",
@@ -81,7 +83,7 @@ describe("runFileImport", () => {
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
 		const source = makeSource({ id: "source-1" });
-		vi.mocked(createSource).mockResolvedValue(source);
+		vi.mocked(createBibliographicalSource).mockResolvedValue(source);
 		const ctx = makeCtx();
 
 		// Act
@@ -94,7 +96,7 @@ describe("runFileImport", () => {
 		expect(normalize).toHaveBeenCalledWith("<p>pdf content</p>", {
 			baseUrl: null,
 		});
-		expect(createSource).toHaveBeenCalledWith({
+		expect(createBibliographicalSource).toHaveBeenCalledWith({
 			title: "document.pdf",
 			authors: "Jane Doe",
 			publicationDate: "2020-01-01",
@@ -120,7 +122,7 @@ describe("runFileImport", () => {
 			pageCount: 1,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>content</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -148,7 +150,7 @@ describe("runFileImport", () => {
 			pageCount: 1,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>content</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -209,7 +211,7 @@ describe("runFileImport", () => {
 			});
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>c</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const onProgress = vi.fn();
 		const ctx = makeCtx();
 

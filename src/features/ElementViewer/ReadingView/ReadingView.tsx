@@ -16,7 +16,7 @@ import {
 import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
 import { ReadPoint } from "../../../types/elements/readPoint";
 import { READ_POINT_MANUAL_GOTO_REQUESTED } from "../../../types/events/readPointManualGotoRequestedEvent";
-import ContentSourcePanel from "../ContentSourcePanel";
+import ContentOriginPanel from "../ContentOriginPanel";
 import { useSyncSearchMatches } from "../hooks/useSyncSearchMatches";
 import SplitSlot from "./SplitSlot";
 import {
@@ -300,7 +300,7 @@ export default function ReadingView({
 						}}
 					/>
 				))}
-			<ContentSourcePanel meta={meta} />
+			<ContentOriginPanel meta={meta} />
 		</Container>
 	);
 }

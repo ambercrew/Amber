@@ -1,6 +1,7 @@
 mod app_info;
 mod backend;
 mod backup;
+mod bibliographical_sources;
 mod common;
 mod database;
 mod elements;
@@ -9,7 +10,6 @@ mod infrastructure;
 mod local_configurations;
 mod secrets;
 mod settings;
-mod sources;
 mod study;
 mod sync;
 #[cfg(test)]
@@ -23,10 +23,10 @@ use tauri::Manager;
 use app_info::app_info_api::*;
 use backend::api::auth_api::*;
 use backend::api::user_api::*;
+use bibliographical_sources::bibliographical_sources_api::*;
 use elements::elements_api::*;
 use import::import_api::*;
 use settings::settings_api::*;
-use sources::sources_api::*;
 use study::study_api::*;
 use study::study_profile_api::*;
 
@@ -202,13 +202,13 @@ pub async fn run() -> Result<(), String> {
             set_default_study_profile,
             assign_study_profile,
             get_effective_study_profile,
-            // Sources
-            list_sources,
-            get_source,
-            create_source,
-            update_source,
-            delete_source,
-            assign_source,
+            // Bibliographical sources
+            list_bibliographical_sources,
+            get_bibliographical_source,
+            create_bibliographical_source,
+            update_bibliographical_source,
+            delete_bibliographical_source,
+            assign_bibliographical_source,
             // Import
             fetch_page,
             fetch_image,

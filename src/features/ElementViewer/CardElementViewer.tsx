@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Container, Divider, Group, Stack, Text } from "@mantine/core";
 import { QuestionIcon, CheckCircleIcon } from "@phosphor-icons/react";
-import ContentSourcePanel from "./ContentSourcePanel";
+import ContentOriginPanel from "./ContentOriginPanel";
 import ElementEditor from "./ElementEditor";
 import { CardResponseDto } from "../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../components/Editor/plugins/FloatingMenuPlugin";
@@ -96,7 +96,7 @@ export default function CardElementViewer({
 					)}
 				</Stack>
 			</Stack>
-			<ContentSourcePanel meta={card.meta} />
+			<ContentOriginPanel meta={card.meta} />
 		</Container>
 	);
 }

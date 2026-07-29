@@ -4,5 +4,5 @@ export interface CreateMetaDto {
 	name: string;
 	parent: ElementId | null;
 	derivedFrom?: ElementId | null;
-	sourceId?: string | null;
+	bibliographicalSourceId?: string | null;
 }

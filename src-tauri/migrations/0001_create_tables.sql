@@ -129,7 +129,7 @@ END;
 
 -------------------------------------------------------------------------
 
-CREATE TABLE sources(
+CREATE TABLE bibliographical_sources(
     id                  TEXT        NOT NULL        PRIMARY KEY,
     created_at          TEXT        NOT NULL        DEFAULT (datetime('now')),
     modified_at         TEXT        NOT NULL        DEFAULT (datetime('now')),
@@ -140,21 +140,21 @@ CREATE TABLE sources(
     location            TEXT
 );
 
-CREATE INDEX sources_location_index ON sources(location);
+CREATE INDEX bibliographical_sources_location_index ON bibliographical_sources(location);
 
-CREATE TRIGGER sources_update_modified_at_after_update
-    AFTER UPDATE OF title, authors, publication_date, type, location ON sources
+CREATE TRIGGER bibliographical_sources_update_modified_at_after_update
+    AFTER UPDATE OF title, authors, publication_date, type, location ON bibliographical_sources
 BEGIN
-    UPDATE sources
+    UPDATE bibliographical_sources
     SET modified_at = datetime('now')
     WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER sources_add_to_deleted_entities_after_delete
-    AFTER DELETE ON sources
+CREATE TRIGGER bibliographical_sources_add_to_deleted_entities_after_delete
+    AFTER DELETE ON bibliographical_sources
 BEGIN
     INSERT INTO deleted_entities (entity_name, entity_id, entity_created_at, deleted_date)
-    VALUES ('sources', OLD.id, OLD.created_at, datetime('now'));
+    VALUES ('bibliographical_sources', OLD.id, OLD.created_at, datetime('now'));
 END;
 
 -------------------------------------------------------------------------
@@ -210,20 +210,20 @@ CREATE TABLE meta(
     derived_from_id     TEXT,
     derived_from_type   TEXT,
     study_profile_id    TEXT,
-    source_id           TEXT,
+    bibliographical_source_id           TEXT,
     created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
     modified_at         TEXT    NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (study_profile_id) REFERENCES study_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE,
-    FOREIGN KEY (source_id) REFERENCES sources(id) ON DELETE SET NULL ON UPDATE CASCADE
+    FOREIGN KEY (bibliographical_source_id) REFERENCES bibliographical_sources(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX meta_parent_id_index ON meta(parent_id);
-CREATE INDEX meta_source_id_index ON meta(source_id);
+CREATE INDEX meta_bibliographical_source_id_index ON meta(bibliographical_source_id);
 CREATE INDEX meta_derived_from_id_index ON meta(derived_from_id);
 CREATE INDEX meta_priority_index ON meta(priority);
 
 CREATE TRIGGER meta_update_modified_at_after_update
-    AFTER UPDATE OF name, position, priority, parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, source_id ON meta
+    AFTER UPDATE OF name, position, priority, parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, bibliographical_source_id ON meta
 BEGIN
     UPDATE meta
     SET modified_at = datetime('now')
