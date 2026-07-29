@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import ElementNodeIcon from "../../../App/components/ElementNodeIcon";
+import { isMobile } from "../../../../utils/tauriUtils";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeProps } from "../../utils/elementTreeUtils";
 import DeleteElementModal from "../DeleteElementModal";
@@ -128,8 +129,13 @@ function ElementTreeNode({
 							variant="subtle"
 							aria-label="Open actions menu"
 							style={{
+								// There is no hover on a touch screen, so the
+								// menu has to stay visible on mobile.
 								visibility:
-									isHovered || isMenuOpen || isContextMenuOpen
+									isMobile() ||
+									isHovered ||
+									isMenuOpen ||
+									isContextMenuOpen
 										? "visible"
 										: "hidden",
 							}}
@@ -140,7 +146,10 @@ function ElementTreeNode({
 							/>
 						</ActionIcon>
 					</Menu.Target>
-					<Menu.Dropdown>
+					{/* React events bubble out of the portal into the row, so
+					    without this every menu click would also select the
+					    element — and selecting closes the sidebar on mobile. */}
+					<Menu.Dropdown onClick={e => e.stopPropagation()}>
 						<ElementTreeMenuItems
 							elementId={{ type, id }}
 							onRenameClick={onRenameClick}
