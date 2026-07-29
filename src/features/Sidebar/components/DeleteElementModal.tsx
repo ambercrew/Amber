@@ -1,5 +1,6 @@
-import { Button, Group, Modal, Text } from "@mantine/core";
+import { Button, Group, Text } from "@mantine/core";
 import { useDispatch } from "react-redux";
+import AppModal from "../../../components/AppModal/AppModal";
 import { deleteElementAction } from "../../../stores/elements/elementsActions";
 import { AppDispatch } from "../../../stores/store";
 import { ElementId } from "../../../types/elements/elementId";
@@ -19,11 +20,10 @@ function DeleteElementModal({ elementId, onClose }: DeleteElementModalProps) {
 	}
 
 	return (
-		<Modal
+		<AppModal
 			opened={elementId !== null}
 			onClose={onClose}
-			title="Delete element"
-			centered>
+			title="Delete element">
 			<Text>
 				Are you sure you want to delete this element? This action cannot
 				be undone.
@@ -36,7 +36,7 @@ function DeleteElementModal({ elementId, onClose }: DeleteElementModalProps) {
 					Delete
 				</Button>
 			</Group>
-		</Modal>
+		</AppModal>
 	);
 }
 

@@ -1,7 +1,9 @@
 import { ReactNode, useState } from "react";
-import { Box, Burger, Drawer, Group, Modal, NavLink } from "@mantine/core";
+import { Box, Burger, Drawer, Group, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { DatabaseIcon, InfoIcon, PaletteIcon } from "@phosphor-icons/react";
+import AppModal from "../../../components/AppModal/AppModal";
+import { safeAreaTopStyle } from "../../../utils/safeArea";
 import { useIsSmallScreen } from "../../../hooks/useIsSmallScreen";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
@@ -70,7 +72,7 @@ function SettingsModal() {
 	}
 
 	return (
-		<Modal
+		<AppModal
 			opened={opened}
 			onClose={() => dispatch(closeSettingsModal())}
 			title={
@@ -86,10 +88,7 @@ function SettingsModal() {
 					Settings
 				</Group>
 			}
-			fullScreen={isSmallScreen}
-			centered
-			size="lg"
-			closeButtonProps={{ "aria-label": "Close" }}>
+			size="lg">
 			{isSmallScreen ? (
 				<>
 					<Drawer
@@ -97,6 +96,7 @@ function SettingsModal() {
 						onClose={closeNav}
 						title="Settings"
 						size="70%"
+						styles={{ content: safeAreaTopStyle() }}
 						closeButtonProps={{ "aria-label": "Close" }}>
 						{renderNavLinks(closeNav)}
 					</Drawer>
@@ -120,7 +120,7 @@ function SettingsModal() {
 					</Box>
 				</Group>
 			)}
-		</Modal>
+		</AppModal>
 	);
 }
 

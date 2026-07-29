@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { ask } from "@tauri-apps/plugin-dialog";
-import { Loader, Modal, Stack, Text } from "@mantine/core";
+import { Loader, Stack, Text } from "@mantine/core";
+import AppModal from "../../../components/AppModal/AppModal";
 import { isStoreInstalled } from "../../../api/appInfo/api/appInfoApi";
 import useApi from "../../../hooks/useApi";
 
@@ -58,15 +59,14 @@ function Updater() {
 
 	return (
 		<>
-			<Modal
+			<AppModal
 				opened={isUpdating}
 				onClose={() => {
 					/* Empty */
 				}}
 				withCloseButton={false}
 				closeOnClickOutside={false}
-				closeOnEscape={false}
-				centered>
+				closeOnEscape={false}>
 				<Stack align="center">
 					<Loader size="lg" />
 					<Text>
@@ -74,15 +74,14 @@ function Updater() {
 						wait...
 					</Text>
 				</Stack>
-			</Modal>
+			</AppModal>
 
-			<Modal
+			<AppModal
 				opened={!!errorMessage}
 				onClose={clearErrorMessage}
-				title="Update failed"
-				centered>
+				title="Update failed">
 				<Text>{errorMessage}</Text>
-			</Modal>
+			</AppModal>
 		</>
 	);
 }
