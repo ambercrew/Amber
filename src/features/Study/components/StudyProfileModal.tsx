@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Modal, Select, Stack, useMantineTheme } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { Select, Stack } from "@mantine/core";
+import AppModal from "../../../components/AppModal/AppModal";
 import {
 	getEffectiveStudyProfile,
 	listStudyProfiles,
@@ -22,9 +22,6 @@ function StudyProfileModal() {
 	const dispatch = useAppDispatch();
 	const [profiles, setProfiles] = useState<StudyProfileDto[]>([]);
 	const [selectedId, setSelectedId] = useState<string | null>(null);
-	const theme = useMantineTheme();
-	const isMobile =
-		useMediaQuery(`(max-width: ${theme.breakpoints.sm})`) ?? false;
 
 	function refresh(
 		pickInitialId?: (list: StudyProfileDto[]) => string | null,
@@ -70,14 +67,11 @@ function StudyProfileModal() {
 	}
 
 	return (
-		<Modal
+		<AppModal
 			opened={opened}
 			onClose={() => dispatch(closeStudyProfileModal())}
 			title="Study profiles"
-			fullScreen={isMobile}
-			centered
-			size="lg"
-			closeButtonProps={{ "aria-label": "Close" }}>
+			size="lg">
 			<Stack gap="md">
 				<Select
 					label="Profile"
@@ -117,7 +111,7 @@ function StudyProfileModal() {
 					onSubmitted={() => dispatch(closeStudyProfileModal())}
 				/>
 			</Stack>
-		</Modal>
+		</AppModal>
 	);
 }
 

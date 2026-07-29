@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
-import { Button, Group, Modal, Slider, Stack, Text } from "@mantine/core";
+import { Button, Group, Slider, Stack, Text } from "@mantine/core";
+import AppModal from "../../../components/AppModal/AppModal";
 import { getFuzzFactor, setFuzzFactor } from "../../../api/study/api/studyApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { closeStudySessionSettingsDialog } from "../../../stores/app/appReducer";
 import { selectIsStudySessionSettingsDialogOpened } from "../../../stores/app/appSelectors";
 import { STUDY_SESSION_SETTINGS_CHANGED } from "../../../types/events/studySessionSettingsChangedEvent";
-import { useIsSmallScreen } from "../../../hooks/useIsSmallScreen";
 
 function StudySessionSettingsDialog() {
 	const opened = useAppSelector(selectIsStudySessionSettingsDialogOpened);
 	const dispatch = useAppDispatch();
-	const isSmallScreen = useIsSmallScreen();
 
 	const [fuzzFactor, setLocalFuzzFactor] = useState<number | null>(null);
 
@@ -33,13 +32,10 @@ function StudySessionSettingsDialog() {
 	}
 
 	return (
-		<Modal
+		<AppModal
 			opened={opened}
 			onClose={handleClose}
-			title="Study session settings"
-			fullScreen={isSmallScreen}
-			centered
-			closeButtonProps={{ "aria-label": "Close" }}>
+			title="Study session settings">
 			{fuzzFactor === null ? (
 				<Text size="sm" c="dimmed">
 					Loading…
@@ -70,7 +66,7 @@ function StudySessionSettingsDialog() {
 					</Group>
 				</Stack>
 			)}
-		</Modal>
+		</AppModal>
 	);
 }
 

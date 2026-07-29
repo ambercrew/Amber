@@ -30,12 +30,10 @@ import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
 import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
+import { SAFE_AREA_TOP, safeAreaTopStyle } from "../../../utils/safeArea.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
-// Mobile webviews draw edge to edge, so everything pinned to the top of the
-// screen has to clear the status bar itself.
-const SAFE_AREA_TOP = "env(safe-area-inset-top)";
 // Shared with anything that needs to mirror the header's pinned state.
 export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
@@ -51,7 +49,7 @@ function App() {
 	const studyStatus = useAppSelector(selectStudyStatus);
 	const isSmallScreen = useIsSmallScreen();
 	const mobile = isMobile();
-	const safeAreaTopStyle = mobile ? { paddingTop: SAFE_AREA_TOP } : undefined;
+	const safeAreaTop = safeAreaTopStyle();
 
 	const splitter = useSplitter({
 		panels: [
@@ -142,7 +140,7 @@ function App() {
 			<StudySessionSettingsDialog />
 			<Notifications />
 
-			<AppShell.Header style={safeAreaTopStyle}>
+			<AppShell.Header style={safeAreaTop}>
 				<AppHeader
 					onToggleSidebar={() => splitter.toggleCollapse(0)}
 					onToggleAside={() => setAsideExpanded(v => !v)}
@@ -153,7 +151,7 @@ function App() {
 				<StudySessionBar />
 			</AppShell.Footer>
 
-			<AppShell.Navbar style={safeAreaTopStyle}>
+			<AppShell.Navbar style={safeAreaTop}>
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isSmallScreen && (
 					<ResizeHandle
@@ -168,7 +166,7 @@ function App() {
 				<Outlet />
 			</AppShell.Main>
 
-			<AppShell.Aside style={safeAreaTopStyle}>
+			<AppShell.Aside style={safeAreaTop}>
 				<Aside onCollapse={() => splitter.collapse(2)} />
 				{!isSmallScreen && (
 					<ResizeHandle

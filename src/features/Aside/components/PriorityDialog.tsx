@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-	Modal,
-	NumberInput,
-	Slider,
-	Stack,
-	Text,
-	useMantineTheme,
-} from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { NumberInput, Slider, Stack, Text } from "@mantine/core";
+import AppModal from "../../../components/AppModal/AppModal";
 import {
 	setElementPriorityByPercentage,
 	setElementPriorityByRank,
@@ -132,10 +125,6 @@ function PriorityDialog() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const details = useAppSelector(selectCurrentElementDetails);
 	const dispatch = useAppDispatch();
-	const theme = useMantineTheme();
-	const isMobile =
-		useMediaQuery(`(max-width: ${theme.breakpoints.sm})`) ?? false;
-
 	const elementId = currentElement?.data.meta.elementId ?? null;
 
 	useEffect(() => {
@@ -145,13 +134,10 @@ function PriorityDialog() {
 	}, [opened, elementId]);
 
 	return (
-		<Modal
+		<AppModal
 			opened={opened}
 			onClose={() => dispatch(closePriorityDialog())}
-			title="Priority"
-			fullScreen={isMobile}
-			centered
-			closeButtonProps={{ "aria-label": "Close" }}>
+			title="Priority">
 			{elementId && details ? (
 				<PriorityDialogBody
 					key={`${elementId.id}-${details.priority.rank}-${details.priority.total}`}
@@ -168,7 +154,7 @@ function PriorityDialog() {
 					Loading…
 				</Text>
 			)}
-		</Modal>
+		</AppModal>
 	);
 }
 

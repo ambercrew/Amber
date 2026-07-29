@@ -6,13 +6,13 @@ import {
 	Button,
 	Group,
 	Loader,
-	Modal,
 	Progress,
 	Stack,
 	Text,
 } from "@mantine/core";
 import { Dropzone, PDF_MIME_TYPE } from "@mantine/dropzone";
 import { ArrowsInSimpleIcon, FileIcon, XIcon } from "@phosphor-icons/react";
+import AppModal from "../../../components/AppModal/AppModal";
 import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -194,11 +194,10 @@ function ImportModal() {
 	const isImporting = phase.kind === "importing";
 
 	return (
-		<Modal
+		<AppModal
 			opened={opened}
 			onClose={handleClose}
 			title="Import"
-			centered
 			size="md"
 			withCloseButton={!isImporting}
 			closeOnClickOutside={!isImporting}
@@ -378,7 +377,7 @@ function ImportModal() {
 					</Stack>
 				</Dropzone.Accept>
 			</Dropzone>
-		</Modal>
+		</AppModal>
 	);
 }
 
