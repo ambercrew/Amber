@@ -1,4 +1,4 @@
-import { Readability } from "@mozilla/readability";
+import Defuddle from "defuddle";
 import { fetchPage } from "../../../api/import/api/importApi";
 import { createSourceAction } from "../../../stores/sources/sourcesActions";
 import errorToString from "../../../utils/errorToString";
@@ -49,25 +49,29 @@ export async function runUrlImport(
 
 	// The fetched HTML is server-rendered, so lazy-loaded images still hold
 	// their real URL in a data-* attribute. Promote it to src before
-	// Readability runs, otherwise Readability drops images with no src.
+	// Defuddle runs, otherwise Defuddle drops images with no src.
 	hydrateLazyImages(doc);
 
-	const article = new Readability(doc).parse();
-	if (!article) {
-		return {
-			kind: "no-article",
-			rawHtml: doc.body.innerHTML,
-			sourceUrl: resolvedUrl,
-		};
+	// Defuddle mutates the document while parsing, so capture the raw markup
+	// for the no-article fallback beforehand.
+	const rawHtml = doc.body.innerHTML;
+
+	const article = new Defuddle(doc, {
+		url: resolvedUrl,
+		removeContentPatterns: false,
+	}).parse();
+	const content = article.content?.trim() ?? "";
+	if (!hasContent(content)) {
+		return { kind: "no-article", rawHtml, sourceUrl: resolvedUrl };
 	}
 
 	await importArticleHtml(
-		article.content ?? "",
-		article.title ?? null,
+		content,
+		article.title || null,
 		resolvedUrl,
 		ctx,
-		article.byline ?? null,
-		article.publishedTime ?? null,
+		article.author || null,
+		article.published || null,
 	);
 	return null;
 }
@@ -106,6 +110,20 @@ async function importArticleHtml(
 	);
 
 	await createImportedReading(ctx, finalTitle, content, source.id);
+}
+
+const MEDIA_SELECTOR = "img, picture, video, audio, iframe, svg, table";
+
+/** Defuddle always returns something — when it finds no article it falls back
+ * to the (possibly empty) page body. Treat markup with neither text nor media
+ * as "no article" so the caller can offer the raw page instead. */
+function hasContent(html: string): boolean {
+	if (html.length === 0) return false;
+	const doc = new DOMParser().parseFromString(html, "text/html");
+	return (
+		(doc.body.textContent ?? "").trim().length > 0 ||
+		doc.body.querySelector(MEDIA_SELECTOR) !== null
+	);
 }
 
 function filenameFromUrl(url: string): string {
