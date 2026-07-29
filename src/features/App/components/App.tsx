@@ -39,7 +39,6 @@ export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
-// TODO: closing the aside on small screen when inside an element is not workign
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 
@@ -75,7 +74,10 @@ function App() {
 		},
 	});
 
-	useCloseSidebarOnSmallScreenNavigation(() => splitter.collapse(0));
+	useCloseSidebarOnSmallScreenNavigation(() => {
+		splitter.collapse(0);
+		setAsideExpanded(false);
+	});
 	useRedirectIfElementMissing();
 	useCurrentElementSync();
 	useStudySessionGuard();
@@ -168,7 +170,7 @@ function App() {
 			</AppShell.Main>
 
 			<AppShell.Aside style={safeAreaTop}>
-				<Aside onCollapse={() => splitter.collapse(2)} />
+				<Aside onCollapse={() => setAsideExpanded(false)} />
 				{!isSmallScreen && (
 					<ResizeHandle
 						side="left"
