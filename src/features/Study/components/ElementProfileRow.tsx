@@ -60,7 +60,7 @@ function ElementProfileRow({ elementId, details }: ElementProfileRowProps) {
 					},
 				}}
 				comboboxProps={{
-					offset: 0,
+					floatingStrategy: "fixed",
 				}}
 				renderOption={({ option, checked }) => {
 					const profile = profiles.find(p => p.id === option.value);
