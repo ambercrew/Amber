@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import AppDrawer from "../../../components/AppDrawer/AppDrawer";
 import useBackButtonPress from "../../../hooks/useBackButtonPress";
+import { BackButtonPriority } from "../../../managers/backButtonManager";
 
 vi.mock(import("../../../hooks/useBackButtonPress"));
 
@@ -50,6 +51,18 @@ describe("AppDrawer", () => {
 
 		expect(backButtonEnabled()).toBe(true);
 		expect(onClose).toHaveBeenCalled();
+	});
+
+	it("Should outrank modals for the back button so it closes first", () => {
+		// Arrange, Act
+
+		renderDrawer();
+
+		// Assert
+
+		expect(vi.mocked(useBackButtonPress).mock.calls[0][2]).toBe(
+			BackButtonPriority.High,
+		);
 	});
 
 	it("Should ignore the back button when the drawer is closed", () => {

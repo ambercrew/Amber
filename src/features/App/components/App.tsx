@@ -31,6 +31,8 @@ import StudySessionSettingsDialog from "../../Study/components/StudySessionSetti
 import AppHeader from "./AppHeader.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 import { SAFE_AREA_TOP, safeAreaTopStyle } from "../../../utils/safeArea.ts";
+import useBackButtonPress from "../../../hooks/useBackButtonPress.ts";
+import { BackButtonPriority } from "../../../managers/backButtonManager.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
@@ -78,6 +80,17 @@ function App() {
 		splitter.collapse(0);
 		setAsideExpanded(false);
 	});
+
+	// The panels cover the screen on small viewports, so back closes whichever
+	// is on top — but only once nothing is layered over them.
+	useBackButtonPress(
+		() => {
+			if (asideExpanded) setAsideExpanded(false);
+			else splitter.collapse(0);
+		},
+		isSmallScreen && (sidebarExpanded || asideExpanded),
+		BackButtonPriority.Low,
+	);
 	useRedirectIfElementMissing();
 	useCurrentElementSync();
 	useStudySessionGuard();

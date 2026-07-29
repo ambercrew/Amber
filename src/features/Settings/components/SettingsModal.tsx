@@ -88,8 +88,7 @@ function SettingsModal() {
 					Settings
 				</Group>
 			}
-			size="lg"
-			closeOnBackButton={!navOpened}>
+			size="lg">
 			{isSmallScreen ? (
 				<>
 					<AppDrawer

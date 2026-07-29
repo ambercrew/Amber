@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import AppModal from "../../../components/AppModal/AppModal";
 import useBackButtonPress from "../../../hooks/useBackButtonPress";
+import { BackButtonPriority } from "../../../managers/backButtonManager";
 import { useIsSmallScreen } from "../../../hooks/useIsSmallScreen";
 import { isMobile } from "../../../utils/tauriUtils";
 
@@ -13,7 +14,6 @@ interface RenderModalProps {
 	fullScreen?: boolean;
 	opened?: boolean;
 	closeOnEscape?: boolean;
-	closeOnBackButton?: boolean;
 	onClose?: () => void;
 }
 
@@ -130,14 +130,16 @@ describe("AppModal", () => {
 		expect(backButtonEnabled()).toBe(false);
 	});
 
-	it("Should leave the back button alone when something layered on top takes it", () => {
+	it("Should take the back button at medium priority so drawers outrank it", () => {
 		// Arrange, Act
 
-		renderModal({ closeOnBackButton: false });
+		renderModal();
 
 		// Assert
 
-		expect(backButtonEnabled()).toBe(false);
+		expect(vi.mocked(useBackButtonPress).mock.calls[0][2]).toBe(
+			BackButtonPriority.Medium,
+		);
 	});
 
 	it("Should label the close button when none is given", () => {

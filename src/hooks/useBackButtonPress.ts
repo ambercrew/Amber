@@ -1,23 +1,31 @@
-import { PluginListener } from "@tauri-apps/api/core";
-import { onBackButtonPress } from "@tauri-apps/api/app";
-import { useEffect } from "react";
-import { isAndroid } from "../utils/tauriUtils";
+import { useEffect, useRef } from "react";
+import {
+	BackButtonPriority,
+	defaultBackButtonManager,
+} from "../managers/backButtonManager";
 
-export default function useBackButtonPress(cb: () => void, enabled = true) {
+/**
+ * Runs `cb` when Android's back button is pressed while `enabled`, as long as
+ * nothing with a higher priority is listening. See `BackButtonManager`.
+ */
+export default function useBackButtonPress(
+	cb: () => void,
+	enabled = true,
+	priority: BackButtonPriority = BackButtonPriority.Medium,
+) {
+	const cbRef = useRef(cb);
+
 	useEffect(() => {
-		if (!enabled || !isAndroid()) return;
+		cbRef.current = cb;
+	});
 
-		let cancelled = false;
-		let listener: PluginListener | null = null;
-
-		void (async () => {
-			listener = await onBackButtonPress(cb);
-			if (cancelled) void listener.unregister(); // unmounted before resolve
-		})();
-
-		return () => {
-			cancelled = true;
-			if (listener) void listener.unregister(); // unmounted after resolve
-		};
-	}, [cb, enabled]);
+	// `cb` is read through a ref so callers can pass an inline function without
+	// re-registering the handler on every render.
+	useEffect(() => {
+		if (!enabled) return;
+		return defaultBackButtonManager.addHandler(
+			() => cbRef.current(),
+			priority,
+		);
+	}, [enabled, priority]);
 }
