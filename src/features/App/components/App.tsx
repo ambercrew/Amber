@@ -10,6 +10,7 @@ import {
 	useIsSmallScreen,
 } from "../../../hooks/useIsSmallScreen";
 import { useCurrentElementSync } from "../../../hooks/useCurrentElementSync";
+import { useCloseSidebarOnSmallScreenNavigation } from "../../../hooks/useCloseSidebarOnSmallScreenNavigation";
 import { useStudySessionGuard } from "../../Study/hooks/useStudySessionGuard";
 import { useStudySessionSummaryToast } from "../../Study/hooks/useStudySessionSummaryToast";
 import Updater from "../../Updater/components/Updater";
@@ -32,6 +33,9 @@ import { isMobile } from "../../../utils/tauriUtils.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
+// Mobile webviews draw edge to edge, so everything pinned to the top of the
+// screen has to clear the status bar itself.
+const SAFE_AREA_TOP = "env(safe-area-inset-top)";
 // Shared with anything that needs to mirror the header's pinned state.
 export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
@@ -46,6 +50,8 @@ function App() {
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const studyStatus = useAppSelector(selectStudyStatus);
 	const isSmallScreen = useIsSmallScreen();
+	const mobile = isMobile();
+	const safeAreaTopStyle = mobile ? { paddingTop: SAFE_AREA_TOP } : undefined;
 
 	const splitter = useSplitter({
 		panels: [
@@ -70,6 +76,7 @@ function App() {
 		},
 	});
 
+	useCloseSidebarOnSmallScreenNavigation(() => splitter.collapse(0));
 	useRedirectIfElementMissing();
 	useCurrentElementSync();
 	useStudySessionGuard();
@@ -115,7 +122,9 @@ function App() {
 				},
 			}}
 			header={{
-				height: HEADER_AND_FOOTER_HEIGHT,
+				height: mobile
+					? `calc(${HEADER_AND_FOOTER_HEIGHT}px + ${SAFE_AREA_TOP})`
+					: HEADER_AND_FOOTER_HEIGHT,
 				collapsed: !pinned,
 				offset: false,
 			}}
@@ -124,7 +133,7 @@ function App() {
 				collapsed: studyStatus !== "studying" || !pinned,
 			}}
 			padding="md">
-			{!isMobile() && <Updater />}
+			{!mobile && <Updater />}
 			<CommandPalette />
 			<ImportModal />
 			<StudyProfileModal />
@@ -133,7 +142,7 @@ function App() {
 			<StudySessionSettingsDialog />
 			<Notifications />
 
-			<AppShell.Header>
+			<AppShell.Header style={safeAreaTopStyle}>
 				<AppHeader
 					onToggleSidebar={() => splitter.toggleCollapse(0)}
 					onToggleAside={() => setAsideExpanded(v => !v)}
@@ -144,7 +153,7 @@ function App() {
 				<StudySessionBar />
 			</AppShell.Footer>
 
-			<AppShell.Navbar>
+			<AppShell.Navbar style={safeAreaTopStyle}>
 				<Sidebar onCollapse={() => splitter.collapse(0)} />
 				{!isSmallScreen && (
 					<ResizeHandle
@@ -159,7 +168,7 @@ function App() {
 				<Outlet />
 			</AppShell.Main>
 
-			<AppShell.Aside>
+			<AppShell.Aside style={safeAreaTopStyle}>
 				<Aside onCollapse={() => splitter.collapse(2)} />
 				{!isSmallScreen && (
 					<ResizeHandle
