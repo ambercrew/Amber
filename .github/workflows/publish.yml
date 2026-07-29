@@ -13,11 +13,26 @@ jobs:
       release_id: ${{ steps.create-release.outputs.id }}
       version: ${{ steps.version.outputs.version }}
     steps:
+      # git-cliff needs the full history and all tags to work out what changed
+      # since the previous release.
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Get version
         id: version
         run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
+
+      # Renders the commits since the last tag into RELEASE_NOTES.md. The tag for
+      # this release does not exist yet, so --unreleased --tag names it up front.
+      - name: Generate release notes
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --unreleased --tag v${{ steps.version.outputs.version }}
+        env:
+          OUTPUT: RELEASE_NOTES.md
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create draft release
         id: create-release
@@ -25,13 +40,16 @@ jobs:
           id=$(gh api "repos/${{ github.repository }}/releases" \
             --jq '.[] | select(.tag_name == "v${{ steps.version.outputs.version }}") | .id')
           if [ -z "$id" ]; then
-            id=$(gh api repos/${{ github.repository }}/releases \
-              -f tag_name="v${{ steps.version.outputs.version }}" \
-              -f name="Amber v${{ steps.version.outputs.version }}" \
-              -f target_commitish=release \
-              -f body="" \
-              -F draft=true \
-              --jq '.id')
+            id=$(jq -n \
+              --rawfile body RELEASE_NOTES.md \
+              --arg tag "v${{ steps.version.outputs.version }}" \
+              --arg name "Amber v${{ steps.version.outputs.version }}" \
+              '{tag_name: $tag, name: $name, target_commitish: "release", body: $body, draft: true}' \
+              | gh api repos/${{ github.repository }}/releases --input - --jq '.id')
+          else
+            # Re-run against an existing draft: refresh the notes in place.
+            jq -n --rawfile body RELEASE_NOTES.md '{body: $body}' \
+              | gh api --method PATCH "repos/${{ github.repository }}/releases/$id" --input - >/dev/null
           fi
           echo "id=$id" >> $GITHUB_OUTPUT
         env:

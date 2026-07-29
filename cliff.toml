@@ -1,0 +1,59 @@
+# git-cliff configuration — generates release notes from Conventional Commits.
+# Used by .github/workflows/publish.yml to fill in the GitHub release body.
+# Local preview: git cliff --unreleased --tag v1.13.0 --strip header
+
+[changelog]
+header = ""
+
+body = """
+{% macro remote_url() %}https://github.com/amberloom/amberloom{% endmacro %}
+{% if version %}## Amber {{ version }}{% else %}## Unreleased{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}**: {% endif %}\
+{{ commit.message | upper_first }} \
+([{{ commit.id | truncate(length=7, end="") }}]({{ self::remote_url() }}/commit/{{ commit.id }}))
+{%- endfor %}
+{% endfor %}
+{% if previous.version and version %}
+**Full changelog**: {{ self::remote_url() }}/compare/{{ previous.version }}...{{ version }}
+{% endif %}
+"""
+
+footer = ""
+
+trim = true
+
+[git]
+conventional_commits = true
+# Commits that don't parse as conventional still show up, under "Other changes".
+filter_unconventional = false
+filter_commits = false
+split_commits = false
+# Matches v0.1.0 etc. and, importantly, excludes the moving `latest` tag that
+# update-latest-tag in publish.yml force-pushes on every release.
+tag_pattern = "v[0-9]*"
+topo_order = false
+sort_commits = "newest"
+
+commit_preprocessors = [
+  # Turn a trailing "(#123)" from a squash-merge subject into a PR link.
+  { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](https://github.com/amberloom/amberloom/pull/${2}))" },
+]
+
+commit_parsers = [
+  { message = "^Merge branch", skip = true },
+  { message = "^Merge pull request", skip = true },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore\\(version\\)", skip = true },
+
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^refactor", group = "<!-- 3 -->Refactor" },
+  { message = "^docs", group = "<!-- 4 -->Documentation" },
+  { message = "^test", group = "<!-- 5 -->Testing" },
+  { message = "^(chore|build|ci|style)", group = "<!-- 6 -->Miscellaneous" },
+  { message = ".*", group = "<!-- 7 -->Other changes" },
+]
