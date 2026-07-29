@@ -352,7 +352,7 @@ mod tests {
                 position: FractionalIndex::default(),
                 priority: FractionalIndex::default(),
                 study_profile_id: None,
-                source_id: None,
+                bibliographical_source_id: None,
                 derived_from: None,
                 created_at: Utc::now(),
                 modified_at: Utc::now(),

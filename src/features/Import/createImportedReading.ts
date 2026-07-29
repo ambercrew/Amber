@@ -8,13 +8,13 @@ export async function createImportedReading(
 	ctx: ImportContext,
 	name: string,
 	content: string,
-	sourceId?: string | null,
+	bibliographicalSourceId?: string | null,
 ): Promise<void> {
 	const id = crypto.randomUUID();
 	await ctx.dispatch(
 		createReadingAction({
 			id,
-			meta: { name, parent: ctx.parent, sourceId },
+			meta: { name, parent: ctx.parent, bibliographicalSourceId },
 			splits: splitContent(content).map(html => htmlToLexicalJson(html)),
 		}),
 	);

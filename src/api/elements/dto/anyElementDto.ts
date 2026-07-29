@@ -10,7 +10,7 @@ export interface MetaResponseDto {
 	tags: Tag[];
 	createdAt: string;
 	modifiedAt: string;
-	sourceId: string | null;
+	bibliographicalSourceId: string | null;
 	derivedFrom: ElementId | null;
 }
 

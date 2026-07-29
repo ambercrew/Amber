@@ -17,7 +17,7 @@ pub struct FolderRow {
     pub derived_from_id: Option<Uuid>,
     pub derived_from_type: Option<String>,
     pub study_profile_id: Option<Uuid>,
-    pub source_id: Option<Uuid>,
+    pub bibliographical_source_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
 }
@@ -31,7 +31,7 @@ impl From<FolderRow> for Folder {
                 parent: (row.parent_id, row.parent_type).into_element_id(),
                 derived_from: (row.derived_from_id, row.derived_from_type).into_element_id(),
                 study_profile_id: row.study_profile_id,
-                source_id: row.source_id,
+                bibliographical_source_id: row.bibliographical_source_id,
                 position: fractional_index::FractionalIndex::from_bytes(row.position)
                     .expect("Invalid fractional index"),
                 priority: fractional_index::FractionalIndex::from_bytes(row.priority)

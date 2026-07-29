@@ -2,6 +2,7 @@ import {
 	AppShell,
 	createTheme,
 	darken,
+	Fieldset,
 	lighten,
 	Mark,
 	CSSVariablesResolver,
@@ -120,6 +121,16 @@ export const theme = createTheme({
 		Dropzone: Dropzone.extend({
 			styles: {
 				root: {
+					backgroundColor: "transparent",
+				},
+			},
+		}),
+		Fieldset: Fieldset.extend({
+			styles: {
+				root: {
+					backgroundColor: "transparent",
+				},
+				legend: {
 					backgroundColor: "transparent",
 				},
 			},

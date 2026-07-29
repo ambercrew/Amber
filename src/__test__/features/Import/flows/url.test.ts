@@ -7,8 +7,8 @@ import { normalize } from "../../../../features/Import/normalize";
 import { hydrateLazyImages } from "../../../../features/Import/normalize/hydrateLazyImages";
 import { createImportedReading } from "../../../../features/Import/createImportedReading";
 import { runFileImport } from "../../../../features/Import/flows/file";
-import { createSource } from "../../../../api/sources/api/sourcesApi";
-import { SourceResponseDto } from "../../../../api/sources/dto/sourceDto";
+import { createBibliographicalSource } from "../../../../api/bibliographicalSources/api/bibliographicalSourcesApi";
+import { BibliographicalSourceResponseDto } from "../../../../api/bibliographicalSources/dto/bibliographicalSourceDto";
 import { ImportContext } from "../../../../features/Import/importContext";
 import { AppDispatch, RootState } from "../../../../stores/store";
 
@@ -19,11 +19,13 @@ vi.mock(import("../../../../features/Import/normalize"));
 vi.mock(import("../../../../features/Import/normalize/hydrateLazyImages"));
 vi.mock(import("../../../../features/Import/createImportedReading"));
 vi.mock(import("../../../../features/Import/flows/file"));
-vi.mock(import("../../../../api/sources/api/sourcesApi"));
+vi.mock(
+	import("../../../../api/bibliographicalSources/api/bibliographicalSourcesApi"),
+);
 
 function makeSource(
-	overrides: Partial<SourceResponseDto> = {},
-): SourceResponseDto {
+	overrides: Partial<BibliographicalSourceResponseDto> = {},
+): BibliographicalSourceResponseDto {
 	return {
 		id: "source-1",
 		createdAt: "2024-01-01T00:00:00Z",
@@ -156,7 +158,7 @@ describe("runUrlImport", () => {
 			text: ARTICLE_HTML,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -224,7 +226,7 @@ describe("runUrlImport", () => {
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
 		const source = makeSource({ id: "source-1" });
-		vi.mocked(createSource).mockResolvedValue(source);
+		vi.mocked(createBibliographicalSource).mockResolvedValue(source);
 		const ctx = makeCtx();
 
 		// Act
@@ -237,7 +239,7 @@ describe("runUrlImport", () => {
 		expect(normalize).toHaveBeenCalledWith(expect.any(String), {
 			baseUrl: "https://example.com/article",
 		});
-		expect(createSource).toHaveBeenCalledWith({
+		expect(createBibliographicalSource).toHaveBeenCalledWith({
 			title: "Article Title",
 			authors: null,
 			publicationDate: null,
@@ -263,7 +265,7 @@ describe("runUrlImport", () => {
 			text: wikiHtml,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -286,7 +288,7 @@ describe("runUrlImport", () => {
 			text: htmlWithMetadata,
 		});
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
-		vi.mocked(createSource).mockResolvedValue(makeSource());
+		vi.mocked(createBibliographicalSource).mockResolvedValue(makeSource());
 		const ctx = makeCtx();
 
 		// Act
@@ -295,7 +297,7 @@ describe("runUrlImport", () => {
 
 		// Assert
 
-		expect(createSource).toHaveBeenCalledWith({
+		expect(createBibliographicalSource).toHaveBeenCalledWith({
 			title: "Article Title",
 			authors: "Jane Doe",
 			publicationDate: "2020-01-01T00:00:00.000Z",
@@ -313,7 +315,7 @@ describe("importRawPage", () => {
 			"<h1>Fallback Title</h1><p>body</p>",
 		);
 		const source = makeSource({ id: "source-2", title: "Fallback Title" });
-		vi.mocked(createSource).mockResolvedValue(source);
+		vi.mocked(createBibliographicalSource).mockResolvedValue(source);
 		const ctx = makeCtx();
 
 		// Act
@@ -325,7 +327,7 @@ describe("importRawPage", () => {
 		expect(normalize).toHaveBeenCalledWith("<div>raw</div>", {
 			baseUrl: "https://example.com/raw",
 		});
-		expect(createSource).toHaveBeenCalledWith({
+		expect(createBibliographicalSource).toHaveBeenCalledWith({
 			title: "Fallback Title",
 			authors: null,
 			publicationDate: null,

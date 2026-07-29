@@ -1,7 +1,7 @@
 import { extractPdf, PdfProgress } from "../pdf/extract";
 import { normalize } from "../normalize";
 import { createImportedReading } from "../createImportedReading";
-import { createSourceAction } from "../../../stores/sources/sourcesActions";
+import { createBibliographicalSourceAction } from "../../../stores/bibliographicalSources/bibliographicalSourcesActions";
 import { ImportContext } from "../importContext";
 
 export type FileImportError =
@@ -28,8 +28,8 @@ export async function runFileImport(
 				plausibleTitle(extraction.title) ??
 				file.name.replace(/\.pdf$/i, "");
 
-			const source = await ctx.dispatch(
-				createSourceAction({
+			const bibliographicalSource = await ctx.dispatch(
+				createBibliographicalSourceAction({
 					title: file.name,
 					authors: extraction.authors,
 					publicationDate: extraction.publicationDate,
@@ -38,7 +38,12 @@ export async function runFileImport(
 				}),
 			);
 
-			await createImportedReading(ctx, title, content, source.id);
+			await createImportedReading(
+				ctx,
+				title,
+				content,
+				bibliographicalSource.id,
+			);
 		} catch (err) {
 			if (err instanceof Error && err.message === "no-text-layer") {
 				return { kind: "no-text-layer" };

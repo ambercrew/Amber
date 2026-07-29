@@ -5,7 +5,7 @@ import settingsReducer from "./settings/settingsReducer";
 import appReducer from "./app/appReducer.ts";
 import elementsReducer from "./elements/elementsReducer";
 import studyReducer from "./study/studyReducer";
-import sourcesReducer from "./sources/sourcesReducer";
+import bibliographicalSourcesReducer from "./bibliographicalSources/bibliographicalSourcesReducer";
 import elementDetailsReducer from "./elementDetails/elementDetailsReducer";
 import searchReducer from "./search/searchReducer";
 
@@ -16,7 +16,7 @@ const reducers = combineReducers({
 	app: appReducer,
 	elements: elementsReducer,
 	study: studyReducer,
-	sources: sourcesReducer,
+	bibliographicalSources: bibliographicalSourcesReducer,
 	elementDetails: elementDetailsReducer,
 	search: searchReducer,
 });

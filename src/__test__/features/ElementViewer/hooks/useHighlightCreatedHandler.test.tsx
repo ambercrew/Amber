@@ -109,7 +109,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "A Old B New Text C",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -218,7 +218,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "Nested Rest",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 		expect(collectText(parseRoot(dto.content))).toBe("Nested Rest");
 		expect(createCardAction).not.toHaveBeenCalled();
@@ -265,7 +265,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "First Second New Text Third",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -316,7 +316,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "Old Cloze New Text",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -360,7 +360,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "Before Old Cloze Rest",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 		expect(collectText(parseRoot(dto.content))).toBe(
 			"Before Old Cloze Rest",
@@ -397,7 +397,7 @@ describe("useHighlightCreatedHandler", () => {
 			name: "First Middle Second",
 			parent: ELEMENT_ID,
 			derivedFrom: ELEMENT_ID,
-			sourceId: SOURCE_ID,
+			bibliographicalSourceId: SOURCE_ID,
 		});
 		expect(collectText(parseRoot(dto.content))).toBe("First Middle Second");
 	});

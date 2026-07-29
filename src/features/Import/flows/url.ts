@@ -1,6 +1,6 @@
 import Defuddle from "defuddle";
 import { fetchPage } from "../../../api/import/api/importApi";
-import { createSourceAction } from "../../../stores/sources/sourcesActions";
+import { createBibliographicalSourceAction } from "../../../stores/bibliographicalSources/bibliographicalSourcesActions";
 import errorToString from "../../../utils/errorToString";
 import { normalize } from "../normalize";
 import { hydrateLazyImages } from "../normalize/hydrateLazyImages";
@@ -99,8 +99,8 @@ async function importArticleHtml(
 			? trimmedTitle
 			: deriveTitle(content, "");
 
-	const source = await ctx.dispatch(
-		createSourceAction({
+	const bibliographicalSource = await ctx.dispatch(
+		createBibliographicalSourceAction({
 			title: finalTitle,
 			authors,
 			publicationDate,
@@ -109,7 +109,12 @@ async function importArticleHtml(
 		}),
 	);
 
-	await createImportedReading(ctx, finalTitle, content, source.id);
+	await createImportedReading(
+		ctx,
+		finalTitle,
+		content,
+		bibliographicalSource.id,
+	);
 }
 
 const MEDIA_SELECTOR = "img, picture, video, audio, iframe, svg, table";

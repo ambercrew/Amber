@@ -27,7 +27,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            "INSERT INTO meta (element_id, element_type, name, position, priority, parent_id, parent_type, derived_from_id, derived_from_type, study_profile_id, source_id, created_at, modified_at)
+            "INSERT INTO meta (element_id, element_type, name, position, priority, parent_id, parent_type, derived_from_id, derived_from_type, study_profile_id, bibliographical_source_id, created_at, modified_at)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, datetime($12), datetime($13))",
             uuid,
             element_type,
@@ -39,7 +39,7 @@ impl MetaRepository for SqliteMetaRepository {
             meta.derived_from.map(|p| p.id()),
             meta.derived_from.map(|p| p.element_name()),
             meta.study_profile_id,
-            meta.source_id,
+            meta.bibliographical_source_id,
             meta.created_at,
             meta.modified_at,
         )
@@ -65,7 +65,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -187,17 +187,17 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(())
     }
 
-    async fn set_source(
+    async fn set_bibliographical_source(
         &self,
         id: ElementId,
-        source_id: Option<Uuid>,
+        bibliographical_source_id: Option<Uuid>,
     ) -> Result<(), RepositoryError> {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         sqlx::query!(
-            r#"UPDATE meta SET source_id = $1 WHERE element_id = $2"#,
-            source_id,
+            r#"UPDATE meta SET bibliographical_source_id = $1 WHERE element_id = $2"#,
+            bibliographical_source_id,
             uuid
         )
         .execute(&mut *tx)
@@ -218,12 +218,15 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(())
     }
 
-    async fn count_by_source(&self, source_id: Uuid) -> Result<i64, RepositoryError> {
+    async fn count_by_bibliographical_source(
+        &self,
+        bibliographical_source_id: Uuid,
+    ) -> Result<i64, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE source_id = $1"#,
-            source_id
+            r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE bibliographical_source_id = $1"#,
+            bibliographical_source_id
         )
         .fetch_one(&mut *tx)
         .await?;
@@ -284,7 +287,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -317,7 +320,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -353,7 +356,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -412,7 +415,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -443,7 +446,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
@@ -476,7 +479,7 @@ impl MetaRepository for SqliteMetaRepository {
                 derived_from_id as "derived_from_id: _",
                 derived_from_type,
                 study_profile_id as "study_profile_id: _",
-                source_id as "source_id: _",
+                bibliographical_source_id as "bibliographical_source_id: _",
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta

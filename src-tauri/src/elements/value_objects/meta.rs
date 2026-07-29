@@ -17,7 +17,7 @@ pub struct Meta {
     /// Independent of `parent`, which is the element's place in the sidebar tree.
     pub derived_from: Option<ElementId>,
     pub study_profile_id: Option<Uuid>,
-    pub source_id: Option<Uuid>,
+    pub bibliographical_source_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub modified_at: DateTime<Utc>,
 }

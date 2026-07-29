@@ -1,8 +1,8 @@
 use serde::Serialize;
 
+use crate::bibliographical_sources::dto::bibliographical_source_dto::BibliographicalSourceResponseDto;
 use crate::elements::dto::priority_info_dto::PriorityInfoResponseDto;
 use crate::elements::services::element_details_service::ElementDetails;
-use crate::sources::dto::source_dto::SourceResponseDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
 use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
 use crate::study::dto::study_profile_dto::{EffectiveProfileResponseDto, StudyProfileResponseDto};
@@ -12,7 +12,7 @@ use crate::study::dto::study_profile_dto::{EffectiveProfileResponseDto, StudyPro
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ElementDetailsResponseDto {
-    pub source: Option<SourceResponseDto>,
+    pub bibliographical_source: Option<BibliographicalSourceResponseDto>,
     pub derived_from_name: Option<String>,
     pub card_review: Option<CardReviewResponseDto>,
     pub reading_review: Option<ReadingReviewResponseDto>,
@@ -28,7 +28,7 @@ pub struct ElementDetailsResponseDto {
 impl From<ElementDetails> for ElementDetailsResponseDto {
     fn from(details: ElementDetails) -> Self {
         ElementDetailsResponseDto {
-            source: details.source.map(Into::into),
+            bibliographical_source: details.bibliographical_source.map(Into::into),
             derived_from_name: details.derived_from_name,
             card_review: details.card_review.map(Into::into),
             reading_review: details.reading_review.map(Into::into),

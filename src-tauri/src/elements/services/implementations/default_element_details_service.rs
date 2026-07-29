@@ -3,13 +3,13 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
+use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceService;
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::services::element_details_service::{
     ElementDetails, ElementDetailsError, ElementDetailsService,
 };
 use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::sources::services::source_service::SourceService;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
 use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
 use crate::study::services::profile_resolution_service::{ProfileResolutionService, ProfileSource};
@@ -18,7 +18,7 @@ use crate::study::services::study_profile_service::StudyProfileService;
 #[derive(ScopeInjectable)]
 pub struct DefaultElementDetailsService {
     meta_repository: Arc<dyn MetaRepository>,
-    source_service: Arc<dyn SourceService>,
+    bibliographical_source_service: Arc<dyn BibliographicalSourceService>,
     card_review_repository: Arc<dyn CardReviewRepository>,
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
@@ -34,8 +34,12 @@ impl ElementDetailsService for DefaultElementDetailsService {
     ) -> Result<ElementDetails, ElementDetailsError> {
         let meta = self.meta_repository.get_by_id(element_id.id()).await?;
 
-        let source = match meta.source_id {
-            Some(source_id) => Some(self.source_service.get_source(source_id).await?),
+        let bibliographical_source = match meta.bibliographical_source_id {
+            Some(bibliographical_source_id) => Some(
+                self.bibliographical_source_service
+                    .get_bibliographical_source(bibliographical_source_id)
+                    .await?,
+            ),
             None => None,
         };
 
@@ -91,7 +95,7 @@ impl ElementDetailsService for DefaultElementDetailsService {
         };
 
         Ok(ElementDetails {
-            source,
+            bibliographical_source,
             derived_from_name,
             card_review,
             reading_review,
@@ -113,22 +117,23 @@ mod tests {
     use crate::elements::services::implementations::default_priority_service::DefaultPriorityService;
     use crate::elements::services::priority_service::PriorityService;
     use crate::{
+        bibliographical_sources::{
+            repositories::bibliographical_source_repository::BibliographicalSourceRepository,
+            services::bibliographical_source_service::BibliographicalSourceFields,
+            services::implementations::default_bibliographical_source_service::DefaultBibliographicalSourceService,
+            value_objects::bibliographical_source_type::BibliographicalSourceType,
+        },
         elements::{
             entities::card::Card, repositories::card_repository::CardRepository,
             value_objects::meta::Meta,
         },
         infrastructure::repositories::sqlite::{
+            sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
             sqlite_meta_repository::SqliteMetaRepository,
             sqlite_reading_review_repository::SqliteReadingReviewRepository,
-            sqlite_source_repository::SqliteSourceRepository,
             sqlite_study_profile_repository::SqliteStudyProfileRepository,
-        },
-        sources::{
-            repositories::source_repository::SourceRepository,
-            services::implementations::default_source_service::DefaultSourceService,
-            services::source_service::SourceFields, value_objects::source_type::SourceType,
         },
         study::{
             entities::{
@@ -148,8 +153,16 @@ mod tests {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
-        register_scope!(injector, dyn SourceRepository, SqliteSourceRepository);
-        register_scope!(injector, dyn SourceService, DefaultSourceService);
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceRepository,
+            SqliteBibliographicalSourceRepository
+        );
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceService,
+            DefaultBibliographicalSourceService
+        );
         register_scope!(
             injector,
             dyn CardReviewRepository,
@@ -192,7 +205,7 @@ mod tests {
             position: FractionalIndex::default(),
             priority: FractionalIndex::default(),
             study_profile_id: None,
-            source_id: None,
+            bibliographical_source_id: None,
             derived_from: None,
             created_at: Utc::now(),
             modified_at: Utc::now(),
@@ -216,7 +229,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_element_details_element_with_no_source_or_parent_returns_empty_details() {
+    async fn get_element_details_element_with_no_bibliographical_source_or_parent_returns_empty_details()
+     {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -240,7 +254,7 @@ mod tests {
 
         // Assert
 
-        assert!(details.source.is_none());
+        assert!(details.bibliographical_source.is_none());
         assert!(details.derived_from_name.is_none());
         assert!(details.card_review.is_none());
         assert!(details.reading_review.is_none());
@@ -248,24 +262,26 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_element_details_element_with_source_returns_resolved_source() {
+    async fn get_element_details_element_with_bibliographical_source_returns_resolved_bibliographical_source()
+     {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
-        let source_service = scope.resolve::<dyn SourceService>().await;
+        let bibliographical_source_service =
+            scope.resolve::<dyn BibliographicalSourceService>().await;
         let profile_repo = scope.resolve::<dyn StudyProfileRepository>().await;
         let service = scope.resolve::<dyn ElementDetailsService>().await;
 
         profile_repo.create(&make_profile(true)).await.unwrap();
 
-        let source = source_service
-            .create_or_reuse_source(SourceFields {
-                title: "My source".into(),
+        let bibliographical_source = bibliographical_source_service
+            .create_or_reuse_bibliographical_source(BibliographicalSourceFields {
+                title: "My bibliographical source".into(),
                 authors: None,
                 publication_date: None,
-                source_type: SourceType::File,
+                source_type: BibliographicalSourceType::File,
                 location: None,
             })
             .await
@@ -274,7 +290,7 @@ mod tests {
         let folder_id = ElementId::Folder(Uuid::new_v4());
         meta_repo
             .create_meta(&Meta {
-                source_id: Some(source.id),
+                bibliographical_source_id: Some(bibliographical_source.id),
                 ..make_meta(folder_id, None)
             })
             .await
@@ -286,7 +302,14 @@ mod tests {
 
         // Assert
 
-        assert_eq!(details.source.unwrap().source.id, source.id);
+        assert_eq!(
+            details
+                .bibliographical_source
+                .unwrap()
+                .bibliographical_source
+                .id,
+            bibliographical_source.id
+        );
     }
 
     #[tokio::test]
@@ -301,11 +324,11 @@ mod tests {
 
         profile_repo.create(&make_profile(true)).await.unwrap();
 
-        let source_id = ElementId::Reading(Uuid::new_v4());
+        let bibliographical_source_id = ElementId::Reading(Uuid::new_v4());
         meta_repo
             .create_meta(&Meta {
-                name: "Source reading".into(),
-                ..make_meta(source_id, None)
+                name: "BibliographicalSource reading".into(),
+                ..make_meta(bibliographical_source_id, None)
             })
             .await
             .unwrap();
@@ -313,7 +336,7 @@ mod tests {
         let extract_id = ElementId::Extract(Uuid::new_v4());
         meta_repo
             .create_meta(&Meta {
-                derived_from: Some(source_id),
+                derived_from: Some(bibliographical_source_id),
                 ..make_meta(extract_id, None)
             })
             .await
@@ -327,7 +350,7 @@ mod tests {
 
         assert_eq!(
             details.derived_from_name,
-            Some("Source reading".to_string())
+            Some("BibliographicalSource reading".to_string())
         );
     }
 

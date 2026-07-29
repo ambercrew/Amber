@@ -26,7 +26,7 @@ pub trait PriorityService: Send + Sync {
     /// without requiring the user to re-triage every extract.
     async fn get_inherited_priority(
         &self,
-        source_id: ElementId,
+        bibliographical_source_id: ElementId,
     ) -> Result<FractionalIndex, PriorityError>;
 
     async fn get_priority_info(&self, id: ElementId) -> Result<PriorityInfo, PriorityError>;

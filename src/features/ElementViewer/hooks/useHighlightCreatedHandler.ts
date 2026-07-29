@@ -19,7 +19,7 @@ import { CLOZE_COLOR } from "./useElementViewerButtons";
 
 export function useHighlightCreatedHandler(
 	elementId: ElementId | undefined,
-	sourceId: string | null | undefined,
+	bibliographicalSourceId: string | null | undefined,
 ) {
 	const dispatch = useAppDispatch();
 
@@ -40,7 +40,7 @@ export function useHighlightCreatedHandler(
 							name: truncateToWords(fullText),
 							parent: elementId!,
 							derivedFrom: elementId!,
-							sourceId,
+							bibliographicalSourceId,
 						},
 						front: serializedNodesToLexicalJson(fullNodes, () => {
 							$stripOtherHighlights(id);
@@ -61,7 +61,7 @@ export function useHighlightCreatedHandler(
 						name: truncateToWords(selectionText),
 						parent: elementId!,
 						derivedFrom: elementId!,
-						sourceId,
+						bibliographicalSourceId,
 					},
 					content: serializedNodesToLexicalJson(selectionNodes, () =>
 						$stripOtherHighlights(id),
@@ -69,7 +69,7 @@ export function useHighlightCreatedHandler(
 				}),
 			);
 		},
-		[dispatch, elementId, sourceId],
+		[dispatch, elementId, bibliographicalSourceId],
 	);
 }
 

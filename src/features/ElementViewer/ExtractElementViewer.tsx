@@ -1,5 +1,5 @@
 import { Container } from "@mantine/core";
-import ContentSourcePanel from "./ContentSourcePanel";
+import ContentOriginPanel from "./ContentOriginPanel";
 import ElementEditor from "./ElementEditor";
 import { ExtractResponseDto } from "../../api/elements/dto/anyElementDto";
 import { FloatingMenuItem } from "../../components/Editor/plugins/FloatingMenuPlugin";
@@ -46,7 +46,7 @@ export default function ExtractElementViewer({
 					onMatches,
 				}}
 			/>
-			<ContentSourcePanel meta={extract.meta} />
+			<ContentOriginPanel meta={extract.meta} />
 		</Container>
 	);
 }
