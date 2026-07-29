@@ -4,23 +4,23 @@ import { useElementParams } from "./useElementParams";
 import { useIsSmallScreen } from "./useIsSmallScreen";
 
 /**
- * On small screens the sidebar covers the whole viewport, so opening an element
- * has to close it — otherwise the element stays hidden behind the sidebar.
+ * On small screens the side panels cover the whole viewport, so opening an
+ * element has to close them — otherwise it stays hidden behind them.
  */
 export function useCloseSidebarOnSmallScreenNavigation(
-	closeSidebar: () => void,
+	closeSidebars: () => void,
 ) {
 	const location = useLocation();
 	const isSmallScreen = useIsSmallScreen();
 	const isElementRoute = useElementParams() !== null;
-	const closeSidebarRef = useRef(closeSidebar);
+	const closeSidebarsRef = useRef(closeSidebars);
 
 	useEffect(() => {
-		closeSidebarRef.current = closeSidebar;
+		closeSidebarsRef.current = closeSidebars;
 	});
 
 	useEffect(() => {
 		if (!isSmallScreen || !isElementRoute) return;
-		closeSidebarRef.current();
+		closeSidebarsRef.current();
 	}, [location.key, isSmallScreen, isElementRoute]);
 }
