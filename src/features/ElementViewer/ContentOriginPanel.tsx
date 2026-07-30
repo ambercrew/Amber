@@ -93,10 +93,7 @@ export default function ContentOriginPanel({ meta }: ContentOriginPanelProps) {
 							<Stack gap="md">
 								<OriginField
 									label="Title"
-									value={
-										bibliographicalSource?.title ??
-										"No source"
-									}
+									value={bibliographicalSource?.title ?? "—"}
 								/>
 								<OriginField
 									label="Authors"
