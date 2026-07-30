@@ -13,4 +13,5 @@ pub struct UpdateSettingsRequestDto {
     pub theme: Option<Theme>,
     pub zoom_percentage: Option<f64>,
     pub auto_sync: Option<bool>,
+    pub trash_retention_days: Option<u32>,
 }

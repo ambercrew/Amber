@@ -15,7 +15,7 @@ vi.mock(
 	() => ({ default: () => <></> }),
 );
 vi.mock(
-	import("../../../../../features/Sidebar/components/DeleteElementModal"),
+	import("../../../../../features/Sidebar/components/TrashElementModal"),
 	() => ({ default: () => <></> }),
 );
 vi.mock(

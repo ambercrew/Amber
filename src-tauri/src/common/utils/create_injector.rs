@@ -47,6 +47,7 @@ use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repositor
 use crate::infrastructure::repositories::sqlite::sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_trash_repository::SqliteTrashRepository;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
 use crate::infrastructure::value_objects::db_pool::DbPool;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
@@ -96,8 +97,19 @@ use crate::{
             syncer::{SyncLock, Syncer},
         },
         strategies::{
-            implementations::deleted_entity_strategy::DefaultDeletedEntityStrategy,
+            implementations::{
+                deleted_entity_strategy::DefaultDeletedEntityStrategy,
+                trash_state_strategy::DefaultTrashStateStrategy,
+            },
             sync_entity_strategy::SyncEntityStrategy,
+        },
+    },
+    trash::{
+        entities::trash_state::TrashState,
+        repositories::trash_repository::TrashRepository,
+        services::{
+            implementations::default_trash_service::DefaultTrashService,
+            trash_service::TrashService,
         },
     },
 };
@@ -178,6 +190,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
     register_scope!(injector, dyn ElementTreeService, DefaultElementTreeService);
     register_scope!(injector, dyn ElementMoveService, DefaultElementMoveService);
     register_scope!(injector, dyn PriorityService, DefaultPriorityService);
+
+    // Trash
+
+    register_scope!(injector, dyn TrashRepository, SqliteTrashRepository);
+    register_scope!(injector, dyn TrashService, DefaultTrashService);
 
     // Study
 
@@ -267,6 +284,11 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         injector,
         dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,
         DefaultDeletedEntityStrategy
+    );
+    register_scope!(
+        injector,
+        dyn SyncEntityStrategy<Input = generated_code::TrashState, Entity = TrashState>,
+        DefaultTrashStateStrategy
     );
     register_scope!(injector, dyn Syncer, DefaultSyncer);
 

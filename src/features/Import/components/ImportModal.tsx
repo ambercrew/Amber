@@ -362,16 +362,20 @@ function ImportModal() {
 						right={0}
 						bottom={0}
 						style={{
-							// TODO: use mantine primary color
-							border: "2px dashed var(--mantine-color-blue-5)",
+							border: "2px dashed var(--mantine-primary-color-filled)",
 							borderRadius: "var(--mantine-radius-md)",
-							backgroundColor: "var(--mantine-color-blue-0)",
+							// Opaque so the form underneath is fully covered
+							// while dragging.
+							backgroundColor:
+								"light-dark(var(--mantine-primary-color-0), var(--mantine-primary-color-9))",
 						}}>
 						<ArrowsInSimpleIcon
 							size={28}
-							color="var(--mantine-color-blue-6)"
+							color="var(--mantine-primary-color-light-color)"
 						/>
-						<Text fw={600} c="blue">
+						<Text
+							fw={600}
+							c="var(--mantine-primary-color-light-color)">
 							Drop to import
 						</Text>
 					</Stack>

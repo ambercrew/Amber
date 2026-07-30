@@ -5,6 +5,7 @@ import ElementTree from "../../../../../features/Sidebar/components/ElementTree/
 import { renderWithProviders } from "../../../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../../../stores/elements/elementsActions"));
+vi.mock(import("../../../../../stores/trash/trashActions"));
 
 const TREE: NodeDto[] = [
 	{
@@ -24,28 +25,32 @@ describe("ElementTree delete", () => {
 		return renderWithProviders(<ElementTree tree={TREE} />);
 	}
 
-	it("Should open the delete confirmation modal when Delete is clicked", async () => {
+	it("Should open the move to trash confirmation modal when Move to trash is clicked", async () => {
 		// Arrange
 
 		const user = userEvent.setup();
 		render();
 
-		// Act — right-click Science to open the context menu, then click Delete
+		// Act — right-click Science to open the context menu, then trash it
 
 		await user.pointer({
 			target: screen.getByTitle("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
-			() => expect(screen.getByText("Delete")).toBeInTheDocument(),
+			() => expect(screen.getByText("Move to trash")).toBeInTheDocument(),
 			{ timeout: 2000 },
 		);
-		await user.click(screen.getByText("Delete"));
+		await user.click(screen.getByText("Move to trash"));
 
 		// Assert — the confirmation modal is shown
 
 		await waitFor(() => {
-			expect(screen.getByText("Delete element")).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					/This element and everything under it will be moved to the trash/,
+				),
+			).toBeInTheDocument();
 		});
 	});
 });

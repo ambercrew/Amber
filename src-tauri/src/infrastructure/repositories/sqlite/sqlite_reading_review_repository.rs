@@ -100,6 +100,7 @@ impl ReadingReviewRepository for SqliteReadingReviewRepository {
             FROM meta m
             LEFT JOIN reading_reviews rr ON rr.element_id = m.element_id
             WHERE m.element_type IN ('reading', 'extract')
+              AND m.trashed_at IS NULL
               AND (rr.element_id IS NULL OR (rr.finished_at IS NULL AND rr.due <= datetime($1)))"#,
             as_of
         )

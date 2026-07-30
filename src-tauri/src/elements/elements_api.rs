@@ -48,21 +48,6 @@ pub async fn get_element_tree(
 }
 
 #[tauri::command]
-pub async fn delete_element(
-    injector: State<'_, Arc<Injector>>,
-    element_id: ElementId,
-) -> Result<(), ApiError> {
-    let scope = injector.start_scope();
-    scope
-        .resolve::<dyn MetaRepository>()
-        .await
-        .delete(element_id)
-        .await?;
-    scope.save_changes().await?;
-    Ok(())
-}
-
-#[tauri::command]
 pub async fn rename_element(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,

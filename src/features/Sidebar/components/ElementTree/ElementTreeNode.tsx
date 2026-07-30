@@ -15,7 +15,7 @@ import ElementNodeIcon from "../../../App/components/ElementNodeIcon";
 import { isMobile } from "../../../../utils/tauriUtils";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeProps } from "../../utils/elementTreeUtils";
-import DeleteElementModal from "../DeleteElementModal";
+import TrashElementModal from "../TrashElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import RenameElementForm from "./RenameElementForm";
 
@@ -53,7 +53,7 @@ function ElementTreeNode({
 	const [isHovered, setIsHovered] = useState(false);
 	// Only controls the menu with three dots.
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const [deleteTarget, setDeleteTarget] = useState<ElementId | null>(null);
+	const [trashTarget, setTrashTarget] = useState<ElementId | null>(null);
 
 	const { onClick: toggleExpanded, ...restElementProps } = elementProps;
 
@@ -153,15 +153,15 @@ function ElementTreeNode({
 						<ElementTreeMenuItems
 							elementId={{ type, id }}
 							onRenameClick={onRenameClick}
-							onDeleteClick={() => setDeleteTarget({ type, id })}
+							onTrashClick={() => setTrashTarget({ type, id })}
 							onAfterCreate={onAfterCreate}
 						/>
 					</Menu.Dropdown>
 				</Menu>
 			</Group>
-			<DeleteElementModal
-				elementId={deleteTarget}
-				onClose={() => setDeleteTarget(null)}
+			<TrashElementModal
+				elementId={trashTarget}
+				onClose={() => setTrashTarget(null)}
 			/>
 		</>
 	);

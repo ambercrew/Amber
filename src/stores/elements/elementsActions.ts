@@ -4,14 +4,12 @@ import {
 	createExtract,
 	createFolder,
 	createReading,
-	deleteElement,
 	getElementTree,
 	moveElement,
 	MoveElementDto,
 	renameElement,
 } from "../../api/elements/api/elementsApi";
 import { NodeDto } from "../../api/elements/dto/nodeDto";
-import { clearSplitHeights } from "../../features/ElementViewer/ReadingView/heights/splitHeightsStorage";
 import { CreateCardDto } from "../../types/elements/createCardDto";
 import { CreateExtractDto } from "../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../types/elements/createFolderDto";
@@ -39,14 +37,6 @@ export function clearDerivedFromAction(elementId: ElementId) {
 		await clearDerivedFrom(elementId);
 		dispatch(setCurrentElementMeta({ derivedFrom: null }));
 	};
-}
-
-export function deleteElementAction(elementId: ElementId) {
-	return withTreeRefresh(async () => {
-		await deleteElement(elementId);
-		// The reading's cached split heights are now dead weight in localStorage.
-		if (elementId.type === "reading") clearSplitHeights(elementId.id);
-	});
 }
 
 export function renameElementAction(elementId: ElementId, newName: string) {

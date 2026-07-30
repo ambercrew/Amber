@@ -1,7 +1,8 @@
-import { TreeViewIcon, QueueIcon } from "@phosphor-icons/react";
+import { TreeViewIcon, QueueIcon, TrashIcon } from "@phosphor-icons/react";
 import CollapsibleSidebar from "../../../components/CollapsibleSidebar/CollapsibleSidebar";
 import ElementTreePanel from "./ElementTreePanel";
 import PriorityQueuePanel from "./PriorityQueuePanel";
+import TrashPanel from "./TrashPanel";
 
 interface SidebarProps {
 	onCollapse: () => void;
@@ -24,6 +25,12 @@ function Sidebar({ onCollapse }: SidebarProps) {
 					title: "Priority queue - used for reviewing your learning materials",
 					icon: <QueueIcon size={16} />,
 					panel: <PriorityQueuePanel />,
+				},
+				{
+					value: "trash",
+					title: "Trash - deleted elements you can still restore",
+					icon: <TrashIcon size={16} />,
+					panel: <TrashPanel />,
 				},
 			]}
 		/>

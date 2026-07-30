@@ -11,6 +11,7 @@ use crate::{
         services::settings_updater::{SettingsUpdater, SettingsUpdaterError},
         value_objects::settings_profile::SettingsProfile,
     },
+    trash::services::trash_service::MIN_TRASH_RETENTION_DAYS,
 };
 
 #[derive(ScopeInjectable)]
@@ -48,6 +49,12 @@ impl SettingsUpdater for DefaultSettingsUpdater {
         }
         if let Some(auto_sync) = new_settings.auto_sync {
             settings.auto_sync = auto_sync;
+        }
+        if let Some(trash_retention_days) = new_settings.trash_retention_days {
+            // Clamped here rather than trusted, because a zero retention that
+            // reached the settings file would have the purge empty the trash as
+            // fast as the user filled it.
+            settings.trash_retention_days = trash_retention_days.max(MIN_TRASH_RETENTION_DAYS);
         }
 
         if change_database_location {
@@ -146,6 +153,33 @@ mod tests {
         // Act & Assert
 
         service.update_settings(request).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn update_settings_zero_trash_retention_stored_the_minimum_instead() {
+        // Arrange
+
+        let request = UpdateSettingsRequestDto {
+            trash_retention_days: Some(0),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(MockDatabaseConnectionManager::new()).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<DefaultSettingsUpdater>().await;
+
+        // Act
+
+        service.update_settings(request).await.unwrap();
+
+        // Assert
+
+        let actual = scope
+            .resolve::<dyn SettingsRepository>()
+            .await
+            .get_settings()
+            .await;
+        assert_eq!(MIN_TRASH_RETENTION_DAYS, actual.trash_retention_days);
     }
 
     #[tokio::test]

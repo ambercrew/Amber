@@ -3,8 +3,8 @@ use fractional_index::FractionalIndex;
 use uuid::Uuid;
 
 use crate::elements::{
-    extensions::into_element_id_ext::IntoOptionalElementIdExt,
-    value_objects::{element_id::ElementId, meta::Meta},
+    extensions::into_element_id_ext::{IntoElementIdExt, IntoOptionalElementIdExt},
+    value_objects::meta::Meta,
 };
 
 #[derive(Debug, Clone, sqlx::FromRow)]
@@ -26,14 +26,8 @@ pub struct MetaRow {
 
 impl From<MetaRow> for Meta {
     fn from(row: MetaRow) -> Self {
-        let element_id = match row.element_type.as_str() {
-            "folder" => ElementId::Folder(row.element_id),
-            "reading" => ElementId::Reading(row.element_id),
-            "extract" => ElementId::Extract(row.element_id),
-            _ => ElementId::Card(row.element_id),
-        };
         Meta {
-            element_id,
+            element_id: (row.element_id, row.element_type).into_element_id(),
             name: row.name,
             parent: (row.parent_id, row.parent_type).into_element_id(),
             derived_from: (row.derived_from_id, row.derived_from_type).into_element_id(),

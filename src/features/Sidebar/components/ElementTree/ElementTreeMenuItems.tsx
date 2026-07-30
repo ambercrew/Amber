@@ -6,12 +6,12 @@ import CreateElementDropDown from "../CreateElementMenuDropDown";
 function ElementTreeMenuItems({
 	elementId,
 	onRenameClick,
-	onDeleteClick,
+	onTrashClick,
 	onAfterCreate,
 }: {
 	elementId: ElementId;
 	onRenameClick: () => void;
-	onDeleteClick: () => void;
+	onTrashClick: () => void;
 	onAfterCreate: () => void;
 }) {
 	return (
@@ -37,8 +37,8 @@ function ElementTreeMenuItems({
 			<Menu.Item
 				leftSection={<TrashIcon size={16} />}
 				color="red"
-				onClick={onDeleteClick}>
-				Delete
+				onClick={onTrashClick}>
+				Move to trash
 			</Menu.Item>
 		</>
 	);

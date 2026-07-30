@@ -22,6 +22,7 @@ use crate::{
         services::syncer::{SyncError, SyncLock, Syncer},
         strategies::sync_entity_strategy::{ParseSyncedEntityReference, SyncEntityStrategy},
     },
+    trash::entities::trash_state::TrashState,
 };
 
 const LAST_SYNC_DATE_CONFIGURATION_NAME: &str = "LAST_SYNC_DATE";
@@ -35,6 +36,8 @@ pub struct DefaultSyncer {
     sync_lock: Arc<SyncLock>,
     deleted_entity_strategy:
         Arc<dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>>,
+    trash_state_strategy:
+        Arc<dyn SyncEntityStrategy<Input = generated_code::TrashState, Entity = TrashState>>,
 }
 
 #[async_trait]
@@ -145,6 +148,14 @@ impl DefaultSyncer {
                     )
                     .await?
                 }
+                EntityType::TrashState => {
+                    self.process_with_strategy(
+                        &synced_entity,
+                        &bytes,
+                        Arc::clone(&self.trash_state_strategy),
+                    )
+                    .await?
+                }
             };
 
             if rows_affected > 0 {
@@ -248,6 +259,11 @@ impl DefaultSyncer {
         let mut synced_entities = Vec::<SyncEntityDto>::new();
         synced_entities.extend(
             self.deleted_entity_strategy
+                .get_sync_dtos_modified_since(last_sync_date)
+                .await?,
+        );
+        synced_entities.extend(
+            self.trash_state_strategy
                 .get_sync_dtos_modified_since(last_sync_date)
                 .await?,
         );
