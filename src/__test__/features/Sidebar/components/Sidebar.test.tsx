@@ -11,6 +11,9 @@ vi.mock(
 	import("../../../../features/Sidebar/components/PriorityQueuePanel"),
 	() => ({ default: () => <div>PriorityQueuePanel</div> }),
 );
+vi.mock(import("../../../../features/Sidebar/components/TrashPanel"), () => ({
+	default: () => <div>TrashPanel</div>,
+}));
 
 describe("Sidebar", () => {
 	function render() {
@@ -48,6 +51,21 @@ describe("Sidebar", () => {
 		// Assert
 
 		expect(screen.getByText("PriorityQueuePanel")).toBeVisible();
+		expect(screen.queryByText("ElementTreePanel")).not.toBeVisible();
+	});
+
+	it("Should show TrashPanel when trash tab is active", () => {
+		// Arrange
+
+		render();
+
+		// Act
+
+		fireEvent.click(screen.getByTitle(/trash/i));
+
+		// Assert
+
+		expect(screen.getByText("TrashPanel")).toBeVisible();
 		expect(screen.queryByText("ElementTreePanel")).not.toBeVisible();
 	});
 

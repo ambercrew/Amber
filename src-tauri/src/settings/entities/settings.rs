@@ -5,13 +5,14 @@ use serde::{Deserialize, Serialize};
 use crate::settings::value_objects::{
     database_location::DatabaseLocation, settings_profile::SettingsProfile, theme::Theme,
 };
+use crate::trash::services::trash_service::DEFAULT_TRASH_RETENTION_DAYS;
 
 #[cfg(not(debug_assertions))]
 const DATABASE_FILE_NAME: &str = "amber.db";
 #[cfg(debug_assertions)]
 const DATABASE_FILE_NAME: &str = "amber.dev.db";
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub(in crate::settings) base_database_directory: PathBuf,
@@ -20,6 +21,29 @@ pub struct Settings {
     pub theme: Theme,
     pub zoom_percentage: f64,
     pub auto_sync: bool,
+
+    /// How many days elements stay in the trash before they are purged.
+    /// Defaulted so a settings file written before the trash existed still
+    /// parses instead of taking the whole app down on startup.
+    #[serde(default = "default_trash_retention_days")]
+    pub trash_retention_days: u32,
+}
+
+fn default_trash_retention_days() -> u32 {
+    DEFAULT_TRASH_RETENTION_DAYS
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Settings {
+            base_database_directory: PathBuf::default(),
+            profile: SettingsProfile::default(),
+            theme: Theme::default(),
+            zoom_percentage: f64::default(),
+            auto_sync: bool::default(),
+            trash_retention_days: DEFAULT_TRASH_RETENTION_DAYS,
+        }
+    }
 }
 
 impl Settings {
@@ -30,6 +54,7 @@ impl Settings {
             theme: Theme::FollowSystem,
             zoom_percentage: 100f64,
             auto_sync: true,
+            trash_retention_days: DEFAULT_TRASH_RETENTION_DAYS,
         }
     }
 

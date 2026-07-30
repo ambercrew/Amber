@@ -8,6 +8,7 @@ const settings: UpdateSettingsRequestDto = {
 	theme: "Light",
 	zoomPercentage: 100,
 	autoSync: true,
+	trashRetentionDays: 30,
 	enableAi: false,
 	aiProvider: "ollama",
 	ollama: { modelName: null, embeddingsModelName: null },

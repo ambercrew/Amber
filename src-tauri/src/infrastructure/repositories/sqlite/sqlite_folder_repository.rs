@@ -55,6 +55,7 @@ impl FolderRepository for SqliteFolderRepository {
                 m.modified_at as "modified_at: _"
             FROM folders f
             INNER JOIN meta m ON f.id = m.element_id
+            WHERE m.trashed_at IS NULL
             ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)

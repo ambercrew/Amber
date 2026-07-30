@@ -10,7 +10,7 @@ import { renderWithProviders } from "../../../../test-utils/renderWithProviders"
 
 vi.mock(import("../../../../../stores/elements/elementsActions"));
 vi.mock(
-	import("../../../../../features/Sidebar/components/DeleteElementModal"),
+	import("../../../../../features/Sidebar/components/TrashElementModal"),
 	() => ({ default: () => <></> }),
 );
 vi.mock(

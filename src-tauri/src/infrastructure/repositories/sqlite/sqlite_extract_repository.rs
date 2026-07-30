@@ -64,6 +64,7 @@ impl ExtractRepository for SqliteExtractRepository {
                 e.interval_multiplier
             FROM extracts e
             INNER JOIN meta m ON e.id = m.element_id
+            WHERE m.trashed_at IS NULL
             ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)
