@@ -97,15 +97,11 @@ use crate::{
             syncer::{SyncLock, Syncer},
         },
         strategies::{
-            implementations::{
-                deleted_entity_strategy::DefaultDeletedEntityStrategy,
-                trash_state_strategy::DefaultTrashStateStrategy,
-            },
+            implementations::deleted_entity_strategy::DefaultDeletedEntityStrategy,
             sync_entity_strategy::SyncEntityStrategy,
         },
     },
     trash::{
-        entities::trash_state::TrashState,
         repositories::trash_repository::TrashRepository,
         services::{
             implementations::default_trash_service::DefaultTrashService,
@@ -284,11 +280,6 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         injector,
         dyn SyncEntityStrategy<Input = generated_code::DeletedEntity, Entity = DeletedEntity>,
         DefaultDeletedEntityStrategy
-    );
-    register_scope!(
-        injector,
-        dyn SyncEntityStrategy<Input = generated_code::TrashState, Entity = TrashState>,
-        DefaultTrashStateStrategy
     );
     register_scope!(injector, dyn Syncer, DefaultSyncer);
 

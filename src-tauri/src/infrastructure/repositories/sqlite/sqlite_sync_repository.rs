@@ -99,9 +99,7 @@ impl SyncRepository for SqliteSyncRepository {
     }
 
     async fn delete_synced_entity(&self, entity: &SyncedEntity) -> Result<(), RepositoryError> {
-        let Some(table_name) = get_entity_table_name(entity.entity_type) else {
-            return Ok(());
-        };
+        let table_name = get_entity_table_name(entity.entity_type);
 
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
@@ -135,12 +133,8 @@ impl SyncRepository for SqliteSyncRepository {
     }
 }
 
-/// The table a synced entity of this type owns a row in, or `None` when the
-/// entity is only a set of columns on a row owned by something else and so
-/// cannot be dropped on its own.
-fn get_entity_table_name(entity_type: EntityType) -> Option<&'static str> {
+fn get_entity_table_name(entity_type: EntityType) -> &'static str {
     match entity_type {
-        EntityType::DeletedEntity => Some("deleted_entities"),
-        EntityType::TrashState => None,
+        EntityType::DeletedEntity => "deleted_entities",
     }
 }

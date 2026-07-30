@@ -3,7 +3,6 @@ use chrono::{DateTime, Utc};
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::trash::entities::trash_state::TrashState;
 use crate::trash::entities::trashed_element::TrashedElement;
 
 #[async_trait]
@@ -16,11 +15,7 @@ pub trait TrashRepository: Send + Sync {
     /// Restores the element and the subtree trashed with it. Descendants that
     /// are trash roots of their own stay behind. Returns the ids that were
     /// actually restored.
-    async fn restore(
-        &self,
-        id: ElementId,
-        restored_at: DateTime<Utc>,
-    ) -> Result<Vec<ElementId>, RepositoryError>;
+    async fn restore(&self, id: ElementId) -> Result<Vec<ElementId>, RepositoryError>;
 
     /// The elements the user explicitly trashed, most recently trashed first.
     async fn get_trashed_roots(&self) -> Result<Vec<TrashedElement>, RepositoryError>;
@@ -38,15 +33,4 @@ pub trait TrashRepository: Send + Sync {
     /// Used on restore to decide whether the element must move back to the
     /// root instead of its old location.
     async fn has_live_ancestry(&self, id: ElementId) -> Result<bool, RepositoryError>;
-
-    /// Trash states modified on or after `since`, for the push phase of a
-    /// sync.
-    async fn get_states_modified_since(
-        &self,
-        since: DateTime<Utc>,
-    ) -> Result<Vec<TrashState>, RepositoryError>;
-
-    /// Applies a trash state received from the backend, ignoring it if the
-    /// local state is at least as recent. Returns the number of rows written.
-    async fn apply_state(&self, state: TrashState) -> Result<u64, RepositoryError>;
 }

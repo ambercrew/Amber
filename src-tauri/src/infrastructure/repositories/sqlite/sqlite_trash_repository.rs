@@ -8,7 +8,6 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::extensions::into_element_id_ext::IntoElementIdExt;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
-use crate::trash::entities::trash_state::TrashState;
 use crate::trash::entities::trashed_element::TrashedElement;
 use crate::trash::repositories::trash_repository::TrashRepository;
 
@@ -36,8 +35,7 @@ impl TrashRepository for SqliteTrashRepository {
             )
             UPDATE meta
             SET trashed_at = datetime($2),
-                trashed_root = CASE WHEN element_id = $1 THEN 1 ELSE 0 END,
-                trash_modified_at = datetime($2)
+                trashed_root = CASE WHEN element_id = $1 THEN 1 ELSE 0 END
             WHERE element_id IN (SELECT element_id FROM subtree)
               AND (element_id = $1 OR trashed_at IS NULL)"#,
             uuid,
@@ -49,11 +47,7 @@ impl TrashRepository for SqliteTrashRepository {
         Ok(())
     }
 
-    async fn restore(
-        &self,
-        id: ElementId,
-        restored_at: DateTime<Utc>,
-    ) -> Result<Vec<ElementId>, RepositoryError> {
+    async fn restore(&self, id: ElementId) -> Result<Vec<ElementId>, RepositoryError> {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
@@ -69,12 +63,10 @@ impl TrashRepository for SqliteTrashRepository {
             )
             UPDATE meta
             SET trashed_at = NULL,
-                trashed_root = 0,
-                trash_modified_at = datetime($2)
+                trashed_root = 0
             WHERE element_id IN (SELECT element_id FROM subtree)
             RETURNING element_id as "element_id: uuid::Uuid", element_type"#,
-            uuid,
-            restored_at
+            uuid
         )
         .fetch_all(&mut *tx)
         .await?;
@@ -192,62 +184,5 @@ impl TrashRepository for SqliteTrashRepository {
         .await?;
 
         Ok(row.has_live_ancestry)
-    }
-
-    async fn get_states_modified_since(
-        &self,
-        since: DateTime<Utc>,
-    ) -> Result<Vec<TrashState>, RepositoryError> {
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-
-        let rows = sqlx::query!(
-            r#"SELECT
-                element_id as "element_id: uuid::Uuid",
-                created_at as "created_at: DateTime<Utc>",
-                trashed_at as "trashed_at: DateTime<Utc>",
-                trashed_root,
-                trash_modified_at as "trash_modified_at!: DateTime<Utc>"
-            FROM meta
-            WHERE trash_modified_at IS NOT NULL AND trash_modified_at >= datetime($1)"#,
-            since
-        )
-        .fetch_all(&mut *tx)
-        .await?;
-
-        Ok(rows
-            .into_iter()
-            .map(|row| TrashState {
-                element_id: row.element_id,
-                element_created_at: row.created_at,
-                trashed_at: row.trashed_at,
-                trashed_root: row.trashed_root != 0,
-                trash_modified_at: row.trash_modified_at,
-            })
-            .collect())
-    }
-
-    async fn apply_state(&self, state: TrashState) -> Result<u64, RepositoryError> {
-        let mut tx = self.tx.lock().await;
-        let tx = tx.as_mut();
-
-        let trashed_root = i64::from(state.trashed_root);
-
-        let result = sqlx::query!(
-            r#"UPDATE meta
-            SET trashed_at = datetime($1),
-                trashed_root = $2,
-                trash_modified_at = datetime($3)
-            WHERE element_id = $4
-              AND (trash_modified_at IS NULL OR trash_modified_at < datetime($3))"#,
-            state.trashed_at,
-            trashed_root,
-            state.trash_modified_at,
-            state.element_id
-        )
-        .execute(&mut *tx)
-        .await?;
-
-        Ok(result.rows_affected())
     }
 }

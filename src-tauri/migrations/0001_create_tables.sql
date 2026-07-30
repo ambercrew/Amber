@@ -218,9 +218,6 @@ CREATE TABLE meta(
     -- 1 for the element the user explicitly trashed, 0 for the descendants that
     -- went with it.
     trashed_root        INTEGER NOT NULL DEFAULT 0,
-    -- When the trash state last changed, including restores (where `trashed_at`
-    -- goes back to NULL).
-    trash_modified_at   TEXT,
     FOREIGN KEY (study_profile_id) REFERENCES study_profiles(id) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (bibliographical_source_id) REFERENCES bibliographical_sources(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -230,7 +227,6 @@ CREATE INDEX meta_bibliographical_source_trashed_index ON meta(bibliographical_s
 CREATE INDEX meta_derived_from_id_index ON meta(derived_from_id);
 CREATE INDEX meta_trashed_priority_index ON meta(trashed_at, priority);
 CREATE INDEX meta_trashed_root_trashed_at_index ON meta(trashed_root, trashed_at);
-CREATE INDEX meta_trash_modified_at_index ON meta(trash_modified_at);
 
 CREATE TRIGGER meta_update_modified_at_after_update
     AFTER UPDATE OF name, position, priority, parent_id, parent_type, derived_from_type, derived_from_id, study_profile_id, bibliographical_source_id ON meta
