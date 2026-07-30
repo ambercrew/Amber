@@ -21,6 +21,7 @@ import {
 	editorTheme,
 } from "./editorExtension";
 import styles from "./Editor.module.css";
+import { useIsCoarsePointer } from "../../hooks/useIsCoarsePointer";
 
 // @lexical/code-shiki bakes the Shiki theme used at highlight time into
 // each CodeNode's serialized JSON, and only re-highlights with the
@@ -52,6 +53,9 @@ export default function Editor({
 	contextMenuItems,
 }: EditorProps) {
 	const colorScheme = useComputedColorScheme("light");
+	// The floating selection menu already covers this with a coarse pointer.
+	const coarsePointer = useIsCoarsePointer();
+	const contextMenuDisabled = !contextMenuItems || coarsePointer;
 
 	const editorExtension = useMemo(
 		() =>
@@ -83,7 +87,7 @@ export default function Editor({
 
 	return (
 		<Menu withinPortal shadow="lg">
-			<Menu.ContextMenu disabled={!contextMenuItems}>
+			<Menu.ContextMenu disabled={contextMenuDisabled}>
 				<Typography>
 					<LexicalExtensionComposer
 						extension={editorExtension}
@@ -112,7 +116,7 @@ export default function Editor({
 					</LexicalExtensionComposer>
 				</Typography>
 			</Menu.ContextMenu>
-			{contextMenuItems && (
+			{!contextMenuDisabled && (
 				<Menu.Dropdown>{contextMenuItems}</Menu.Dropdown>
 			)}
 		</Menu>
