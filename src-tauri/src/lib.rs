@@ -17,7 +17,6 @@ mod test_utils;
 mod trash;
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use tauri::Manager;
 
@@ -38,12 +37,10 @@ pub use sync::sync_api::sync;
 use tauri_plugin_window_state::StateFlags;
 use tokio::runtime::Handle;
 
-use crate::backup::services::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
+use crate::backup::background::spawn_backup_task;
 use crate::common::utils::create_injector::create_injector;
-use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
-use crate::settings::repositories::settings_repository::SettingsRepository;
-use crate::trash::services::trash_service::{TIME_BETWEEN_TRASH_PURGES_IN_MINUTES, TrashService};
+use crate::trash::background::spawn_trash_purge_task;
 
 pub use common::types::SourceError;
 
@@ -116,74 +113,11 @@ pub async fn run() -> Result<(), String> {
                     .set_title("Amber - development");
             }
 
-            // TODO: needs refactoring, move to another file
             // Starting the trash retention purge, which also runs once right away.
-            let purge_injector = injector.clone();
-            tokio::spawn(async move {
-                let mut interval = tokio::time::interval(Duration::from_mins(
-                    TIME_BETWEEN_TRASH_PURGES_IN_MINUTES,
-                ));
-                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            spawn_trash_purge_task(injector.clone());
 
-                loop {
-                    interval.tick().await;
-                    let scope = purge_injector.start_scope();
-
-                    let retention_days = scope
-                        .resolve::<dyn SettingsRepository>()
-                        .await
-                        .get_settings()
-                        .await
-                        .trash_retention_days;
-
-                    match scope
-                        .resolve::<dyn TrashService>()
-                        .await
-                        .purge_expired(retention_days)
-                        .await
-                    {
-                        Ok(0) => continue,
-                        Ok(purged) => log::info!("Purged {purged} expired element(s) from trash."),
-                        Err(err) => {
-                            log::error!("An error happened when purging the trash {:?}", err);
-                            continue;
-                        }
-                    }
-
-                    if let Err(err) = scope.save_changes().await {
-                        log::error!(
-                            "An error happened when saving changes for the trash purge {:?}",
-                            err
-                        );
-                    }
-                }
-            });
-
-            // Starting backup service.
-            // TODO: same here
-            tokio::spawn(async move {
-                let mut interval =
-                    tokio::time::interval(Duration::from_mins(TIME_BETWEEN_BACKUPS_IN_MINUTES));
-                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-
-                loop {
-                    interval.tick().await;
-                    let scope = injector.start_scope();
-
-                    if let Err(err) = scope
-                        .resolve::<dyn BackupService>()
-                        .await
-                        .ensure_backup()
-                        .await
-                    {
-                        log::error!("An error happened when creating a backup {:?}", err);
-                    }
-
-                    if let Err(err) = scope.save_changes().await {
-                        log::error!("An error happened when saving changes for backup {:?}", err);
-                    }
-                }
-            });
+            // Starting the backup service.
+            spawn_backup_task(injector);
 
             Ok(())
         })
