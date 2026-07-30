@@ -1,7 +1,15 @@
+<p align="center">
+  <img src="public/icon.svg" alt="Amber icon" width="96" height="96">
+</p>
+
 <h1 align="center">Amber</h1>
 
 <p align="center">
   Distraction-free, minimalist yet powerful incremental learning — free and open source.
+</p>
+
+<p align="center">
+  <a href="https://discord.gg/krb7uWTQjt">Discord</a>
 </p>
 
 ---
