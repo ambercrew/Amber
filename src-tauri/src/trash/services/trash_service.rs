@@ -19,33 +19,29 @@ pub const MIN_TRASH_RETENTION_DAYS: u32 = 1;
 /// retention threshold.
 pub const TIME_BETWEEN_TRASH_PURGES_IN_MINUTES: u64 = 12 * 60;
 
-// TODO: review
-// TODO: make comments less verbose
 #[async_trait]
 pub trait TrashService: Send + Sync {
-    /// Moves the element, and everything under it, to the trash. Descendants
-    /// that are already in the trash on their own stay that way, so restoring
-    /// this element later does not bring them back with it.
+    /// Moves the element and its subtree to the trash. Descendants already
+    /// trashed on their own are left alone, so restoring this element later
+    /// doesn't bring them back with it.
     async fn trash_element(&self, id: ElementId) -> Result<(), TrashServiceError>;
 
-    /// Brings a trashed element and the subtree trashed with it back into the
-    /// tree. An element with a missing or still-trashed ancestor anywhere up its
-    /// chain comes back at the root, since it would be invisible where it was.
+    /// Restores a trashed element and its subtree. An element whose ancestry
+    /// is missing or still trashed comes back at the root instead.
     async fn restore_element(&self, id: ElementId) -> Result<(), TrashServiceError>;
 
     /// The elements the user explicitly trashed, most recently trashed first.
     async fn list_trash(&self) -> Result<Vec<TrashedElement>, TrashServiceError>;
 
-    /// Permanently deletes a single trashed element and its subtree. Fails for
-    /// an element that is not in the trash, so nothing can skip the trash on its
-    /// way out.
+    /// Permanently deletes a trashed element and its subtree. Fails if the
+    /// element is not in the trash.
     async fn delete_permanently(&self, id: ElementId) -> Result<(), TrashServiceError>;
 
     /// Permanently deletes everything in the trash.
     async fn empty_trash(&self) -> Result<(), TrashServiceError>;
 
-    /// Permanently deletes everything that has been in the trash for longer
-    /// than `retention_days`. Returns how many trash roots were purged.
+    /// Permanently deletes trash roots older than `retention_days`. Returns
+    /// the number of roots purged.
     async fn purge_expired(&self, retention_days: u32) -> Result<usize, TrashServiceError>;
 }
 
