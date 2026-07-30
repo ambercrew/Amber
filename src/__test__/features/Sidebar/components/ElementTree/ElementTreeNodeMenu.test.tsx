@@ -1,10 +1,10 @@
 import { screen } from "@testing-library/react";
 import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
-import { isMobile } from "../../../../../utils/tauriUtils";
+import { useIsCoarsePointer } from "../../../../../hooks/useIsCoarsePointer";
 import { renderWithProviders } from "../../../../test-utils/renderWithProviders";
 
-vi.mock(import("../../../../../utils/tauriUtils"));
+vi.mock(import("../../../../../hooks/useIsCoarsePointer"));
 
 const TREE: NodeDto[] = [
 	{
@@ -25,10 +25,10 @@ describe("ElementTreeNode actions menu", () => {
 		return screen.getByLabelText("Open actions menu");
 	}
 
-	it("Should show the actions menu when running on mobile", () => {
+	it("Should show the actions menu when the pointer is coarse", () => {
 		// Arrange
 
-		vi.mocked(isMobile).mockReturnValue(true);
+		vi.mocked(useIsCoarsePointer).mockReturnValue(true);
 
 		// Act
 
@@ -39,10 +39,10 @@ describe("ElementTreeNode actions menu", () => {
 		expect(actual.style.visibility).toBe("visible");
 	});
 
-	it("Should hide the actions menu until hovered when running on desktop", () => {
+	it("Should hide the actions menu until hovered when the pointer is fine", () => {
 		// Arrange
 
-		vi.mocked(isMobile).mockReturnValue(false);
+		vi.mocked(useIsCoarsePointer).mockReturnValue(false);
 
 		// Act
 

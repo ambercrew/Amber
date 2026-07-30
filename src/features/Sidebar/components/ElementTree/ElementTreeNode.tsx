@@ -12,7 +12,7 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import ElementNodeIcon from "../../../App/components/ElementNodeIcon";
-import { isMobile } from "../../../../utils/tauriUtils";
+import { useIsCoarsePointer } from "../../../../hooks/useIsCoarsePointer";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeProps } from "../../utils/elementTreeUtils";
 import TrashElementModal from "../TrashElementModal";
@@ -51,6 +51,7 @@ function ElementTreeNode({
 	const id = node.value;
 	const label = typeof node.label === "string" ? node.label : node.value;
 	const [isHovered, setIsHovered] = useState(false);
+	const coarsePointer = useIsCoarsePointer();
 	// Only controls the menu with three dots.
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [trashTarget, setTrashTarget] = useState<ElementId | null>(null);
@@ -129,10 +130,10 @@ function ElementTreeNode({
 							variant="subtle"
 							aria-label="Open actions menu"
 							style={{
-								// There is no hover on a touch screen, so the
-								// menu has to stay visible on mobile.
+								// There is no hover with a coarse (touch)
+								// pointer, so the menu has to stay visible.
 								visibility:
-									isMobile() ||
+									coarsePointer ||
 									isHovered ||
 									isMenuOpen ||
 									isContextMenuOpen
