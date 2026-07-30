@@ -28,7 +28,7 @@ impl TrashService for DefaultTrashService {
     }
 
     async fn restore_element(&self, id: ElementId) -> Result<(), TrashServiceError> {
-        let restored_ids = self.trash_repository.restore(id, Utc::now()).await?;
+        let restored_ids = self.trash_repository.restore(id).await?;
         self.reassign_priorities(restored_ids).await?;
 
         // An ancestor may have been permanently deleted in the meantime, or
@@ -112,7 +112,7 @@ impl DefaultTrashService {
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Duration};
+    use chrono::Duration;
     use fractional_index::FractionalIndex;
     use injector::{injector::Injector, register_scope};
     use uuid::Uuid;
@@ -130,14 +130,16 @@ mod tests {
             services::priority_service::PriorityService,
             value_objects::{meta::Meta, read_point::ReadPoint},
         },
-        infrastructure::repositories::sqlite::{
-            sqlite_folder_repository::SqliteFolderRepository,
-            sqlite_meta_repository::SqliteMetaRepository,
-            sqlite_reading_repository::SqliteReadingRepository,
-            sqlite_trash_repository::SqliteTrashRepository,
+        infrastructure::{
+            repositories::sqlite::{
+                sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_meta_repository::SqliteMetaRepository,
+                sqlite_reading_repository::SqliteReadingRepository,
+                sqlite_trash_repository::SqliteTrashRepository,
+            },
+            value_objects::db_transaction::DbTransaction,
         },
         test_utils::create_test_injector,
-        trash::entities::trash_state::TrashState,
     };
 
     use super::*;
@@ -330,7 +332,6 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
-        let trash_repository = scope.resolve::<dyn TrashRepository>().await;
         let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
 
         let grandparent = make_folder("Science", None);
@@ -349,18 +350,21 @@ mod tests {
             .unwrap();
 
         service.trash_element(reading_id).await.unwrap();
-        // Trashes only the grandparent's own row, leaving the parent live, the
-        // way an incoming sync of a single trash state does.
-        trash_repository
-            .apply_state(TrashState {
-                element_id: grandparent_id.id(),
-                element_created_at: Utc::now(),
-                trashed_at: Some(Utc::now()),
-                trashed_root: true,
-                trash_modified_at: Utc::now(),
-            })
+        // Trashes only the grandparent's own row, leaving the parent live —
+        // not reachable through `trash_element`, which always cascades to
+        // descendants, but exercises the same ancestry check.
+        let tx = scope.resolve::<DbTransaction>().await;
+        {
+            let mut guard = tx.lock().await;
+            let tx_ref = guard.as_mut();
+            sqlx::query!(
+                "UPDATE meta SET trashed_at = datetime('now'), trashed_root = 1 WHERE element_id = $1",
+                grandparent_id.id()
+            )
+            .execute(&mut *tx_ref)
             .await
             .unwrap();
+        }
 
         // Act
 
@@ -724,114 +728,5 @@ mod tests {
 
         assert_eq!(1, actual);
         assert!(!meta_repository.exists(folder_id).await.unwrap());
-    }
-
-    #[tokio::test]
-    async fn apply_state_incoming_state_is_older_than_local_keeps_local_state() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<dyn TrashService>().await;
-        let trash_repository = scope.resolve::<dyn TrashRepository>().await;
-
-        let folder = make_folder("Science", None);
-        let folder_id = folder.meta.element_id;
-        scope
-            .resolve::<dyn FolderRepository>()
-            .await
-            .create(folder)
-            .await
-            .unwrap();
-        service.trash_element(folder_id).await.unwrap();
-
-        let stale = TrashState {
-            element_id: folder_id.id(),
-            element_created_at: Utc::now(),
-            trashed_at: None,
-            trashed_root: false,
-            trash_modified_at: DateTime::UNIX_EPOCH,
-        };
-
-        // Act
-
-        let actual = trash_repository.apply_state(stale).await.unwrap();
-
-        // Assert
-
-        assert_eq!(0, actual);
-        assert_eq!(1, service.list_trash().await.unwrap().len());
-    }
-
-    #[tokio::test]
-    async fn apply_state_incoming_restore_is_newer_takes_element_out_of_trash() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<dyn TrashService>().await;
-        let trash_repository = scope.resolve::<dyn TrashRepository>().await;
-
-        let folder = make_folder("Science", None);
-        let folder_id = folder.meta.element_id;
-        scope
-            .resolve::<dyn FolderRepository>()
-            .await
-            .create(folder)
-            .await
-            .unwrap();
-        service.trash_element(folder_id).await.unwrap();
-
-        let restore = TrashState {
-            element_id: folder_id.id(),
-            element_created_at: Utc::now(),
-            trashed_at: None,
-            trashed_root: false,
-            trash_modified_at: Utc::now() + Duration::minutes(1),
-        };
-
-        // Act
-
-        let actual = trash_repository.apply_state(restore).await.unwrap();
-
-        // Assert
-
-        assert_eq!(1, actual);
-        assert!(service.list_trash().await.unwrap().is_empty());
-    }
-
-    #[tokio::test]
-    async fn get_states_modified_since_element_was_trashed_returns_its_state() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let service = scope.resolve::<dyn TrashService>().await;
-        let trash_repository = scope.resolve::<dyn TrashRepository>().await;
-
-        let since = Utc::now() - Duration::minutes(1);
-        let folder = make_folder("Science", None);
-        let folder_id = folder.meta.element_id;
-        scope
-            .resolve::<dyn FolderRepository>()
-            .await
-            .create(folder)
-            .await
-            .unwrap();
-        service.trash_element(folder_id).await.unwrap();
-
-        // Act
-
-        let actual = trash_repository
-            .get_states_modified_since(since)
-            .await
-            .unwrap();
-
-        // Assert
-
-        assert_eq!(1, actual.len());
-        assert_eq!(folder_id.id(), actual[0].element_id);
-        assert!(actual[0].trashed_at.is_some());
-        assert!(actual[0].trashed_root);
     }
 }
