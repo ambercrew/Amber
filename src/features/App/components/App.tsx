@@ -29,6 +29,7 @@ import SettingsModal from "../../Settings/components/SettingsModal.tsx";
 import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
 import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
 import AppHeader from "./AppHeader.tsx";
+import SafeAreaTopBackdrop from "../../../components/SafeAreaTopBackdrop/SafeAreaTopBackdrop.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 import { SAFE_AREA_TOP, safeAreaTopStyle } from "../../../utils/safeArea.ts";
 import useBackButtonPress from "../../../hooks/useBackButtonPress.ts";
@@ -155,6 +156,7 @@ function App() {
 			<PriorityDialog />
 			<StudySessionSettingsDialog />
 			<Notifications />
+			<SafeAreaTopBackdrop />
 
 			<AppShell.Header style={safeAreaTop}>
 				<AppHeader
