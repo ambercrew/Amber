@@ -65,6 +65,26 @@ impl PriorityService for DefaultPriorityService {
         }
     }
 
+    async fn get_priorities_for_restore(
+        &self,
+        old_priorities_ascending: &[FractionalIndex],
+    ) -> Result<Vec<FractionalIndex>, PriorityError> {
+        if old_priorities_ascending.is_empty() {
+            return Ok(Vec::new());
+        }
+        match self
+            .try_get_priorities_for_restore(old_priorities_ascending)
+            .await
+        {
+            Err(PriorityError::PriorityExhausted) => {
+                self.rebalance_priorities().await?;
+                self.try_get_priorities_for_restore(old_priorities_ascending)
+                    .await
+            }
+            other => other,
+        }
+    }
+
     async fn set_priority_by_percentage(
         &self,
         id: ElementId,
@@ -142,6 +162,60 @@ impl DefaultPriorityService {
 
         self.meta_repository.set_priority(id, new_priority).await?;
         Ok(())
+    }
+
+    /// Splits the gap between the live neighbors of the batch's old range.
+    async fn try_get_priorities_for_restore(
+        &self,
+        old_priorities_ascending: &[FractionalIndex],
+    ) -> Result<Vec<FractionalIndex>, PriorityError> {
+        let lowest = old_priorities_ascending
+            .first()
+            .expect("caller checked non-empty");
+        let highest = old_priorities_ascending
+            .last()
+            .expect("caller checked non-empty");
+
+        let upper_bound = self.meta_repository.get_priority_after(highest).await?;
+        let mut lower_bound = self.meta_repository.get_priority_before(lowest).await?;
+
+        let mut result = Vec::with_capacity(old_priorities_ascending.len());
+        for _ in old_priorities_ascending {
+            let priority = self
+                .next_free_priority(lower_bound.as_ref(), upper_bound.as_ref())
+                .await?;
+            lower_bound = Some(priority.clone());
+            result.push(priority);
+        }
+        Ok(result)
+    }
+
+    /// A value strictly between two bounds isn't necessarily free: since
+    /// `FractionalIndex::new_between`/`new_after`/`new_before` are pure
+    /// functions of their inputs, splitting the same bounds always produces
+    /// the same bytes — so if a live element was inserted between the exact
+    /// same neighbors a restored element used to sit between, splitting
+    /// again reproduces its value exactly. Keep narrowing from the bottom
+    /// until an unclaimed value turns up.
+    async fn next_free_priority(
+        &self,
+        lower_bound: Option<&FractionalIndex>,
+        upper_bound: Option<&FractionalIndex>,
+    ) -> Result<FractionalIndex, PriorityError> {
+        let mut lower_bound = lower_bound.cloned();
+        loop {
+            let candidate = match (&lower_bound, upper_bound) {
+                (Some(lower), Some(upper)) => FractionalIndex::new_between(lower, upper)
+                    .ok_or(PriorityError::PriorityExhausted)?,
+                (Some(lower), None) => FractionalIndex::new_after(lower),
+                (None, Some(upper)) => FractionalIndex::new_before(upper),
+                (None, None) => FractionalIndex::default(),
+            };
+            if !self.meta_repository.priority_is_taken(&candidate).await? {
+                return Ok(candidate);
+            }
+            lower_bound = Some(candidate);
+        }
     }
 
     async fn rebalance_priorities(&self) -> Result<(), PriorityError> {
@@ -484,5 +558,115 @@ mod tests {
         assert!(previous_meta.priority < inherited);
         assert!(inherited < source_meta.priority);
         assert!(source_meta.priority < other_meta.priority);
+    }
+
+    #[tokio::test]
+    async fn get_priorities_for_restore_empty_batch_returns_empty() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+
+        // Act
+
+        let actual = service.get_priorities_for_restore(&[]).await.unwrap();
+
+        // Assert
+
+        assert!(actual.is_empty());
+    }
+
+    #[tokio::test]
+    async fn get_priorities_for_restore_no_other_elements_returns_default() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+
+        // Act
+
+        let actual = service
+            .get_priorities_for_restore(&[FractionalIndex::default()])
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(vec![FractionalIndex::default()], actual);
+    }
+
+    #[tokio::test]
+    async fn get_priorities_for_restore_old_range_is_free_fits_between_the_same_neighbors() {
+        // Arrange — a gap was left behind by the batch's own old priorities,
+        // so it is still free and the new values land right back in it.
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let before = make_folder(FractionalIndex::default());
+        let before_priority = before.meta.priority.clone();
+        let old_low = FractionalIndex::new_after(&before_priority);
+        let old_high = FractionalIndex::new_after(&old_low);
+        let after_priority = FractionalIndex::new_after(&old_high);
+        let after = make_folder(after_priority.clone());
+        folder_repo.create(before).await.unwrap();
+        folder_repo.create(after).await.unwrap();
+
+        // Act
+
+        let actual = service
+            .get_priorities_for_restore(&[old_low, old_high])
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(2, actual.len());
+        assert!(before_priority < actual[0]);
+        assert!(actual[0] < actual[1]);
+        assert!(actual[1] < after_priority);
+    }
+
+    #[tokio::test]
+    async fn get_priorities_for_restore_old_range_was_reclaimed_avoids_the_new_owner() {
+        // Arrange — while the batch was trashed, a live element was inserted
+        // between the exact same two neighbors the batch's old priority used
+        // to sit between. Splitting that same gap the same way would
+        // reproduce the reclaimer's value bit-for-bit, since
+        // `FractionalIndex::new_between` is a pure function of its bounds.
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn PriorityService>().await;
+        let folder_repo = scope.resolve::<dyn FolderRepository>().await;
+
+        let before_priority = FractionalIndex::default();
+        let after_priority = FractionalIndex::new_after(&before_priority);
+        let old_priority = FractionalIndex::new_between(&before_priority, &after_priority).unwrap();
+
+        let before = make_folder(before_priority.clone());
+        let after = make_folder(after_priority.clone());
+        let reclaimer = make_folder(old_priority.clone());
+        folder_repo.create(before).await.unwrap();
+        folder_repo.create(after).await.unwrap();
+        folder_repo.create(reclaimer).await.unwrap();
+
+        // Act
+
+        let actual = service
+            .get_priorities_for_restore(std::slice::from_ref(&old_priority))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(1, actual.len());
+        assert_ne!(old_priority, actual[0]);
+        assert!(before_priority < actual[0]);
+        assert!(actual[0] < after_priority);
     }
 }

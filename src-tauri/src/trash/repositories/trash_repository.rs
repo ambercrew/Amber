@@ -14,12 +14,13 @@ pub trait TrashRepository: Send + Sync {
     async fn trash(&self, id: ElementId, trashed_at: DateTime<Utc>) -> Result<(), RepositoryError>;
 
     /// Restores the element and the subtree trashed with it. Descendants that
-    /// are trash roots of their own stay behind.
+    /// are trash roots of their own stay behind. Returns the ids that were
+    /// actually restored.
     async fn restore(
         &self,
         id: ElementId,
         restored_at: DateTime<Utc>,
-    ) -> Result<(), RepositoryError>;
+    ) -> Result<Vec<ElementId>, RepositoryError>;
 
     /// The elements the user explicitly trashed, most recently trashed first.
     async fn get_trashed_roots(&self) -> Result<Vec<TrashedElement>, RepositoryError>;

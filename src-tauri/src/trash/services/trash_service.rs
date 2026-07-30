@@ -3,6 +3,7 @@ use thiserror::Error;
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::services::element_move_error::ElementMoveError;
+use crate::elements::services::priority_service::PriorityError;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::trash::entities::trashed_element::TrashedElement;
 
@@ -55,4 +56,7 @@ pub enum TrashServiceError {
 
     #[error(transparent)]
     Move(#[from] ElementMoveError),
+
+    #[error(transparent)]
+    Priority(#[from] PriorityError),
 }
