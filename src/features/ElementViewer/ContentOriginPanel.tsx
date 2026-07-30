@@ -26,7 +26,9 @@ function OriginField({ label, value }: { label: string; value: string }) {
 			<Text size="xs" c="dimmed" fw={500}>
 				{label}
 			</Text>
-			<Text size="sm">{value}</Text>
+			<Text size="sm" style={{ overflowWrap: "anywhere" }}>
+				{value}
+			</Text>
 		</Stack>
 	);
 }
@@ -68,6 +70,7 @@ export default function ContentOriginPanel({ meta }: ContentOriginPanelProps) {
 								{derivedFrom ? (
 									<Anchor
 										size="sm"
+										style={{ overflowWrap: "anywhere" }}
 										onClick={() => {
 											void navigate(
 												paths.element(
