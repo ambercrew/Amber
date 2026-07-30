@@ -49,12 +49,12 @@ const ASIDE_DEFAULT = 320;
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 
-	const [sidebarExpanded, setSidebarExpanded] = useState(true);
+	const isSmallScreen = useIsSmallScreen();
+	const [sidebarExpanded, setSidebarExpanded] = useState(!isSmallScreen);
 	const [asideExpanded, setAsideExpanded] = useState(false);
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const studyStatus = useAppSelector(selectStudyStatus);
-	const isSmallScreen = useIsSmallScreen();
 	const mobile = isMobile();
 	const safeAreaTop = safeAreaTopStyle();
 	const footerCollapsed = studyStatus !== "studying" || !pinned;

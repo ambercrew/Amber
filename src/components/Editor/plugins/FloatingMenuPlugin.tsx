@@ -24,7 +24,7 @@ import {
 	MantineColor,
 	Paper,
 } from "@mantine/core";
-import { isMobile } from "../../../utils/tauriUtils";
+import { useIsCoarsePointer } from "../../../hooks/useIsCoarsePointer";
 import styles from "../Editor.module.css";
 
 export interface FloatingMenuButton {
@@ -127,7 +127,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 	const [isMenuFocused, setIsMenuFocused] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 	const escapedRef = useRef(false);
-	const mobile = isMobile();
+	const coarsePointer = useIsCoarsePointer();
 	const { isPointerDown, isPointerReleased } = usePointerInteractions();
 
 	const calculatePosition = useCallback(() => {
@@ -163,12 +163,12 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 
 			setCoords({
 				x,
-				y: mobile
+				y: coarsePointer
 					? domRangeRect.bottom - editorRect.top + 10
 					: domRangeRect.top - editorRect.top - 10,
 			});
 		});
-	}, [editor, isPointerDown, mobile, coords]);
+	}, [editor, isPointerDown, coarsePointer, coords]);
 
 	const $handleSelectionChange = useCallback(() => {
 		if (
@@ -267,7 +267,9 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 			style={{
 				top: coords?.y ?? 0,
 				left: coords?.x ?? 0,
-				transform: mobile ? "translateY(0)" : "translateY(-100%)",
+				transform: coarsePointer
+					? "translateY(0)"
+					: "translateY(-100%)",
 				visibility: shouldShow ? "visible" : "hidden",
 				opacity: shouldShow ? 1 : 0,
 				pointerEvents: shouldShow ? "auto" : "none",

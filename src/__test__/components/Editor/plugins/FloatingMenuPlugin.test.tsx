@@ -19,10 +19,10 @@ import {
 	FloatingMenuButton,
 	FloatingMenuPlugin,
 } from "../../../../components/Editor/plugins/FloatingMenuPlugin";
-import { isMobile } from "../../../../utils/tauriUtils";
+import { useIsCoarsePointer } from "../../../../hooks/useIsCoarsePointer";
 
-vi.mock(import("../../../../utils/tauriUtils"), () => ({
-	isMobile: vi.fn().mockReturnValue(false),
+vi.mock(import("../../../../hooks/useIsCoarsePointer"), () => ({
+	useIsCoarsePointer: vi.fn().mockReturnValue(false),
 }));
 
 function TestIcon() {
@@ -330,10 +330,10 @@ describe("FloatingMenuPlugin", () => {
 		expect(getMenuPaper()).toHaveStyle({ visibility: "hidden" });
 	});
 
-	it("Should use an upward transform when not on mobile", () => {
+	it("Should use an upward transform when the pointer is fine", () => {
 		// Arrange
 
-		vi.mocked(isMobile).mockReturnValue(false);
+		vi.mocked(useIsCoarsePointer).mockReturnValue(false);
 		const button = makeButton();
 		const { editor } = renderPlugin([button]);
 
@@ -346,10 +346,10 @@ describe("FloatingMenuPlugin", () => {
 		expect(getMenuPaper()).toHaveStyle({ transform: "translateY(-100%)" });
 	});
 
-	it("Should use a downward transform when on mobile", () => {
+	it("Should use a downward transform when the pointer is coarse", () => {
 		// Arrange
 
-		vi.mocked(isMobile).mockReturnValue(true);
+		vi.mocked(useIsCoarsePointer).mockReturnValue(true);
 		const button = makeButton();
 		const { editor } = renderPlugin([button]);
 

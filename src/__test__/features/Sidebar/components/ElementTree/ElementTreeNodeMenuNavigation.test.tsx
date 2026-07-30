@@ -2,13 +2,13 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
-import { isMobile } from "../../../../../utils/tauriUtils";
+import { useIsCoarsePointer } from "../../../../../hooks/useIsCoarsePointer";
 import {
 	LOCATION_DISPLAY_TEST_ID,
 	renderWithProviders,
 } from "../../../../test-utils/renderWithProviders";
 
-vi.mock(import("../../../../../utils/tauriUtils"));
+vi.mock(import("../../../../../hooks/useIsCoarsePointer"));
 
 const TREE: NodeDto[] = [
 	{
@@ -24,8 +24,8 @@ const TREE: NodeDto[] = [
 describe("ElementTreeNode actions menu navigation", () => {
 	beforeEach(() => {
 		window.localStorage.clear();
-		// The menu button is only reachable without hover on mobile.
-		vi.mocked(isMobile).mockReturnValue(true);
+		// The menu button is only reachable without hover with a coarse pointer.
+		vi.mocked(useIsCoarsePointer).mockReturnValue(true);
 	});
 
 	it("Should not select the element when its actions menu is used", async () => {
