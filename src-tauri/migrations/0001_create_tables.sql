@@ -225,11 +225,11 @@ CREATE TABLE meta(
     FOREIGN KEY (bibliographical_source_id) REFERENCES bibliographical_sources(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-CREATE INDEX meta_parent_id_index ON meta(parent_id);
-CREATE INDEX meta_bibliographical_source_id_index ON meta(bibliographical_source_id);
+CREATE INDEX meta_parent_trashed_position_index ON meta(parent_id, trashed_at, position);
+CREATE INDEX meta_bibliographical_source_trashed_index ON meta(bibliographical_source_id, trashed_at);
 CREATE INDEX meta_derived_from_id_index ON meta(derived_from_id);
-CREATE INDEX meta_priority_index ON meta(priority);
-CREATE INDEX meta_trashed_at_index ON meta(trashed_at);
+CREATE INDEX meta_trashed_priority_index ON meta(trashed_at, priority);
+CREATE INDEX meta_trashed_root_trashed_at_index ON meta(trashed_root, trashed_at);
 CREATE INDEX meta_trash_modified_at_index ON meta(trash_modified_at);
 
 CREATE TRIGGER meta_update_modified_at_after_update
