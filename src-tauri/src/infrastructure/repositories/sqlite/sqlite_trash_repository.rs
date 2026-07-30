@@ -53,14 +53,14 @@ impl TrashRepository for SqliteTrashRepository {
         &self,
         id: ElementId,
         restored_at: DateTime<Utc>,
-    ) -> Result<(), RepositoryError> {
+    ) -> Result<Vec<ElementId>, RepositoryError> {
         let uuid = id.id();
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
         // The recursive step skips children that are trash roots themselves, so
         // a subtree the user trashed separately stays in the trash.
-        sqlx::query!(
+        let rows = sqlx::query!(
             r#"WITH RECURSIVE subtree(element_id) AS (
                 SELECT element_id FROM meta WHERE element_id = $1
                 UNION ALL
@@ -71,14 +71,18 @@ impl TrashRepository for SqliteTrashRepository {
             SET trashed_at = NULL,
                 trashed_root = 0,
                 trash_modified_at = datetime($2)
-            WHERE element_id IN (SELECT element_id FROM subtree)"#,
+            WHERE element_id IN (SELECT element_id FROM subtree)
+            RETURNING element_id as "element_id: uuid::Uuid", element_type"#,
             uuid,
             restored_at
         )
-        .execute(&mut *tx)
+        .fetch_all(&mut *tx)
         .await?;
 
-        Ok(())
+        Ok(rows
+            .into_iter()
+            .map(|row| (row.element_id, row.element_type).into_element_id())
+            .collect())
     }
 
     async fn get_trashed_roots(&self) -> Result<Vec<TrashedElement>, RepositoryError> {

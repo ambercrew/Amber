@@ -431,6 +431,56 @@ impl MetaRepository for SqliteMetaRepository {
         Ok(row.map(|r| r.into()))
     }
 
+    async fn get_priority_before(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta
+            WHERE priority < $1 AND trashed_at IS NULL
+            ORDER BY priority DESC
+            LIMIT 1"#,
+            priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn get_priority_after(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta
+            WHERE priority > $1 AND trashed_at IS NULL
+            ORDER BY priority ASC
+            LIMIT 1"#,
+            priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn priority_is_taken(&self, priority: &FractionalIndex) -> Result<bool, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(
+                SELECT 1 FROM meta WHERE priority = $1 AND trashed_at IS NULL
+            ) as "priority_is_taken: bool""#,
+            priority.as_bytes()
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.priority_is_taken)
+    }
+
     async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();

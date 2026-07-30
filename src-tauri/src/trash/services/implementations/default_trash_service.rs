@@ -6,6 +6,7 @@ use injector_derive::ScopeInjectable;
 
 use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::services::element_index_service::ElementIndexService;
+use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::trash::entities::trashed_element::TrashedElement;
 use crate::trash::repositories::trash_repository::TrashRepository;
@@ -16,6 +17,7 @@ pub struct DefaultTrashService {
     trash_repository: Arc<dyn TrashRepository>,
     meta_repository: Arc<dyn MetaRepository>,
     element_index_service: Arc<dyn ElementIndexService>,
+    priority_service: Arc<dyn PriorityService>,
 }
 
 #[async_trait]
@@ -26,7 +28,8 @@ impl TrashService for DefaultTrashService {
     }
 
     async fn restore_element(&self, id: ElementId) -> Result<(), TrashServiceError> {
-        self.trash_repository.restore(id, Utc::now()).await?;
+        let restored_ids = self.trash_repository.restore(id, Utc::now()).await?;
+        self.reassign_priorities(restored_ids).await?;
 
         // An ancestor may have been permanently deleted in the meantime, or
         // still be trashed itself. Either way the element would come back
@@ -77,6 +80,36 @@ impl TrashService for DefaultTrashService {
     }
 }
 
+impl DefaultTrashService {
+    /// A restored element's old priority may have been reclaimed by a live
+    /// element while it was trashed, so it isn't safe to reuse as-is.
+    async fn reassign_priorities(&self, ids: Vec<ElementId>) -> Result<(), TrashServiceError> {
+        if ids.is_empty() {
+            return Ok(());
+        }
+
+        let mut metas = Vec::with_capacity(ids.len());
+        for id in ids {
+            metas.push(self.meta_repository.get_by_id(id.id()).await?);
+        }
+        metas.sort_by(|a, b| a.priority.cmp(&b.priority));
+
+        let old_priorities: Vec<_> = metas.iter().map(|meta| meta.priority.clone()).collect();
+        let new_priorities = self
+            .priority_service
+            .get_priorities_for_restore(&old_priorities)
+            .await?;
+
+        for (meta, priority) in metas.into_iter().zip(new_priorities) {
+            self.meta_repository
+                .set_priority(meta.element_id, priority)
+                .await?;
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::{DateTime, Duration};
@@ -90,7 +123,11 @@ mod tests {
             repositories::{
                 folder_repository::FolderRepository, reading_repository::ReadingRepository,
             },
-            services::implementations::default_element_index_service::DefaultElementIndexService,
+            services::implementations::{
+                default_element_index_service::DefaultElementIndexService,
+                default_priority_service::DefaultPriorityService,
+            },
+            services::priority_service::PriorityService,
             value_objects::{meta::Meta, read_point::ReadPoint},
         },
         infrastructure::repositories::sqlite::{
@@ -117,6 +154,7 @@ mod tests {
             dyn ElementIndexService,
             DefaultElementIndexService
         );
+        register_scope!(injector, dyn PriorityService, DefaultPriorityService);
         register_scope!(injector, dyn TrashService, DefaultTrashService);
 
         injector
@@ -405,6 +443,87 @@ mod tests {
         assert_eq!(1, readings.len());
         assert_eq!(reading_id, readings[0].meta.element_id);
         assert_eq!(Some(folder_id), readings[0].meta.parent);
+    }
+
+    #[tokio::test]
+    async fn restore_element_old_priority_was_reclaimed_gets_a_priority_that_does_not_collide() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn TrashService>().await;
+        let folder_repository = scope.resolve::<dyn FolderRepository>().await;
+        let meta_repository = scope.resolve::<dyn MetaRepository>().await;
+
+        let folder = make_folder("Science", None);
+        let folder_id = folder.meta.element_id;
+        let old_priority = folder.meta.priority.clone();
+        folder_repository.create(folder).await.unwrap();
+        service.trash_element(folder_id).await.unwrap();
+
+        // While the folder is trashed, another element claims the exact
+        // priority it left behind — the way an unrelated insertion would once
+        // the trashed row stops counting as an obstacle.
+        let other = make_folder("Reclaimed", None);
+        let other_id = other.meta.element_id;
+        folder_repository.create(other).await.unwrap();
+        meta_repository
+            .set_priority(other_id, old_priority)
+            .await
+            .unwrap();
+
+        // Act
+
+        service.restore_element(folder_id).await.unwrap();
+
+        // Assert
+
+        let restored = meta_repository.get_by_id(folder_id.id()).await.unwrap();
+        let other_meta = meta_repository.get_by_id(other_id.id()).await.unwrap();
+        assert_ne!(restored.priority, other_meta.priority);
+    }
+
+    #[tokio::test]
+    async fn restore_element_subtree_keeps_relative_priority_order() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn TrashService>().await;
+        let folder_repository = scope.resolve::<dyn FolderRepository>().await;
+        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let meta_repository = scope.resolve::<dyn MetaRepository>().await;
+
+        let folder = make_folder("Science", None);
+        let folder_id = folder.meta.element_id;
+        let reading = make_reading("Photosynthesis", Some(folder_id));
+        let reading_id = reading.meta.element_id;
+        folder_repository.create(folder).await.unwrap();
+        reading_repository
+            .create(reading, Vec::new())
+            .await
+            .unwrap();
+        // Give the reading a higher priority (later in the queue) than its
+        // parent folder before trashing them together.
+        meta_repository
+            .set_priority(
+                reading_id,
+                FractionalIndex::new_after(&FractionalIndex::default()),
+            )
+            .await
+            .unwrap();
+        service.trash_element(folder_id).await.unwrap();
+
+        // Act
+
+        service.restore_element(folder_id).await.unwrap();
+
+        // Assert — the folder still ranks ahead of the reading, and neither
+        // was simply dumped at the front of the queue.
+
+        let folder_meta = meta_repository.get_by_id(folder_id.id()).await.unwrap();
+        let reading_meta = meta_repository.get_by_id(reading_id.id()).await.unwrap();
+        assert!(folder_meta.priority < reading_meta.priority);
     }
 
     #[tokio::test]
