@@ -3,10 +3,9 @@ base: core24
 title: Amber
 version: '1.0.0'
 license: AGPL-3.0
-summary: Open-source, AI-integrated learning app built around spaced repetition
+summary: Distraction-free, minimalist yet powerful incremental learning — free and open source.
 description: |
-  Amber is an open-source, AI-integrated learning app that combines note-taking and studying in one place. Organize your materials in a notebook-and-folder structure, create flashcards, cloze deletions, true/false questions, and more — or let AI generate a complete card set from any PDF, textbook, or lecture notes instantly. You can also ask the AI questions directly about your uploaded content to deepen your understanding.
-  The FSRS spaced repetition algorithm adapts to your performance and schedules each review at the optimal moment, so knowledge is retained long-term. Sync your progress across devices, with automatic backups to keep your data safe.
+  Distraction-free, minimalist yet powerful incremental learning — free and open source.
 website: https://amberapp.dev
 issues: https://github.com/ambercrew/amber/issues/new
 source-code: https://github.com/ambercrew/amber
