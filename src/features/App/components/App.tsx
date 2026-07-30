@@ -31,7 +31,11 @@ import StudySessionSettingsDialog from "../../Study/components/StudySessionSetti
 import AppHeader from "./AppHeader.tsx";
 import SafeAreaTopBackdrop from "../../../components/SafeAreaTopBackdrop/SafeAreaTopBackdrop.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
-import { SAFE_AREA_TOP, safeAreaTopStyle } from "../../../utils/safeArea.ts";
+import {
+	SAFE_AREA_BOTTOM,
+	SAFE_AREA_TOP,
+	safeAreaTopStyle,
+} from "../../../utils/safeArea.ts";
 import useBackButtonPress from "../../../hooks/useBackButtonPress.ts";
 import { BackButtonPriority } from "../../../managers/backButtonManager.ts";
 
@@ -53,6 +57,7 @@ function App() {
 	const isSmallScreen = useIsSmallScreen();
 	const mobile = isMobile();
 	const safeAreaTop = safeAreaTopStyle();
+	const footerCollapsed = studyStatus !== "studying" || !pinned;
 
 	const splitter = useSplitter({
 		panels: [
@@ -145,7 +150,7 @@ function App() {
 			}}
 			footer={{
 				height: HEADER_AND_FOOTER_HEIGHT,
-				collapsed: studyStatus !== "studying" || !pinned,
+				collapsed: footerCollapsed,
 			}}
 			padding="md">
 			{!mobile && <Updater />}
@@ -165,7 +170,14 @@ function App() {
 				/>
 			</AppShell.Header>
 
-			<AppShell.Footer>
+			<AppShell.Footer
+				style={
+					mobile && footerCollapsed
+						? {
+								transform: `translateY(calc(var(--app-shell-footer-height) + ${SAFE_AREA_BOTTOM}))`,
+							}
+						: undefined
+				}>
 				<StudySessionBar />
 			</AppShell.Footer>
 
