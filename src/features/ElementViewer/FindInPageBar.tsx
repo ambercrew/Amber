@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ActionIcon, Group, Paper, Text, Transition } from "@mantine/core";
-import { useDebouncedCallback, useHeadroom } from "@mantine/hooks";
+import { useDebouncedCallback, useHeadroom, useHotkeys } from "@mantine/hooks";
 import {
 	CaretDownIcon,
 	CaretUpIcon,
@@ -9,6 +9,7 @@ import {
 	XIcon,
 } from "@phosphor-icons/react";
 import AutosizeTextInput from "../../components/AutosizeTextInput/AutosizeTextInput";
+import { FIND_IN_PAGE_SHORTCUT } from "../../commands/commands";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import {
@@ -27,7 +28,7 @@ import {
 } from "../../stores/search/searchSelectors";
 import { HEADROOM_FIXED_AT } from "../App/components/App";
 
-const QUERY_DEBOUNCE_IN_MILLISECONDS = 200;
+const QUERY_DEBOUNCE_IN_MILLISECONDS = 400;
 
 /**
  * Find-in-page search bar. Owns all of its opened/query/case-sensitivity/
@@ -40,6 +41,7 @@ export default function FindInPageBar() {
 	const caseSensitive = useAppSelector(selectSearchCaseSensitive);
 	const currentIndex = useAppSelector(selectSearchCurrentIndex);
 	const totalMatches = useAppSelector(selectSearchTotalMatches);
+	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const onNext = () => dispatch(goToNextMatch());
 	const onPrevious = () => dispatch(goToPreviousMatch());
 	// Mirrors App.tsx's useHeadroom: collapsing the header doesn't change
@@ -57,6 +59,21 @@ export default function FindInPageBar() {
 		setPrevOpened(opened);
 		if (opened) setInputValue(query);
 	}
+
+	// GlobalHotkeys already opens the bar on mod+F; this only refocuses the
+	// input when the bar is already open, since opening it doesn't remount it.
+	useHotkeys(
+		[
+			[
+				FIND_IN_PAGE_SHORTCUT,
+				() => {
+					if (opened) inputRef.current?.focus();
+				},
+			],
+		],
+		[],
+		true,
+	);
 
 	const dispatchQuery = useDebouncedCallback((value: string) => {
 		dispatch(setSearchQuery(value));
@@ -117,6 +134,7 @@ export default function FindInPageBar() {
 					w={{ base: "auto", sm: 440 }}>
 					<Group gap={6} wrap="nowrap">
 						<AutosizeTextInput
+							ref={inputRef}
 							flex={1}
 							leftSection={<MagnifyingGlassIcon size={18} />}
 							placeholder="Find in page..."
