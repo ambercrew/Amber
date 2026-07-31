@@ -5,15 +5,19 @@ import { BackButtonPriority } from "../../managers/backButtonManager";
 import { safeAreaTopStyle } from "../../utils/safeArea";
 
 /** `styles` is owned by this component, which uses it for the safe area. */
-export type AppModalProps = Omit<ModalProps, "styles">;
+export type AppModalProps = Omit<ModalProps, "styles"> & {
+	/** Go full screen once the viewport is too small for a dialog. */
+	fullScreenOnSmallScreen?: boolean;
+};
 
 /**
- * Mantine's `Modal` with the app's defaults: centered, full screen once the
- * viewport is too small for a dialog, and — while full screen — padded so its
- * header clears the status bar on mobile and closed by Android's back button.
+ * Mantine's `Modal` with the app's defaults: centered, and — while full
+ * screen — padded so its header clears the status bar on mobile and closed
+ * by Android's back button.
  */
 function AppModal({
-	fullScreen,
+	fullScreen = false,
+	fullScreenOnSmallScreen = false,
 	centered = true,
 	closeButtonProps,
 	closeOnEscape = true,
@@ -22,7 +26,8 @@ function AppModal({
 	...others
 }: AppModalProps) {
 	const isSmallScreen = useIsSmallScreen();
-	const isFullScreen = fullScreen ?? isSmallScreen;
+	const isFullScreen =
+		fullScreen || (fullScreenOnSmallScreen && isSmallScreen);
 
 	// An open modal takes the back button so it dismisses the modal rather than
 	// navigating. Modals that refuse escape refuse back too.

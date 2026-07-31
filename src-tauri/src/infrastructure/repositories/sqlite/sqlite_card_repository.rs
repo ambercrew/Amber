@@ -66,6 +66,7 @@ impl CardRepository for SqliteCardRepository {
                 c.back
             FROM cards c
             INNER JOIN meta m ON c.id = m.element_id
+            WHERE m.trashed_at IS NULL
             ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)

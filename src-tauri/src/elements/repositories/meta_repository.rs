@@ -83,6 +83,23 @@ pub trait MetaRepository: Send + Sync {
     /// Return the element immediately before this one in global priority order.
     async fn get_previous_by_priority(&self, meta: &Meta) -> Result<Option<Meta>, RepositoryError>;
 
+    /// Priority of the live element immediately below (ranked just ahead of)
+    /// the given priority value, or `None` if nothing ranks ahead of it.
+    async fn get_priority_before(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError>;
+
+    /// Priority of the live element immediately above (ranked just behind)
+    /// the given priority value, or `None` if nothing ranks behind it.
+    async fn get_priority_after(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError>;
+
+    /// Whether a live element already has exactly this priority.
+    async fn priority_is_taken(&self, priority: &FractionalIndex) -> Result<bool, RepositoryError>;
+
     /// All elements, ordered by priority ascending (front of queue first).
     async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError>;
 

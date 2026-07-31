@@ -84,6 +84,7 @@ impl ReadingRepository for SqliteReadingRepository {
                 r.interval_multiplier
             FROM readings r
             INNER JOIN meta m ON r.id = m.element_id
+            WHERE m.trashed_at IS NULL
             ORDER BY m.position"#
         )
         .fetch_all(&mut *tx)

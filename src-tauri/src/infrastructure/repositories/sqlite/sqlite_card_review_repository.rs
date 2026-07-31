@@ -91,7 +91,8 @@ impl CardReviewRepository for SqliteCardReviewRepository {
             FROM cards c
             JOIN meta m ON m.element_id = c.id
             LEFT JOIN card_reviews cr ON cr.card_id = c.id
-            WHERE cr.card_id IS NULL OR cr.due <= datetime($1)"#,
+            WHERE m.trashed_at IS NULL
+              AND (cr.card_id IS NULL OR cr.due <= datetime($1))"#,
             as_of
         )
         .fetch_all(&mut *tx)

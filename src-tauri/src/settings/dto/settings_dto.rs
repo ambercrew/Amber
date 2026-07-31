@@ -10,4 +10,5 @@ pub struct SettingsDto {
     pub theme: Theme,
     pub zoom_percentage: f64,
     pub auto_sync: bool,
+    pub trash_retention_days: u32,
 }

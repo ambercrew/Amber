@@ -10,6 +10,7 @@ export default interface UpdateSettingsRequest {
 	theme: Theme | null;
 	zoomPercentage: number | null;
 	autoSync: boolean | null;
+	trashRetentionDays: number | null;
 
 	enableAi: boolean | null;
 	aiProvider: AiProvider | null;
@@ -31,6 +32,7 @@ export function buildUpdateSettingsRequest(
 		theme: null,
 		zoomPercentage: null,
 		autoSync: null,
+		trashRetentionDays: null,
 		enableAi: null,
 		aiProvider: null,
 		ollama: null,

@@ -12,6 +12,7 @@ export default interface UpdateSettingsRequestDto {
 	theme: Theme;
 	zoomPercentage: number;
 	autoSync: boolean;
+	trashRetentionDays: number;
 
 	enableAi: boolean;
 	aiProvider: AiProvider;

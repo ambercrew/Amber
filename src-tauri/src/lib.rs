@@ -14,9 +14,9 @@ mod study;
 mod sync;
 #[cfg(test)]
 mod test_utils;
+mod trash;
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use tauri::Manager;
 
@@ -29,6 +29,7 @@ use import::import_api::*;
 use settings::settings_api::*;
 use study::study_api::*;
 use study::study_profile_api::*;
+use trash::trash_api::*;
 
 pub use sync::sync_api::sync;
 
@@ -36,10 +37,10 @@ pub use sync::sync_api::sync;
 use tauri_plugin_window_state::StateFlags;
 use tokio::runtime::Handle;
 
-use crate::backup::services::backup_service::{BackupService, TIME_BETWEEN_BACKUPS_IN_MINUTES};
+use crate::backup::background::spawn_backup_task;
 use crate::common::utils::create_injector::create_injector;
-use crate::infrastructure::extensions::unit_of_work::UnitOfWorkExt;
 use crate::infrastructure::value_objects::app_data_directory::AppDataDirectory;
+use crate::trash::background::spawn_trash_purge_task;
 
 pub use common::types::SourceError;
 
@@ -112,30 +113,11 @@ pub async fn run() -> Result<(), String> {
                     .set_title("Amber - development");
             }
 
-            // Starting backup service.
-            tokio::spawn(async move {
-                let mut interval =
-                    tokio::time::interval(Duration::from_mins(TIME_BETWEEN_BACKUPS_IN_MINUTES));
-                interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            // Starting the trash retention purge, which also runs once right away.
+            spawn_trash_purge_task(injector.clone());
 
-                loop {
-                    interval.tick().await;
-                    let scope = injector.start_scope();
-
-                    if let Err(err) = scope
-                        .resolve::<dyn BackupService>()
-                        .await
-                        .ensure_backup()
-                        .await
-                    {
-                        log::error!("An error happened when creating a backup {:?}", err);
-                    }
-
-                    if let Err(err) = scope.save_changes().await {
-                        log::error!("An error happened when saving changes for backup {:?}", err);
-                    }
-                }
-            });
+            // Starting the backup service.
+            spawn_backup_task(injector);
 
             Ok(())
         })
@@ -161,7 +143,6 @@ pub async fn run() -> Result<(), String> {
             get_element_tree,
             get_element_by_id,
             get_element_details,
-            delete_element,
             rename_element,
             element_exists,
             move_element,
@@ -181,6 +162,12 @@ pub async fn run() -> Result<(), String> {
             update_extract,
             update_card,
             update_interval_multiplier,
+            // Trash
+            trash_element,
+            restore_element,
+            get_trash,
+            delete_element_permanently,
+            empty_trash,
             // Study
             get_card_review,
             get_reading_review,

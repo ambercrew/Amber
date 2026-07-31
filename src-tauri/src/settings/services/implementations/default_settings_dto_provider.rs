@@ -23,6 +23,7 @@ impl SettingsDtoProvider for DefaultSettingsDtoProvider {
             theme: settings.theme,
             zoom_percentage: settings.zoom_percentage,
             auto_sync: settings.auto_sync,
+            trash_retention_days: settings.trash_retention_days,
         }
     }
 }

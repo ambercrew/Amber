@@ -40,7 +40,7 @@ describe("ElementTree context menu", () => {
 		// Assert
 
 		await waitFor(
-			() => expect(screen.getByText("Delete")).toBeInTheDocument(),
+			() => expect(screen.getByText("Move to trash")).toBeInTheDocument(),
 			{ timeout: 2000 },
 		);
 	});
@@ -61,7 +61,7 @@ describe("ElementTree context menu", () => {
 		// Assert
 
 		await waitFor(
-			() => expect(screen.getByText("Delete")).toBeInTheDocument(),
+			() => expect(screen.getByText("Move to trash")).toBeInTheDocument(),
 			{ timeout: 2000 },
 		);
 	});
@@ -79,7 +79,7 @@ describe("ElementTree context menu", () => {
 			keys: "[MouseRight]",
 		});
 		await waitFor(
-			() => expect(screen.getByText("Delete")).toBeInTheDocument(),
+			() => expect(screen.getByText("Move to trash")).toBeInTheDocument(),
 			{ timeout: 2000 },
 		);
 		await user.pointer({
@@ -87,10 +87,10 @@ describe("ElementTree context menu", () => {
 			keys: "[MouseRight]",
 		});
 
-		// Assert — still only one Delete item in the DOM
+		// Assert — still only one Move to trash item in the DOM
 
 		await waitFor(() => {
-			expect(screen.getAllByText("Delete")).toHaveLength(1);
+			expect(screen.getAllByText("Move to trash")).toHaveLength(1);
 		});
 	});
 });

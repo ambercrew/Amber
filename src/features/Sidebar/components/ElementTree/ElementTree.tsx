@@ -21,7 +21,7 @@ import {
 	findNodeType,
 } from "../../utils/elementTreeUtils";
 import { useElementTreeExpansion } from "../../hooks/useElementTreeExpansion";
-import DeleteElementModal from "../DeleteElementModal";
+import TrashElementModal from "../TrashElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import ElementTreeNode from "./ElementTreeNode";
 import useAppDispatch from "../../../../hooks/useAppDispatch";
@@ -41,7 +41,7 @@ function ElementTree({ tree }: ElementTreeProps) {
 		value: string;
 		type: ElementNodeType;
 	} | null>(null);
-	const [deleteTarget, setDeleteTarget] = useState<ElementId | null>(null);
+	const [trashTarget, setTrashTarget] = useState<ElementId | null>(null);
 	const [renamingTarget, setRenamingTarget] = useState<ElementId | null>(
 		null,
 	);
@@ -134,8 +134,8 @@ function ElementTree({ tree }: ElementTreeProps) {
 									id: contextMenuNode.value,
 								})
 							}
-							onDeleteClick={() =>
-								setDeleteTarget({
+							onTrashClick={() =>
+								setTrashTarget({
 									type: contextMenuNode.type,
 									id: contextMenuNode.value,
 								})
@@ -147,9 +147,9 @@ function ElementTree({ tree }: ElementTreeProps) {
 					)}
 				</Menu.Dropdown>
 			</Menu>
-			<DeleteElementModal
-				elementId={deleteTarget}
-				onClose={() => setDeleteTarget(null)}
+			<TrashElementModal
+				elementId={trashTarget}
+				onClose={() => setTrashTarget(null)}
 			/>
 		</Stack>
 	);

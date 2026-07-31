@@ -8,6 +8,7 @@ import studyReducer from "./study/studyReducer";
 import bibliographicalSourcesReducer from "./bibliographicalSources/bibliographicalSourcesReducer";
 import elementDetailsReducer from "./elementDetails/elementDetailsReducer";
 import searchReducer from "./search/searchReducer";
+import trashReducer from "./trash/trashReducer";
 
 const reducers = combineReducers({
 	user: userReducer,
@@ -19,6 +20,7 @@ const reducers = combineReducers({
 	bibliographicalSources: bibliographicalSourcesReducer,
 	elementDetails: elementDetailsReducer,
 	search: searchReducer,
+	trash: trashReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {

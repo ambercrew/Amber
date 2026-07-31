@@ -19,10 +19,6 @@ export function getElementTree(): Promise<NodeDto[]> {
 	return invoke("get_element_tree");
 }
 
-export function deleteElement(elementId: ElementId): Promise<void> {
-	return invoke("delete_element", { elementId });
-}
-
 export function renameElement(
 	elementId: ElementId,
 	newName: string,

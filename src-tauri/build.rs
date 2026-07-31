@@ -12,7 +12,10 @@ fn main() {
         });
 
     setup_store_flag();
+
+    println!("cargo:rerun-if-changed=protobuff/");
     prost_build::compile_protos(&["protobuff/sync_objects.proto"], &["protobuff/"]).unwrap();
+
     tauri_build::build()
 }
 

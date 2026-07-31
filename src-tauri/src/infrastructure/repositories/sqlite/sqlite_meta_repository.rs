@@ -225,7 +225,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE bibliographical_source_id = $1"#,
+            r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE bibliographical_source_id = $1 AND trashed_at IS NULL"#,
             bibliographical_source_id
         )
         .fetch_one(&mut *tx)
@@ -262,7 +262,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            r#"SELECT position as "position: Vec<u8>" FROM meta WHERE parent_id IS $1 ORDER BY position DESC LIMIT 1"#,
+            r#"SELECT position as "position: Vec<u8>" FROM meta WHERE parent_id IS $1 AND trashed_at IS NULL ORDER BY position DESC LIMIT 1"#,
             parent_id
         )
         .fetch_optional(&mut *tx)
@@ -291,7 +291,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE parent_id IS $1 AND position < $2
+            WHERE parent_id IS $1 AND position < $2 AND trashed_at IS NULL
             ORDER BY position DESC
             LIMIT 1"#,
             meta.parent.map(|m| m.id()),
@@ -324,7 +324,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE parent_id IS $1 AND position > $2
+            WHERE parent_id IS $1 AND position > $2 AND trashed_at IS NULL
             ORDER BY position
             LIMIT 1"#,
             meta.parent.map(|m| m.id()),
@@ -360,7 +360,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE parent_id IS $1
+            WHERE parent_id IS $1 AND trashed_at IS NULL
             ORDER BY position"#,
             parent_id
         )
@@ -391,7 +391,7 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            r#"SELECT priority as "priority: Vec<u8>" FROM meta ORDER BY priority LIMIT 1"#
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta WHERE trashed_at IS NULL ORDER BY priority LIMIT 1"#
         )
         .fetch_optional(&mut *tx)
         .await?;
@@ -419,7 +419,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE priority < $1
+            WHERE priority < $1 AND trashed_at IS NULL
             ORDER BY priority DESC
             LIMIT 1"#,
             meta.priority.as_bytes()
@@ -428,6 +428,56 @@ impl MetaRepository for SqliteMetaRepository {
         .await?;
 
         Ok(row.map(|r| r.into()))
+    }
+
+    async fn get_priority_before(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta
+            WHERE priority < $1 AND trashed_at IS NULL
+            ORDER BY priority DESC
+            LIMIT 1"#,
+            priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn get_priority_after(
+        &self,
+        priority: &FractionalIndex,
+    ) -> Result<Option<FractionalIndex>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT priority as "priority: Vec<u8>" FROM meta
+            WHERE priority > $1 AND trashed_at IS NULL
+            ORDER BY priority ASC
+            LIMIT 1"#,
+            priority.as_bytes()
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        Ok(row.map(|r| FractionalIndex::from_bytes(r.priority).expect("Invalid fractional index")))
+    }
+
+    async fn priority_is_taken(&self, priority: &FractionalIndex) -> Result<bool, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+        let row = sqlx::query!(
+            r#"SELECT EXISTS(
+                SELECT 1 FROM meta WHERE priority = $1 AND trashed_at IS NULL
+            ) as "priority_is_taken: bool""#,
+            priority.as_bytes()
+        )
+        .fetch_one(&mut *tx)
+        .await?;
+        Ok(row.priority_is_taken)
     }
 
     async fn get_all_ordered_by_priority(&self) -> Result<Vec<Meta>, RepositoryError> {
@@ -450,6 +500,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
+            WHERE trashed_at IS NULL
             ORDER BY priority"#
         )
         .fetch_all(&mut *tx)
@@ -483,7 +534,7 @@ impl MetaRepository for SqliteMetaRepository {
                 created_at as "created_at: _",
                 modified_at as "modified_at: _"
             FROM meta
-            WHERE element_id != $1
+            WHERE element_id != $1 AND trashed_at IS NULL
             ORDER BY priority
             LIMIT 1 OFFSET $2"#,
             uuid,
@@ -498,9 +549,10 @@ impl MetaRepository for SqliteMetaRepository {
     async fn count_all(&self) -> Result<i64, RepositoryError> {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
-        let row = sqlx::query!(r#"SELECT COUNT(*) as "count: i64" FROM meta"#)
-            .fetch_one(&mut *tx)
-            .await?;
+        let row =
+            sqlx::query!(r#"SELECT COUNT(*) as "count: i64" FROM meta WHERE trashed_at IS NULL"#)
+                .fetch_one(&mut *tx)
+                .await?;
         Ok(row.count)
     }
 
@@ -510,7 +562,8 @@ impl MetaRepository for SqliteMetaRepository {
         let tx = tx.as_mut();
         let row = sqlx::query!(
             r#"SELECT COUNT(*) as "count: i64" FROM meta
-            WHERE priority < (SELECT priority FROM meta WHERE element_id = $1)"#,
+            WHERE trashed_at IS NULL
+              AND priority < (SELECT priority FROM meta WHERE element_id = $1)"#,
             uuid
         )
         .fetch_one(&mut *tx)

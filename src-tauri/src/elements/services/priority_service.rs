@@ -31,6 +31,14 @@ pub trait PriorityService: Send + Sync {
 
     async fn get_priority_info(&self, id: ElementId) -> Result<PriorityInfo, PriorityError>;
 
+    /// New priorities for a batch restored from the trash (old priorities,
+    /// ascending), placed as a contiguous block near their old spot instead
+    /// of the stale values, which may have been reclaimed while trashed.
+    async fn get_priorities_for_restore(
+        &self,
+        old_priorities_ascending: &[FractionalIndex],
+    ) -> Result<Vec<FractionalIndex>, PriorityError>;
+
     /// Moves the element to the given 1-based rank among all elements
     /// (clamped to the valid range).
     async fn set_priority_by_rank(&self, id: ElementId, rank: i64) -> Result<(), PriorityError>;
