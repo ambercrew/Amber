@@ -12,6 +12,7 @@ vi.mock(import("../../../utils/tauriUtils"));
 
 interface RenderModalProps {
 	fullScreen?: boolean;
+	fullScreenOnSmallScreen?: boolean;
 	opened?: boolean;
 	closeOnEscape?: boolean;
 	onClose?: () => void;
@@ -50,38 +51,52 @@ describe("AppModal", () => {
 		vi.mocked(isMobile).mockReturnValue(true);
 	});
 
-	it("Should go full screen when the screen is small", () => {
+	it("Should stay a dialog by default when the screen is small", () => {
 		// Arrange, Act
 
 		const actual = renderModal();
+
+		// Assert
+
+		expect(actual).not.toHaveAttribute("data-full-screen");
+	});
+
+	it("Should go full screen when the screen is small and fullScreenOnSmallScreen is set", () => {
+		// Arrange, Act
+
+		const actual = renderModal({ fullScreenOnSmallScreen: true });
 
 		// Assert
 
 		expect(actual).toHaveAttribute("data-full-screen");
 	});
 
-	it("Should stay a dialog when the screen is not small", () => {
+	it("Should stay a dialog when fullScreenOnSmallScreen is set but the screen is not small", () => {
 		// Arrange
 
 		vi.mocked(useIsSmallScreen).mockReturnValue(false);
 
 		// Act
 
-		const actual = renderModal();
+		const actual = renderModal({ fullScreenOnSmallScreen: true });
 
 		// Assert
 
 		expect(actual).not.toHaveAttribute("data-full-screen");
 	});
 
-	it("Should keep an explicit full screen choice when one is given", () => {
-		// Arrange, Act
+	it("Should go full screen when fullScreen is set regardless of screen size", () => {
+		// Arrange
 
-		const actual = renderModal({ fullScreen: false });
+		vi.mocked(useIsSmallScreen).mockReturnValue(false);
+
+		// Act
+
+		const actual = renderModal({ fullScreen: true });
 
 		// Assert
 
-		expect(actual).not.toHaveAttribute("data-full-screen");
+		expect(actual).toHaveAttribute("data-full-screen");
 	});
 
 	it("Should close on the back button when open", () => {

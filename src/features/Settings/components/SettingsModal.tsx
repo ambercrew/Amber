@@ -75,6 +75,7 @@ function SettingsModal() {
 		<AppModal
 			opened={opened}
 			onClose={() => dispatch(closeSettingsModal())}
+			fullScreenOnSmallScreen
 			title={
 				<Group gap="xs">
 					{isSmallScreen && (

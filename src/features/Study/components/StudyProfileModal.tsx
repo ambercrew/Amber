@@ -70,6 +70,7 @@ function StudyProfileModal() {
 		<AppModal
 			opened={opened}
 			onClose={() => dispatch(closeStudyProfileModal())}
+			fullScreenOnSmallScreen
 			title="Study profiles"
 			size="lg">
 			<Stack gap="md">
