@@ -5,16 +5,9 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::services::element_move_error::ElementMoveError;
 use crate::elements::services::priority_service::PriorityError;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::trash::entities::trashed_element::TrashedElement;
+use crate::trash::value_objects::trashed_element::TrashedElement;
 
-/// How long trashed elements are kept before they are purged, when the user has
-/// not chosen anything else.
 pub const DEFAULT_TRASH_RETENTION_DAYS: u32 = 30;
-
-/// The shortest retention the user can configure. Zero is excluded on purpose:
-/// it would purge every element the moment it reached the trash, turning the
-/// trash back into an immediate delete.
-pub const MIN_TRASH_RETENTION_DAYS: u32 = 1;
 
 /// How often the background task looks for trashed elements that are past the
 /// retention threshold.

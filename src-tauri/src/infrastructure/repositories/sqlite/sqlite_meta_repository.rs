@@ -262,7 +262,6 @@ impl MetaRepository for SqliteMetaRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
         let row = sqlx::query!(
-            // TODO: thing about positions and priority when restoring an element
             r#"SELECT position as "position: Vec<u8>" FROM meta WHERE parent_id IS $1 AND trashed_at IS NULL ORDER BY position DESC LIMIT 1"#,
             parent_id
         )

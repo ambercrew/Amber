@@ -8,9 +8,9 @@ use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::trash::entities::trashed_element::TrashedElement;
 use crate::trash::repositories::trash_repository::TrashRepository;
 use crate::trash::services::trash_service::{TrashService, TrashServiceError};
+use crate::trash::value_objects::trashed_element::TrashedElement;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultTrashService {

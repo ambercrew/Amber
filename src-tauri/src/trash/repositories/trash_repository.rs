@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 
 use crate::common::repository_error::RepositoryError;
 use crate::elements::value_objects::element_id::ElementId;
-use crate::trash::entities::trashed_element::TrashedElement;
+use crate::trash::value_objects::trashed_element::TrashedElement;
 
 #[async_trait]
 pub trait TrashRepository: Send + Sync {

@@ -8,8 +8,8 @@ use crate::common::repository_error::RepositoryError;
 use crate::elements::extensions::into_element_id_ext::IntoElementIdExt;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::infrastructure::value_objects::db_transaction::DbTransaction;
-use crate::trash::entities::trashed_element::TrashedElement;
 use crate::trash::repositories::trash_repository::TrashRepository;
+use crate::trash::value_objects::trashed_element::TrashedElement;
 
 #[derive(ScopeInjectable)]
 pub struct SqliteTrashRepository {
@@ -23,10 +23,6 @@ impl TrashRepository for SqliteTrashRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        // Descendants that are already in the trash are left exactly as they
-        // are: they were trashed on their own, so they keep their trash root
-        // flag and their original timestamp and stay behind when this element is
-        // restored.
         sqlx::query!(
             r#"WITH RECURSIVE subtree(element_id) AS (
                 SELECT element_id FROM meta WHERE element_id = $1
@@ -52,8 +48,6 @@ impl TrashRepository for SqliteTrashRepository {
         let mut tx = self.tx.lock().await;
         let tx = tx.as_mut();
 
-        // The recursive step skips children that are trash roots themselves, so
-        // a subtree the user trashed separately stays in the trash.
         let rows = sqlx::query!(
             r#"WITH RECURSIVE subtree(element_id) AS (
                 SELECT element_id FROM meta WHERE element_id = $1
