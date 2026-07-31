@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 
 use crate::elements::value_objects::element_id::ElementId;
-use crate::trash::entities::trashed_element::TrashedElement;
+use crate::trash::value_objects::trashed_element::TrashedElement;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
