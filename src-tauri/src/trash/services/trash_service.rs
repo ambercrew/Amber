@@ -27,11 +27,8 @@ pub trait TrashService: Send + Sync {
     /// The elements the user explicitly trashed, most recently trashed first.
     async fn list_trash(&self) -> Result<Vec<TrashedElement>, TrashServiceError>;
 
-    /// Permanently deletes a trashed element and its subtree. Fails if the
-    /// element is not in the trash.
     async fn delete_permanently(&self, id: ElementId) -> Result<(), TrashServiceError>;
 
-    /// Permanently deletes everything in the trash.
     async fn empty_trash(&self) -> Result<(), TrashServiceError>;
 
     /// Permanently deletes trash roots older than `retention_days`. Returns

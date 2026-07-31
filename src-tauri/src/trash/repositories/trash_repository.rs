@@ -26,11 +26,7 @@ pub trait TrashRepository: Send + Sync {
         cutoff: DateTime<Utc>,
     ) -> Result<Vec<ElementId>, RepositoryError>;
 
-    /// Whether the element is in the trash, itself or via an ancestor.
     async fn is_trashed(&self, id: ElementId) -> Result<bool, RepositoryError>;
 
-    /// Whether every ancestor of the element exists and is out of the trash.
-    /// Used on restore to decide whether the element must move back to the
-    /// root instead of its old location.
     async fn has_live_ancestry(&self, id: ElementId) -> Result<bool, RepositoryError>;
 }

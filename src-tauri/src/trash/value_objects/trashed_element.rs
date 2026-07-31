@@ -2,8 +2,8 @@ use chrono::{DateTime, Utc};
 
 use crate::elements::value_objects::element_id::ElementId;
 
-/// An element the user explicitly moved to the trash, as shown in the trash
-/// panel. Descendants that went along with it are not listed separately.
+/// An element the user explicitly moved to the trash.
+/// Descendants that went along with it are not listed separately.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrashedElement {
     pub element_id: ElementId,

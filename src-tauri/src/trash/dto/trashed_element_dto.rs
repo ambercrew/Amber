@@ -10,7 +10,6 @@ pub struct TrashedElementResponseDto {
     pub element_id: ElementId,
     pub name: String,
     pub trashed_at: DateTime<Utc>,
-    /// Elements that were trashed together with this one and come back with it.
     pub descendant_count: i64,
 }
 
