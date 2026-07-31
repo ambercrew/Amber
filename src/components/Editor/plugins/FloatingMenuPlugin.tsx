@@ -66,11 +66,17 @@ function usePointerInteractions() {
 			setIsPointerDown(false);
 			setIsPointerReleased(true);
 			document.removeEventListener("pointerup", handlePointerUp);
+			document.removeEventListener("pointercancel", handlePointerUp);
 		};
 		const handlePointerDown = () => {
 			setIsPointerDown(true);
 			setIsPointerReleased(false);
 			document.addEventListener("pointerup", handlePointerUp);
+			// On Android, dragging a native text-selection handle hijacks the
+			// touch sequence and the browser fires pointercancel instead of
+			// pointerup, so isPointerDown would otherwise get stuck true and
+			// the floating menu would never be able to show.
+			document.addEventListener("pointercancel", handlePointerUp);
 		};
 		document.addEventListener("pointerdown", handlePointerDown);
 		return () =>
