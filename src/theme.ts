@@ -1,7 +1,6 @@
 import {
 	AppShell,
 	createTheme,
-	darken,
 	Fieldset,
 	lighten,
 	Mark,
@@ -76,8 +75,8 @@ const grayDark: MantineColorsTuple = [
 const dark: MantineColorsTuple = [
 	"#efeae1",
 	"#d8d1c4",
-	"#a89f8f",
-	"#8c8373",
+	"#a99a7e",
+	"#897b61",
 	"#4a4336",
 	"#38322a",
 	"#2a251f",
@@ -161,13 +160,12 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
 	variables: {},
 	light: {
 		"--mantine-color-body": lighten("var(--mantine-color-gray-0)", 0.8),
-		"--mantine-color-text": "#2b2620",
 		"--sidebar-bg": lighten("var(--mantine-color-gray-0)", 0.1),
 		"--editor-surface-bg": "var(--sidebar-bg)",
 	},
 	dark: {
 		"--mantine-color-body": "var(--mantine-color-dark-7)",
-		"--sidebar-bg": darken("var(--mantine-color-dark-7)", 0.25),
+		"--sidebar-bg": "var(--mantine-color-dark-6)",
 		"--editor-surface-bg": "var(--mantine-color-dark-5)",
 	},
 });

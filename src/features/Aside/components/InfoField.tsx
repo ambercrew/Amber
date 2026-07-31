@@ -8,9 +8,7 @@ interface InfoFieldProps {
 function InfoField({ label, children }: InfoFieldProps) {
 	return (
 		<Stack gap={2}>
-			<Text size="xs" c="dimmed" fw={500}>
-				{label}
-			</Text>
+			<Text size="xs">{label}</Text>
 			{children}
 		</Stack>
 	);

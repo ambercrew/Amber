@@ -33,7 +33,7 @@ function applyHighlightAttributes(
 	);
 	element.style.setProperty(
 		"--highlight-bg-dark",
-		`var(--mantine-color-${color}-5)`,
+		`var(--mantine-color-${color}-9)`,
 	);
 	element.setAttribute(HIGHLIGHT_ID_ATTRIBUTE, id);
 	element.setAttribute(HIGHLIGHT_COLOR_ATTRIBUTE, color);

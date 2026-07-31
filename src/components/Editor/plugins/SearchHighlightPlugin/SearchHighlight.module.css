@@ -1,13 +1,9 @@
 ::highlight(amber-find-all) {
-	background-color: light-dark(
-		var(--mantine-color-amber-3),
-		var(--mantine-color-amber-4)
-	);
+	background-color: var(--mantine-color-amber-3);
+	color: var(--mantine-color-black);
 }
 
 ::highlight(amber-find-current) {
-	background-color: light-dark(
-		var(--mantine-color-amber-6),
-		var(--mantine-color-amber-7)
-	);
+	background-color: var(--mantine-color-amber-7);
+	color: var(--mantine-color-white);
 }

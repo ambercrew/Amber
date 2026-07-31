@@ -86,10 +86,7 @@ export default function ContentOriginPanel({ meta }: ContentOriginPanelProps) {
 								)}
 							</Stack>
 						</Fieldset>
-						<Fieldset
-							legend="Bibliographical source"
-							p="xs"
-							radius="sm">
+						<Fieldset legend="Bibliographical source">
 							<Stack gap="md">
 								<OriginField
 									label="Title"
