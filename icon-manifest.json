@@ -1,6 +1,6 @@
 {
 	"default": "./public/icon.svg",
-	"bg_color": "#7c3d2a",
-	"android_bg": "./public/android-bg.svg",
+	"bg_color": "#F5F3EE",
+	"android_bg": "./public/bg.svg",
 	"android_fg": "./public/android-fg.svg"
 }

@@ -15,11 +15,11 @@
 		"uitest": "vitest --ui",
 		"coverage": "vitest run --coverage",
 		"format": "prettier . --write",
-		"prepare": "husky && npm run install-rust-tools",
-		"install-rust-tools": "(rustup component add rustfmt clippy) || echo '⚠️ Warning: Rust tools installation failed. Please install manually: rustfmt, and clippy'",
+		"prepare": "husky",
 		"devtools": "react-devtools",
 		"update-npm": "ncu --upgrade --cooldown 14",
-		"tauri:windows:build": "set STORE_BUILD=1 && tauri-windows-bundle build"
+		"tauri:windows:build": "set STORE_BUILD=1 && tauri-windows-bundle build",
+		"icon": "tauri icon --ios-color '#F5F3EE' ./icon-manifest.json"
 	},
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json,css,md,html}": "prettier --write",
