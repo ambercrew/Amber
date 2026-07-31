@@ -36,11 +36,7 @@ function ConfirmModal({
 	}
 
 	return (
-		<AppModal
-			fullScreen={false}
-			opened={opened}
-			onClose={onClose}
-			title={title}>
+		<AppModal opened={opened} onClose={onClose} title={title}>
 			{children}
 			<Group justify="flex-end" gap="xs" mt="sm">
 				<Button variant="default" onClick={onClose}>
