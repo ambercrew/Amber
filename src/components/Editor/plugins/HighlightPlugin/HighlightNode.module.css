@@ -5,14 +5,17 @@ mark.highlight {
 	);
 
 	& * {
-		color: var(--mantine-color-black) !important;
+		color: light-dark(
+			var(--mantine-color-black),
+			var(--mantine-color-white)
+		) !important;
 		background-color: transparent !important;
 	}
 
 	& code {
 		/* Making inline code stand out from the rest of highlights. */
 		background-color: light-dark(
-			rgba(0, 0, 0, 0.14),
+			rgba(0, 0, 0, 0.17),
 			rgba(0, 0, 0, 0.3)
 		) !important;
 	}

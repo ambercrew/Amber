@@ -178,7 +178,6 @@ function TrashPanel() {
 							<Group gap={2} wrap="nowrap">
 								<ActionIcon
 									variant="subtle"
-									size="sm"
 									title="Restore"
 									onClick={withoutOpening(() => {
 										void dispatch(
@@ -190,7 +189,6 @@ function TrashPanel() {
 								<ActionIcon
 									variant="subtle"
 									color="red"
-									size="sm"
 									title="Delete permanently"
 									onClick={withoutOpening(() =>
 										setPendingDeletion({
