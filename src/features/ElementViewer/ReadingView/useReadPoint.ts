@@ -28,6 +28,14 @@ interface Props {
 	 * back to the top.
 	 */
 	restoredRef: RefObject<boolean>;
+	/**
+	 * Called whenever a manual set/clear lands a new read point, so callers
+	 * can reflect it live (e.g. moving the read point marker) without
+	 * waiting for the next open. Not called for automatic scroll-tracking or
+	 * extract/cloze creation — only a manual placement should move the
+	 * on-screen marker.
+	 */
+	onReadPointChange?: (readPoint: ReadPoint) => void;
 }
 
 interface ReturnValue {
@@ -84,6 +92,7 @@ export function useReadPoint({
 	getContentRoot,
 	lastSplitSeq,
 	restoredRef,
+	onReadPointChange,
 }: Props): ReturnValue {
 	const lastSavedRef = useRef<ReadPoint>({
 		split: initial.split,
@@ -134,6 +143,18 @@ export function useReadPoint({
 			onContentUpdate(() => JSON.stringify(readPoint));
 		},
 		[onContentUpdate],
+	);
+
+	// Used only by the manual set/clear paths so callers can move the
+	// on-screen marker immediately. Automatic scroll-tracking and
+	// extract/cloze creation persist the read point but leave the marker
+	// where the reader last placed it manually.
+	const placeReadPoint = useCallback(
+		(readPoint: ReadPoint) => {
+			persistReadPoint(readPoint);
+			onReadPointChange?.(readPoint);
+		},
+		[persistReadPoint, onReadPointChange],
 	);
 
 	const recordReadPoint = useCallback(() => {
@@ -191,7 +212,7 @@ export function useReadPoint({
 	const recordManualReadPoint = useCallback(() => {
 		precedenceRef.current = "manual";
 		if (lastCursorRef.current) {
-			persistReadPoint(lastCursorRef.current);
+			placeReadPoint(lastCursorRef.current);
 			return;
 		}
 		// No caret has been seen in any split yet — fall back to the block at
@@ -203,13 +224,13 @@ export function useReadPoint({
 			root,
 			READING_VIEWPORT_TOP_OFFSET_IN_PX,
 		);
-		persistReadPoint({ split: seq, block });
-	}, [getContentRoot, persistReadPoint]);
+		placeReadPoint({ split: seq, block });
+	}, [getContentRoot, placeReadPoint]);
 
 	const recordManualClearReadPoint = useCallback(() => {
 		precedenceRef.current = "manual";
-		persistReadPoint(NO_READ_POINT);
-	}, [persistReadPoint]);
+		placeReadPoint(NO_READ_POINT);
+	}, [placeReadPoint]);
 
 	useWindowEvent(READ_POINT_MANUAL_SET_REQUESTED, recordManualReadPoint);
 	useWindowEvent(
