@@ -15,6 +15,7 @@ function Aside({ onCollapse }: AsideProps) {
 	const settings = useAppSelector(selectSettings);
 	const aiEnabled = settings?.enableAi ?? false;
 
+	// TODO: let the title be a tooltip
 	const tabs: SidebarTab[] = [
 		...(aiEnabled
 			? [

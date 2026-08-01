@@ -71,7 +71,10 @@ impl AiStreamer for DefaultAiStreamer {
             MessageContent::Human(request.prompt.clone()),
         )]));
 
-        let agent = self.get_agent(chat_id).await?;
+        let has_documents = messages
+            .iter()
+            .any(|m| matches!(m.content(), MessageContent::Document(_)));
+        let agent = self.get_agent(chat_id, has_documents).await?;
         let rig_messages: Vec<rig::message::Message> = messages
             .into_iter()
             .filter_map(|m| m.try_into().ok())
@@ -192,9 +195,22 @@ impl DefaultAiStreamer {
     async fn get_agent(
         &self,
         chat_id: Uuid,
+        has_documents: bool,
     ) -> Result<Agent<MultiCompletionModel>, AiStreamerError> {
         let client = self.ai_client_provider.get_client().await?;
         let completion_model_name = self.ai_client_provider.get_completion_model_name().await?;
+
+        let builder = client
+            .agent(&completion_model_name)
+            .temperature(DEFAULT_TEMPERATURE)
+            .name("Amber Tutor")
+            .default_max_turns(DEFAULT_MAX_TURN)
+            .preamble(preamble().as_str());
+
+        if !has_documents {
+            return Ok(builder.build());
+        }
+
         let embeddings_model_name = self.ai_client_provider.get_embeddings_model_name().await?;
         let embed_model = client.embedding_model(embeddings_model_name);
 
@@ -204,15 +220,7 @@ impl DefaultAiStreamer {
             .await?;
         let index = Arc::new(vector_store.index(embed_model));
 
-        let builder = client
-            .agent(&completion_model_name)
-            .temperature(DEFAULT_TEMPERATURE)
-            .name("Amber Tutor")
-            .default_max_turns(DEFAULT_MAX_TURN)
-            .preamble(preamble().as_str())
-            .tool(SearchDocuments::new(index, chat_id));
-
-        Ok(builder.build())
+        Ok(builder.tool(SearchDocuments::new(index, chat_id)).build())
     }
 }
 
@@ -429,10 +437,27 @@ pub mod tests {
         let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let chat = Chat::new(None, "Chat title".to_string());
+        let chat_id = chat.id();
+        repository.upsert_chat(&chat).await.unwrap();
+        repository
+            .upsert_message(&Message::new(
+                None,
+                chat_id,
+                MessageContent::Document(
+                    crate::ai_integration::entities::message::DocumentContent {
+                        file_name: "file.pdf".to_string(),
+                    },
+                ),
+            ))
+            .await
+            .unwrap();
 
         let request = StreamAiRequestDto {
             prompt: "User prompt".to_string(),
-            ..Default::default()
+            chat_id: Some(chat_id),
         };
 
         // Act
@@ -687,9 +712,25 @@ pub mod tests {
         let service = scope.resolve::<dyn AiStreamer>().await;
         let repository = scope.resolve::<dyn AiRepository>().await;
 
+        let chat = Chat::new(None, "Chat title".to_string());
+        let chat_id = chat.id();
+        repository.upsert_chat(&chat).await.unwrap();
+        repository
+            .upsert_message(&Message::new(
+                None,
+                chat_id,
+                MessageContent::Document(
+                    crate::ai_integration::entities::message::DocumentContent {
+                        file_name: "file.pdf".to_string(),
+                    },
+                ),
+            ))
+            .await
+            .unwrap();
+
         let request = StreamAiRequestDto {
             prompt: "User prompt".to_string(),
-            ..Default::default()
+            chat_id: Some(chat_id),
         };
 
         // Act
@@ -701,29 +742,23 @@ pub mod tests {
 
         // Assert
 
-        let chats = repository
-            .get_all_chats_sorted_by_date_desc()
-            .await
-            .unwrap();
-        let messages = repository
-            .get_chat_messages_ordered(chats[0].id())
-            .await
-            .unwrap();
+        let messages = repository.get_chat_messages_ordered(chat_id).await.unwrap();
 
-        assert_eq!(4, messages.len());
-        assert!(matches!(messages[0].content(), MessageContent::Human(_)));
-        assert!(matches!(messages[1].content(), MessageContent::ToolCall(_)));
+        assert_eq!(5, messages.len());
+        assert!(matches!(messages[0].content(), MessageContent::Document(_)));
+        assert!(matches!(messages[1].content(), MessageContent::Human(_)));
+        assert!(matches!(messages[2].content(), MessageContent::ToolCall(_)));
         assert!(matches!(
-            messages[2].content(),
+            messages[3].content(),
             MessageContent::ToolResult(_)
         ));
         assert!(matches!(
-            messages[3].content(),
+            messages[4].content(),
             MessageContent::Assistant(_)
         ));
 
         if let (MessageContent::ToolCall(tc), MessageContent::ToolResult(tr)) =
-            (messages[1].content(), messages[2].content())
+            (messages[2].content(), messages[3].content())
         {
             assert_eq!(tc.id, tr.id);
             assert_eq!(tc.name, "search_documents");

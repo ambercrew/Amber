@@ -16,12 +16,15 @@ const AUTO_SCROLL_THRESHOLD_PX = 80;
 function ChatMessages({ messages }: ChatMessagesProps) {
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const isPinnedToBottomRef = useRef(true);
+	const isAutoScrollingRef = useRef(false);
 
 	useEffect(() => {
 		const viewport = viewportRef.current;
 		if (!viewport) return;
 
 		function handleScroll() {
+			if (isAutoScrollingRef.current) return;
+
 			const distanceFromBottom =
 				viewport!.scrollHeight -
 				viewport!.scrollTop -
@@ -37,7 +40,16 @@ function ChatMessages({ messages }: ChatMessagesProps) {
 	useEffect(() => {
 		const viewport = viewportRef.current;
 		if (!viewport || !isPinnedToBottomRef.current) return;
-		viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
+
+		// Instant (not smooth) so the jump completes before the next streamed
+		// token can trigger another one — an in-flight smooth animation kept
+		// generating scroll events that re-pinned the view to the bottom right
+		// after the user had scrolled away from it.
+		isAutoScrollingRef.current = true;
+		viewport.scrollTo({ top: viewport.scrollHeight, behavior: "auto" });
+		requestAnimationFrame(() => {
+			isAutoScrollingRef.current = false;
+		});
 	}, [messages]);
 
 	if (messages.length === 0) {

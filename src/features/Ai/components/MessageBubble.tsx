@@ -13,8 +13,8 @@ interface MessageBubbleProps {
 }
 
 // TODO: handle changing chats while AI is still generating
-// TODO: dot animation should be within the message
-// TODO: the user cannot scroll up while AI is generating things
+// TODO: on error restore the text message for the person
+// TODO: overflowing tables outside of message
 const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
 	search_documents: {
 		inProgress: "Searching uploaded documents…",
@@ -64,7 +64,7 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 		}
 
 		return (
-			<Group justify="flex-start" align="flex-end" gap={6} wrap="nowrap">
+			<Group justify="flex-start">
 				<Paper withBorder radius="md" p="sm" maw="85%">
 					<Typography>
 						<div
@@ -73,8 +73,12 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 							}}
 						/>
 					</Typography>
+					{isStreaming && (
+						<Group justify="flex-end" mt={4}>
+							<Loader type="dots" size="xs" />
+						</Group>
+					)}
 				</Paper>
-				{isStreaming && <Loader type="dots" size="xs" />}
 			</Group>
 		);
 	}
