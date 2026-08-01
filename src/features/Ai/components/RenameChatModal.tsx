@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Button, Group, TextInput } from "@mantine/core";
+import { useRef, useState } from "react";
+import { Button, Group } from "@mantine/core";
 import AppModal from "../../../components/AppModal/AppModal";
+import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 
 interface RenameChatModalProps {
 	opened: boolean;
@@ -16,6 +17,7 @@ function RenameChatModal({
 	onConfirm,
 }: RenameChatModalProps) {
 	const [title, setTitle] = useState(initialTitle);
+	const inputRef = useRef<HTMLTextAreaElement>(null);
 
 	function handleConfirm() {
 		const trimmed = title.trim();
@@ -28,8 +30,10 @@ function RenameChatModal({
 			opened={opened}
 			onClose={onClose}
 			title="Rename chat"
-			onExitTransitionEnd={() => setTitle(initialTitle)}>
-			<TextInput
+			onExitTransitionEnd={() => setTitle(initialTitle)}
+			onEnterTransitionEnd={() => inputRef.current?.select()}>
+			<AutosizeTextInput
+				ref={inputRef}
 				autoFocus
 				value={title}
 				onChange={e => setTitle(e.currentTarget.value)}

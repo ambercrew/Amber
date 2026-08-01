@@ -1,15 +1,40 @@
-import { Box, Group, Paper, Text } from "@mantine/core";
+import { Box, Group, Loader, Paper, Text, Typography } from "@mantine/core";
 import { FileIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { marked } from "marked";
 import { MessageContentDto } from "../../../api/aiIntegration/dto/messageDto";
+import { sanitizeHtml } from "../../Import/normalize/sanitize";
 
 interface MessageBubbleProps {
 	content: MessageContentDto;
+	/** Name of the tool a `toolCall`/`toolResult` bubble belongs to. */
+	toolName?: string;
+	/** Whether this is the assistant reply currently being streamed in. */
+	isStreaming?: boolean;
 }
 
-// TODO: dot animation while waiting
-// TODO: markdown rendering
-// TODO: if the user scrolls up while AI is generating do not scroll down otherwise do it automatically
-function MessageBubble({ content }: MessageBubbleProps) {
+// TODO: handle changing chats while AI is still generating
+// TODO: dot animation should be within the message
+// TODO: the user cannot scroll up while AI is generating things
+const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
+	search_documents: {
+		inProgress: "Searching uploaded documents…",
+		done: "Searched uploaded documents",
+	},
+};
+
+function toolLabel(toolName: string | undefined, done: boolean): string {
+	const known = toolName ? TOOL_LABELS[toolName] : undefined;
+	if (known) return done ? known.done : known.inProgress;
+
+	const readable = toolName?.replace(/_/g, " ") ?? "tool";
+	return done ? `Ran ${readable}` : `Running ${readable}…`;
+}
+
+function renderMarkdown(value: string) {
+	return sanitizeHtml(marked.parse(value, { async: false }) as string);
+}
+
+function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 	if (content.type === "human") {
 		return (
 			<Group justify="flex-end">
@@ -28,13 +53,28 @@ function MessageBubble({ content }: MessageBubbleProps) {
 	}
 
 	if (content.type === "assistant") {
+		if (content.value === "") {
+			return (
+				<Group justify="flex-start">
+					<Paper withBorder radius="md" p="sm">
+						<Loader type="dots" size="sm" />
+					</Paper>
+				</Group>
+			);
+		}
+
 		return (
-			<Group justify="flex-start">
+			<Group justify="flex-start" align="flex-end" gap={6} wrap="nowrap">
 				<Paper withBorder radius="md" p="sm" maw="85%">
-					<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-						{content.value}
-					</Text>
+					<Typography>
+						<div
+							dangerouslySetInnerHTML={{
+								__html: renderMarkdown(content.value),
+							}}
+						/>
+					</Typography>
 				</Paper>
+				{isStreaming && <Loader type="dots" size="xs" />}
 			</Group>
 		);
 	}
@@ -54,15 +94,15 @@ function MessageBubble({ content }: MessageBubbleProps) {
 		);
 	}
 
-	// TODO: use the tool call name instead
+	const done = content.type === "toolResult";
+	const name = content.type === "toolCall" ? content.value.name : toolName;
+
 	return (
 		<Box>
 			<Group gap={4} wrap="nowrap">
 				<MagnifyingGlassIcon size={12} />
 				<Text size="xs" c="dimmed" fs="italic">
-					{content.type === "toolCall"
-						? "Searching uploaded documents…"
-						: "Searched uploaded documents"}
+					{toolLabel(name, done)}
 				</Text>
 			</Group>
 		</Box>

@@ -5,6 +5,10 @@ import MessageDto, {
 export interface DisplayMessage {
 	id: string;
 	content: MessageContentDto;
+	/** Name of the tool a `toolCall`/`toolResult` message belongs to, resolved by matching ids. */
+	toolName?: string;
+	/** Whether this is the assistant reply currently being streamed in. */
+	isStreaming?: boolean;
 }
 
 /**
@@ -21,10 +25,32 @@ export function buildDisplayMessages(
 	pendingHumanText: string | null,
 	streamingAssistantText: string | null,
 ): DisplayMessage[] {
-	const items: DisplayMessage[] = persisted.map(message => ({
-		id: message.id,
-		content: message.content,
-	}));
+	// `toolResult` messages don't carry the tool's name, only the id of the
+	// `toolCall` they answer, so it has to be looked up from that call.
+	const toolNamesById = new Map<string, string>();
+	for (const message of persisted) {
+		if (message.content.type === "toolCall") {
+			toolNamesById.set(
+				message.content.value.id,
+				message.content.value.name,
+			);
+		}
+	}
+
+	const items: DisplayMessage[] = persisted.map(message => {
+		const toolName =
+			message.content.type === "toolCall"
+				? message.content.value.name
+				: message.content.type === "toolResult"
+					? toolNamesById.get(message.content.value.id)
+					: undefined;
+
+		return {
+			id: message.id,
+			content: message.content,
+			...(toolName !== undefined && { toolName }),
+		};
+	});
 
 	if (pendingHumanText !== null) {
 		items.push({
@@ -37,6 +63,7 @@ export function buildDisplayMessages(
 		items.push({
 			id: "pending-assistant",
 			content: { type: "assistant", value: streamingAssistantText },
+			isStreaming: true,
 		});
 	}
 

@@ -46,6 +46,7 @@ describe("buildDisplayMessages", () => {
 			{
 				id: "pending-assistant",
 				content: { type: "assistant", value: "Hello" },
+				isStreaming: true,
 			},
 		]);
 	});

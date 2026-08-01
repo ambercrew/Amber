@@ -41,7 +41,7 @@ function ChatSelectMenu({
 						/>
 					)}
 					{option.value === NEW_CHAT_VALUE && <PlusIcon size={14} />}
-					<Text size="sm" truncate style={{ flex: 1 }}>
+					<Text size="sm" style={{ flex: 1 }}>
 						{option.label}
 					</Text>
 				</Group>
