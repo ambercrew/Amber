@@ -144,7 +144,10 @@ impl TryFrom<Message> for rig::message::Message {
             }
             MessageContent::Assistant(content) => Ok(rig::message::Message::Assistant {
                 id: None,
-                content: OneOrMany::one(AssistantContent::Text(Text { text: content })),
+                content: OneOrMany::one(AssistantContent::Text(Text {
+                    text: content,
+                    additional_params: None,
+                })),
             }),
             MessageContent::ToolCall(ToolCallContent {
                 id,

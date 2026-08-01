@@ -245,6 +245,7 @@ pub mod tests {
         let search_tool = SearchDocuments::new(index, chat_id);
         let search_result = Tool::call(
             &search_tool,
+            &mut rig::tool::ToolContext::default(),
             SearchDocumentsArgs {
                 query: "search query".to_string(),
                 top_k: 1,

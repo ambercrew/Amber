@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use rig::sqlite::{SqliteSearchFilter, SqliteVectorIndex};
 use rig::{
-    completion::ToolDefinition,
-    tool::Tool,
+    tool::{Tool, ToolContext},
     vector_store::{
         VectorSearchRequest, VectorStoreError, VectorStoreIndex, request::SearchFilter,
     },
@@ -55,20 +54,22 @@ impl Tool for SearchDocuments {
     type Args = SearchDocumentsArgs;
     type Output = Vec<Document>;
 
-    async fn definition(&self, _prompt: String) -> ToolDefinition {
-        let parameters = serde_json::to_value(schema_for!(SearchDocumentsArgs)).unwrap();
-
-        ToolDefinition {
-            name: Self::NAME.to_string(),
-            description: "Performs semantic search over the text content of \
-                all files uploaded by the user. It returns relevant \
-                snippets (chunks) that match the query"
-                .to_string(),
-            parameters,
-        }
+    fn description(&self) -> String {
+        "Performs semantic search over the text content of \
+            all files uploaded by the user. It returns relevant \
+            snippets (chunks) that match the query"
+            .to_string()
     }
 
-    async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
+    fn parameters(&self) -> serde_json::Value {
+        serde_json::to_value(schema_for!(SearchDocumentsArgs)).unwrap()
+    }
+
+    async fn call(
+        &self,
+        _context: &mut ToolContext,
+        args: Self::Args,
+    ) -> Result<Self::Output, Self::Error> {
         let filter = SqliteSearchFilter::eq(
             CHAT_ID_COLUMN_NAME,
             serde_json::to_value(self.chat_id.to_string()).unwrap(),
@@ -105,17 +106,23 @@ pub mod tests {
 
     use super::*;
 
-    fn create_embedding(chat_id: Uuid, first_number: f64) -> (Document, OneOrMany<Embedding>) {
+    fn create_embedding(
+        chat_id: Uuid,
+        label: &str,
+        x: f64,
+        y: f64,
+    ) -> (Document, OneOrMany<Embedding>) {
         (
             Document {
                 chat_id,
                 id: Uuid::new_v4().to_string(),
-                content: format!("{first_number}").to_string(),
+                content: label.to_string(),
             },
             OneOrMany::one(Embedding {
                 document: String::new(),
-                vec: iter::once(first_number)
-                    .chain(iter::repeat_n(0f64, DEFAULT_MOCK_EMBEDDINGS_DIMS - 1))
+                vec: [x, y]
+                    .into_iter()
+                    .chain(iter::repeat_n(0f64, DEFAULT_MOCK_EMBEDDINGS_DIMS - 2))
                     .collect(),
             }),
         )
@@ -131,11 +138,18 @@ pub mod tests {
         }
         let conn = Connection::open_in_memory().await.unwrap();
 
+        // Query points in the same direction as "same-direction" and forms a
+        // narrower angle with "close-direction" than with "opposite-direction",
+        // so cosine similarity (the vector store's distance metric) ranks them
+        // unambiguously: same-direction, then close-direction, excluding
+        // opposite-direction from the requested top 2.
         let chat_id = Uuid::new_v4();
         let embed_model = MultiEmbeddingModel::Mock(MockClient {
             embed_texts_fn: Arc::new(Some(Box::new(move |request| {
                 if request.len() == 1 && request[0] == "request" {
-                    return Ok(vec![create_embedding(chat_id, 1.1f64).1.first()]);
+                    return Ok(vec![
+                        create_embedding(chat_id, "query", 1f64, 1f64).1.first(),
+                    ]);
                 }
                 unreachable!()
             }))),
@@ -145,9 +159,9 @@ pub mod tests {
 
         let vector_store = SqliteVectorStore::new(conn, &embed_model).await.unwrap();
         let embeddings: Vec<(Document, OneOrMany<Embedding>)> = vec![
-            create_embedding(chat_id, 1f64),
-            create_embedding(chat_id, 1.3f64),
-            create_embedding(chat_id, 4f64),
+            create_embedding(chat_id, "close-direction", 1f64, 0f64),
+            create_embedding(chat_id, "same-direction", 2f64, 2f64),
+            create_embedding(chat_id, "opposite-direction", -1f64, -1f64),
         ];
         vector_store.add_rows(embeddings).await.unwrap();
 
@@ -157,17 +171,20 @@ pub mod tests {
         // Act
 
         let actual = tool
-            .call(SearchDocumentsArgs {
-                query: "request".to_string(),
-                top_k: 2,
-            })
+            .call(
+                &mut ToolContext::default(),
+                SearchDocumentsArgs {
+                    query: "request".to_string(),
+                    top_k: 2,
+                },
+            )
             .await
             .unwrap();
 
         // Assert
 
         assert_eq!(2, actual.len());
-        assert_eq!("1.3", actual[0].content);
-        assert_eq!("1", actual[1].content);
+        assert_eq!("same-direction", actual[0].content);
+        assert_eq!("close-direction", actual[1].content);
     }
 }

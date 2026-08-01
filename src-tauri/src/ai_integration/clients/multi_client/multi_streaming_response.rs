@@ -11,7 +11,7 @@ pub enum MultiStreamingResponse {
 }
 
 impl GetTokenUsage for MultiStreamingResponse {
-    fn token_usage(&self) -> Option<rig::completion::Usage> {
+    fn token_usage(&self) -> rig::completion::Usage {
         match self {
             Self::Ollama(response) => response.token_usage(),
             Self::OpenAI(response) => response.token_usage(),

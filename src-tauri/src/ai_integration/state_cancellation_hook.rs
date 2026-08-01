@@ -1,10 +1,14 @@
 use std::sync::Arc;
 
-use rig::agent::{HookAction, PromptHook, ToolCallHookAction};
-
-use crate::ai_integration::{
-    ai_state::AiState, clients::multi_client::multi_completion_model::MultiCompletionModel,
+use rig::agent::{
+    AgentHook, CompletionCallAction, CompletionCallEvent, CompletionResponseEvent, HookContext,
+    ObservationAction, StreamResponseFinish, TextDelta, ToolCall, ToolCallAction, ToolCallDelta,
+    ToolResultAction, ToolResultEvent,
 };
+
+use crate::ai_integration::ai_state::AiState;
+
+const CANCELLED_REASON: &str = "Cancelled due to state update.";
 
 #[derive(Clone)]
 pub struct StateCancellationHook {
@@ -16,72 +20,90 @@ impl StateCancellationHook {
         Self { state }
     }
 
-    fn cancel_based_on_state(&self) -> HookAction {
+    fn cancelled(&self) -> bool {
         if self.state.generation_cancelled() {
             log::info!("Cancelling the generation of response.");
-            HookAction::terminate("Cancelled due to state update.")
+            true
         } else {
-            HookAction::cont()
+            false
         }
     }
 }
 
-impl PromptHook<MultiCompletionModel> for StateCancellationHook {
+impl AgentHook for StateCancellationHook {
     async fn on_completion_call(
         &self,
-        _: &rig::message::Message,
-        _: &[rig::message::Message],
-    ) -> HookAction {
-        self.cancel_based_on_state()
+        _ctx: &HookContext,
+        _event: CompletionCallEvent<'_>,
+    ) -> CompletionCallAction {
+        if self.cancelled() {
+            CompletionCallAction::stop(CANCELLED_REASON)
+        } else {
+            CompletionCallAction::Continue
+        }
     }
 
     async fn on_completion_response(
         &self,
-        _: &rig::message::Message,
-        _: &rig::completion::CompletionResponse<
-            <MultiCompletionModel as rig::completion::CompletionModel>::Response,
-        >,
-    ) -> HookAction {
-        self.cancel_based_on_state()
+        _ctx: &HookContext,
+        _event: CompletionResponseEvent<'_>,
+    ) -> ObservationAction {
+        if self.cancelled() {
+            ObservationAction::stop(CANCELLED_REASON)
+        } else {
+            ObservationAction::Continue
+        }
     }
 
-    async fn on_text_delta(&self, _: &str, _: &str) -> HookAction {
-        self.cancel_based_on_state()
+    async fn on_text_delta(&self, _ctx: &HookContext, _event: TextDelta<'_>) -> ObservationAction {
+        if self.cancelled() {
+            ObservationAction::stop(CANCELLED_REASON)
+        } else {
+            ObservationAction::Continue
+        }
     }
 
-    async fn on_tool_call_delta(&self, _: &str, _: &str, _: Option<&str>, _: &str) -> HookAction {
-        self.cancel_based_on_state()
-    }
-
-    async fn on_stream_completion_response_finish(
+    async fn on_tool_call_delta(
         &self,
-        _: &rig::message::Message,
-        _: &<MultiCompletionModel as rig::completion::CompletionModel>::StreamingResponse,
-    ) -> HookAction {
-        self.cancel_based_on_state()
+        _ctx: &HookContext,
+        _event: ToolCallDelta<'_>,
+    ) -> ObservationAction {
+        if self.cancelled() {
+            ObservationAction::stop(CANCELLED_REASON)
+        } else {
+            ObservationAction::Continue
+        }
     }
 
-    async fn on_tool_call(
+    async fn on_stream_response_finish(
         &self,
-        _: &str,
-        _: Option<String>,
-        _: &str,
-        _: &str,
-    ) -> ToolCallHookAction {
-        match self.cancel_based_on_state() {
-            HookAction::Continue => ToolCallHookAction::Continue,
-            HookAction::Terminate { reason } => ToolCallHookAction::terminate(reason),
+        _ctx: &HookContext,
+        _event: StreamResponseFinish<'_>,
+    ) -> ObservationAction {
+        if self.cancelled() {
+            ObservationAction::stop(CANCELLED_REASON)
+        } else {
+            ObservationAction::Continue
+        }
+    }
+
+    async fn on_tool_call(&self, _ctx: &HookContext, _event: ToolCall<'_>) -> ToolCallAction {
+        if self.cancelled() {
+            ToolCallAction::stop(CANCELLED_REASON)
+        } else {
+            ToolCallAction::Run
         }
     }
 
     async fn on_tool_result(
         &self,
-        _: &str,
-        _: Option<String>,
-        _: &str,
-        _: &str,
-        _: &str,
-    ) -> HookAction {
-        self.cancel_based_on_state()
+        _ctx: &HookContext,
+        _event: ToolResultEvent<'_>,
+    ) -> ToolResultAction {
+        if self.cancelled() {
+            ToolResultAction::stop(CANCELLED_REASON)
+        } else {
+            ToolResultAction::Keep
+        }
     }
 }

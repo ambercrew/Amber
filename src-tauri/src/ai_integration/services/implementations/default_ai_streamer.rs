@@ -2,12 +2,10 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
-use rig::client::EmbeddingsClient;
+use rig::client::{AgentClientExt, EmbeddingsClient};
 use rig::streaming::StreamedUserContent;
-use rig::tool::ToolDyn;
 use rig::{
     agent::{Agent, MultiTurnStreamItem, StreamingError, Text},
-    client::CompletionClient,
     completion::PromptError,
     extractor::ExtractionError,
     streaming::{StreamedAssistantContent, StreamingChat},
@@ -80,7 +78,7 @@ impl AiStreamer for DefaultAiStreamer {
             .collect();
         let mut stream = agent
             .stream_chat(request.prompt, rig_messages)
-            .with_hook(StateCancellationHook::new(self.state.clone()))
+            .add_hook(StateCancellationHook::new(self.state.clone()))
             .await;
 
         let mut complete_ai_response = String::new();
@@ -89,7 +87,7 @@ impl AiStreamer for DefaultAiStreamer {
             match content {
                 Ok(content) => {
                     if let MultiTurnStreamItem::StreamAssistantItem(
-                        StreamedAssistantContent::Text(Text { text }),
+                        StreamedAssistantContent::Text(Text { text, .. }),
                     ) = content
                     {
                         complete_ai_response = format!("{complete_ai_response}{text}");
@@ -136,7 +134,6 @@ impl AiStreamer for DefaultAiStreamer {
                                 }
                                 other => other.to_string(),
                             },
-                            other => other.to_string(),
                         };
                         on_event(StreamLlmResponseEvent::Error(error_message))?;
                     }
@@ -207,16 +204,13 @@ impl DefaultAiStreamer {
             .await?;
         let index = Arc::new(vector_store.index(embed_model));
 
-        let tools: Vec<Box<dyn ToolDyn>> = vec![Box::new(SearchDocuments::new(index, chat_id))];
-
         let builder = client
             .agent(&completion_model_name)
             .temperature(DEFAULT_TEMPERATURE)
             .name("Amber Tutor")
             .default_max_turns(DEFAULT_MAX_TURN)
-            .preamble(preamble().as_str());
-
-        let builder = builder.tools(tools);
+            .preamble(preamble().as_str())
+            .tool(SearchDocuments::new(index, chat_id));
 
         Ok(builder.build())
     }

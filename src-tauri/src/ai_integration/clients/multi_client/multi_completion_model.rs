@@ -149,6 +149,7 @@ where
         StreamedAssistantContent::Final(response) => {
             RawStreamingChoice::FinalResponse(response.into())
         }
+        StreamedAssistantContent::Unknown(value) => RawStreamingChoice::Unknown(value),
     }
 }
 

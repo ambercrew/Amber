@@ -66,6 +66,7 @@ function AiTab() {
 		setApiKey("");
 	}
 
+	// TODO: add text that shows disabling AI will hide it in all places of the app
 	return (
 		<Stack gap="lg" pt="md">
 			<Stack gap="xs">
