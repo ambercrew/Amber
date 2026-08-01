@@ -15,6 +15,7 @@ import { MetaResponseDto } from "../../api/elements/dto/anyElementDto";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElementDetails } from "../../stores/elementDetails/elementDetailsSelectors";
 import { paths } from "../../paths";
+import ElementNodeIcon from "../App/components/ElementNodeIcon";
 
 interface ContentOriginPanelProps {
 	meta: MetaResponseDto;
@@ -68,19 +69,25 @@ export default function ContentOriginPanel({ meta }: ContentOriginPanelProps) {
 									Element
 								</Text>
 								{derivedFrom ? (
-									<Anchor
-										size="sm"
-										style={{ overflowWrap: "anywhere" }}
-										onClick={() => {
-											void navigate(
-												paths.element(
-													derivedFrom.type,
-													derivedFrom.id,
-												),
-											);
-										}}>
-										{derivedFromName ?? "…"}
-									</Anchor>
+									<Group gap={6} wrap="nowrap">
+										<ElementNodeIcon
+											type={derivedFrom.type}
+											size={18}
+										/>
+										<Anchor
+											size="sm"
+											style={{ overflowWrap: "anywhere" }}
+											onClick={() => {
+												void navigate(
+													paths.element(
+														derivedFrom.type,
+														derivedFrom.id,
+													),
+												);
+											}}>
+											{derivedFromName ?? "…"}
+										</Anchor>
+									</Group>
 								) : (
 									<Text size="sm">—</Text>
 								)}
