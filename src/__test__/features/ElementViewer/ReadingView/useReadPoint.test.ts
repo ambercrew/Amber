@@ -76,6 +76,7 @@ function renderReadPoint(overrides: {
 	restoredRef: { current: boolean };
 	readingId?: string;
 	lastSplitSeq?: number;
+	onReadPointChange?: (readPoint: ReadPoint) => void;
 }) {
 	const {
 		root,
@@ -84,6 +85,7 @@ function renderReadPoint(overrides: {
 		restoredRef,
 		readingId = "r1",
 		lastSplitSeq,
+		onReadPointChange,
 	} = overrides;
 	return renderHook(() =>
 		useReadPoint({
@@ -93,6 +95,7 @@ function renderReadPoint(overrides: {
 			getContentRoot: () => root,
 			lastSplitSeq,
 			restoredRef,
+			onReadPointChange,
 		}),
 	);
 }
@@ -630,5 +633,113 @@ describe("useReadPoint", () => {
 		// Assert
 
 		expect(actual).toEqual({ split: 4, block: 3 });
+	});
+
+	it("Should call onReadPointChange with the new read point when a manual set is requested", async () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const onReadPointChange = vi.fn();
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+			onReadPointChange,
+		});
+		act(() => {
+			result.current.trackCursor(4, 3);
+		});
+
+		// Act
+
+		await act(async () => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
+			await vi.runAllTimersAsync();
+		});
+
+		// Assert
+
+		expect(onReadPointChange).toHaveBeenCalledWith({ split: 4, block: 3 });
+	});
+
+	it("Should call onReadPointChange with the cleared read point when a manual clear is requested", async () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const onReadPointChange = vi.fn();
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 3 },
+			restoredRef,
+			onReadPointChange,
+		});
+
+		// Act
+
+		await act(async () => {
+			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
+			await vi.runAllTimersAsync();
+		});
+
+		// Assert
+
+		expect(onReadPointChange).toHaveBeenCalledWith({ split: 0, block: 0 });
+	});
+
+	it("Should not call onReadPointChange when an extract is created", async () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		const restoredRef = { current: true };
+		const onReadPointChange = vi.fn();
+		const { result } = renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+			onReadPointChange,
+		});
+
+		// Act
+
+		await act(async () => {
+			result.current.recordExtractReadPoint(4, 3);
+			await vi.runAllTimersAsync();
+		});
+
+		// Assert
+
+		expect(onReadPointChange).not.toHaveBeenCalled();
+	});
+
+	it("Should not call onReadPointChange for automatic scroll-tracking", async () => {
+		// Arrange
+
+		const root = makeRoot(5);
+		setBlockBottoms(root, BOTTOMS_TOP_VISIBLE_IS_TWO);
+		const restoredRef = { current: true };
+		const onReadPointChange = vi.fn();
+		renderReadPoint({
+			root,
+			primarySeq: 4,
+			initial: { split: 4, block: 0 },
+			restoredRef,
+			onReadPointChange,
+		});
+
+		// Act
+
+		await act(async () => {
+			window.dispatchEvent(new Event("scroll"));
+			await vi.runAllTimersAsync();
+		});
+
+		// Assert
+
+		expect(onReadPointChange).not.toHaveBeenCalled();
 	});
 });
