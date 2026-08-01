@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::settings::value_objects::{
+    ai_provider::AiProvider, ai_provider_settings::AiProviderSettings,
     database_location::DatabaseLocation, settings_profile::SettingsProfile, theme::Theme,
 };
 use crate::trash::services::trash_service::DEFAULT_TRASH_RETENTION_DAYS;
@@ -27,10 +28,23 @@ pub struct Settings {
     /// parses instead of taking the whole app down on startup.
     #[serde(default = "default_trash_retention_days")]
     pub trash_retention_days: u32,
+
+    #[serde(default = "default_enable_ai")]
+    pub enable_ai: bool,
+    #[serde(default)]
+    pub ai_provider: AiProvider,
+    #[serde(default)]
+    pub ollama: AiProviderSettings,
+    #[serde(default)]
+    pub openai: AiProviderSettings,
 }
 
 fn default_trash_retention_days() -> u32 {
     DEFAULT_TRASH_RETENTION_DAYS
+}
+
+fn default_enable_ai() -> bool {
+    true
 }
 
 impl Default for Settings {
@@ -42,6 +56,10 @@ impl Default for Settings {
             zoom_percentage: f64::default(),
             auto_sync: bool::default(),
             trash_retention_days: DEFAULT_TRASH_RETENTION_DAYS,
+            enable_ai: true,
+            ai_provider: AiProvider::default(),
+            ollama: AiProviderSettings::default(),
+            openai: AiProviderSettings::default(),
         }
     }
 }
@@ -55,6 +73,10 @@ impl Settings {
             zoom_percentage: 100f64,
             auto_sync: true,
             trash_retention_days: DEFAULT_TRASH_RETENTION_DAYS,
+            enable_ai: true,
+            ai_provider: AiProvider::default(),
+            ollama: AiProviderSettings::default(),
+            openai: AiProviderSettings::default(),
         }
     }
 

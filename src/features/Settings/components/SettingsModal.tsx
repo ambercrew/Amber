@@ -1,7 +1,12 @@
 import { ReactNode, useState } from "react";
 import { Box, Burger, Group, NavLink } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { DatabaseIcon, InfoIcon, PaletteIcon } from "@phosphor-icons/react";
+import {
+	DatabaseIcon,
+	InfoIcon,
+	PaletteIcon,
+	SparkleIcon,
+} from "@phosphor-icons/react";
 import AppModal from "../../../components/AppModal/AppModal";
 import AppDrawer from "../../../components/AppDrawer/AppDrawer";
 import { useIsSmallScreen } from "../../../hooks/useIsSmallScreen";
@@ -12,6 +17,7 @@ import { selectIsSettingsModalOpened } from "../../../stores/app/appSelectors";
 import AppearanceTab from "./AppearanceTab";
 import DataTab from "./DataTab";
 import AboutTab from "./AboutTab";
+import AiTab from "./AiTab";
 
 interface Section {
 	value: string;
@@ -36,6 +42,12 @@ const SECTIONS: Section[] = [
 		label: "Data",
 		icon: <DatabaseIcon />,
 		render: () => <DataTab />,
+	},
+	{
+		value: "ai",
+		label: "AI",
+		icon: <SparkleIcon />,
+		render: () => <AiTab />,
 	},
 	{
 		value: "about",

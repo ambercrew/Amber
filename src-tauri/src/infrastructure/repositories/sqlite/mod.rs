@@ -1,3 +1,4 @@
+pub mod sqlite_ai_repository;
 pub mod sqlite_bibliographical_source_repository;
 pub mod sqlite_card_repository;
 pub mod sqlite_card_review_log_repository;

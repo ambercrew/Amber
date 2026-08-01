@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::settings::value_objects::{settings_profile::SettingsProfile, theme::Theme};
+use crate::settings::value_objects::{
+    ai_provider::AiProvider, ai_provider_settings::AiProviderSettings,
+    settings_profile::SettingsProfile, theme::Theme,
+};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,4 +17,9 @@ pub struct UpdateSettingsRequestDto {
     pub zoom_percentage: Option<f64>,
     pub auto_sync: Option<bool>,
     pub trash_retention_days: Option<u32>,
+
+    pub enable_ai: Option<bool>,
+    pub ai_provider: Option<AiProvider>,
+    pub ollama: Option<AiProviderSettings>,
+    pub openai: Option<AiProviderSettings>,
 }

@@ -4,6 +4,14 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+use crate::ai_integration::ai_state::AiState;
+use crate::ai_integration::repositories::ai_repository::AiRepository;
+use crate::ai_integration::services::ai_client_provider::AiClientProvider;
+use crate::ai_integration::services::ai_streamer::AiStreamer;
+use crate::ai_integration::services::document_uploader::DocumentUploader;
+use crate::ai_integration::services::implementations::default_ai_client_provider::DefaultAiClientProvider;
+use crate::ai_integration::services::implementations::default_ai_streamer::DefaultAiStreamer;
+use crate::ai_integration::services::implementations::default_document_uploader::DefaultDocumentUploader;
 use crate::backend::services::{
     authenticator::Authenticator, implementations::default_authenticator::DefaultAuthenticator,
 };
@@ -44,6 +52,7 @@ use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteM
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repository::SqliteReadingReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
@@ -287,6 +296,14 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     register_scope!(injector, dyn BackupService, DefaultBackupService);
 
+    // AI
+
+    injector.register_singleton(Arc::new(AiState::default()));
+    register_scope!(injector, dyn AiRepository, SqliteAiRepository);
+    register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+    register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
+    register_scope!(injector, dyn DocumentUploader, DefaultDocumentUploader);
+
     // Auth
 
     register_scope!(injector, dyn Authenticator, DefaultAuthenticator);
@@ -317,7 +334,9 @@ pub fn register_scoped_tx(injector: &mut Injector) {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::create_temp_directory;
+    use crate::{
+        ai_integration::clients::mock_client::MockClient, test_utils::create_temp_directory,
+    };
 
     use super::*;
 
@@ -326,7 +345,10 @@ mod tests {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
-        let injector = create_injector(app_data_directory).await;
+        let mut injector = create_injector(app_data_directory).await;
+
+        // Needed for testing.
+        injector.register_singleton(Arc::new(MockClient::default()));
 
         // Act & Assert
 

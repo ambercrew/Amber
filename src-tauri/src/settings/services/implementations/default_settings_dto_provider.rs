@@ -3,20 +3,30 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
-use crate::settings::{
-    dto::settings_dto::SettingsDto, repositories::settings_repository::SettingsRepository,
-    services::settings_dto_provider::SettingsDtoProvider,
+use crate::{
+    ai_integration::services::implementations::default_ai_client_provider::OPENAI_API_KEY_SECRET,
+    secrets::repositories::secrets_repository::SecretsRepository,
+    settings::{
+        dto::settings_dto::SettingsDto, repositories::settings_repository::SettingsRepository,
+        services::settings_dto_provider::SettingsDtoProvider,
+    },
 };
 
 #[derive(ScopeInjectable)]
 pub struct DefaultSettingsDtoProvider {
     settings_repository: Arc<dyn SettingsRepository>,
+    secrets_repository: Arc<dyn SecretsRepository>,
 }
 
 #[async_trait]
 impl SettingsDtoProvider for DefaultSettingsDtoProvider {
     async fn get_settings_dto(&self) -> SettingsDto {
         let settings = self.settings_repository.get_settings().await;
+        let openai_api_key_is_set = self
+            .secrets_repository
+            .get_secret(OPENAI_API_KEY_SECRET)
+            .await
+            .is_some_and(|k| !k.is_empty());
 
         SettingsDto {
             base_database_directory: settings.base_database_directory_as_string(),
@@ -24,6 +34,11 @@ impl SettingsDtoProvider for DefaultSettingsDtoProvider {
             zoom_percentage: settings.zoom_percentage,
             auto_sync: settings.auto_sync,
             trash_retention_days: settings.trash_retention_days,
+            enable_ai: settings.enable_ai,
+            ai_provider: settings.ai_provider,
+            ollama: settings.ollama,
+            openai: settings.openai,
+            openai_api_key_is_set,
         }
     }
 }
