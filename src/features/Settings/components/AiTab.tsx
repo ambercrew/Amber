@@ -66,7 +66,6 @@ function AiTab() {
 		setApiKey("");
 	}
 
-	// TODO: add text that shows disabling AI will hide it in all places of the app
 	return (
 		<Stack gap="lg" pt="md">
 			<Stack gap="xs">
@@ -77,6 +76,10 @@ function AiTab() {
 						handleEnableAiChange(e.currentTarget.checked)
 					}
 				/>
+				<Text size="xs" c="dimmed">
+					Disabling AI hides it everywhere in the app, including the
+					chat panel and its commands.
+				</Text>
 			</Stack>
 
 			{settings.enableAi && (
