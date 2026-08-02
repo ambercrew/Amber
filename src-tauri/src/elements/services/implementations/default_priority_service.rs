@@ -46,7 +46,7 @@ impl PriorityService for DefaultPriorityService {
         let percentage = if total <= 1 {
             0.0
         } else {
-            (ranked_ahead as f64) / ((total - 1) as f64) * 100.0
+            (rank as f64) / (total as f64) * 100.0
         };
         Ok(PriorityInfo {
             rank,
@@ -95,8 +95,10 @@ impl PriorityService for DefaultPriorityService {
             return Ok(());
         }
         let clamped = percentage.clamp(0.0, 100.0);
-        let rank_zero_based = (clamped / 100.0 * (total - 1) as f64).round() as i64;
-        self.set_priority_by_rank(id, rank_zero_based + 1).await
+        let rank = (clamped / 100.0 * total as f64)
+            .round()
+            .clamp(1.0, total as f64) as i64;
+        self.set_priority_by_rank(id, rank).await
     }
 }
 
