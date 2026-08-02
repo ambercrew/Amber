@@ -18,7 +18,7 @@ import {
 import { AppDispatch, RootState } from "../stores/store";
 import {
 	openImportModal,
-	openPriorityDialog,
+	openPriorityModal,
 	openSettingsModal,
 	openStudyProfileModal,
 	openStudySessionSettingsDialog,
@@ -182,7 +182,7 @@ export const commandsById: Record<CommandId, Command> = {
 		shortcut: OPEN_PRIORITY_DIALOG_SHORTCUT,
 		icon: createElement(ArrowsDownUpIcon),
 		enabled: state => selectCurrentElement(state) !== null,
-		execute: dispatch => dispatch(openPriorityDialog()),
+		execute: dispatch => dispatch(openPriorityModal()),
 	},
 	"open-study-session-settings": {
 		id: "open-study-session-settings",

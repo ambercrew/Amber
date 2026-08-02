@@ -26,7 +26,7 @@ function renderOpenedModal() {
 				importModalOpened: true,
 				studyProfileModalOpened: false,
 				settingsModalOpened: false,
-				priorityDialogOpened: false,
+				priorityModalOpened: false,
 				studySessionSettingsDialogOpened: false,
 			},
 		},

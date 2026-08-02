@@ -17,7 +17,7 @@ import { selectCurrentElementDetails } from "../../../stores/elementDetails/elem
 import { formatRelativeDueDate } from "../../../utils/formatRelativeDueDate";
 import { ElementId } from "../../../types/elements/elementId";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
-import { openPriorityDialog } from "../../../stores/app/appReducer";
+import { openPriorityModal } from "../../../stores/app/appReducer";
 import { commandIcon } from "../../../commands/commandIcon";
 import AutosizeTextInput from "../../../components/AutosizeTextInput/AutosizeTextInput";
 import ElementProfileRow from "../../Study/components/ElementProfileRow";
@@ -131,7 +131,7 @@ function ElementInfoPanel() {
 						<ActionIcon
 							variant="subtle"
 							title="Set priority"
-							onClick={() => dispatch(openPriorityDialog())}>
+							onClick={() => dispatch(openPriorityModal())}>
 							{commandIcon("open-priority-dialog")}
 						</ActionIcon>
 					</Group>

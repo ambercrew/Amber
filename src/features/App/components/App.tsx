@@ -27,7 +27,7 @@ import ResizeHandle from "../../../components/ResizeHandle/ResizeHandle.tsx";
 import ImportModal from "../../Import/components/ImportModal.tsx";
 import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import SettingsModal from "../../Settings/components/SettingsModal.tsx";
-import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
+import PriorityModal from "../../Aside/components/PriorityModal.tsx";
 import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
 import AppHeader from "./AppHeader.tsx";
 import TrashedElementBanner, {
@@ -172,7 +172,7 @@ function App() {
 			<ImportModal />
 			<StudyProfileModal />
 			<SettingsModal />
-			<PriorityDialog />
+			<PriorityModal />
 			<StudySessionSettingsDialog />
 			<Notifications />
 			<SafeAreaTopBackdrop />
