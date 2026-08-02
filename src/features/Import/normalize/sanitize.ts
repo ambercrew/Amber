@@ -30,9 +30,27 @@ const ALLOWED_TAGS = [
 	"tr",
 	"td",
 	"th",
+	// span/svg/path support KaTeX's `output: "html"` math rendering used by
+	// the AI chat's markdown renderer (see MessageBubble.tsx).
+	"span",
+	"svg",
+	"path",
 ];
 
-const ALLOWED_ATTR = ["href", "src", "alt"];
+const ALLOWED_ATTR = [
+	"href",
+	"src",
+	"alt",
+	"class",
+	"style",
+	"aria-hidden",
+	"xmlns",
+	"width",
+	"height",
+	"viewBox",
+	"preserveAspectRatio",
+	"d",
+];
 
 // Also allows relative/protocol-relative URLs (no scheme, or starting with
 // "/" or "//") so that normalize() gets a chance to resolve them against the

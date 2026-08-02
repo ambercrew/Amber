@@ -1,8 +1,12 @@
 import { Box, Group, Loader, Paper, Text, Typography } from "@mantine/core";
 import { FileIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { marked } from "marked";
+import markedKatex from "marked-katex-extension";
+import "katex/dist/katex.min.css";
 import { MessageContentDto } from "../../../api/aiIntegration/dto/messageDto";
 import { sanitizeHtml } from "../../Import/normalize/sanitize";
+
+marked.use(markedKatex({ throwOnError: false, output: "html" }));
 
 interface MessageBubbleProps {
 	content: MessageContentDto;

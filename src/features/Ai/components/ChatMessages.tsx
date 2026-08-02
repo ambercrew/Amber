@@ -12,7 +12,6 @@ interface ChatMessagesProps {
 // until the user manually returns to the bottom.
 const AUTO_SCROLL_THRESHOLD_PX = 80;
 
-// TODO: support late npm install marked marked-katex-extension
 function ChatMessages({ messages }: ChatMessagesProps) {
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const isPinnedToBottomRef = useRef(true);
