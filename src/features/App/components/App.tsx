@@ -71,7 +71,7 @@ function App() {
 			{
 				defaultSize: `${ASIDE_DEFAULT}px`,
 				min: "160px",
-				max: "30%",
+				max: "35%",
 				collapsible: true,
 			},
 		],

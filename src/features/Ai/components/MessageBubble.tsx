@@ -13,7 +13,6 @@ interface MessageBubbleProps {
 }
 
 // TODO: handle changing chats while AI is still generating
-// TODO: overflowing tables outside of message
 const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
 	search_documents: {
 		inProgress: "Searching uploaded documents…",
@@ -41,7 +40,7 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 					withBorder
 					radius="md"
 					p="sm"
-					maw="85%"
+					maw="90%"
 					bg="var(--mantine-primary-color-light)">
 					<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
 						{content.value}
@@ -63,10 +62,16 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 		}
 
 		return (
-			<Group justify="flex-start">
-				<Paper withBorder radius="md" p="sm" maw="85%">
+			<Group justify="flex-start" wrap="nowrap" style={{ minWidth: 0 }}>
+				<Paper
+					withBorder
+					radius="md"
+					p="sm"
+					maw="90%"
+					style={{ minWidth: 0 }}>
 					<Typography>
 						<div
+							style={{ overflowX: "auto" }}
 							dangerouslySetInnerHTML={{
 								__html: renderMarkdown(content.value),
 							}}
@@ -85,7 +90,7 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 	if (content.type === "document") {
 		return (
 			<Group justify="flex-end">
-				<Paper withBorder radius="md" p="xs" maw="85%">
+				<Paper withBorder radius="md" p="xs" maw="90%">
 					<Group gap="xs" wrap="nowrap">
 						<FileIcon size={16} />
 						<Text size="xs" truncate>
