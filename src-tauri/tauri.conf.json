@@ -35,7 +35,7 @@
         "createUpdaterArtifacts": true,
         "active": true,
         "targets": "all",
-        "shortDescription": "Open-source, AI-integrated learning app built around spaced repetition",
+        "shortDescription": "Distraction-free, minimalist yet powerful incremental learning — free and open source.",
         "icon": [
             "icons/32x32.png",
             "icons/128x128@2x.png",
