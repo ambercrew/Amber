@@ -27,7 +27,7 @@ function renderOpenedModal() {
 				studyProfileModalOpened: false,
 				settingsModalOpened: false,
 				priorityModalOpened: false,
-				studySessionSettingsDialogOpened: false,
+				studySessionSettingsModalOpened: false,
 			},
 		},
 	});

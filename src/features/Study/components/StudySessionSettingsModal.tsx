@@ -4,12 +4,12 @@ import AppModal from "../../../components/AppModal/AppModal";
 import { getFuzzFactor, setFuzzFactor } from "../../../api/study/api/studyApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { closeStudySessionSettingsDialog } from "../../../stores/app/appReducer";
-import { selectIsStudySessionSettingsDialogOpened } from "../../../stores/app/appSelectors";
+import { closeStudySessionSettingsModal } from "../../../stores/app/appReducer";
+import { selectIsStudySessionSettingsModalOpened } from "../../../stores/app/appSelectors";
 import { STUDY_SESSION_SETTINGS_CHANGED } from "../../../types/events/studySessionSettingsChangedEvent";
 
-function StudySessionSettingsDialog() {
-	const opened = useAppSelector(selectIsStudySessionSettingsDialogOpened);
+function StudySessionSettingsModal() {
+	const opened = useAppSelector(selectIsStudySessionSettingsModalOpened);
 	const dispatch = useAppDispatch();
 
 	const [fuzzFactor, setLocalFuzzFactor] = useState<number | null>(null);
@@ -20,7 +20,7 @@ function StudySessionSettingsDialog() {
 	}, [opened]);
 
 	function handleClose() {
-		dispatch(closeStudySessionSettingsDialog());
+		dispatch(closeStudySessionSettingsModal());
 	}
 
 	function handleApply() {
@@ -70,4 +70,4 @@ function StudySessionSettingsDialog() {
 	);
 }
 
-export default StudySessionSettingsDialog;
+export default StudySessionSettingsModal;
