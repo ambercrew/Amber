@@ -80,7 +80,7 @@ function ElementInfoPanel() {
 
 	if (!storedMeta) {
 		return (
-			<Text size="sm" c="dimmed" ta="center" px="md" py="xl">
+			<Text size="sm" c="dimmed" ta="center" py="xl">
 				Select an element to see its details.
 			</Text>
 		);
@@ -89,7 +89,7 @@ function ElementInfoPanel() {
 	const dueState = computeDueState(storedMeta.elementId.type, details);
 
 	return (
-		<Stack gap="lg" px="md" py="sm">
+		<Stack gap="lg">
 			<InfoGroup title="Details" storageKey="details">
 				<InfoField label="Name">
 					<AutosizeTextInput

@@ -14,7 +14,6 @@ import ChatSelectMenu from "./ChatSelectMenu";
 import RenameChatModal from "./RenameChatModal";
 import DeleteChatModal from "./DeleteChatModal";
 
-// TODO: instead of having each panel set the padding, make it general
 function AiPanel() {
 	const {
 		chats,
@@ -55,12 +54,7 @@ function AiPanel() {
 
 	return (
 		<Stack gap={0} h="100%" style={{ flex: 1, minHeight: 0 }}>
-			<Group
-				justify="space-between"
-				px="md"
-				py="xs"
-				gap="xs"
-				wrap="nowrap">
+			<Group justify="space-between" pb="xs" gap="xs" wrap="nowrap">
 				<ChatSelectMenu
 					chats={chats}
 					selectedChatId={selectedChatId}
@@ -99,7 +93,6 @@ function AiPanel() {
 				<Alert
 					color="red"
 					icon={<WarningIcon size={16} />}
-					mx="xs"
 					mb="xs"
 					withCloseButton
 					onClose={clearErrorMessage}

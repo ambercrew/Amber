@@ -20,7 +20,7 @@ function ElementTreePanel() {
 	const error = useAppSelector(selectElementTreeError);
 
 	return (
-		<Stack p="md" gap="xs">
+		<Stack gap="xs">
 			{error && (
 				<Alert
 					color="red"

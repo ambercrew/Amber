@@ -6,6 +6,7 @@ import {
 	ActionIcon,
 	ScrollArea,
 	Tooltip,
+	Box,
 } from "@mantine/core";
 import { XIcon } from "@phosphor-icons/react";
 import { SMALL_SCREEN_BREAKPOINT } from "../../hooks/useIsSmallScreen";
@@ -21,6 +22,13 @@ export interface SidebarTab {
 	 * (e.g. a chat view that pins an input to the bottom). Defaults to true.
 	 */
 	scrollable?: boolean;
+	/**
+	 * Whether CollapsibleSidebar should apply the common panel padding
+	 * around the panel's content. Set to false when the panel manages its
+	 * own padding (e.g. to get edge-to-edge rows or a custom full-height
+	 * layout). Defaults to true.
+	 */
+	padded?: boolean;
 }
 
 interface CollapsibleSidebarProps {
@@ -85,25 +93,36 @@ function CollapsibleSidebar({
 					</ActionIcon>
 				</Group>
 
-				{tabs.map(tab => (
-					<Tabs.Panel
-						key={tab.value}
-						value={tab.value}
-						style={{
-							flex: 1,
-							minHeight: 0,
-							display: "flex",
-							flexDirection: "column",
-						}}>
-						{tab.scrollable === false ? (
-							tab.panel
-						) : (
-							<ScrollArea style={{ flex: 1 }}>
-								{tab.panel}
-							</ScrollArea>
-						)}
-					</Tabs.Panel>
-				))}
+				{tabs.map(tab => {
+					const content = (
+						<Box
+							py={tab.padded === false ? undefined : "sm"}
+							px={tab.padded === false ? undefined : "sm"}
+							h="100%">
+							{tab.panel}
+						</Box>
+					);
+
+					return (
+						<Tabs.Panel
+							key={tab.value}
+							value={tab.value}
+							style={{
+								flex: 1,
+								minHeight: 0,
+								display: "flex",
+								flexDirection: "column",
+							}}>
+							{tab.scrollable === false ? (
+								content
+							) : (
+								<ScrollArea style={{ flex: 1 }}>
+									{content}
+								</ScrollArea>
+							)}
+						</Tabs.Panel>
+					);
+				})}
 			</Tabs>
 		</AppShell.Section>
 	);

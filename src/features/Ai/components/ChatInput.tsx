@@ -44,7 +44,7 @@ function ChatInput({
 	}
 
 	return (
-		<Group align="flex-end" gap={6} p="md" wrap="nowrap">
+		<Group align="flex-end" gap={6} pt="xs" wrap="nowrap">
 			<Tooltip label="Upload a document">
 				<ActionIcon
 					variant="default"
