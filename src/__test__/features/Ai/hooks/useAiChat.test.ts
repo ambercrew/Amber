@@ -253,6 +253,7 @@ describe("useAiChat", () => {
 			vi.mocked(streamAiResponse).mockImplementation(
 				() => new Promise(noop),
 			);
+			vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
 
 			const { result } = renderHook(() => useAiChat());
 			await act(async () => {
@@ -260,19 +261,68 @@ describe("useAiChat", () => {
 				await Promise.resolve();
 			});
 			const channel = getCapturedChannel();
+			act(() => {
+				channel.onmessage({ event: "createdChat", data: chat1 });
+			});
 
 			// Act
 
 			act(() => {
-				channel.onmessage({ event: "inProgress", data: "Hi" });
+				channel.onmessage({
+					event: "inProgress",
+					data: { chatId: "chat-1", text: "Hi" },
+				});
 			});
 			act(() => {
-				channel.onmessage({ event: "inProgress", data: " there" });
+				channel.onmessage({
+					event: "inProgress",
+					data: { chatId: "chat-1", text: " there" },
+				});
 			});
 
 			// Assert
 
 			expect(result.current.streamingAssistantText).toBe("Hi there");
+		});
+
+		it("Should hide pendingHumanText and streamingAssistantText when the user switches to a different chat", async () => {
+			// Arrange
+
+			vi.mocked(streamAiResponse).mockImplementation(
+				() => new Promise(noop),
+			);
+			vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([
+				chat1,
+				chat2,
+			]);
+			vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+			const { result } = renderHook(() => useAiChat());
+			await act(async () => {
+				await result.current.openChat("chat-1");
+			});
+			await act(async () => {
+				void result.current.sendPrompt("hello");
+				await Promise.resolve();
+			});
+			const channel = getCapturedChannel();
+			act(() => {
+				channel.onmessage({
+					event: "inProgress",
+					data: { chatId: "chat-1", text: "Hi" },
+				});
+			});
+
+			// Act
+
+			await act(async () => {
+				await result.current.openChat("chat-2");
+			});
+
+			// Assert
+
+			expect(result.current.pendingHumanText).toBeNull();
+			expect(result.current.streamingAssistantText).toBeNull();
 		});
 
 		it("Should select the newly created chat and prepend it to the chat list on createdChat", async () => {

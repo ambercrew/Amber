@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use rig::{completion::CompletionError, http_client::Error as HttpClientError};
 use serde::Serialize;
 use thiserror::Error;
+use uuid::Uuid;
 
 use crate::{
     SourceError,
@@ -15,10 +16,15 @@ use crate::{
 };
 
 #[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase", tag = "event", content = "data")]
+#[serde(
+    rename_all = "camelCase",
+    rename_all_fields = "camelCase",
+    tag = "event",
+    content = "data"
+)]
 pub enum StreamLlmResponseEvent {
     CreatedChat(Chat),
-    InProgress(String),
+    InProgress { chat_id: Uuid, text: String },
     Error(String),
 }
 

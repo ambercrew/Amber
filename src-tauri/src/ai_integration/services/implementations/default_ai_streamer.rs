@@ -94,7 +94,7 @@ impl AiStreamer for DefaultAiStreamer {
                     ) = content
                     {
                         complete_ai_response = format!("{complete_ai_response}{text}");
-                        on_event(StreamLlmResponseEvent::InProgress(text))?;
+                        on_event(StreamLlmResponseEvent::InProgress { chat_id, text })?;
                     } else if let MultiTurnStreamItem::StreamAssistantItem(
                         StreamedAssistantContent::ToolCall { tool_call, .. },
                     ) = content
@@ -353,9 +353,9 @@ pub mod tests {
                             received_create_chat_clone
                                 .store(chat.title() == "Chat title", Ordering::Relaxed);
                         }
-                        StreamLlmResponseEvent::InProgress(message) => {
+                        StreamLlmResponseEvent::InProgress { text, .. } => {
                             received_in_progress_clone
-                                .store(message == "Bot answer", Ordering::Relaxed);
+                                .store(text == "Bot answer", Ordering::Relaxed);
                         }
                         _ => (),
                     }

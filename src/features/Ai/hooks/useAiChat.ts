@@ -32,6 +32,9 @@ export default function useAiChat() {
 	const [streamError, setStreamError] = useState<string | null>(null);
 	const [failedPrompt, setFailedPrompt] = useState<string | null>(null);
 	const [restoreKey, setRestoreKey] = useState(0);
+	// Which chat the in-flight generation belongs to, so its pending human
+	// prompt / streaming text is only shown while that chat is the one open.
+	const [streamChatId, setStreamChatId] = useState<string | null>(null);
 
 	// The channel callback closes over the chat id at the time the request
 	// was sent; a `createdChat` event can update it mid-stream, so it is kept
@@ -94,6 +97,7 @@ export default function useAiChat() {
 			setStreamingAssistantText("");
 			setIsStreaming(true);
 			activeChatIdRef.current = selectedChatId;
+			setStreamChatId(selectedChatId);
 
 			// Read synchronously in `onFinally` below, since state set from
 			// the channel handler or the catch block hasn't re-rendered yet
@@ -105,10 +109,12 @@ export default function useAiChat() {
 				if (event.event === "createdChat") {
 					activeChatIdRef.current = event.data.id;
 					setSelectedChatId(event.data.id);
+					setStreamChatId(event.data.id);
 					setChats(prev => [event.data, ...prev]);
 				} else if (event.event === "inProgress") {
+					setStreamChatId(event.data.chatId);
 					setStreamingAssistantText(
-						prev => (prev ?? "") + event.data,
+						prev => (prev ?? "") + event.data.text,
 					);
 				} else if (event.event === "error") {
 					failed = true;
@@ -132,6 +138,7 @@ export default function useAiChat() {
 					setIsStreaming(false);
 					setPendingHumanText(null);
 					setStreamingAssistantText(null);
+					setStreamChatId(null);
 					if (failed) {
 						setFailedPrompt(prompt);
 						setRestoreKey(k => k + 1);
@@ -176,12 +183,18 @@ export default function useAiChat() {
 		[callApi, selectedChatId],
 	);
 
+	// The in-flight generation's pending prompt/streaming text belongs to
+	// whichever chat it was sent to; only surface it while that chat is open.
+	const isViewingStreamChat = streamChatId === selectedChatId;
+
 	return {
 		chats,
 		selectedChatId,
 		messages,
-		pendingHumanText,
-		streamingAssistantText,
+		pendingHumanText: isViewingStreamChat ? pendingHumanText : null,
+		streamingAssistantText: isViewingStreamChat
+			? streamingAssistantText
+			: null,
 		isStreaming,
 		streamError,
 		clearStreamError,

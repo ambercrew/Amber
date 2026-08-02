@@ -12,7 +12,6 @@ interface MessageBubbleProps {
 	isStreaming?: boolean;
 }
 
-// TODO: handle changing chats while AI is still generating
 const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
 	search_documents: {
 		inProgress: "Searching uploaded documents…",
