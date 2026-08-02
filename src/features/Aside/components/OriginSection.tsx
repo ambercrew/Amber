@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import {
 	ActionIcon,
 	Anchor,
+	Box,
 	Fieldset,
 	Group,
 	Select,
@@ -21,6 +22,7 @@ import {
 	BibliographicalSourceType,
 } from "../../../api/bibliographicalSources/dto/bibliographicalSourceDto";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
+import ElementNodeIcon from "../../App/components/ElementNodeIcon";
 import { clearDerivedFromAction } from "../../../stores/elements/elementsActions";
 import { loadElementDetailsAction } from "../../../stores/elementDetails/elementDetailsActions";
 import {
@@ -183,25 +185,32 @@ function OriginSection({
 			<Fieldset legend="Derived from" p="xs">
 				<InfoField label="Element">
 					{derivedFrom ? (
-						<Group gap={4} wrap="nowrap">
-							<Anchor
-								size="sm"
-								onClick={() => {
-									void navigate(
-										paths.element(
-											derivedFrom.type,
-											derivedFrom.id,
-										),
-									);
-								}}>
-								{derivedFromName ?? "…"}
-							</Anchor>
+						<Group justify="space-between" wrap="nowrap">
+							<Group gap={6} wrap="nowrap">
+								<Box style={{ flexShrink: 0, display: "flex" }}>
+									<ElementNodeIcon
+										type={derivedFrom.type}
+										size={18}
+									/>
+								</Box>
+								<Anchor
+									size="sm"
+									onClick={() => {
+										void navigate(
+											paths.element(
+												derivedFrom.type,
+												derivedFrom.id,
+											),
+										);
+									}}>
+									{derivedFromName ?? "…"}
+								</Anchor>
+							</Group>
 							<ActionIcon
-								size="sm"
 								variant="subtle"
 								title="Clear derived from"
 								onClick={handleClearDerivedFrom}>
-								<XIcon size={16} />
+								<XIcon size={18} />
 							</ActionIcon>
 						</Group>
 					) : (

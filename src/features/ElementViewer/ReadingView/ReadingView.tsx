@@ -172,6 +172,8 @@ export default function ReadingView({
 	const currentSearchTarget =
 		searchCurrentIndex >= 0 ? resolveMatchTarget(searchCurrentIndex) : null;
 
+	const [displayedReadPoint, setDisplayedReadPoint] = useState(readPoint);
+
 	const { recordExtractReadPoint, trackCursor, getCurrentReadPoint } =
 		useReadPoint({
 			readingId,
@@ -180,6 +182,7 @@ export default function ReadingView({
 			getContentRoot,
 			lastSplitSeq: splits?.[splits.length - 1]?.seq,
 			restoredRef,
+			onReadPointChange: setDisplayedReadPoint,
 		});
 
 	const handleGoToReadPointRequested = useCallback(() => {
@@ -283,9 +286,10 @@ export default function ReadingView({
 						onContentReady={handleContentReady}
 						onCursorMove={trackCursor}
 						markerBlockIndex={
-							split.seq === readPoint.split &&
-							(readPoint.split !== 0 || readPoint.block !== 0)
-								? readPoint.block
+							split.seq === displayedReadPoint.split &&
+							(displayedReadPoint.split !== 0 ||
+								displayedReadPoint.block !== 0)
+								? displayedReadPoint.block
 								: undefined
 						}
 						search={{

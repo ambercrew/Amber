@@ -16,9 +16,11 @@ interface ReadPointMarkerPluginProps {
  * outside this editor instance — it re-measures on every editor update
  * (edits, reflow within this split) and on window resize.
  *
- * `blockIndex` only locates the block the first time; after that the block's
- * own Lexical node key is used, so the marker stays on that exact block even
- * if edits above it shift its index.
+ * `blockIndex` only locates the block the first time it's seen; after that
+ * the block's own Lexical node key is used, so the marker stays on that
+ * exact block even if edits above it shift its index. When `blockIndex`
+ * itself changes (the caller moved the marker to a different block), the
+ * cached key is dropped so the new index is looked up fresh.
  */
 export default function ReadPointMarkerPlugin({
 	blockIndex,
@@ -26,6 +28,10 @@ export default function ReadPointMarkerPlugin({
 	const [editor] = useLexicalComposerContext();
 	const [top, setTop] = useState<number | null>(null);
 	const blockKeyRef = useRef<NodeKey | null>(null);
+
+	useEffect(() => {
+		blockKeyRef.current = null;
+	}, [blockIndex]);
 
 	useEffect(() => {
 		const measure = () => {
@@ -78,7 +84,7 @@ export default function ReadPointMarkerPlugin({
 	if (top === null) return null;
 
 	return (
-		<Tooltip label="Resumed reading here" position="left" withArrow>
+		<Tooltip label="You'll resume here next time" position="left" withArrow>
 			<Box pos="absolute" top={top} right="100%" mr={5} fz={22}>
 				{commandIcon("set-read-point")}
 			</Box>
