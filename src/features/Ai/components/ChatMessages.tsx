@@ -12,29 +12,37 @@ interface ChatMessagesProps {
 // until the user manually returns to the bottom.
 const AUTO_SCROLL_THRESHOLD_PX = 80;
 
+// TODO: support late npm install marked marked-katex-extension
 function ChatMessages({ messages }: ChatMessagesProps) {
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const isPinnedToBottomRef = useRef(true);
 	const isAutoScrollingRef = useRef(false);
+	const lastScrollTopRef = useRef(0);
 
-	useEffect(() => {
+	function handleScrollPositionChange({ y }: { x: number; y: number }) {
 		const viewport = viewportRef.current;
 		if (!viewport) return;
 
-		function handleScroll() {
-			if (isAutoScrollingRef.current) return;
+		const scrolledUp = y < lastScrollTopRef.current;
+		lastScrollTopRef.current = y;
 
-			const distanceFromBottom =
-				viewport!.scrollHeight -
-				viewport!.scrollTop -
-				viewport!.clientHeight;
-			isPinnedToBottomRef.current =
-				distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
+		if (isAutoScrollingRef.current) return;
+
+		// Any upward scroll opts out immediately — waiting for a fixed
+		// distance threshold never triggers while streaming, since each new
+		// token re-pins the view to the bottom before the user can scroll far
+		// enough away from it.
+		if (scrolledUp) {
+			isPinnedToBottomRef.current = false;
+			return;
 		}
 
-		viewport.addEventListener("scroll", handleScroll);
-		return () => viewport.removeEventListener("scroll", handleScroll);
-	}, []);
+		const distanceFromBottom =
+			viewport.scrollHeight - y - viewport.clientHeight;
+		if (distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX) {
+			isPinnedToBottomRef.current = true;
+		}
+	}
 
 	useEffect(() => {
 		const viewport = viewportRef.current;
@@ -62,8 +70,12 @@ function ChatMessages({ messages }: ChatMessagesProps) {
 	}
 
 	return (
-		<ScrollArea viewportRef={viewportRef} style={{ flex: 1 }}>
-			<Stack gap="sm" p="sm">
+		<ScrollArea
+			viewportRef={viewportRef}
+			onScrollPositionChange={handleScrollPositionChange}
+			offsetScrollbars
+			style={{ flex: 1 }}>
+			<Stack gap="sm">
 				{messages.map(message => (
 					<MessageBubble
 						key={message.id}
