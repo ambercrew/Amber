@@ -2,41 +2,32 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
-use rig::client::{AgentClientExt, EmbeddingsClient};
 use rig::streaming::StreamedUserContent;
 use rig::{
-    agent::{Agent, MultiTurnStreamItem, StreamingError, Text},
+    agent::{MultiTurnStreamItem, StreamingError, Text},
     completion::PromptError,
-    extractor::ExtractionError,
     streaming::{StreamedAssistantContent, StreamingChat},
 };
 use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
-use uuid::Uuid;
 
 use crate::ai_integration::ai_state::AiState;
-use crate::ai_integration::clients::multi_client::multi_completion_model::MultiCompletionModel;
 use crate::ai_integration::dto::stream_ai_request_dto::StreamAiRequestDto;
-use crate::ai_integration::entities::chat::Chat;
 use crate::ai_integration::entities::message::{Message, MessageContent};
-use crate::ai_integration::json_schemas::generate_title::GenerateTitle;
-use crate::ai_integration::prompts::{PREAMBLE_GENERATE_TITLE, preamble};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
-use crate::ai_integration::services::ai_client_provider::AiClientProvider;
+use crate::ai_integration::services::agent_provider::AgentProvider;
 use crate::ai_integration::services::ai_streamer::{
     AiStreamer, AiStreamerError, OnEventCallback, StreamLlmResponseEvent,
 };
+use crate::ai_integration::services::chat_creator::ChatCreator;
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
-use crate::ai_integration::tools::search_documents::SearchDocuments;
-
-const DEFAULT_TEMPERATURE: f64 = 0.5;
-const DEFAULT_MAX_TURN: usize = 16;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultAiStreamer {
     state: Arc<AiState>,
     ai_repository: Arc<dyn AiRepository>,
-    ai_client_provider: Arc<dyn AiClientProvider>,
+    chat_creator: Arc<dyn ChatCreator>,
+    agent_provider: Arc<dyn AgentProvider>,
 }
 
 #[async_trait]
@@ -58,7 +49,7 @@ impl AiStreamer for DefaultAiStreamer {
                 .get_chat_messages_ordered(chat_id)
                 .await?;
         } else {
-            let chat = self.create_chat(&request.prompt).await?;
+            let chat = self.chat_creator.create_chat(&request.prompt).await?;
             chat_id = chat.id();
             messages = Vec::new();
             on_event(StreamLlmResponseEvent::CreatedChat(chat.clone()))?;
@@ -71,10 +62,7 @@ impl AiStreamer for DefaultAiStreamer {
             MessageContent::Human(request.prompt.clone()),
         )]));
 
-        let has_documents = messages
-            .iter()
-            .any(|m| matches!(m.content(), MessageContent::Document(_)));
-        let agent = self.get_agent(chat_id, has_documents).await?;
+        let agent = self.agent_provider.get_agent(chat_id, &messages).await?;
         let rig_messages: Vec<rig::message::Message> = messages
             .into_iter()
             .filter_map(|m| m.try_into().ok())
@@ -168,62 +156,6 @@ impl AiStreamer for DefaultAiStreamer {
     }
 }
 
-impl DefaultAiStreamer {
-    async fn create_chat(&self, prompt: &str) -> Result<Chat, AiStreamerError> {
-        let response = match self
-            .ai_client_provider
-            .get_client()
-            .await?
-            .extractor::<GenerateTitle>(self.ai_client_provider.get_completion_model_name().await?)
-            .preamble(PREAMBLE_GENERATE_TITLE)
-            .build()
-            .extract(format!("User message: {}", prompt))
-            .await
-        {
-            Ok(response) => response,
-            Err(ExtractionError::CompletionError(completion_err)) => {
-                return Err(AiStreamerError::try_from(completion_err)
-                    .unwrap_or_else(|e| AiStreamerError::CreateChat(Box::new(e))));
-            }
-            Err(err) => return Err(AiStreamerError::CreateChat(Box::new(err))),
-        };
-
-        log::info!("Generated title for chat is '{}'.", response.title);
-        Ok(Chat::new(None, response.title))
-    }
-
-    async fn get_agent(
-        &self,
-        chat_id: Uuid,
-        has_documents: bool,
-    ) -> Result<Agent<MultiCompletionModel>, AiStreamerError> {
-        let client = self.ai_client_provider.get_client().await?;
-        let completion_model_name = self.ai_client_provider.get_completion_model_name().await?;
-
-        let builder = client
-            .agent(&completion_model_name)
-            .temperature(DEFAULT_TEMPERATURE)
-            .name("Amber Tutor")
-            .default_max_turns(DEFAULT_MAX_TURN)
-            .preamble(preamble().as_str());
-
-        if !has_documents {
-            return Ok(builder.build());
-        }
-
-        let embeddings_model_name = self.ai_client_provider.get_embeddings_model_name().await?;
-        let embed_model = client.embedding_model(embeddings_model_name);
-
-        let vector_store = self
-            .ai_client_provider
-            .get_vector_store(&embed_model)
-            .await?;
-        let index = Arc::new(vector_store.index(embed_model));
-
-        Ok(builder.tool(SearchDocuments::new(index, chat_id)).build())
-    }
-}
-
 #[cfg(test)]
 pub mod tests {
     use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
@@ -240,12 +172,19 @@ pub mod tests {
         ai_integration::{
             ai_state::AiState,
             clients::{mock_client::MockClient, multi_client::multi_response::MultiResponse},
-            entities::message::MessageContent,
+            entities::{chat::Chat, message::MessageContent},
             json_schemas::generate_title::GenerateTitle,
             repositories::ai_repository::AiRepository,
             services::{
+                agent_provider::AgentProvider,
+                ai_client_provider::AiClientProvider,
                 ai_streamer::{AiStreamer, StreamLlmResponseEvent},
-                implementations::default_ai_client_provider::DefaultAiClientProvider,
+                chat_creator::ChatCreator,
+                implementations::{
+                    default_agent_provider::DefaultAgentProvider,
+                    default_ai_client_provider::DefaultAiClientProvider,
+                    default_chat_creator::DefaultChatCreator,
+                },
             },
         },
         infrastructure::repositories::{
@@ -275,6 +214,8 @@ pub mod tests {
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiRepository, SqliteAiRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+        register_scope!(injector, dyn ChatCreator, DefaultChatCreator);
+        register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
 
         injector

@@ -7,10 +7,11 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::{
-    SourceError,
     ai_integration::{
         dto::stream_ai_request_dto::StreamAiRequestDto, entities::chat::Chat,
+        services::agent_provider::AgentProviderError,
         services::ai_client_provider::AiClientProviderError,
+        services::chat_creator::ChatCreatorError,
     },
     common::repository_error::RepositoryError,
 };
@@ -41,8 +42,6 @@ pub type OnEventCallback =
 pub enum AiStreamerError {
     #[error(transparent)]
     Repository(#[from] RepositoryError),
-    #[error("Failed to create the chat: {0}")]
-    CreateChat(#[source] SourceError),
     #[error("HTTP {status}: {message}")]
     ProviderHttpError { status: u16, message: String },
     #[error("{0}")]
@@ -51,6 +50,10 @@ pub enum AiStreamerError {
     AiClientProvider(#[from] AiClientProviderError),
     #[error(transparent)]
     OnEventCallback(#[from] OnEventCallbackError),
+    #[error(transparent)]
+    ChatCreator(#[from] ChatCreatorError),
+    #[error(transparent)]
+    AgentProvider(#[from] AgentProviderError),
 }
 
 impl TryFrom<CompletionError> for AiStreamerError {
