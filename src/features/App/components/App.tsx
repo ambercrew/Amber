@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
-import { AppShell } from "@mantine/core";
+import { AppShell, Box } from "@mantine/core";
 import { useSplitter, useHeadroom } from "@mantine/hooks";
 import { Notifications } from "@mantine/notifications";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -20,6 +20,7 @@ import { initialLoadApplicationState } from "../../../stores/app/appActions.ts";
 import useAppSelector from "../../../hooks/useAppSelector.ts";
 import { selectAreSettingsLoaded } from "../../../stores/settings/settingsSelector.ts";
 import { selectStudyStatus } from "../../../stores/study/studySelectors.ts";
+import { selectCurrentElementIsTrashed } from "../../../stores/elements/elementsSelectors.ts";
 import Sidebar from "../../Sidebar/components/Sidebar.tsx";
 import Aside from "../../Aside/components/Aside.tsx";
 import ResizeHandle from "../../../components/ResizeHandle/ResizeHandle.tsx";
@@ -29,6 +30,9 @@ import SettingsModal from "../../Settings/components/SettingsModal.tsx";
 import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
 import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
 import AppHeader from "./AppHeader.tsx";
+import TrashedElementBanner, {
+	TRASHED_ELEMENT_BANNER_HEIGHT,
+} from "../../ElementViewer/TrashedElementBanner.tsx";
 import SafeAreaTopBackdrop from "../../../components/SafeAreaTopBackdrop/SafeAreaTopBackdrop.tsx";
 import { isMobile } from "../../../utils/tauriUtils.ts";
 import {
@@ -55,6 +59,9 @@ function App() {
 	const dispatch = useAppDispatch();
 	const areSettingsLoaded = useAppSelector(selectAreSettingsLoaded);
 	const studyStatus = useAppSelector(selectStudyStatus);
+	const isCurrentElementTrashed = useAppSelector(
+		selectCurrentElementIsTrashed,
+	);
 	const mobile = isMobile();
 	const safeAreaTop = safeAreaTopStyle();
 	const footerCollapsed = studyStatus !== "studying" || !pinned;
@@ -143,8 +150,15 @@ function App() {
 			}}
 			header={{
 				height: mobile
-					? `calc(${HEADER_AND_FOOTER_HEIGHT}px + ${SAFE_AREA_TOP})`
-					: HEADER_AND_FOOTER_HEIGHT,
+					? `calc(${HEADER_AND_FOOTER_HEIGHT}px + ${SAFE_AREA_TOP}${
+							isCurrentElementTrashed
+								? ` + ${TRASHED_ELEMENT_BANNER_HEIGHT}px`
+								: ""
+						})`
+					: HEADER_AND_FOOTER_HEIGHT +
+						(isCurrentElementTrashed
+							? TRASHED_ELEMENT_BANNER_HEIGHT
+							: 0),
 				collapsed: !pinned,
 				offset: false,
 			}}
@@ -164,10 +178,13 @@ function App() {
 			<SafeAreaTopBackdrop />
 
 			<AppShell.Header style={safeAreaTop}>
-				<AppHeader
-					onToggleSidebar={() => splitter.toggleCollapse(0)}
-					onToggleAside={() => setAsideExpanded(v => !v)}
-				/>
+				<Box h={HEADER_AND_FOOTER_HEIGHT}>
+					<AppHeader
+						onToggleSidebar={() => splitter.toggleCollapse(0)}
+						onToggleAside={() => setAsideExpanded(v => !v)}
+					/>
+				</Box>
+				<TrashedElementBanner />
 			</AppShell.Header>
 
 			<AppShell.Footer
