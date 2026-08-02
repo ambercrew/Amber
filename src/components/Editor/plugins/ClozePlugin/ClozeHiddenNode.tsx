@@ -1,59 +1,74 @@
-import type { JSX } from "react";
 import {
 	$applyNodeReplacement,
-	DecoratorNode,
+	TextNode,
 	type DOMConversionMap,
 	type DOMConversionOutput,
 	type DOMExportOutput,
+	type EditorConfig,
 	type LexicalNode,
+	type LexicalUpdateJSON,
 	type NodeKey,
-	type SerializedLexicalNode,
+	type SerializedTextNode,
 	type Spread,
 } from "lexical";
 import styles from "./ClozeHiddenNode.module.css";
 
 export type SerializedClozeHiddenNode = Spread<
-	{ text: string },
-	SerializedLexicalNode
+	{ hiddenText: string },
+	SerializedTextNode
 >;
 
 export const CLOZE_HIDDEN_TAG_NAME = "mark";
 export const CLOZE_HIDDEN_ATTRIBUTE = "data-cloze-hidden";
+export const CLOZE_PLACEHOLDER = "[...]";
 
-// A cloze-hidden span renders as a literal, static "[...]" placeholder — the
-// real text is kept as node data (not as editable DOM text) purely so it can
-// be read back out for other purposes (e.g. seeding a nested cloze). Using a
-// DecoratorNode instead of an editable text/mark node makes the placeholder
-// a single atomic unit for the caret, clicks, and arrow keys, the same way
-// EquationNode/ImageNode behave.
-export class ClozeHiddenNode extends DecoratorNode<JSX.Element> {
-	__text: string;
+// The node's own (editable, displayed) text is always the literal "[...]"
+// placeholder; the real hidden phrase is kept separately as node data, purely
+// so it can be read back out for other purposes (e.g. seeding a nested
+// cloze). Extending TextNode instead of using a DecoratorNode lets the
+// placeholder edit like any other styled text run (bold, code, etc.) — the
+// caret moves through it and typing/backspace act on it directly.
+export class ClozeHiddenNode extends TextNode {
+	__hiddenText: string;
 
 	static getType(): string {
 		return "cloze-hidden";
 	}
 
 	static clone(node: ClozeHiddenNode): ClozeHiddenNode {
-		return new ClozeHiddenNode(node.__text, node.__key);
+		return new ClozeHiddenNode(node.__hiddenText, node.__text, node.__key);
 	}
 
-	constructor(text = "", key?: NodeKey) {
-		super(key);
-		this.__text = text;
+	constructor(
+		hiddenText: string,
+		text: string = CLOZE_PLACEHOLDER,
+		key?: NodeKey,
+	) {
+		super(text, key);
+		this.__hiddenText = hiddenText;
 	}
 
-	createDOM(): HTMLElement {
-		return document.createElement("span");
+	createDOM(config: EditorConfig): HTMLElement {
+		const element = super.createDOM(config);
+		element.classList.add(styles["cloze-hidden"]);
+		return element;
 	}
 
-	updateDOM(): boolean {
-		return false;
+	updateDOM(
+		prevNode: this,
+		element: HTMLElement,
+		config: EditorConfig,
+	): boolean {
+		const updated = super.updateDOM(prevNode, element, config);
+		element.classList.add(styles["cloze-hidden"]);
+		return updated;
 	}
 
 	exportDOM(): DOMExportOutput {
 		const element = document.createElement(CLOZE_HIDDEN_TAG_NAME);
-		element.setAttribute(CLOZE_HIDDEN_ATTRIBUTE, "true");
-		element.textContent = this.__text;
+		element.classList.add(styles["cloze-hidden"]);
+		element.setAttribute(CLOZE_HIDDEN_ATTRIBUTE, this.__hiddenText);
+		element.textContent = this.getTextContent();
 		return { element };
 	}
 
@@ -77,33 +92,45 @@ export class ClozeHiddenNode extends DecoratorNode<JSX.Element> {
 	exportJSON(): SerializedClozeHiddenNode {
 		return {
 			...super.exportJSON(),
-			text: this.__text,
+			hiddenText: this.__hiddenText,
 		};
 	}
 
 	static importJSON(serialized: SerializedClozeHiddenNode): ClozeHiddenNode {
-		return $createClozeHiddenNode(serialized.text);
+		return $createClozeHiddenNode(
+			serialized.hiddenText,
+			serialized.text,
+		).updateFromJSON(serialized);
 	}
 
-	getTextContent(): string {
-		return this.getLatest().__text;
+	updateFromJSON(
+		serializedNode: LexicalUpdateJSON<SerializedClozeHiddenNode>,
+	): this {
+		const self = super.updateFromJSON(serializedNode);
+		self.__hiddenText = serializedNode.hiddenText;
+		return self;
 	}
 
-	isInline(): boolean {
-		return true;
-	}
-
-	decorate(): JSX.Element {
-		return <span className={styles["cloze-hidden"]}>[...]</span>;
+	getHiddenText(): string {
+		return this.getLatest().__hiddenText;
 	}
 }
 
 function $convertClozeHiddenElement(element: HTMLElement): DOMConversionOutput {
-	return { node: $createClozeHiddenNode(element.textContent ?? "") };
+	const hiddenText = element.getAttribute(CLOZE_HIDDEN_ATTRIBUTE) ?? "";
+	return {
+		node: $createClozeHiddenNode(
+			hiddenText,
+			element.textContent ?? undefined,
+		),
+	};
 }
 
-export function $createClozeHiddenNode(text = ""): ClozeHiddenNode {
-	return $applyNodeReplacement(new ClozeHiddenNode(text));
+export function $createClozeHiddenNode(
+	hiddenText: string,
+	text?: string,
+): ClozeHiddenNode {
+	return $applyNodeReplacement(new ClozeHiddenNode(hiddenText, text));
 }
 
 export function $isClozeHiddenNode(

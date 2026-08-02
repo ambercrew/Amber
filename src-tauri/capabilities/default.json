@@ -18,10 +18,10 @@
             "identifier": "opener:allow-open-url",
             "allow": [
                 {
-                    "url": "https://github.com/ambercrew/amber*"
+                    "url": "https://*"
                 },
                 {
-                    "url": "https://discord.gg/krb7uWTQjt*"
+                    "url": "http://*"
                 }
             ]
         },

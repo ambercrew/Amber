@@ -15,6 +15,7 @@ import { EquationPlugin } from "./plugins/EquationPlugin/EquationPlugin";
 import { HighlightPlugin } from "./plugins/HighlightPlugin/HighlightPlugin";
 import { HighlightCreatedPayload } from "./plugins/HighlightPlugin/highlightCommands";
 import { ImagePlugin } from "./plugins/ImagePlugin/ImagePlugin";
+import { LinkClickPlugin } from "./plugins/LinkPlugin/LinkClickPlugin";
 import {
 	editorExtensionDependencies,
 	editorNodes,
@@ -108,6 +109,7 @@ export default function Editor({
 							<SlashMenuPlugin />
 							<EquationPlugin />
 							<ImagePlugin />
+							<LinkClickPlugin />
 							<HighlightPlugin
 								onHighlightCreated={onHighlightCreated}
 							/>
