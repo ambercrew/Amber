@@ -7,7 +7,6 @@ interface ChatMessagesProps {
 	messages: DisplayMessage[];
 }
 
-// TODO: review how it looks for dark theme
 // How close to the bottom (in pixels) the viewport has to be to count as "at
 // the bottom" — scrolling further up than this opts out of auto-scrolling
 // until the user manually returns to the bottom.

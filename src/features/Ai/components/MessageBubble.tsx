@@ -13,7 +13,6 @@ interface MessageBubbleProps {
 }
 
 // TODO: handle changing chats while AI is still generating
-// TODO: on error restore the text message for the person
 // TODO: overflowing tables outside of message
 const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
 	search_documents: {

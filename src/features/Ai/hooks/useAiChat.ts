@@ -30,6 +30,8 @@ export default function useAiChat() {
 	>(null);
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
+	const [failedPrompt, setFailedPrompt] = useState<string | null>(null);
+	const [restoreKey, setRestoreKey] = useState(0);
 
 	// The channel callback closes over the chat id at the time the request
 	// was sent; a `createdChat` event can update it mid-stream, so it is kept
@@ -93,6 +95,11 @@ export default function useAiChat() {
 			setIsStreaming(true);
 			activeChatIdRef.current = selectedChatId;
 
+			// Read synchronously in `onFinally` below, since state set from
+			// the channel handler or the catch block hasn't re-rendered yet
+			// by the time `onFinally` runs.
+			let failed = false;
+
 			const channel = new Channel<StreamLlmResponseEventDto>();
 			channel.onmessage = event => {
 				if (event.event === "createdChat") {
@@ -104,21 +111,31 @@ export default function useAiChat() {
 						prev => (prev ?? "") + event.data,
 					);
 				} else if (event.event === "error") {
+					failed = true;
 					setStreamError(event.data);
 				}
 			};
 
 			await callApi(
 				async () => {
-					await streamAiResponse(channel, {
-						prompt,
-						chatId: selectedChatId,
-					});
+					try {
+						await streamAiResponse(channel, {
+							prompt,
+							chatId: selectedChatId,
+						});
+					} catch (e) {
+						failed = true;
+						throw e;
+					}
 				},
 				async () => {
 					setIsStreaming(false);
 					setPendingHumanText(null);
 					setStreamingAssistantText(null);
+					if (failed) {
+						setFailedPrompt(prompt);
+						setRestoreKey(k => k + 1);
+					}
 
 					const chatId = activeChatIdRef.current;
 					if (chatId) {
@@ -131,6 +148,8 @@ export default function useAiChat() {
 		},
 		[callApi, refreshChats, selectedChatId],
 	);
+
+	const clearStreamError = useCallback(() => setStreamError(null), []);
 
 	const stopGeneration = useCallback(async () => {
 		await stopAiGeneration();
@@ -165,6 +184,9 @@ export default function useAiChat() {
 		streamingAssistantText,
 		isStreaming,
 		streamError,
+		clearStreamError,
+		failedPrompt,
+		restoreKey,
 		isSendingRequest,
 		errorMessage,
 		clearErrorMessage,

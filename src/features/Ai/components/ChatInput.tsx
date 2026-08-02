@@ -9,6 +9,11 @@ interface ChatInputProps {
 	onSend: (prompt: string) => void;
 	onStop: () => void;
 	onUpload: (path: string) => void;
+	/**
+	 * A prompt to pre-fill the field with, e.g. after it failed to send. Pass
+	 * a changing `key` alongside this so the field remounts and picks it up.
+	 */
+	initialValue?: string;
 }
 
 function ChatInput({
@@ -17,8 +22,9 @@ function ChatInput({
 	onSend,
 	onStop,
 	onUpload,
+	initialValue,
 }: ChatInputProps) {
-	const [value, setValue] = useState("");
+	const [value, setValue] = useState(initialValue ?? "");
 
 	function handleSend() {
 		const trimmed = value.trim();

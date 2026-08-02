@@ -23,6 +23,9 @@ function AiPanel() {
 		streamingAssistantText,
 		isStreaming,
 		streamError,
+		clearStreamError,
+		failedPrompt,
+		restoreKey,
 		errorMessage,
 		clearErrorMessage,
 		refreshChats,
@@ -95,7 +98,10 @@ function AiPanel() {
 					icon={<WarningIcon size={16} />}
 					mb="xs"
 					withCloseButton
-					onClose={clearErrorMessage}
+					onClose={() => {
+						clearErrorMessage();
+						clearStreamError();
+					}}
 					title="Something went wrong">
 					{errorMessage ?? streamError ?? ""}
 				</Alert>
@@ -103,10 +109,12 @@ function AiPanel() {
 
 			<ChatMessages messages={displayMessages} />
 			<ChatInput
+				key={restoreKey}
 				isStreaming={isStreaming}
 				onSend={prompt => void sendPrompt(prompt)}
 				onStop={() => void stopGeneration()}
 				onUpload={path => void uploadDocumentToChat(path)}
+				initialValue={failedPrompt ?? undefined}
 			/>
 
 			{selectedChat && (
