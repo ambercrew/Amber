@@ -6,7 +6,9 @@ import {
 	TrashIcon,
 	WarningIcon,
 } from "@phosphor-icons/react";
-import useAiChat from "../hooks/useAiChat";
+import useAiChats from "../hooks/useAiChats";
+import useAiStreaming from "../hooks/useAiStreaming";
+import useAiDocumentUpload from "../hooks/useAiDocumentUpload";
 import { buildDisplayMessages } from "../utils/buildDisplayMessages";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
@@ -17,15 +19,13 @@ import DeleteChatModal from "./DeleteChatModal";
 function AiPanel() {
 	const {
 		chats,
+		setChats,
 		selectedChatId,
+		setSelectedChatId,
 		messages,
-		pendingHumanText,
-		streamingAssistantText,
-		isStreaming,
-		streamError,
-		clearStreamError,
-		failedPrompt,
-		restoreKey,
+		setMessages,
+		activeChatIdRef,
+		callApi,
 		errorMessage,
 		clearErrorMessage,
 		refreshChats,
@@ -33,10 +33,37 @@ function AiPanel() {
 		startNewChat,
 		removeChat,
 		renameChat,
+	} = useAiChats();
+
+	const {
+		pendingHumanText,
+		streamingAssistantText,
+		isStreaming,
+		streamError,
+		clearStreamError,
+		failedPrompt,
+		restoreKey,
 		sendPrompt,
 		stopGeneration,
-		uploadDocumentToChat,
-	} = useAiChat();
+	} = useAiStreaming({
+		selectedChatId,
+		setSelectedChatId,
+		setChats,
+		setMessages,
+		activeChatIdRef,
+		refreshChats,
+		callApi,
+	});
+
+	const { isUploading, pendingDocumentFileName, uploadDocumentToChat } =
+		useAiDocumentUpload({
+			selectedChatId,
+			setSelectedChatId,
+			setChats,
+			setMessages,
+			activeChatIdRef,
+			callApi,
+		});
 
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -53,6 +80,7 @@ function AiPanel() {
 		messages,
 		pendingHumanText,
 		streamingAssistantText,
+		pendingDocumentFileName,
 	);
 
 	return (
@@ -111,6 +139,7 @@ function AiPanel() {
 			<ChatInput
 				key={restoreKey}
 				isStreaming={isStreaming}
+				isUploading={isUploading}
 				onSend={prompt => void sendPrompt(prompt)}
 				onStop={() => void stopGeneration()}
 				onUpload={path => void uploadDocumentToChat(path)}

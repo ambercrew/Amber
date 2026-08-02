@@ -19,6 +19,7 @@ pub struct DefaultChatCreator {
 #[async_trait]
 impl ChatCreator for DefaultChatCreator {
     async fn create_chat(&self, prompt: &str) -> Result<Chat, ChatCreatorError> {
+        // TODO: use the cancelled state here in retries
         let response = match self
             .ai_client_provider
             .get_client()

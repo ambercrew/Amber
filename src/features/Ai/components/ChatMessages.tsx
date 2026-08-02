@@ -10,8 +10,9 @@ interface ChatMessagesProps {
 // How close to the bottom (in pixels) the viewport has to be to count as "at
 // the bottom" — scrolling further up than this opts out of auto-scrolling
 // until the user manually returns to the bottom.
-const AUTO_SCROLL_THRESHOLD_PX = 80;
+const AUTO_SCROLL_THRESHOLD_PX = 100;
 
+// TODO: when switching chats always move to bottom
 function ChatMessages({ messages }: ChatMessagesProps) {
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const isPinnedToBottomRef = useRef(true);

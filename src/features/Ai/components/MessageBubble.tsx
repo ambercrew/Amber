@@ -95,7 +95,11 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 			<Group justify="flex-end">
 				<Paper withBorder radius="md" p="xs" maw="90%">
 					<Group gap="xs" wrap="nowrap">
-						<FileIcon size={16} />
+						{isStreaming ? (
+							<Loader size={16} />
+						) : (
+							<FileIcon size={16} />
+						)}
 						<Text size="xs" truncate>
 							{content.value.fileName}
 						</Text>

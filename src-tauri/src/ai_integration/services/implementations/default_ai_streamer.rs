@@ -74,6 +74,8 @@ impl AiStreamer for DefaultAiStreamer {
 
         let mut complete_ai_response = String::new();
 
+        // TODO: should it check if cancelled here?
+        // TODO: is there a better way to check midway than hook
         while let Some(content) = stream.next().await {
             match content {
                 Ok(content) => {

@@ -69,4 +69,38 @@ describe("buildDisplayMessages", () => {
 			},
 		]);
 	});
+
+	it("Should append a pending, streaming document message when a document is uploading", () => {
+		// Arrange
+
+		const persisted: MessageDto[] = [];
+
+		// Act
+
+		const actual = buildDisplayMessages(persisted, null, null, "notes.pdf");
+
+		// Assert
+
+		expect(actual).toEqual([
+			{
+				id: "pending-document",
+				content: { type: "document", value: { fileName: "notes.pdf" } },
+				isStreaming: true,
+			},
+		]);
+	});
+
+	it("Should omit the pending document entry when no document is uploading", () => {
+		// Arrange
+
+		const persisted = [makeMessage("1")];
+
+		// Act
+
+		const actual = buildDisplayMessages(persisted, null, null, null);
+
+		// Assert
+
+		expect(actual.map(m => m.id)).toEqual(["1"]);
+	});
 });

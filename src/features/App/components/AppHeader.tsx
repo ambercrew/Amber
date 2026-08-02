@@ -13,6 +13,7 @@ interface AppHeaderProps {
 	onToggleAside: () => void;
 }
 
+// TODO: use tooltip here instead of title
 function AppHeader({ onToggleSidebar, onToggleAside }: AppHeaderProps) {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const storedMeta = currentElement?.data.meta ?? null;

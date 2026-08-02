@@ -1,0 +1,246 @@
+import { act, renderHook } from "@testing-library/react";
+import useAiChats from "../../../../features/Ai/hooks/useAiChats";
+import useAiDocumentUpload from "../../../../features/Ai/hooks/useAiDocumentUpload";
+import {
+	createAiChat,
+	getChatMessagesOrdered,
+	uploadDocument,
+} from "../../../../api/aiIntegration/api/aiApi";
+import ChatDto from "../../../../api/aiIntegration/dto/chatDto";
+import MessageDto from "../../../../api/aiIntegration/dto/messageDto";
+
+vi.mock(import("../../../../api/aiIntegration/api/aiApi"));
+
+const chat1: ChatDto = { id: "chat-1", title: "Chat 1", createdDate: "date" };
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}
+
+// `useAiDocumentUpload` relies on state/setters owned by `useAiChats` (the
+// same way `AiPanel` composes them), so tests exercise both together.
+function useTestHarness() {
+	const chats = useAiChats();
+	const upload = useAiDocumentUpload(chats);
+	return { ...chats, ...upload };
+}
+
+describe("useAiDocumentUpload", () => {
+	it("Should create a new chat named after the file when no chat is selected", async () => {
+		// Arrange
+
+		vi.mocked(createAiChat).mockResolvedValue(chat1);
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness());
+
+		// Act
+
+		await act(async () => {
+			await result.current.uploadDocumentToChat("/home/user/notes.pdf");
+		});
+
+		// Assert
+
+		expect(createAiChat).toHaveBeenCalledWith("notes.pdf");
+		expect(uploadDocument).toHaveBeenCalledWith(
+			"/home/user/notes.pdf",
+			"chat-1",
+		);
+		expect(result.current.selectedChatId).toBe("chat-1");
+		expect(result.current.chats).toEqual([chat1]);
+	});
+
+	it("Should upload to the currently selected chat without creating a new one", async () => {
+		// Arrange
+
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness());
+		await act(async () => {
+			await result.current.openChat("chat-1");
+		});
+
+		// Act
+
+		await act(async () => {
+			await result.current.uploadDocumentToChat("/home/user/notes.pdf");
+		});
+
+		// Assert
+
+		expect(createAiChat).not.toHaveBeenCalled();
+		expect(uploadDocument).toHaveBeenCalledWith(
+			"/home/user/notes.pdf",
+			"chat-1",
+		);
+	});
+
+	it("Should set isUploading synchronously while uploading and clear it once done", async () => {
+		// Arrange
+
+		vi.mocked(createAiChat).mockResolvedValue(chat1);
+		vi.mocked(uploadDocument).mockImplementation(() => new Promise(noop));
+
+		const { result } = renderHook(() => useTestHarness());
+
+		// Act
+
+		await act(async () => {
+			void result.current.uploadDocumentToChat("/home/user/notes.pdf");
+			await Promise.resolve();
+		});
+
+		// Assert
+
+		expect(result.current.isUploading).toBe(true);
+	});
+
+	it("Should clear isUploading once the upload resolves", async () => {
+		// Arrange
+
+		vi.mocked(createAiChat).mockResolvedValue(chat1);
+		vi.mocked(uploadDocument).mockResolvedValue(undefined);
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness());
+
+		// Act
+
+		await act(async () => {
+			await result.current.uploadDocumentToChat("/home/user/notes.pdf");
+		});
+
+		// Assert
+
+		expect(result.current.isUploading).toBe(false);
+	});
+
+	it("Should set pendingDocumentFileName synchronously while uploading and clear it once done", async () => {
+		// Arrange
+
+		vi.mocked(createAiChat).mockResolvedValue(chat1);
+		vi.mocked(uploadDocument).mockImplementation(() => new Promise(noop));
+
+		const { result } = renderHook(() => useTestHarness());
+
+		// Act
+
+		await act(async () => {
+			void result.current.uploadDocumentToChat("/home/user/notes.pdf");
+			await Promise.resolve();
+		});
+
+		// Assert
+
+		expect(result.current.pendingDocumentFileName).toBe("notes.pdf");
+	});
+
+	it("Should clear pendingDocumentFileName once the upload resolves", async () => {
+		// Arrange
+
+		vi.mocked(createAiChat).mockResolvedValue(chat1);
+		vi.mocked(uploadDocument).mockResolvedValue(undefined);
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness());
+
+		// Act
+
+		await act(async () => {
+			await result.current.uploadDocumentToChat("/home/user/notes.pdf");
+		});
+
+		// Assert
+
+		expect(result.current.pendingDocumentFileName).toBeNull();
+	});
+
+	it("Should hide pendingDocumentFileName when the user switches to a different chat", async () => {
+		// Arrange
+
+		vi.mocked(uploadDocument).mockImplementation(() => new Promise(noop));
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness());
+		await act(async () => {
+			await result.current.openChat("chat-1");
+		});
+
+		await act(async () => {
+			void result.current.uploadDocumentToChat("/home/user/notes.pdf");
+			await Promise.resolve();
+		});
+
+		// Act
+
+		await act(async () => {
+			await result.current.openChat("chat-2");
+		});
+
+		// Assert
+
+		expect(result.current.pendingDocumentFileName).toBeNull();
+	});
+
+	it("Should not overwrite the currently viewed chat's messages when the user switches chats before the upload finishes", async () => {
+		// Arrange
+
+		const chat1Messages: MessageDto[] = [
+			{
+				id: "message-1",
+				createdDate: "date",
+				chatId: "chat-1",
+				content: { type: "human", value: "chat 1" },
+			},
+		];
+		const chat2Messages: MessageDto[] = [
+			{
+				id: "message-2",
+				createdDate: "date",
+				chatId: "chat-2",
+				content: { type: "human", value: "chat 2" },
+			},
+		];
+
+		let resolveUpload: () => void = noop;
+		vi.mocked(uploadDocument).mockImplementation(
+			() =>
+				new Promise(resolve => {
+					resolveUpload = resolve;
+				}),
+		);
+		vi.mocked(getChatMessagesOrdered).mockImplementation(chatId =>
+			Promise.resolve(
+				chatId === "chat-1" ? chat1Messages : chat2Messages,
+			),
+		);
+
+		const { result } = renderHook(() => useTestHarness());
+		await act(async () => {
+			await result.current.openChat("chat-1");
+		});
+
+		let uploadPromise!: Promise<void>;
+		await act(async () => {
+			uploadPromise = result.current.uploadDocumentToChat(
+				"/home/user/notes.pdf",
+			);
+			await Promise.resolve();
+		});
+
+		// Act
+
+		await act(async () => {
+			await result.current.openChat("chat-2");
+		});
+		await act(async () => {
+			resolveUpload();
+			await uploadPromise;
+		});
+
+		// Assert
+
+		expect(result.current.selectedChatId).toBe("chat-2");
+		expect(result.current.messages).toEqual(chat2Messages);
+	});
+});

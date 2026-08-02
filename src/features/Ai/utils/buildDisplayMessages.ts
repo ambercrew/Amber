@@ -24,6 +24,7 @@ export function buildDisplayMessages(
 	persisted: MessageDto[],
 	pendingHumanText: string | null,
 	streamingAssistantText: string | null,
+	pendingDocumentFileName: string | null = null,
 ): DisplayMessage[] {
 	// `toolResult` messages don't carry the tool's name, only the id of the
 	// `toolCall` they answer, so it has to be looked up from that call.
@@ -51,6 +52,17 @@ export function buildDisplayMessages(
 			...(toolName !== undefined && { toolName }),
 		};
 	});
+
+	if (pendingDocumentFileName !== null) {
+		items.push({
+			id: "pending-document",
+			content: {
+				type: "document",
+				value: { fileName: pendingDocumentFileName },
+			},
+			isStreaming: true,
+		});
+	}
 
 	if (pendingHumanText !== null) {
 		items.push({

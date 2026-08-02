@@ -6,6 +6,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 interface ChatInputProps {
 	disabled?: boolean;
 	isStreaming: boolean;
+	isUploading?: boolean;
 	onSend: (prompt: string) => void;
 	onStop: () => void;
 	onUpload: (path: string) => void;
@@ -19,6 +20,7 @@ interface ChatInputProps {
 function ChatInput({
 	disabled = false,
 	isStreaming,
+	isUploading = false,
 	onSend,
 	onStop,
 	onUpload,
@@ -55,7 +57,8 @@ function ChatInput({
 				<ActionIcon
 					variant="default"
 					size="lg"
-					disabled={disabled}
+					disabled={disabled || isUploading}
+					loading={isUploading}
 					onClick={() => void handleUploadClick()}
 					aria-label="Upload document">
 					<PaperclipIcon size={18} />
