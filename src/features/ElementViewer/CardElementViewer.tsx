@@ -77,7 +77,7 @@ export default function CardElementViewer({
 					</Group>
 					{answerHidden ? (
 						<Text size="md" c="dimmed" fs="italic">
-							Try to recall the answer, then reveal it below.
+							Try to recall the answer, then reveal it here.
 						</Text>
 					) : (
 						<ElementEditor
