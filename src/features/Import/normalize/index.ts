@@ -61,6 +61,18 @@ export async function normalize(
 		}
 	}
 
+	for (const link of doc.querySelectorAll("a[href]")) {
+		const href = link.getAttribute("href");
+		if (!href) continue;
+
+		const absolute = resolveUrl(href, opts.baseUrl);
+		if (absolute === null) {
+			link.removeAttribute("href");
+		} else {
+			link.setAttribute("href", absolute);
+		}
+	}
+
 	return doc.body.innerHTML;
 }
 

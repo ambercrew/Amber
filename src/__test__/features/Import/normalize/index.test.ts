@@ -137,4 +137,50 @@ describe("normalize", () => {
 		);
 		expect(actual).toBe('<img src="data:image/png;base64,AAAA">');
 	});
+
+	it("Should resolve a relative link href against the baseUrl", async () => {
+		// Arrange
+
+		const html = '<a href="/wiki/Foo">Foo</a>';
+
+		// Act
+
+		const actual = await normalize(html, {
+			baseUrl: "https://example.com/article",
+		});
+
+		// Assert
+
+		expect(actual).toBe('<a href="https://example.com/wiki/Foo">Foo</a>');
+	});
+
+	it("Should keep an already-absolute link href unchanged", async () => {
+		// Arrange
+
+		const html = '<a href="https://other.com/page">Page</a>';
+
+		// Act
+
+		const actual = await normalize(html, {
+			baseUrl: "https://example.com/article",
+		});
+
+		// Assert
+
+		expect(actual).toBe('<a href="https://other.com/page">Page</a>');
+	});
+
+	it("Should remove the href when a relative link url cannot be resolved and there is no baseUrl", async () => {
+		// Arrange
+
+		const html = '<a href="/wiki/Foo">Foo</a>';
+
+		// Act
+
+		const actual = await normalize(html, { baseUrl: null });
+
+		// Assert
+
+		expect(actual).toBe("<a>Foo</a>");
+	});
 });
