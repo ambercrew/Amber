@@ -113,7 +113,7 @@ function $stripOtherHighlights(currentHighlightId: string): void {
 		) {
 			$unwrapMarkNode(node);
 		} else if ($isClozeHiddenNode(node)) {
-			node.replace($createTextNode(node.getTextContent()));
+			node.replace($createTextNode(node.getHiddenText()));
 		}
 	}
 }
