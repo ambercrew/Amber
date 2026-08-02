@@ -5,6 +5,7 @@ import {
 	TabIndentationExtension,
 } from "@lexical/extension";
 import { HistoryExtension } from "@lexical/history";
+import { LinkExtension } from "@lexical/link";
 import { ListExtension } from "@lexical/list";
 import { RichTextExtension } from "@lexical/rich-text";
 import { TableExtension } from "@lexical/table";
@@ -40,6 +41,7 @@ export const editorTheme = {
 export const editorExtensionDependencies = [
 	RichTextExtension,
 	HistoryExtension,
+	LinkExtension,
 	ListExtension,
 	TableExtension,
 	TabIndentationExtension,
