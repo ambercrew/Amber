@@ -7,20 +7,20 @@ import {
 } from "../../../api/elements/api/elementsApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
-import { closePriorityDialog } from "../../../stores/app/appReducer";
-import { selectIsPriorityDialogOpened } from "../../../stores/app/appSelectors";
+import { closePriorityModal } from "../../../stores/app/appReducer";
+import { selectIsPriorityModalOpened } from "../../../stores/app/appSelectors";
 import { loadElementDetailsAction } from "../../../stores/elementDetails/elementDetailsActions";
 import { selectCurrentElementDetails } from "../../../stores/elementDetails/elementDetailsSelectors";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import { ElementId } from "../../../types/elements/elementId";
 import { PRIORITY_CHANGED } from "../../../types/events/priorityChangedEvent";
-import styles from "./PriorityDialog.module.css";
+import styles from "./PriorityModal.module.css";
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.min(Math.max(value, min), max);
 }
 
-interface PriorityDialogBodyProps {
+interface PriorityModalBodyProps {
 	elementId: ElementId;
 	total: number;
 	initialRank: number;
@@ -28,26 +28,28 @@ interface PriorityDialogBodyProps {
 	onCommitted: () => void;
 }
 
-function PriorityDialogBody({
+function PriorityModalBody({
 	elementId,
 	total,
 	initialRank,
 	initialPercentage,
 	onCommitted,
-}: PriorityDialogBodyProps) {
+}: PriorityModalBodyProps) {
 	const [rank, setRank] = useState(initialRank);
 	const [percentage, setPercentage] = useState(initialPercentage);
 
 	// The percentage gap between two adjacent ranks, so stepping the
 	// controls below moves priority by exactly one element.
-	const percentageStep = total <= 1 ? 1 : 100 / (total - 1);
+	const percentageStep = total <= 1 ? 1 : 100 / total;
 
 	function rankToPercentage(value: number): number {
-		return total <= 1 ? 0 : ((value - 1) / (total - 1)) * 100;
+		return total <= 1 ? 0 : (value / total) * 100;
 	}
 
 	function percentageToRank(value: number): number {
-		return total <= 1 ? 1 : Math.round((value / 100) * (total - 1)) + 1;
+		return total <= 1
+			? 1
+			: clamp(Math.round((value / 100) * total), 1, total);
 	}
 
 	function handleRankChange(value: string | number) {
@@ -120,8 +122,8 @@ function PriorityDialogBody({
 	);
 }
 
-function PriorityDialog() {
-	const opened = useAppSelector(selectIsPriorityDialogOpened);
+function PriorityModal() {
+	const opened = useAppSelector(selectIsPriorityModalOpened);
 	const currentElement = useAppSelector(selectCurrentElement);
 	const details = useAppSelector(selectCurrentElementDetails);
 	const dispatch = useAppDispatch();
@@ -136,10 +138,10 @@ function PriorityDialog() {
 	return (
 		<AppModal
 			opened={opened}
-			onClose={() => dispatch(closePriorityDialog())}
+			onClose={() => dispatch(closePriorityModal())}
 			title="Priority">
 			{elementId && details ? (
-				<PriorityDialogBody
+				<PriorityModalBody
 					key={`${elementId.id}-${details.priority.rank}-${details.priority.total}`}
 					elementId={elementId}
 					total={details.priority.total}
@@ -158,4 +160,4 @@ function PriorityDialog() {
 	);
 }
 
-export default PriorityDialog;
+export default PriorityModal;

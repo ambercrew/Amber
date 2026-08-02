@@ -27,8 +27,8 @@ import ResizeHandle from "../../../components/ResizeHandle/ResizeHandle.tsx";
 import ImportModal from "../../Import/components/ImportModal.tsx";
 import StudyProfileModal from "../../Study/components/StudyProfileModal.tsx";
 import SettingsModal from "../../Settings/components/SettingsModal.tsx";
-import PriorityDialog from "../../Aside/components/PriorityDialog.tsx";
-import StudySessionSettingsDialog from "../../Study/components/StudySessionSettingsDialog.tsx";
+import PriorityModal from "../../Aside/components/PriorityModal.tsx";
+import StudySessionSettingsModal from "../../Study/components/StudySessionSettingsModal.tsx";
 import AppHeader from "./AppHeader.tsx";
 import TrashedElementBanner, {
 	TRASHED_ELEMENT_BANNER_HEIGHT,
@@ -172,8 +172,8 @@ function App() {
 			<ImportModal />
 			<StudyProfileModal />
 			<SettingsModal />
-			<PriorityDialog />
-			<StudySessionSettingsDialog />
+			<PriorityModal />
+			<StudySessionSettingsModal />
 			<Notifications />
 			<SafeAreaTopBackdrop />
 

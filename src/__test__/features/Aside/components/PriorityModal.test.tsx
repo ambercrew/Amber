@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import PriorityDialog from "../../../../features/Aside/components/PriorityDialog";
+import PriorityModal from "../../../../features/Aside/components/PriorityModal";
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	getElementDetails,
@@ -70,18 +70,18 @@ function elementsStateFor(currentElement: AnyElementDto | null): ElementsState {
 	return { tree: [], isLoading: false, error: null, currentElement };
 }
 
-function appStateFor(priorityDialogOpened: boolean): AppState {
+function appStateFor(priorityModalOpened: boolean): AppState {
 	return {
 		startedInitialStateLoading: false,
 		importModalOpened: false,
 		studyProfileModalOpened: false,
 		settingsModalOpened: false,
-		priorityDialogOpened,
-		studySessionSettingsDialogOpened: false,
+		priorityModalOpened,
+		studySessionSettingsModalOpened: false,
 	};
 }
 
-describe("PriorityDialog", () => {
+describe("PriorityModal", () => {
 	beforeEach(() => {
 		vi.mocked(getElementDetails).mockResolvedValue(makeDetails());
 	});
@@ -91,7 +91,7 @@ describe("PriorityDialog", () => {
 
 		// Act
 
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(false),
 				elements: elementsStateFor(cardElement()),
@@ -112,7 +112,7 @@ describe("PriorityDialog", () => {
 
 		// Act
 
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(true),
 				elements: elementsStateFor(cardElement()),
@@ -129,7 +129,7 @@ describe("PriorityDialog", () => {
 
 		// Act
 
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(true),
 				elements: elementsStateFor(cardElement()),
@@ -147,7 +147,7 @@ describe("PriorityDialog", () => {
 		// Arrange
 
 		vi.mocked(setElementPriorityByRank).mockResolvedValue(undefined);
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(true),
 				elements: elementsStateFor(cardElement()),
@@ -169,7 +169,7 @@ describe("PriorityDialog", () => {
 		// Arrange
 
 		vi.mocked(setElementPriorityByPercentage).mockResolvedValue(undefined);
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(true),
 				elements: elementsStateFor(cardElement()),
@@ -194,7 +194,7 @@ describe("PriorityDialog", () => {
 		// Arrange
 
 		vi.mocked(setElementPriorityByPercentage).mockResolvedValue(undefined);
-		renderWithProviders(<PriorityDialog />, {
+		renderWithProviders(<PriorityModal />, {
 			preloadedState: {
 				app: appStateFor(true),
 				elements: elementsStateFor(cardElement()),
@@ -208,10 +208,11 @@ describe("PriorityDialog", () => {
 
 		// Assert
 
-		// rank 3 of 5 -> rank 4 of 5 is (4-1)/(5-1)*100 = 75%.
+		// Percentage step is 100/total = 100/5 = 20, so one arrow press moves
+		// from the mocked 50% to 70%.
 		expect(setElementPriorityByPercentage).toHaveBeenCalledWith(
 			cardElementId,
-			75,
+			70,
 		);
 	});
 });
