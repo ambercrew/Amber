@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
-use rig::client::EmbeddingsClient;
 use rig::embeddings::EmbeddingsBuilder;
 use rig::loaders::{FileLoader, PdfFileLoader};
 use text_splitter::{ChunkConfig, TextSplitter};
@@ -28,13 +27,11 @@ impl DocumentUploader for DefaultDocumentUploader {
         path: PathBuf,
         chat_id: Uuid,
     ) -> Result<(), DocumentUploaderError> {
-        let embeddings_model_name = self.ai_client_provider.get_embeddings_model_name().await?;
-
+        let client = self.ai_client_provider.get_client().await?;
         let embed_model = self
             .ai_client_provider
-            .get_client()
-            .await?
-            .embedding_model(embeddings_model_name);
+            .get_embeddings_model(&client)
+            .await?;
 
         let mut embeddings_builder = EmbeddingsBuilder::new(embed_model.clone());
         let splitter = TextSplitter::new(ChunkConfig::new(512).with_trim(false));

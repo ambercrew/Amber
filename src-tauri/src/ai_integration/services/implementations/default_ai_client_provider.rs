@@ -2,6 +2,7 @@ use std::sync::{Arc, Once};
 
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
+use rig::client::EmbeddingsClient;
 #[cfg(not(test))]
 use rig::client::{BearerAuth, Nothing, ProviderClient};
 use rig::embeddings::EmbeddingModel;
@@ -200,6 +201,31 @@ impl AiClientProvider for DefaultAiClientProvider {
         }
     }
 
+    async fn get_embeddings_model(
+        &self,
+        client: &MultiClient,
+    ) -> Result<MultiEmbeddingModel, AiClientProviderError> {
+        let model_name = self.get_embeddings_model_name().await?;
+        let probe_model = client.embedding_model(&model_name);
+
+        if probe_model.ndims() > 0 {
+            return Ok(probe_model);
+        }
+
+        // Not every provider (e.g. Ollama) reports every model's dimensions, so for
+        // models it doesn't recognize the real output size is detected with a
+        // throwaway embedding call. This keeps it consistent with the vector store
+        // table dimensions, which are created from this same model.
+        let actual_dims = probe_model
+            .embed_texts(vec!["ping".to_string()])
+            .await?
+            .first()
+            .map(|embedding| embedding.vec.len())
+            .unwrap_or(0);
+
+        Ok(client.embedding_model_with_ndims(model_name, actual_dims))
+    }
+
     async fn get_vector_store(
         &self,
         embed_model: &MultiEmbeddingModel,
@@ -230,5 +256,99 @@ impl AiClientProvider for DefaultAiClientProvider {
             Ok(conn) => conn,
         };
         Ok(SqliteVectorStore::new(conn, embed_model).await?)
+    }
+}
+
+#[cfg(test)]
+pub mod tests {
+    use std::sync::Arc;
+
+    use injector::{injector::Injector, register_scope};
+    use rig::embeddings::Embedding;
+    use tokio::sync::Mutex;
+
+    use crate::{
+        ai_integration::services::ai_client_provider::AiClientProvider,
+        infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
+        settings::{
+            entities::settings::Settings, repositories::settings_repository::SettingsRepository,
+            value_objects::settings_profile::SettingsProfile,
+        },
+        test_utils::{create_temp_directory, create_test_injector},
+    };
+
+    use super::*;
+
+    async fn initialize_test_injector(mock_client: MockClient) -> Injector {
+        let mut injector = create_test_injector().await;
+
+        let mut settings = Settings::new(create_temp_directory().await, SettingsProfile::Default);
+        settings.enable_ai = true;
+
+        injector.register_singleton(Arc::new(Mutex::new(settings)));
+        injector.register_singleton(Arc::new(mock_client));
+
+        register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
+        register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+
+        injector
+    }
+
+    #[tokio::test]
+    pub async fn get_embeddings_model_known_dimensions_did_not_probe() {
+        // Arrange
+
+        let mock_client = MockClient {
+            embeddings_model: Some("known-model".to_string()),
+            embeddings_model_dims: Some(1536),
+            // No embed_texts_fn: a probe call here would panic.
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiClientProvider>().await;
+        let client = service.get_client().await.unwrap();
+
+        // Act
+
+        let embed_model = service.get_embeddings_model(&client).await.unwrap();
+
+        // Assert
+
+        assert_eq!(1536, embed_model.ndims());
+    }
+
+    #[tokio::test]
+    pub async fn get_embeddings_model_unknown_dimensions_detected_actual_dimensions_via_probe() {
+        // Arrange
+
+        let mock_client = MockClient {
+            embeddings_model: Some("unknown-model".to_string()),
+            embeddings_model_dims: Some(0),
+            embed_texts_fn: Arc::new(Some(Box::new(|texts| {
+                Ok(texts
+                    .into_iter()
+                    .map(|text| Embedding {
+                        document: text,
+                        vec: vec![0f64; 1024],
+                    })
+                    .collect())
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiClientProvider>().await;
+        let client = service.get_client().await.unwrap();
+
+        // Act
+
+        let embed_model = service.get_embeddings_model(&client).await.unwrap();
+
+        // Assert
+
+        assert_eq!(1024, embed_model.ndims());
     }
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 use rig::agent::Agent;
-use rig::client::{AgentClientExt, EmbeddingsClient};
+use rig::client::AgentClientExt;
 use uuid::Uuid;
 
 use crate::ai_integration::clients::multi_client::multi_completion_model::MultiCompletionModel;
@@ -45,8 +45,10 @@ impl AgentProvider for DefaultAgentProvider {
             return Ok(builder.build());
         }
 
-        let embeddings_model_name = self.ai_client_provider.get_embeddings_model_name().await?;
-        let embed_model = client.embedding_model(embeddings_model_name);
+        let embed_model = self
+            .ai_client_provider
+            .get_embeddings_model(&client)
+            .await?;
 
         let vector_store = self
             .ai_client_provider

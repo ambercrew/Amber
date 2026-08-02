@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use rig::embeddings::EmbeddingError;
 use rig::sqlite::SqliteVectorStore;
 use rig::vector_store::VectorStoreError;
 use thiserror::Error;
@@ -33,6 +34,8 @@ pub enum AiClientProviderError {
     VectorStore(#[from] VectorStoreError),
     #[error("Failed to create vector store directory.")]
     CreateVectorStoreDirectory(#[source] SourceError),
+    #[error("Failed to determine the embedding model's dimensions")]
+    DetectEmbeddingDimensions(#[from] EmbeddingError),
     #[cfg(not(test))]
     #[error("Failed to create the client")]
     CreateClient,
@@ -43,6 +46,13 @@ pub trait AiClientProvider: Send + Sync {
     async fn get_client(&self) -> Result<MultiClient, AiClientProviderError>;
     async fn get_completion_model_name(&self) -> Result<String, AiClientProviderError>;
     async fn get_embeddings_model_name(&self) -> Result<String, AiClientProviderError>;
+    /// Builds the embedding model for the configured provider, with its dimensions
+    /// corrected to the model's real output size (some providers, e.g. Ollama, don't
+    /// expose their models' dimensions, so this is detected via a probe embedding call).
+    async fn get_embeddings_model(
+        &self,
+        client: &MultiClient,
+    ) -> Result<MultiEmbeddingModel, AiClientProviderError>;
     async fn get_vector_store(
         &self,
         embed_model: &MultiEmbeddingModel,

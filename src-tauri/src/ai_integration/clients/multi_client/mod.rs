@@ -37,9 +37,7 @@ impl EmbeddingsClient for MultiClient {
         match self {
             #[cfg(not(test))]
             MultiClient::Ollama(client) => {
-                // NOTE: Ollama does not retrieve the number of dimensions dynamically, so hard
-                // coding 2560!
-                MultiEmbeddingModel::Ollama(client.embedding_model_with_ndims(model, 2560))
+                MultiEmbeddingModel::Ollama(client.embedding_model(model))
             }
             #[cfg(not(test))]
             MultiClient::OpenAI(client) => {
@@ -49,7 +47,6 @@ impl EmbeddingsClient for MultiClient {
             MultiClient::Mock(client) => {
                 let mut client = client.clone();
                 client.embeddings_model = Some(model.into());
-                client.embeddings_model_dims = None;
                 MultiEmbeddingModel::Mock(client)
             }
         }
