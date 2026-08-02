@@ -1,5 +1,12 @@
 import { ReactNode, useState } from "react";
-import { AppShell, Tabs, Group, ActionIcon, ScrollArea } from "@mantine/core";
+import {
+	AppShell,
+	Tabs,
+	Group,
+	ActionIcon,
+	ScrollArea,
+	Tooltip,
+} from "@mantine/core";
 import { XIcon } from "@phosphor-icons/react";
 import { SMALL_SCREEN_BREAKPOINT } from "../../hooks/useIsSmallScreen";
 
@@ -55,12 +62,14 @@ function CollapsibleSidebar({
 					style={{ position: "relative" }}>
 					<Tabs.List>
 						{tabs.map(tab => (
-							<Tabs.Tab
+							<Tooltip
 								key={tab.value}
-								value={tab.value}
-								title={tab.title}>
-								{tab.icon}
-							</Tabs.Tab>
+								label={tab.title}
+								position="bottom">
+								<Tabs.Tab value={tab.value}>
+									{tab.icon}
+								</Tabs.Tab>
+							</Tooltip>
 						))}
 					</Tabs.List>
 					<ActionIcon
