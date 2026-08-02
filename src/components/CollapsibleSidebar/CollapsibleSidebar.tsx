@@ -74,7 +74,9 @@ function CollapsibleSidebar({
 								key={tab.value}
 								label={tab.title}
 								position="bottom">
-								<Tabs.Tab value={tab.value}>
+								<Tabs.Tab
+									value={tab.value}
+									aria-label={tab.title}>
 									{tab.icon}
 								</Tabs.Tab>
 							</Tooltip>

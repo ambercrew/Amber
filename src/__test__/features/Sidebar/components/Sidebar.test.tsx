@@ -31,7 +31,7 @@ describe("Sidebar", () => {
 
 		// Act
 
-		fireEvent.click(screen.getByTitle(/element tree/i));
+		fireEvent.click(screen.getByRole("tab", { name: /element tree/i }));
 
 		// Assert
 
@@ -46,7 +46,7 @@ describe("Sidebar", () => {
 
 		// Act
 
-		fireEvent.click(screen.getByTitle(/priority queue/i));
+		fireEvent.click(screen.getByRole("tab", { name: /priority queue/i }));
 
 		// Assert
 
@@ -61,7 +61,7 @@ describe("Sidebar", () => {
 
 		// Act
 
-		fireEvent.click(screen.getByTitle(/trash/i));
+		fireEvent.click(screen.getByRole("tab", { name: /trash/i }));
 
 		// Assert
 
