@@ -50,8 +50,8 @@ function highlight(
 ): SerializedLexicalNodeTree {
 	return { type: "highlight", version: 1, ids: [id], color, children };
 }
-function clozeHidden(value: string): SerializedLexicalNodeTree {
-	return { type: "cloze-hidden", version: 1, text: value };
+function clozeHidden(hiddenText: string): SerializedLexicalNodeTree {
+	return { type: "cloze-hidden", version: 1, text: "[...]", hiddenText };
 }
 
 // Assertion helpers over the persisted editor-state JSON produced by the
@@ -113,11 +113,12 @@ describe("useHighlightCreatedHandler", () => {
 		});
 
 		const frontRoot = parseRoot(dto.front);
-		expect(collectText(frontRoot)).toBe("A Old B New Text C");
+		expect(collectText(frontRoot)).toBe("A Old B [...] C");
 		expect(collectByType(frontRoot, "highlight")).toHaveLength(0);
 		const frontClozes = collectByType(frontRoot, "cloze-hidden");
 		expect(frontClozes).toHaveLength(1);
-		expect(frontClozes[0].text).toBe("New Text");
+		expect(frontClozes[0].text).toBe("[...]");
+		expect(frontClozes[0].hiddenText).toBe("New Text");
 
 		expect(collectText(parseRoot(dto.back))).toBe("New Text");
 	});
@@ -269,11 +270,12 @@ describe("useHighlightCreatedHandler", () => {
 		});
 
 		const frontRoot = parseRoot(dto.front);
-		expect(collectText(frontRoot)).toBe("First Second New Text Third");
+		expect(collectText(frontRoot)).toBe("First Second [...] Third");
 		expect(collectByType(frontRoot, "highlight")).toHaveLength(0);
 		const frontClozes = collectByType(frontRoot, "cloze-hidden");
 		expect(frontClozes).toHaveLength(1);
-		expect(frontClozes[0].text).toBe("New Text");
+		expect(frontClozes[0].text).toBe("[...]");
+		expect(frontClozes[0].hiddenText).toBe("New Text");
 
 		expect(collectText(parseRoot(dto.back))).toBe("Old New Text");
 	});
@@ -320,10 +322,11 @@ describe("useHighlightCreatedHandler", () => {
 		});
 
 		const frontRoot = parseRoot(dto.front);
-		expect(collectText(frontRoot)).toBe("Old Cloze New Text");
+		expect(collectText(frontRoot)).toBe("Old Cloze [...]");
 		const frontClozes = collectByType(frontRoot, "cloze-hidden");
 		expect(frontClozes).toHaveLength(1);
-		expect(frontClozes[0].text).toBe("New Text");
+		expect(frontClozes[0].text).toBe("[...]");
+		expect(frontClozes[0].hiddenText).toBe("New Text");
 
 		expect(collectText(parseRoot(dto.back))).toBe(
 			"Before Old Cloze New Text",
