@@ -1,11 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
 	LexicalTypeaheadMenuPlugin,
 	useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin";
-import { TextNode } from "lexical";
+import { $getRoot, LexicalEditor, TextNode } from "lexical";
 import { Group, Paper, ScrollArea, Text, UnstyledButton } from "@mantine/core";
 import { BlockOption, getBlockOptions } from "./blockOptions";
 import styles from "../Editor.module.css";
@@ -42,11 +42,29 @@ export function SlashMenuPlugin() {
 		allowWhitespace: false,
 	});
 
+	// Only open the menu when the text content actually changed (typing),
+	// not when the cursor merely moved next to an existing "/".
+	const lastTextContentRef = useRef("");
+	const triggerFn = useCallback(
+		(text: string, editorInstance: LexicalEditor) => {
+			const textContent = editorInstance.read(() =>
+				$getRoot().getTextContent(),
+			);
+			const textContentChanged =
+				textContent !== lastTextContentRef.current;
+			lastTextContentRef.current = textContent;
+			return textContentChanged
+				? checkForTriggerMatch(text, editorInstance)
+				: null;
+		},
+		[checkForTriggerMatch],
+	);
+
 	return (
 		<LexicalTypeaheadMenuPlugin<BlockOption>
 			onQueryChange={setQueryString}
 			onSelectOption={onSelectOption}
-			triggerFn={checkForTriggerMatch}
+			triggerFn={triggerFn}
 			options={options}
 			menuRenderFn={(
 				anchorElementRef,
