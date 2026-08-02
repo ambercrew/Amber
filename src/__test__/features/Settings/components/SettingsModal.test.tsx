@@ -25,7 +25,7 @@ function renderModal(opened: boolean) {
 				studyProfileModalOpened: false,
 				settingsModalOpened: opened,
 				priorityModalOpened: false,
-				studySessionSettingsDialogOpened: false,
+				studySessionSettingsModalOpened: false,
 			},
 			settings: { settings },
 		},

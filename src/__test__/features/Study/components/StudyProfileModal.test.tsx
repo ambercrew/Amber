@@ -83,7 +83,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: false,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -106,7 +106,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -139,7 +139,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 				elements: elementsStateFor(cardElement("1")),
 			},
@@ -178,7 +178,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 				elements: elementsStateFor(null),
 			},
@@ -206,7 +206,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -240,7 +240,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -274,7 +274,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -307,7 +307,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});
@@ -338,7 +338,7 @@ describe("StudyProfileModal", () => {
 					studyProfileModalOpened: true,
 					settingsModalOpened: false,
 					priorityModalOpened: false,
-					studySessionSettingsDialogOpened: false,
+					studySessionSettingsModalOpened: false,
 				},
 			},
 		});

@@ -132,7 +132,7 @@ function ElementInfoPanel() {
 							variant="subtle"
 							title="Set priority"
 							onClick={() => dispatch(openPriorityModal())}>
-							{commandIcon("open-priority-dialog")}
+							{commandIcon("open-priority")}
 						</ActionIcon>
 					</Group>
 				</InfoField>

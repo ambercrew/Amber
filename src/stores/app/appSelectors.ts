@@ -15,5 +15,5 @@ export const selectIsSettingsModalOpened = (state: RootState) =>
 export const selectIsPriorityModalOpened = (state: RootState) =>
 	state.app.priorityModalOpened;
 
-export const selectIsStudySessionSettingsDialogOpened = (state: RootState) =>
-	state.app.studySessionSettingsDialogOpened;
+export const selectIsStudySessionSettingsModalOpened = (state: RootState) =>
+	state.app.studySessionSettingsModalOpened;

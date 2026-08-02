@@ -21,7 +21,7 @@ import {
 	openPriorityModal,
 	openSettingsModal,
 	openStudyProfileModal,
-	openStudySessionSettingsDialog,
+	openStudySessionSettingsModal,
 } from "../stores/app/appReducer";
 import { openSearch } from "../stores/search/searchReducer";
 import { startStudySession } from "../stores/study/studyActions";
@@ -40,7 +40,7 @@ export const IMPORT_SHORTCUT = "mod+shift+N";
 export const TOGGLE_STUDY_SESSION_SHORTCUT = "mod+L";
 export const OPEN_SETTINGS_SHORTCUT = "mod+P";
 export const SET_READ_POINT_SHORTCUT = "mod+shift+R";
-export const OPEN_PRIORITY_DIALOG_SHORTCUT = "alt+P";
+export const OPEN_PRIORITY_SHORTCUT = "alt+P";
 export const FIND_IN_PAGE_SHORTCUT = "mod+F";
 
 export const commandIds = [
@@ -53,7 +53,7 @@ export const commandIds = [
 	"set-read-point",
 	"clear-read-point",
 	"go-to-read-point",
-	"open-priority-dialog",
+	"open-priority",
 	"open-study-session-settings",
 	"find-in-page",
 ] as const;
@@ -175,11 +175,11 @@ export const commandsById: Record<CommandId, Command> = {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_GOTO_REQUESTED));
 		},
 	},
-	"open-priority-dialog": {
-		id: "open-priority-dialog",
+	"open-priority": {
+		id: "open-priority",
 		group: "Study",
 		label: "Set element priority",
-		shortcut: OPEN_PRIORITY_DIALOG_SHORTCUT,
+		shortcut: OPEN_PRIORITY_SHORTCUT,
 		icon: createElement(ArrowsDownUpIcon),
 		enabled: state => selectCurrentElement(state) !== null,
 		execute: dispatch => dispatch(openPriorityModal()),
@@ -189,7 +189,7 @@ export const commandsById: Record<CommandId, Command> = {
 		group: "Study",
 		label: "Study session settings",
 		icon: createElement(ShuffleIcon),
-		execute: dispatch => dispatch(openStudySessionSettingsDialog()),
+		execute: dispatch => dispatch(openStudySessionSettingsModal()),
 	},
 	"find-in-page": {
 		id: "find-in-page",
