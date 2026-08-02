@@ -40,14 +40,16 @@ function PriorityDialogBody({
 
 	// The percentage gap between two adjacent ranks, so stepping the
 	// controls below moves priority by exactly one element.
-	const percentageStep = total <= 1 ? 1 : 100 / (total - 1);
+	const percentageStep = total <= 1 ? 1 : 100 / total;
 
 	function rankToPercentage(value: number): number {
-		return total <= 1 ? 0 : ((value - 1) / (total - 1)) * 100;
+		return total <= 1 ? 0 : (value / total) * 100;
 	}
 
 	function percentageToRank(value: number): number {
-		return total <= 1 ? 1 : Math.round((value / 100) * (total - 1)) + 1;
+		return total <= 1
+			? 1
+			: clamp(Math.round((value / 100) * total), 1, total);
 	}
 
 	function handleRankChange(value: string | number) {

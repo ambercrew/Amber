@@ -208,10 +208,11 @@ describe("PriorityDialog", () => {
 
 		// Assert
 
-		// rank 3 of 5 -> rank 4 of 5 is (4-1)/(5-1)*100 = 75%.
+		// Percentage step is 100/total = 100/5 = 20, so one arrow press moves
+		// from the mocked 50% to 70%.
 		expect(setElementPriorityByPercentage).toHaveBeenCalledWith(
 			cardElementId,
-			75,
+			70,
 		);
 	});
 });
