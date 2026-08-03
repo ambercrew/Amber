@@ -12,6 +12,9 @@ use crate::ai_integration::prompts::preamble;
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
+use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceService;
+use crate::elements::repositories::meta_repository::MetaRepository;
+use crate::elements::value_objects::element_id::ElementId;
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
 const DEFAULT_MAX_TURN: usize = 16;
@@ -19,6 +22,45 @@ const DEFAULT_MAX_TURN: usize = 16;
 #[derive(ScopeInjectable)]
 pub struct DefaultAgentProvider {
     ai_client_provider: Arc<dyn AiClientProvider>,
+    meta_repository: Arc<dyn MetaRepository>,
+    bibliographical_source_service: Arc<dyn BibliographicalSourceService>,
+}
+
+impl DefaultAgentProvider {
+    /// Builds the "**Context:**" section of the preamble: the name of the
+    /// element the user is currently viewing and, if relevant, the
+    /// bibliographical source (title + authors) it was derived from.
+    async fn build_context(
+        &self,
+        element_id: Option<ElementId>,
+    ) -> Result<Option<String>, AgentProviderError> {
+        let Some(element_id) = element_id else {
+            return Ok(None);
+        };
+
+        let meta = self.meta_repository.get_by_id(element_id.id()).await?;
+        let mut lines = vec![format!(
+            "- The user is currently viewing a {} named \"{}\".",
+            element_id.element_name(),
+            meta.name
+        )];
+
+        if let Some(bibliographical_source_id) = meta.bibliographical_source_id {
+            let source = self
+                .bibliographical_source_service
+                .get_bibliographical_source(bibliographical_source_id)
+                .await?
+                .bibliographical_source;
+
+            let origin = match source.authors {
+                Some(authors) => format!("\"{}\" by {authors}", source.title),
+                None => format!("\"{}\"", source.title),
+            };
+            lines.push(format!("- It originates from {origin}."));
+        }
+
+        Ok(Some(lines.join("\n")))
+    }
 }
 
 #[async_trait]
@@ -27,16 +69,18 @@ impl AgentProvider for DefaultAgentProvider {
         &self,
         chat_id: Uuid,
         messages: &[Message],
+        element_id: Option<ElementId>,
     ) -> Result<Agent<MultiCompletionModel>, AgentProviderError> {
         let client = self.ai_client_provider.get_client().await?;
         let completion_model_name = self.ai_client_provider.get_completion_model_name().await?;
+        let context = self.build_context(element_id).await?;
 
         let builder = client
             .agent(&completion_model_name)
             .temperature(DEFAULT_TEMPERATURE)
             .name("Amber Tutor")
             .default_max_turns(DEFAULT_MAX_TURN)
-            .preamble(preamble().as_str());
+            .preamble(preamble(context.as_deref()).as_str());
 
         let has_documents = messages
             .iter()
@@ -64,11 +108,13 @@ impl AgentProvider for DefaultAgentProvider {
 pub mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
 
+    use chrono::Utc;
+    use fractional_index::FractionalIndex;
     use injector::{injector::Injector, register_scope};
     use rig::{
         OneOrMany,
         completion::{CompletionResponse, Prompt, Usage},
-        message::AssistantContent,
+        message::{AssistantContent, Message as RigMessage},
     };
     use tokio::sync::Mutex;
     use uuid::Uuid;
@@ -79,7 +125,18 @@ pub mod tests {
             entities::message::{DocumentContent, Message, MessageContent},
             services::implementations::default_ai_client_provider::DefaultAiClientProvider,
         },
-        infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
+        bibliographical_sources::{
+            repositories::bibliographical_source_repository::BibliographicalSourceRepository,
+            services::implementations::default_bibliographical_source_service::DefaultBibliographicalSourceService,
+        },
+        elements::{repositories::meta_repository::MetaRepository, value_objects::meta::Meta},
+        infrastructure::repositories::{
+            disk::disk_settings_repository::DiskSettingsRepository,
+            sqlite::{
+                sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
+                sqlite_meta_repository::SqliteMetaRepository,
+            },
+        },
         settings::{
             entities::settings::Settings, repositories::settings_repository::SettingsRepository,
             value_objects::settings_profile::SettingsProfile,
@@ -100,6 +157,17 @@ pub mod tests {
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+        register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceRepository,
+            SqliteBibliographicalSourceRepository
+        );
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceService,
+            DefaultBibliographicalSourceService
+        );
         register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
 
         injector
@@ -141,7 +209,10 @@ pub mod tests {
 
         // Act
 
-        let agent = service.get_agent(Uuid::new_v4(), &messages).await.unwrap();
+        let agent = service
+            .get_agent(Uuid::new_v4(), &messages, None)
+            .await
+            .unwrap();
         agent.prompt("Hello").await.unwrap();
 
         // Assert
@@ -184,11 +255,129 @@ pub mod tests {
 
         // Act
 
-        let agent = service.get_agent(Uuid::new_v4(), &messages).await.unwrap();
+        let agent = service
+            .get_agent(Uuid::new_v4(), &messages, None)
+            .await
+            .unwrap();
         agent.prompt("Hello").await.unwrap();
 
         // Assert
 
         assert!(search_tool_sent.load(Ordering::Relaxed));
+    }
+
+    fn make_meta(id: ElementId, bibliographical_source_id: Option<Uuid>) -> Meta {
+        Meta {
+            element_id: id,
+            name: "My reading".into(),
+            parent: None,
+            position: FractionalIndex::default(),
+            priority: FractionalIndex::default(),
+            derived_from: None,
+            study_profile_id: None,
+            bibliographical_source_id,
+            created_at: Utc::now(),
+            modified_at: Utc::now(),
+        }
+    }
+
+    #[tokio::test]
+    pub async fn get_agent_no_element_id_did_not_add_context_to_preamble() {
+        // Arrange
+
+        let preamble_has_context = Arc::new(AtomicBool::new(true));
+        let preamble_has_context_clone = preamble_has_context.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(move |request| {
+                let has_context = request.chat_history.iter().any(|message| {
+                    matches!(
+                        message,
+                        RigMessage::System { content } if content.contains("**Context:**")
+                    )
+                });
+                preamble_has_context_clone.store(has_context, Ordering::Relaxed);
+                mock_response_with_text("Answer")
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AgentProvider>().await;
+
+        // Act
+
+        let agent = service.get_agent(Uuid::new_v4(), &[], None).await.unwrap();
+        agent.prompt("Hello").await.unwrap();
+
+        // Assert
+
+        assert!(!preamble_has_context.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    pub async fn get_agent_with_element_id_added_element_and_origin_to_preamble() {
+        // Arrange
+
+        let found_context = Arc::new(AtomicBool::new(false));
+        let found_context_clone = found_context.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(move |request| {
+                let has_context = request.chat_history.iter().any(|message| {
+                    matches!(
+                        message,
+                        RigMessage::System { content }
+                            if content.contains("My reading")
+                                && content.contains("My Book")
+                                && content.contains("Jane Doe")
+                    )
+                });
+                found_context_clone.store(has_context, Ordering::Relaxed);
+                mock_response_with_text("Answer")
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let meta_repository = scope.resolve::<dyn MetaRepository>().await;
+        let bibliographical_source_service =
+            scope.resolve::<dyn BibliographicalSourceService>().await;
+
+        let bibliographical_source = bibliographical_source_service
+            .create_or_reuse_bibliographical_source(
+                crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceFields {
+                    title: "My Book".into(),
+                    authors: Some("Jane Doe".into()),
+                    publication_date: None,
+                    source_type:
+                        crate::bibliographical_sources::value_objects::bibliographical_source_type::BibliographicalSourceType::File,
+                    location: None,
+                },
+            )
+            .await
+            .unwrap();
+
+        let element_id = ElementId::Reading(Uuid::new_v4());
+        meta_repository
+            .create_meta(&make_meta(element_id, Some(bibliographical_source.id)))
+            .await
+            .unwrap();
+
+        let service = scope.resolve::<dyn AgentProvider>().await;
+
+        // Act
+
+        let agent = service
+            .get_agent(Uuid::new_v4(), &[], Some(element_id))
+            .await
+            .unwrap();
+        agent.prompt("Hello").await.unwrap();
+
+        // Assert
+
+        assert!(found_context.load(Ordering::Relaxed));
     }
 }

@@ -15,6 +15,7 @@ import StreamLlmResponseEventDto from "../../../api/aiIntegration/dto/streamLlmR
 import MessageDto from "../../../api/aiIntegration/dto/messageDto";
 import ChatDto from "../../../api/aiIntegration/dto/chatDto";
 import { CallApiFn } from "../../../hooks/useApi";
+import { ElementId } from "../../../types/elements/elementId";
 
 interface UseAiStreamingParams {
 	selectedChatId: string | null;
@@ -24,6 +25,7 @@ interface UseAiStreamingParams {
 	activeChatIdRef: RefObject<string | null>;
 	refreshChats: () => Promise<void>;
 	callApi: CallApiFn;
+	currentElementId: ElementId | null;
 }
 
 /** Sends prompts and streams the assistant's response for the chat managed by `useAiChats`. */
@@ -35,6 +37,7 @@ export default function useAiStreaming({
 	activeChatIdRef,
 	refreshChats,
 	callApi,
+	currentElementId,
 }: UseAiStreamingParams) {
 	const [pendingHumanText, setPendingHumanText] = useState<string | null>(
 		null,
@@ -88,6 +91,7 @@ export default function useAiStreaming({
 						await streamAiResponse(channel, {
 							prompt,
 							chatId: selectedChatId,
+							elementId: currentElementId,
 						});
 					} catch (e) {
 						failed = true;
@@ -116,6 +120,7 @@ export default function useAiStreaming({
 		[
 			activeChatIdRef,
 			callApi,
+			currentElementId,
 			refreshChats,
 			selectedChatId,
 			setChats,

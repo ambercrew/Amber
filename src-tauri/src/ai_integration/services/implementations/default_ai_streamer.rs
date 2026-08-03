@@ -62,7 +62,10 @@ impl AiStreamer for DefaultAiStreamer {
             MessageContent::Human(request.prompt.clone()),
         )]));
 
-        let agent = self.agent_provider.get_agent(chat_id, &messages).await?;
+        let agent = self
+            .agent_provider
+            .get_agent(chat_id, &messages, request.element_id)
+            .await?;
         let rig_messages: Vec<rig::message::Message> = messages
             .into_iter()
             .filter_map(|m| m.try_into().ok())
@@ -189,9 +192,21 @@ pub mod tests {
                 },
             },
         },
+        bibliographical_sources::{
+            repositories::bibliographical_source_repository::BibliographicalSourceRepository,
+            services::{
+                bibliographical_source_service::BibliographicalSourceService,
+                implementations::default_bibliographical_source_service::DefaultBibliographicalSourceService,
+            },
+        },
+        elements::repositories::meta_repository::MetaRepository,
         infrastructure::repositories::{
             disk::disk_settings_repository::DiskSettingsRepository,
-            sqlite::sqlite_ai_repository::SqliteAiRepository,
+            sqlite::{
+                sqlite_ai_repository::SqliteAiRepository,
+                sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
+                sqlite_meta_repository::SqliteMetaRepository,
+            },
         },
         settings::{
             entities::settings::Settings, repositories::settings_repository::SettingsRepository,
@@ -217,6 +232,17 @@ pub mod tests {
         register_scope!(injector, dyn AiRepository, SqliteAiRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
         register_scope!(injector, dyn ChatCreator, DefaultChatCreator);
+        register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceRepository,
+            SqliteBibliographicalSourceRepository
+        );
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceService,
+            DefaultBibliographicalSourceService
+        );
         register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
 
@@ -401,6 +427,7 @@ pub mod tests {
         let request = StreamAiRequestDto {
             prompt: "User prompt".to_string(),
             chat_id: Some(chat_id),
+            ..Default::default()
         };
 
         // Act
@@ -674,6 +701,7 @@ pub mod tests {
         let request = StreamAiRequestDto {
             prompt: "User prompt".to_string(),
             chat_id: Some(chat_id),
+            ..Default::default()
         };
 
         // Act

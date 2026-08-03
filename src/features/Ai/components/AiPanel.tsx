@@ -10,6 +10,8 @@ import useAiChats from "../hooks/useAiChats";
 import useAiStreaming from "../hooks/useAiStreaming";
 import useAiDocumentUpload from "../hooks/useAiDocumentUpload";
 import { buildDisplayMessages } from "../utils/buildDisplayMessages";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
 import ChatSelectMenu from "./ChatSelectMenu";
@@ -17,6 +19,9 @@ import RenameChatModal from "./RenameChatModal";
 import DeleteChatModal from "./DeleteChatModal";
 
 function AiPanel() {
+	const currentElementId =
+		useAppSelector(selectCurrentElement)?.data.meta.elementId ?? null;
+
 	const {
 		chats,
 		setChats,
@@ -53,6 +58,7 @@ function AiPanel() {
 		activeChatIdRef,
 		refreshChats,
 		callApi,
+		currentElementId,
 	});
 
 	const { isUploading, pendingDocumentFileName, uploadDocumentToChat } =

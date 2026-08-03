@@ -17,6 +17,9 @@ use the search tool to retrieve relevant content first.
 **Rules:**
 - Always search uploaded documents before answering questions that may relate to them.";
 
-pub(in crate::ai_integration) fn preamble() -> String {
-    PREAMBLE_BASE.to_string()
+pub(in crate::ai_integration) fn preamble(context: Option<&str>) -> String {
+    match context {
+        Some(context) => format!("{PREAMBLE_BASE}\n\n**Context:**\n{context}"),
+        None => PREAMBLE_BASE.to_string(),
+    }
 }

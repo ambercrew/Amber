@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { Channel } from "@tauri-apps/api/core";
 import useAiChats from "../../../../features/Ai/hooks/useAiChats";
 import useAiStreaming from "../../../../features/Ai/hooks/useAiStreaming";
+import { ElementId } from "../../../../types/elements/elementId";
 import {
 	getAllAiChatsSortedByDateDesc,
 	getChatMessagesOrdered,
@@ -44,7 +45,7 @@ function getCapturedChannel() {
 // way `AiPanel` composes them), so tests exercise both together.
 function useTestHarness() {
 	const chats = useAiChats();
-	const streaming = useAiStreaming(chats);
+	const streaming = useAiStreaming({ ...chats, currentElementId: null });
 	return { ...chats, ...streaming };
 }
 
@@ -84,6 +85,37 @@ describe("useAiStreaming", () => {
 		expect(streamAiResponse).toHaveBeenCalledWith(expect.anything(), {
 			prompt: "hello",
 			chatId: null,
+			elementId: null,
+		});
+	});
+
+	it("Should forward the current element id when sending a prompt", async () => {
+		// Arrange
+
+		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
+		const elementId: ElementId = { type: "reading", id: "reading-1" };
+
+		const { result } = renderHook(() => {
+			const chats = useAiChats();
+			return {
+				...chats,
+				...useAiStreaming({ ...chats, currentElementId: elementId }),
+			};
+		});
+
+		// Act
+
+		await act(async () => {
+			void result.current.sendPrompt("hello");
+			await Promise.resolve();
+		});
+
+		// Assert
+
+		expect(streamAiResponse).toHaveBeenCalledWith(expect.anything(), {
+			prompt: "hello",
+			chatId: null,
+			elementId,
 		});
 	});
 
@@ -351,6 +383,7 @@ describe("useAiStreaming", () => {
 		expect(streamAiResponse).toHaveBeenCalledWith(expect.anything(), {
 			prompt: "hello again",
 			chatId: "chat-1",
+			elementId: null,
 		});
 		expect(getChatMessagesOrdered).toHaveBeenLastCalledWith("chat-1");
 	});
