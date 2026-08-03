@@ -1,6 +1,6 @@
-import { ActionIcon, Box, NavLink, Stack, Text } from "@mantine/core";
+import { Box, NavLink, Stack, Text } from "@mantine/core";
 import { IconProps } from "@phosphor-icons/react";
-import { cloneElement, ReactElement } from "react";
+import { ReactElement } from "react";
 import { useNavigate } from "react-router";
 import { commandIcon } from "../../../commands/commandIcon";
 import { useElementParams } from "../../../hooks/useElementParams";
@@ -25,20 +25,18 @@ function PriorityQueuePanel() {
 	useDueElementsPreview();
 
 	const header = (
-		<PanelHeader title="Study queue">
-			<ActionIcon
-				variant="subtle"
-				size="md"
-				title="Study session settings"
-				onClick={() => dispatch(openStudySessionSettingsModal())}>
-				{cloneElement(
-					commandIcon(
+		<PanelHeader
+			title="Study queue"
+			actions={[
+				{
+					icon: commandIcon(
 						"open-study-session-settings",
 					) as ReactElement<IconProps>,
-					{ size: 20 },
-				)}
-			</ActionIcon>
-		</PanelHeader>
+					label: "Study session settings",
+					onClick: () => dispatch(openStudySessionSettingsModal()),
+				},
+			]}
+		/>
 	);
 
 	if (queue.length === 0) {
