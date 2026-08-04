@@ -191,6 +191,7 @@ describe("useAiDocumentUpload", () => {
 				createdDate: "date",
 				chatId: "chat-1",
 				content: { type: "human", value: "chat 1" },
+				contextSnippets: [],
 			},
 		];
 		const chat2Messages: MessageDto[] = [
@@ -199,6 +200,7 @@ describe("useAiDocumentUpload", () => {
 				createdDate: "date",
 				chatId: "chat-2",
 				content: { type: "human", value: "chat 2" },
+				contextSnippets: [],
 			},
 		];
 

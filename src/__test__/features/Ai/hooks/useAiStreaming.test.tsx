@@ -34,6 +34,7 @@ const message1: MessageDto = {
 	createdDate: "date",
 	chatId: "chat-1",
 	content: { type: "human", value: "hi" },
+	contextSnippets: [],
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

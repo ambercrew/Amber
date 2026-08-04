@@ -2,6 +2,7 @@ pub mod bibliographical_source_row;
 pub mod card_review_row;
 pub mod card_row;
 pub mod chat_row;
+pub mod context_snippet_row;
 pub mod extract_row;
 pub mod folder_row;
 pub mod local_configuration_row;

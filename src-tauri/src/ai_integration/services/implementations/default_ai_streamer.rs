@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -10,9 +11,11 @@ use rig::{
 };
 use tokio::sync::Mutex;
 use tokio_stream::StreamExt;
+use uuid::Uuid;
 
 use crate::ai_integration::ai_state::AiState;
 use crate::ai_integration::dto::stream_ai_request_dto::StreamAiRequestDto;
+use crate::ai_integration::entities::context_snippet::{ContextSnippet, group_snippets_by_message};
 use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
@@ -42,6 +45,7 @@ impl AiStreamer for DefaultAiStreamer {
 
         let messages;
         let chat_id;
+        let context_snippets_by_message: HashMap<Uuid, Vec<String>>;
         let mut chat_to_upsert = None;
         if let Some(request_chat_id) = request.chat_id {
             chat_id = request_chat_id;
@@ -49,6 +53,11 @@ impl AiStreamer for DefaultAiStreamer {
                 .ai_repository
                 .get_chat_messages_ordered(chat_id)
                 .await?;
+            context_snippets_by_message = group_snippets_by_message(
+                self.ai_repository
+                    .get_context_snippets_for_chat(chat_id)
+                    .await?,
+            );
         } else {
             let chat = match self.chat_creator.create_chat(&request.prompt).await {
                 Ok(chat) => chat,
@@ -59,15 +68,23 @@ impl AiStreamer for DefaultAiStreamer {
             };
             chat_id = chat.id();
             messages = Vec::new();
+            context_snippets_by_message = HashMap::new();
             on_event(StreamLlmResponseEvent::CreatedChat(chat.clone()))?;
             chat_to_upsert = Some(chat);
         }
 
-        let messages_to_upsert = Arc::new(Mutex::new(vec![Message::new(
-            None,
-            chat_id,
-            MessageContent::Human(request.prompt.clone()),
-        )]));
+        let human_message =
+            Message::new(None, chat_id, MessageContent::Human(request.prompt.clone()));
+        let context_snippets_to_upsert: Vec<ContextSnippet> = request
+            .context_snippets
+            .iter()
+            .enumerate()
+            .map(|(position, snippet)| {
+                ContextSnippet::new(None, human_message.id(), snippet.clone(), position as i64)
+            })
+            .collect();
+
+        let messages_to_upsert = Arc::new(Mutex::new(vec![human_message]));
 
         // A cancellation while building the agent (e.g. during the embeddings
         // dimension probe, which has no hook to check mid-flight) has no
@@ -93,7 +110,13 @@ impl AiStreamer for DefaultAiStreamer {
         if let Some(agent) = agent {
             let rig_messages: Vec<rig::message::Message> = messages
                 .into_iter()
-                .filter_map(|m| m.try_into().ok())
+                .filter_map(|m| {
+                    let snippets = context_snippets_by_message
+                        .get(&m.id())
+                        .cloned()
+                        .unwrap_or_default();
+                    m.try_into_rig_message(&snippets).ok()
+                })
                 .collect();
             let mut stream = agent
                 .stream_chat(request.prompt, rig_messages)
@@ -177,6 +200,10 @@ impl AiStreamer for DefaultAiStreamer {
 
         for message in messages_to_upsert.lock().await.iter() {
             self.ai_repository.upsert_message(message).await?;
+        }
+
+        for snippet in &context_snippets_to_upsert {
+            self.ai_repository.upsert_context_snippet(snippet).await?;
         }
 
         Ok(())
@@ -383,6 +410,74 @@ pub mod tests {
             MessageContent::Assistant("Bot answer".to_string()),
             *messages[1].content()
         );
+    }
+
+    #[tokio::test]
+    pub async fn stream_new_prompt_resent_prior_message_context_snippets_to_the_ai() {
+        // Arrange
+
+        let resent_context = Arc::new(AtomicBool::new(false));
+        let resent_context_clone = resent_context.clone();
+
+        let mock_client = MockClient {
+            stream_fn: Arc::new(Some(Box::new(move |request| {
+                let has_context = request.chat_history.iter().any(|message| {
+                    matches!(
+                        message,
+                        RigMessage::User { content }
+                            if content.iter().any(|c| matches!(
+                                c,
+                                UserContent::Text(text) if text.text.contains("Prior selected passage")
+                            ))
+                    )
+                });
+                resent_context_clone.store(has_context, Ordering::Relaxed);
+
+                Ok(None)
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let chat = Chat::new(None, "Chat title".to_string());
+        let chat_id = chat.id();
+        repository.upsert_chat(&chat).await.unwrap();
+        let earlier_message = Message::new(
+            None,
+            chat_id,
+            MessageContent::Human("Earlier prompt".to_string()),
+        );
+        repository.upsert_message(&earlier_message).await.unwrap();
+        repository
+            .upsert_context_snippet(&ContextSnippet::new(
+                None,
+                earlier_message.id(),
+                "Prior selected passage".to_string(),
+                0,
+            ))
+            .await
+            .unwrap();
+
+        let request = StreamAiRequestDto {
+            prompt: "Follow-up prompt".to_string(),
+            chat_id: Some(chat_id),
+            ..Default::default()
+        };
+
+        // Act
+
+        service
+            .stream(request, Arc::new(move |_| Ok(())))
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(resent_context.load(Ordering::Relaxed));
     }
 
     #[tokio::test]

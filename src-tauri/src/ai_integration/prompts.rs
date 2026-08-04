@@ -23,3 +23,23 @@ pub(in crate::ai_integration) fn preamble(context: Option<&str>) -> String {
         None => PREAMBLE_BASE.to_string(),
     }
 }
+
+/// Formats text snippets the user selected as additional context into
+/// bullet lines, e.g. for inclusion in a preamble or appended to a message.
+/// Blank snippets are dropped; returns `None` if nothing is left.
+pub(in crate::ai_integration) fn format_context_snippets(snippets: &[String]) -> Option<String> {
+    let lines: Vec<String> = snippets
+        .iter()
+        .map(|snippet| snippet.trim())
+        .filter(|snippet| !snippet.is_empty())
+        .map(|snippet| {
+            format!("- The user selected this text as additional context: \"{snippet}\"")
+        })
+        .collect();
+
+    if lines.is_empty() {
+        None
+    } else {
+        Some(lines.join("\n"))
+    }
+}

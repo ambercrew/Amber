@@ -53,6 +53,9 @@ export default function useAiStreaming({
 	const [pendingHumanText, setPendingHumanText] = useState<string | null>(
 		null,
 	);
+	const [pendingContextSnippets, setPendingContextSnippets] = useState<
+		string[] | null
+	>(null);
 	const [streamingAssistantText, setStreamingAssistantText] = useState<
 		string | null
 	>(null);
@@ -68,6 +71,7 @@ export default function useAiStreaming({
 		async (prompt: string) => {
 			setStreamError(null);
 			setPendingHumanText(prompt);
+			setPendingContextSnippets(contextSnippets);
 			setStreamingAssistantText("");
 			setIsStreaming(true);
 			activeChatIdRef.current = selectedChatId;
@@ -116,6 +120,7 @@ export default function useAiStreaming({
 				async () => {
 					setIsStreaming(false);
 					setPendingHumanText(null);
+					setPendingContextSnippets(null);
 					setStreamingAssistantText(null);
 					setStreamChatId(null);
 					if (failed) {
@@ -164,6 +169,9 @@ export default function useAiStreaming({
 
 	return {
 		pendingHumanText: isViewingStreamChat ? pendingHumanText : null,
+		pendingContextSnippets: isViewingStreamChat
+			? pendingContextSnippets
+			: null,
 		streamingAssistantText: isViewingStreamChat
 			? streamingAssistantText
 			: null,

@@ -8,6 +8,7 @@ function makeMessage(id: string): MessageDto {
 		createdDate: "2026-01-01T00:00:00Z",
 		chatId: "chat-1",
 		content: { type: "human", value: `message ${id}` },
+		contextSnippets: [],
 	};
 }
 
@@ -102,5 +103,43 @@ describe("buildDisplayMessages", () => {
 		// Assert
 
 		expect(actual.map(m => m.id)).toEqual(["1"]);
+	});
+
+	it("Should include a persisted message's context snippets when present", () => {
+		// Arrange
+
+		const persisted: MessageDto[] = [
+			{ ...makeMessage("1"), contextSnippets: ["Selected passage"] },
+		];
+
+		// Act
+
+		const actual = buildDisplayMessages(persisted, null, null);
+
+		// Assert
+
+		expect(actual[0].contextSnippets).toEqual(["Selected passage"]);
+	});
+
+	it("Should attach pending context snippets to the pending human message", () => {
+		// Arrange
+
+		const persisted: MessageDto[] = [];
+
+		// Act
+
+		const actual = buildDisplayMessages(persisted, "Prompt", null, null, [
+			"Selected passage",
+		]);
+
+		// Assert
+
+		expect(actual).toEqual([
+			{
+				id: "pending-human",
+				content: { type: "human", value: "Prompt" },
+				contextSnippets: ["Selected passage"],
+			},
+		]);
 	});
 });

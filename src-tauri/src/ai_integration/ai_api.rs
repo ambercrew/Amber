@@ -4,8 +4,10 @@ use std::sync::Arc;
 use crate::{
     ai_integration::{
         ai_state::AiState,
-        dto::stream_ai_request_dto::StreamAiRequestDto,
-        entities::{chat::Chat, message::Message},
+        dto::{
+            message_response_dto::MessageResponseDto, stream_ai_request_dto::StreamAiRequestDto,
+        },
+        entities::{chat::Chat, context_snippet::group_snippets_by_message},
         repositories::ai_repository::AiRepository,
         services::{
             ai_streamer::{AiStreamer, StreamLlmResponseEvent},
@@ -100,14 +102,22 @@ pub async fn delete_ai_chat(injector: State<'_, Arc<Injector>>, id: Uuid) -> Res
 pub async fn get_chat_messages_ordered(
     injector: State<'_, Arc<Injector>>,
     id: Uuid,
-) -> Result<Vec<Message>, ApiError> {
+) -> Result<Vec<MessageResponseDto>, ApiError> {
     let scope = injector.start_scope();
-    let messages = scope
-        .resolve::<dyn AiRepository>()
-        .await
-        .get_chat_messages_ordered(id)
-        .await?;
-    Ok(messages)
+    let ai_repository = scope.resolve::<dyn AiRepository>().await;
+    let messages = ai_repository.get_chat_messages_ordered(id).await?;
+    let mut context_snippets_by_message =
+        group_snippets_by_message(ai_repository.get_context_snippets_for_chat(id).await?);
+
+    Ok(messages
+        .into_iter()
+        .map(|message| {
+            let context_snippets = context_snippets_by_message
+                .remove(&message.id())
+                .unwrap_or_default();
+            MessageResponseDto::new(message, context_snippets)
+        })
+        .collect())
 }
 
 #[tauri::command]

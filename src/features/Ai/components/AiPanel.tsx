@@ -47,6 +47,7 @@ function AiPanel() {
 
 	const {
 		pendingHumanText,
+		pendingContextSnippets,
 		streamingAssistantText,
 		isStreaming,
 		streamError,
@@ -93,6 +94,7 @@ function AiPanel() {
 		pendingHumanText,
 		streamingAssistantText,
 		pendingDocumentFileName,
+		pendingContextSnippets,
 	);
 
 	return (

@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::ai_integration::clients::multi_client::multi_completion_model::MultiCompletionModel;
 use crate::ai_integration::entities::message::{Message, MessageContent};
-use crate::ai_integration::prompts::preamble;
+use crate::ai_integration::prompts::{format_context_snippets, preamble};
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
@@ -61,14 +61,8 @@ impl DefaultAgentProvider {
             }
         }
 
-        for snippet in context_snippets {
-            let snippet = snippet.trim();
-            if snippet.is_empty() {
-                continue;
-            }
-            lines.push(format!(
-                "- The user selected this text as additional context: \"{snippet}\""
-            ));
+        if let Some(snippet_lines) = format_context_snippets(context_snippets) {
+            lines.push(snippet_lines);
         }
 
         if lines.is_empty() {

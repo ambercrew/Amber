@@ -1,5 +1,21 @@
-import { Box, Group, Loader, Paper, Text, Typography } from "@mantine/core";
-import { FileIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import {
+	Box,
+	Collapse,
+	Group,
+	Loader,
+	Paper,
+	Stack,
+	Text,
+	Typography,
+	UnstyledButton,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import {
+	CaretDownIcon,
+	CaretRightIcon,
+	FileIcon,
+	MagnifyingGlassIcon,
+} from "@phosphor-icons/react";
 import { marked } from "marked";
 import markedKatex from "marked-katex-extension";
 import "katex/dist/katex.min.css";
@@ -14,6 +30,8 @@ interface MessageBubbleProps {
 	toolName?: string;
 	/** Whether this is the assistant reply currently being streamed in. */
 	isStreaming?: boolean;
+	/** Text snippets the user selected as additional context, for `human` messages. */
+	contextSnippets?: string[];
 }
 
 const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
@@ -35,7 +53,52 @@ function renderMarkdown(value: string) {
 	return sanitizeHtml(marked.parse(value, { async: false }) as string);
 }
 
-function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
+function ContextSnippets({ snippets }: { snippets: string[] }) {
+	const [opened, { toggle }] = useDisclosure(false);
+
+	return (
+		<Box
+			p="xs"
+			style={{
+				borderRadius: "var(--mantine-radius-sm)",
+				background: "rgba(0, 0, 0, 0.18)",
+			}}>
+			<UnstyledButton onClick={toggle}>
+				<Group gap={4}>
+					{opened ? (
+						<CaretDownIcon size={12} />
+					) : (
+						<CaretRightIcon size={12} />
+					)}
+					<Text size="sm">
+						{snippets.length === 1
+							? "1 context snippet"
+							: `${snippets.length} context snippets`}
+					</Text>
+				</Group>
+			</UnstyledButton>
+			<Collapse expanded={opened} keepMounted={false}>
+				<Stack gap="xs" mt="xs">
+					{snippets.map((snippet, index) => (
+						<Box key={index}>
+							<Text fw={700}>Snippet {index + 1}</Text>
+							<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+								{snippet}
+							</Text>
+						</Box>
+					))}
+				</Stack>
+			</Collapse>
+		</Box>
+	);
+}
+
+function MessageBubble({
+	content,
+	toolName,
+	isStreaming,
+	contextSnippets,
+}: MessageBubbleProps) {
 	if (content.type === "human") {
 		return (
 			<Group justify="flex-end">
@@ -44,10 +107,16 @@ function MessageBubble({ content, toolName, isStreaming }: MessageBubbleProps) {
 					radius="md"
 					p="sm"
 					maw="90%"
-					bg="var(--mantine-primary-color-light)">
-					<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-						{content.value}
-					</Text>
+					bg="var(--mantine-primary-color-filled)"
+					c="var(--mantine-primary-color-contrast)">
+					<Stack gap="xs">
+						{contextSnippets && contextSnippets.length > 0 && (
+							<ContextSnippets snippets={contextSnippets} />
+						)}
+						<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+							{content.value}
+						</Text>
+					</Stack>
 				</Paper>
 			</Group>
 		);

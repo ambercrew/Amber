@@ -19,6 +19,7 @@ const message1: MessageDto = {
 	createdDate: "date",
 	chatId: "chat-1",
 	content: { type: "human", value: "hi" },
+	contextSnippets: [],
 };
 
 describe("useAiChats", () => {

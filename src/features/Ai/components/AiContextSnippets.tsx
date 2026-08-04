@@ -3,15 +3,7 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
 import { removeAiContextSnippet } from "../../../stores/aiContext/aiContextReducer";
-
-const PREVIEW_LENGTH = 30;
-
-function previewText(text: string) {
-	const trimmed = text.trim();
-	return trimmed.length > PREVIEW_LENGTH
-		? `${trimmed.slice(0, PREVIEW_LENGTH)}…`
-		: trimmed;
-}
+import { previewText } from "../utils/contextSnippetPreview";
 
 function AiContextSnippets() {
 	const snippets = useAppSelector(selectAiContextSnippets);
@@ -31,6 +23,10 @@ function AiContextSnippets() {
 						}
 						removeButtonProps={{
 							"aria-label": "Remove context",
+						}}
+						style={{
+							background: "var(--mantine-primary-color-light)",
+							color: "var(--mantine-primary-color-light-color)",
 						}}>
 						{previewText(snippet.text)}
 					</Pill>

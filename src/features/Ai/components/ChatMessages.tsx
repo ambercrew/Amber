@@ -88,6 +88,7 @@ function ChatMessages({ chatId, messages }: ChatMessagesProps) {
 						content={message.content}
 						toolName={message.toolName}
 						isStreaming={message.isStreaming}
+						contextSnippets={message.contextSnippets}
 					/>
 				))}
 			</Stack>

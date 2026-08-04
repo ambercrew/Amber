@@ -15,7 +15,6 @@ import {
 	RangeSelection,
 } from "lexical";
 import { $unwrapMarkNode } from "@lexical/mark";
-import { notifications } from "@mantine/notifications";
 import { FloatingMenuItem } from "../../../components/Editor/plugins/FloatingMenuPlugin";
 import { CREATE_HIGHLIGHT_COMMAND } from "../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import {
@@ -157,9 +156,6 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 									const text = selection.getTextContent();
 									if (!text.trim()) return;
 									dispatch(addAiContextSnippet(text));
-									notifications.show({
-										message: "Added to AI context",
-									});
 								});
 							},
 						},

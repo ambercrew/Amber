@@ -9,6 +9,8 @@ export interface DisplayMessage {
 	toolName?: string;
 	/** Whether this is the assistant reply currently being streamed in. */
 	isStreaming?: boolean;
+	/** Text snippets the user selected as additional context, for `human` messages. */
+	contextSnippets?: string[];
 }
 
 /**
@@ -25,6 +27,7 @@ export function buildDisplayMessages(
 	pendingHumanText: string | null,
 	streamingAssistantText: string | null,
 	pendingDocumentFileName: string | null = null,
+	pendingContextSnippets: string[] | null = null,
 ): DisplayMessage[] {
 	// `toolResult` messages don't carry the tool's name, only the id of the
 	// `toolCall` they answer, so it has to be looked up from that call.
@@ -50,6 +53,9 @@ export function buildDisplayMessages(
 			id: message.id,
 			content: message.content,
 			...(toolName !== undefined && { toolName }),
+			...(message.contextSnippets.length > 0 && {
+				contextSnippets: message.contextSnippets,
+			}),
 		};
 	});
 
@@ -68,6 +74,10 @@ export function buildDisplayMessages(
 		items.push({
 			id: "pending-human",
 			content: { type: "human", value: pendingHumanText },
+			...(pendingContextSnippets &&
+				pendingContextSnippets.length > 0 && {
+					contextSnippets: pendingContextSnippets,
+				}),
 		});
 	}
 

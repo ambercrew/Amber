@@ -25,4 +25,5 @@ export default interface MessageDto {
 	createdDate: string;
 	chatId: string;
 	content: MessageContentDto;
+	contextSnippets: string[];
 }

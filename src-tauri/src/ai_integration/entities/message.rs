@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
 
+use crate::ai_integration::prompts::format_context_snippets;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Message {
@@ -59,6 +61,60 @@ impl Message {
 
     pub fn content_mut(&mut self) -> &mut MessageContent {
         &mut self.content
+    }
+
+    pub fn try_into_rig_message(
+        self,
+        context_snippets: &[String],
+    ) -> Result<rig::message::Message, UnsupportedMessageContent> {
+        match self.content {
+            MessageContent::Human(content) => {
+                let text = match format_context_snippets(context_snippets) {
+                    Some(context) => format!("{content}\n\n**Context:**\n{context}"),
+                    None => content,
+                };
+                Ok(rig::message::Message::User {
+                    content: OneOrMany::one(UserContent::text(text)),
+                })
+            }
+            MessageContent::Document(DocumentContent { file_name }) => {
+                Ok(rig::message::Message::User {
+                    content: OneOrMany::one(UserContent::text(format!(
+                        "I have uploaded the following file: {file_name}"
+                    ))),
+                })
+            }
+            MessageContent::Assistant(content) => Ok(rig::message::Message::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::Text(Text {
+                    text: content,
+                    additional_params: None,
+                })),
+            }),
+            MessageContent::ToolCall(ToolCallContent {
+                id,
+                name,
+                arguments,
+            }) => Ok(rig::message::Message::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::ToolCall(rig::message::ToolCall {
+                    id,
+                    call_id: None,
+                    function: rig::message::ToolFunction { name, arguments },
+                    signature: None,
+                    additional_params: None,
+                })),
+            }),
+            MessageContent::ToolResult(ToolResultContent { id, text }) => {
+                Ok(rig::message::Message::User {
+                    content: OneOrMany::one(UserContent::ToolResult(rig::message::ToolResult {
+                        id,
+                        call_id: None,
+                        content: OneOrMany::one(rig::message::ToolResultContent::text(text)),
+                    })),
+                })
+            }
+        }
     }
 }
 
@@ -127,51 +183,62 @@ impl From<rig::message::ToolResult> for ToolResultContent {
 #[derive(Debug)]
 pub struct UnsupportedMessageContent;
 
-impl TryFrom<Message> for rig::message::Message {
-    type Error = UnsupportedMessageContent;
+#[cfg(test)]
+mod tests {
+    use uuid::Uuid;
 
-    fn try_from(value: Message) -> Result<Self, Self::Error> {
-        match value.content {
-            MessageContent::Human(content) => Ok(rig::message::Message::User {
-                content: OneOrMany::one(UserContent::text(content)),
-            }),
-            MessageContent::Document(DocumentContent { file_name }) => {
-                Ok(rig::message::Message::User {
-                    content: OneOrMany::one(UserContent::text(format!(
-                        "I have uploaded the following file: {file_name}"
-                    ))),
-                })
-            }
-            MessageContent::Assistant(content) => Ok(rig::message::Message::Assistant {
-                id: None,
-                content: OneOrMany::one(AssistantContent::Text(Text {
-                    text: content,
-                    additional_params: None,
-                })),
-            }),
-            MessageContent::ToolCall(ToolCallContent {
-                id,
-                name,
-                arguments,
-            }) => Ok(rig::message::Message::Assistant {
-                id: None,
-                content: OneOrMany::one(AssistantContent::ToolCall(rig::message::ToolCall {
-                    id,
-                    call_id: None,
-                    function: rig::message::ToolFunction { name, arguments },
-                    signature: None,
-                    additional_params: None,
-                })),
-            }),
-            MessageContent::ToolResult(ToolResultContent { id, text }) => {
-                Ok(rig::message::Message::User {
-                    content: OneOrMany::one(UserContent::ToolResult(rig::message::ToolResult {
-                        id,
-                        call_id: None,
-                        content: OneOrMany::one(rig::message::ToolResultContent::text(text)),
-                    })),
-                })
-            }
-        }
+    use super::*;
+
+    #[test]
+    fn try_into_rig_message_human_with_context_snippets_folded_snippets_into_text() {
+        // Arrange
+
+        let message = Message::new(
+            None,
+            Uuid::new_v4(),
+            MessageContent::Human("What does this mean?".to_string()),
+        );
+
+        // Act
+
+        let actual = message
+            .try_into_rig_message(&["Selected passage".to_string()])
+            .unwrap();
+
+        // Assert
+
+        let rig::message::Message::User { content } = actual else {
+            panic!("Expected a user message");
+        };
+        let UserContent::Text(text) = content.first() else {
+            panic!("Expected text content");
+        };
+        assert!(text.text.contains("What does this mean?"));
+        assert!(text.text.contains("Selected passage"));
+    }
+
+    #[test]
+    fn try_into_rig_message_human_without_context_snippets_did_not_add_context_section() {
+        // Arrange
+
+        let message = Message::new(
+            None,
+            Uuid::new_v4(),
+            MessageContent::Human("What does this mean?".to_string()),
+        );
+
+        // Act
+
+        let actual = message.try_into_rig_message(&[]).unwrap();
+
+        // Assert
+
+        let rig::message::Message::User { content } = actual else {
+            panic!("Expected a user message");
+        };
+        let UserContent::Text(text) = content.first() else {
+            panic!("Expected text content");
+        };
+        assert_eq!(text.text, "What does this mean?");
     }
 }

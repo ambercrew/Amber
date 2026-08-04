@@ -8,6 +8,7 @@ use crate::{
     ai_integration::{
         entities::{
             chat::Chat,
+            context_snippet::ContextSnippet,
             message::{Message, MessageContent},
         },
         repositories::ai_repository::AiRepository,
@@ -16,6 +17,7 @@ use crate::{
     infrastructure::{
         repositories::sqlite::sqlite_rows::{
             chat_row::ChatRow,
+            context_snippet_row::ContextSnippetRow,
             message_row::{
                 ASSISTANT_CONTENT_TYPE, DOCUMENT_CONTENT_TYPE, HUMAN_CONTENT_TYPE, MessageRow,
                 TOOL_CALL_CONTENT_TYPE, TOOL_RESULT_TYPE,
@@ -200,6 +202,72 @@ impl AiRepository for SqliteAiRepository {
         result?;
         Ok(())
     }
+
+    async fn upsert_context_snippet(
+        &self,
+        snippet: &ContextSnippet,
+    ) -> Result<(), RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let id = snippet.id();
+        let message_id = snippet.message_id();
+        let text = snippet.snippet();
+        let position = snippet.position();
+
+        let result = sqlx::query!(
+            r#"INSERT INTO ai_message_context_snippets(
+                id,
+                ai_message_id,
+                snippet,
+                position)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT(id) DO UPDATE SET
+                id = $1,
+                ai_message_id = $2,
+                snippet = $3,
+                position = $4
+            "#,
+            id,
+            message_id,
+            text,
+            position
+        )
+        .execute(&mut *tx)
+        .await;
+
+        result?;
+        Ok(())
+    }
+
+    async fn get_context_snippets_for_chat(
+        &self,
+        chat_id: Uuid,
+    ) -> Result<Vec<ContextSnippet>, RepositoryError> {
+        let mut tx = self.tx.lock().await;
+        let tx = tx.as_mut();
+
+        let snippet_rows = sqlx::query_as!(
+            ContextSnippetRow,
+            r#"SELECT
+                s.id as "id: _",
+                s.ai_message_id as "ai_message_id: _",
+                s.snippet,
+                s.position
+            FROM ai_message_context_snippets s
+            JOIN ai_messages m ON m.id = s.ai_message_id
+            WHERE m.ai_chat_id = $1
+            ORDER BY s.ai_message_id, s.position"#,
+            chat_id
+        )
+        .fetch_all(&mut *tx)
+        .await;
+
+        Ok(snippet_rows?
+            .into_iter()
+            .map(|snippet| snippet.into())
+            .collect())
+    }
 }
 
 #[cfg(test)]
@@ -295,6 +363,89 @@ pub mod tests {
             *actual[1].content(),
             MessageContent::Assistant("Assistant".to_string())
         );
+    }
+
+    #[tokio::test]
+    pub async fn upsert_context_snippet_multiple_snippets_persisted_and_returned_in_position_order()
+    {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<SqliteAiRepository>().await;
+
+        let chat = Chat::new(None, "Chat".to_string());
+        repository.upsert_chat(&chat).await.unwrap();
+
+        let message = Message::new(None, chat.id(), MessageContent::Human("Human".to_string()));
+        repository.upsert_message(&message).await.unwrap();
+
+        repository
+            .upsert_context_snippet(&ContextSnippet::new(
+                None,
+                message.id(),
+                "Snippet one".to_string(),
+                0,
+            ))
+            .await
+            .unwrap();
+        repository
+            .upsert_context_snippet(&ContextSnippet::new(
+                None,
+                message.id(),
+                "Snippet two".to_string(),
+                1,
+            ))
+            .await
+            .unwrap();
+
+        scope.save_changes().await.unwrap();
+
+        // Act
+
+        let actual = repository
+            .get_context_snippets_for_chat(chat.id())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 2);
+        assert_eq!(actual[0].snippet(), "Snippet one");
+        assert_eq!(actual[1].snippet(), "Snippet two");
+    }
+
+    #[tokio::test]
+    pub async fn get_context_snippets_for_chat_message_without_snippets_returned_empty() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let repository = scope.resolve::<SqliteAiRepository>().await;
+
+        let chat = Chat::new(None, "Chat".to_string());
+        repository.upsert_chat(&chat).await.unwrap();
+        repository
+            .upsert_message(&Message::new(
+                None,
+                chat.id(),
+                MessageContent::Human("Human".to_string()),
+            ))
+            .await
+            .unwrap();
+
+        scope.save_changes().await.unwrap();
+
+        // Act
+
+        let actual = repository
+            .get_context_snippets_for_chat(chat.id())
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert!(actual.is_empty());
     }
 
     #[tokio::test]
