@@ -12,6 +12,7 @@ use rig::sqlite::SqliteVectorStore;
 use tokio::fs;
 use tokio_rusqlite::Connection;
 
+use crate::ai_integration::ai_state::AiState;
 #[cfg(test)]
 use crate::ai_integration::clients::mock_client::MockClient;
 use crate::ai_integration::clients::multi_client::MultiClient;
@@ -54,6 +55,7 @@ pub struct DefaultAiClientProvider {
     #[cfg_attr(test, allow(dead_code))]
     secrets_repository: Arc<dyn SecretsRepository>,
     app_data_directory: Arc<AppDataDirectory>,
+    state: Arc<AiState>,
     #[cfg(test)]
     mock_client: Arc<MockClient>,
 }
@@ -212,6 +214,13 @@ impl AiClientProvider for DefaultAiClientProvider {
             return Ok(probe_model);
         }
 
+        // The probe call has no hook mechanism to check cancellation mid-flight
+        // (unlike the agent/extractor completion calls), so it's only checked
+        // around the call itself.
+        if self.state.generation_cancelled() {
+            return Err(AiClientProviderError::Cancelled);
+        }
+
         // Not every provider (e.g. Ollama) reports every model's dimensions, so for
         // models it doesn't recognize the real output size is detected with a
         // throwaway embedding call. This keeps it consistent with the vector store
@@ -222,6 +231,10 @@ impl AiClientProvider for DefaultAiClientProvider {
             .first()
             .map(|embedding| embedding.vec.len())
             .unwrap_or(0);
+
+        if self.state.generation_cancelled() {
+            return Err(AiClientProviderError::Cancelled);
+        }
 
         Ok(client.embedding_model_with_ndims(model_name, actual_dims))
     }
@@ -279,7 +292,7 @@ pub mod tests {
 
     use super::*;
 
-    async fn initialize_test_injector(mock_client: MockClient) -> Injector {
+    async fn initialize_test_injector(mock_client: MockClient, state: Arc<AiState>) -> Injector {
         let mut injector = create_test_injector().await;
 
         let mut settings = Settings::new(create_temp_directory().await, SettingsProfile::Default);
@@ -287,6 +300,7 @@ pub mod tests {
 
         injector.register_singleton(Arc::new(Mutex::new(settings)));
         injector.register_singleton(Arc::new(mock_client));
+        injector.register_singleton(state);
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
@@ -305,7 +319,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = initialize_test_injector(mock_client).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn AiClientProvider>().await;
         let client = service.get_client().await.unwrap();
@@ -338,7 +352,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = initialize_test_injector(mock_client).await;
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn AiClientProvider>().await;
         let client = service.get_client().await.unwrap();
@@ -350,5 +364,33 @@ pub mod tests {
         // Assert
 
         assert_eq!(1024, embed_model.ndims());
+    }
+
+    #[tokio::test]
+    pub async fn get_embeddings_model_cancelled_before_probe_returned_cancelled_error() {
+        // Arrange
+
+        let mock_client = MockClient {
+            embeddings_model: Some("unknown-model".to_string()),
+            embeddings_model_dims: Some(0),
+            // No embed_texts_fn: a probe call here would panic.
+            ..Default::default()
+        };
+
+        let state = Arc::new(AiState::default());
+        state.cancel_generation();
+
+        let injector = initialize_test_injector(mock_client, state).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiClientProvider>().await;
+        let client = service.get_client().await.unwrap();
+
+        // Act
+
+        let result = service.get_embeddings_model(&client).await;
+
+        // Assert
+
+        assert!(matches!(result, Err(AiClientProviderError::Cancelled)));
     }
 }

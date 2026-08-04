@@ -17,6 +17,8 @@ pub enum ChatCreatorError {
     ProviderError(String),
     #[error("Failed to create the chat: {0}")]
     CreateChat(#[source] SourceError),
+    #[error("Chat creation was cancelled")]
+    Cancelled,
 }
 
 impl TryFrom<CompletionError> for ChatCreatorError {

@@ -138,6 +138,7 @@ pub mod tests {
 
     use crate::{
         ai_integration::{
+            ai_state::AiState,
             clients::{mock_client::MockClient, multi_client::multi_response::MultiResponse},
             entities::message::{DocumentContent, Message, MessageContent},
             services::implementations::default_ai_client_provider::DefaultAiClientProvider,
@@ -171,6 +172,7 @@ pub mod tests {
 
         injector.register_singleton(Arc::new(Mutex::new(settings)));
         injector.register_singleton(Arc::new(mock_client));
+        injector.register_singleton(Arc::new(AiState::default()));
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);

@@ -39,6 +39,8 @@ pub enum AiClientProviderError {
     #[cfg(not(test))]
     #[error("Failed to create the client")]
     CreateClient,
+    #[error("Cancelled due to state update.")]
+    Cancelled,
 }
 
 #[async_trait]

@@ -15,11 +15,12 @@ use crate::ai_integration::ai_state::AiState;
 use crate::ai_integration::dto::stream_ai_request_dto::StreamAiRequestDto;
 use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
-use crate::ai_integration::services::agent_provider::AgentProvider;
+use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
+use crate::ai_integration::services::ai_client_provider::AiClientProviderError;
 use crate::ai_integration::services::ai_streamer::{
     AiStreamer, AiStreamerError, OnEventCallback, StreamLlmResponseEvent,
 };
-use crate::ai_integration::services::chat_creator::ChatCreator;
+use crate::ai_integration::services::chat_creator::{ChatCreator, ChatCreatorError};
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
 
 #[derive(ScopeInjectable)]
@@ -49,7 +50,13 @@ impl AiStreamer for DefaultAiStreamer {
                 .get_chat_messages_ordered(chat_id)
                 .await?;
         } else {
-            let chat = self.chat_creator.create_chat(&request.prompt).await?;
+            let chat = match self.chat_creator.create_chat(&request.prompt).await {
+                Ok(chat) => chat,
+                // Cancelling before a chat title exists yet has nothing to
+                // roll back — just stop like a mid-stream cancellation does.
+                Err(ChatCreatorError::Cancelled) => return Ok(()),
+                Err(err) => return Err(err.into()),
+            };
             chat_id = chat.id();
             messages = Vec::new();
             on_event(StreamLlmResponseEvent::CreatedChat(chat.clone()))?;
@@ -62,7 +69,11 @@ impl AiStreamer for DefaultAiStreamer {
             MessageContent::Human(request.prompt.clone()),
         )]));
 
-        let agent = self
+        // A cancellation while building the agent (e.g. during the embeddings
+        // dimension probe, which has no hook to check mid-flight) has no
+        // completion to stream — skip straight to persisting what already
+        // exists, same as a mid-stream cancellation falls through below.
+        let agent = match self
             .agent_provider
             .get_agent(
                 chat_id,
@@ -70,77 +81,83 @@ impl AiStreamer for DefaultAiStreamer {
                 request.element_id,
                 &request.context_snippets,
             )
-            .await?;
-        let rig_messages: Vec<rig::message::Message> = messages
-            .into_iter()
-            .filter_map(|m| m.try_into().ok())
-            .collect();
-        let mut stream = agent
-            .stream_chat(request.prompt, rig_messages)
-            .add_hook(StateCancellationHook::new(self.state.clone()))
-            .await;
+            .await
+        {
+            Ok(agent) => Some(agent),
+            Err(AgentProviderError::AiClientProvider(AiClientProviderError::Cancelled)) => None,
+            Err(err) => return Err(err.into()),
+        };
 
         let mut complete_ai_response = String::new();
 
-        // TODO: should it check if cancelled here?
-        // TODO: is there a better way to check midway than hook
-        while let Some(content) = stream.next().await {
-            match content {
-                Ok(content) => {
-                    if let MultiTurnStreamItem::StreamAssistantItem(
-                        StreamedAssistantContent::Text(Text { text, .. }),
-                    ) = content
-                    {
-                        complete_ai_response = format!("{complete_ai_response}{text}");
-                        on_event(StreamLlmResponseEvent::InProgress { chat_id, text })?;
-                    } else if let MultiTurnStreamItem::StreamAssistantItem(
-                        StreamedAssistantContent::ToolCall { tool_call, .. },
-                    ) = content
-                    {
-                        log::info!("Tool call: {:#?}", tool_call);
+        if let Some(agent) = agent {
+            let rig_messages: Vec<rig::message::Message> = messages
+                .into_iter()
+                .filter_map(|m| m.try_into().ok())
+                .collect();
+            let mut stream = agent
+                .stream_chat(request.prompt, rig_messages)
+                .add_hook(StateCancellationHook::new(self.state.clone()))
+                .await;
 
-                        messages_to_upsert.lock().await.push(Message::new(
-                            None,
-                            chat_id,
-                            MessageContent::ToolCall(tool_call.into()),
-                        ));
-                    } else if let MultiTurnStreamItem::StreamUserItem(
-                        StreamedUserContent::ToolResult { tool_result, .. },
-                    ) = content
-                    {
-                        log::info!("Tool result: {:#?}", tool_result);
+            while let Some(content) = stream.next().await {
+                match content {
+                    Ok(content) => {
+                        if let MultiTurnStreamItem::StreamAssistantItem(
+                            StreamedAssistantContent::Text(Text { text, .. }),
+                        ) = content
+                        {
+                            complete_ai_response = format!("{complete_ai_response}{text}");
+                            on_event(StreamLlmResponseEvent::InProgress { chat_id, text })?;
+                        } else if let MultiTurnStreamItem::StreamAssistantItem(
+                            StreamedAssistantContent::ToolCall { tool_call, .. },
+                        ) = content
+                        {
+                            log::info!("Tool call: {:#?}", tool_call);
 
-                        messages_to_upsert.lock().await.push(Message::new(
-                            None,
-                            chat_id,
-                            MessageContent::ToolResult(tool_result.into()),
-                        ));
+                            messages_to_upsert.lock().await.push(Message::new(
+                                None,
+                                chat_id,
+                                MessageContent::ToolCall(tool_call.into()),
+                            ));
+                        } else if let MultiTurnStreamItem::StreamUserItem(
+                            StreamedUserContent::ToolResult { tool_result, .. },
+                        ) = content
+                        {
+                            log::info!("Tool result: {:#?}", tool_result);
+
+                            messages_to_upsert.lock().await.push(Message::new(
+                                None,
+                                chat_id,
+                                MessageContent::ToolResult(tool_result.into()),
+                            ));
+                        }
                     }
-                }
-                Err(err) => {
-                    log::error!("Error happened while streaming {:?}", err);
+                    Err(err) => {
+                        log::error!("Error happened while streaming {:?}", err);
 
-                    let is_cancelled = matches!(&err, StreamingError::Prompt(p) if matches!(**p, PromptError::PromptCancelled { .. }));
+                        let is_cancelled = matches!(&err, StreamingError::Prompt(p) if matches!(**p, PromptError::PromptCancelled { .. }));
 
-                    if !is_cancelled {
-                        let error_message = match err {
-                            StreamingError::Completion(completion_err) => {
-                                AiStreamerError::try_from(completion_err)
-                                    .map_or_else(|e| e.to_string(), |e| e.to_string())
-                            }
-                            StreamingError::Prompt(prompt_err) => match *prompt_err {
-                                PromptError::CompletionError(completion_err) => {
+                        if !is_cancelled {
+                            let error_message = match err {
+                                StreamingError::Completion(completion_err) => {
                                     AiStreamerError::try_from(completion_err)
                                         .map_or_else(|e| e.to_string(), |e| e.to_string())
                                 }
-                                other => other.to_string(),
-                            },
-                        };
-                        on_event(StreamLlmResponseEvent::Error(error_message))?;
+                                StreamingError::Prompt(prompt_err) => match *prompt_err {
+                                    PromptError::CompletionError(completion_err) => {
+                                        AiStreamerError::try_from(completion_err)
+                                            .map_or_else(|e| e.to_string(), |e| e.to_string())
+                                    }
+                                    other => other.to_string(),
+                                },
+                            };
+                            on_event(StreamLlmResponseEvent::Error(error_message))?;
+                        }
+                        break;
                     }
-                    break;
-                }
-            };
+                };
+            }
         }
 
         if !complete_ai_response.trim().is_empty() {
@@ -526,6 +543,158 @@ pub mod tests {
             .unwrap();
         assert_eq!(
             MessageContent::Assistant("123".to_string()),
+            *messages[1].content()
+        );
+    }
+
+    #[tokio::test]
+    pub async fn stream_cancelled_during_title_generation_stopped_without_error_or_chat() {
+        // Arrange
+
+        let ai_state = Arc::new(AiState::default());
+        let ai_state_clone = ai_state.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(move |request| {
+                if let RigMessage::User { content } = request.chat_history.last()
+                    && let UserContent::Text(text) = content.last()
+                    && text.text() == "User message: User prompt"
+                {
+                    ai_state_clone.cancel_generation();
+
+                    let tool_call = AssistantContent::tool_call(
+                        "id",
+                        "submit",
+                        serde_json::to_value(GenerateTitle {
+                            title: "Chat title".to_string(),
+                        })
+                        .unwrap(),
+                    );
+                    return CompletionResponse {
+                        choice: OneOrMany::one(tool_call),
+                        raw_response: MultiResponse::Mock,
+                        usage: Usage::default(),
+                        message_id: None,
+                    };
+                }
+
+                panic!()
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client, ai_state).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let received_event = Arc::new(AtomicBool::new(false));
+        let received_event_clone = received_event.clone();
+
+        let request = StreamAiRequestDto {
+            prompt: "User prompt".to_string(),
+            ..Default::default()
+        };
+
+        // Act
+
+        let result = service
+            .stream(
+                request,
+                Arc::new(move |_| {
+                    received_event_clone.store(true, Ordering::Relaxed);
+                    Ok(())
+                }),
+            )
+            .await;
+
+        // Assert
+
+        assert!(result.is_ok());
+        assert!(!received_event.load(Ordering::Relaxed));
+
+        let chats = repository
+            .get_all_chats_sorted_by_date_desc()
+            .await
+            .unwrap();
+        assert!(chats.is_empty());
+    }
+
+    #[tokio::test]
+    pub async fn stream_cancelled_during_agent_creation_stopped_and_saved_human_message_only() {
+        // Arrange
+
+        let ai_state = Arc::new(AiState::default());
+        let ai_state_clone = ai_state.clone();
+
+        let mock_client = MockClient {
+            embeddings_model_dims: Some(0),
+            embed_texts_fn: Arc::new(Some(Box::new(move |texts| {
+                ai_state_clone.cancel_generation();
+
+                Ok(texts
+                    .into_iter()
+                    .map(|text| rig::embeddings::Embedding {
+                        document: text,
+                        vec: vec![0f64; 1024],
+                    })
+                    .collect())
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client, ai_state).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let chat = Chat::new(None, "Chat title".to_string());
+        let chat_id = chat.id();
+        repository.upsert_chat(&chat).await.unwrap();
+        repository
+            .upsert_message(&Message::new(
+                None,
+                chat_id,
+                MessageContent::Document(
+                    crate::ai_integration::entities::message::DocumentContent {
+                        file_name: "file.pdf".to_string(),
+                    },
+                ),
+            ))
+            .await
+            .unwrap();
+
+        let received_event = Arc::new(AtomicBool::new(false));
+        let received_event_clone = received_event.clone();
+
+        let request = StreamAiRequestDto {
+            prompt: "User prompt".to_string(),
+            chat_id: Some(chat_id),
+            ..Default::default()
+        };
+
+        // Act
+
+        let result = service
+            .stream(
+                request,
+                Arc::new(move |_| {
+                    received_event_clone.store(true, Ordering::Relaxed);
+                    Ok(())
+                }),
+            )
+            .await;
+
+        // Assert
+
+        assert!(result.is_ok());
+        assert!(!received_event.load(Ordering::Relaxed));
+
+        let messages = repository.get_chat_messages_ordered(chat_id).await.unwrap();
+        assert_eq!(2, messages.len());
+        assert!(matches!(messages[0].content(), MessageContent::Document(_)));
+        assert_eq!(
+            MessageContent::Human("User prompt".to_string()),
             *messages[1].content()
         );
     }

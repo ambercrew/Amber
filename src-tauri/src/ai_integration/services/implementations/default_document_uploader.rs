@@ -127,6 +127,7 @@ pub mod tests {
 
     use crate::{
         ai_integration::{
+            ai_state::AiState,
             clients::{
                 mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient},
                 multi_client::multi_embedding_model::MultiEmbeddingModel,
@@ -160,6 +161,7 @@ pub mod tests {
 
         injector.register_singleton(Arc::new(Mutex::new(settings)));
         injector.register_singleton(Arc::new(mock_client));
+        injector.register_singleton(Arc::new(AiState::default()));
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiRepository, SqliteAiRepository);
