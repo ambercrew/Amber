@@ -94,6 +94,29 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 					);
 				},
 			},
+			...(aiEnabled
+				? [
+						{
+							name: "add-ai-context-divider",
+							divider: true as const,
+						},
+						{
+							name: "add-ai-context",
+							title: "Add to AI Context",
+							Icon: SparkleIcon,
+							isActive: () => false,
+							onClick: (editor: LexicalEditor) => {
+								editor.getEditorState().read(() => {
+									const selection = $getSelection();
+									if (!$isRangeSelection(selection)) return;
+									const text = selection.getTextContent();
+									if (!text.trim()) return;
+									dispatch(addAiContextSnippet(text));
+								});
+							},
+						},
+					]
+				: []),
 			{ name: "create-highlight-divider", divider: true },
 			// Acts on the highlight (if any) under the current selection.
 			{
@@ -142,25 +165,6 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 					});
 				},
 			},
-			...(aiEnabled
-				? [
-						{
-							name: "add-ai-context",
-							title: "Add to AI Context",
-							Icon: SparkleIcon,
-							isActive: () => false,
-							onClick: (editor: LexicalEditor) => {
-								editor.getEditorState().read(() => {
-									const selection = $getSelection();
-									if (!$isRangeSelection(selection)) return;
-									const text = selection.getTextContent();
-									if (!text.trim()) return;
-									dispatch(addAiContextSnippet(text));
-								});
-							},
-						},
-					]
-				: []),
 		],
 		[navigate, dispatch, aiEnabled],
 	);
