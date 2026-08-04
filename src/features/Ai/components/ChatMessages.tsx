@@ -4,6 +4,7 @@ import { DisplayMessage } from "../utils/buildDisplayMessages";
 import MessageBubble from "./MessageBubble";
 
 interface ChatMessagesProps {
+	chatId: string | null;
 	messages: DisplayMessage[];
 }
 
@@ -12,8 +13,7 @@ interface ChatMessagesProps {
 // until the user manually returns to the bottom.
 const AUTO_SCROLL_THRESHOLD_PX = 100;
 
-// TODO: when switching chats always move to bottom
-function ChatMessages({ messages }: ChatMessagesProps) {
+function ChatMessages({ chatId, messages }: ChatMessagesProps) {
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const isPinnedToBottomRef = useRef(true);
 	const isAutoScrollingRef = useRef(false);
@@ -43,6 +43,12 @@ function ChatMessages({ messages }: ChatMessagesProps) {
 			isPinnedToBottomRef.current = true;
 		}
 	}
+
+	// Switching chats always jumps to the bottom, even if the previous chat
+	// had been scrolled up and left un-pinned.
+	useEffect(() => {
+		isPinnedToBottomRef.current = true;
+	}, [chatId]);
 
 	useEffect(() => {
 		const viewport = viewportRef.current;

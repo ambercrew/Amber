@@ -147,7 +147,7 @@ function AiPanel() {
 				</Alert>
 			)}
 
-			<ChatMessages messages={displayMessages} />
+			<ChatMessages chatId={selectedChatId} messages={displayMessages} />
 			<AiContextSnippets />
 			<ChatInput
 				key={restoreKey}

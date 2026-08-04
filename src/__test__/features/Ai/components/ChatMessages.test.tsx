@@ -33,10 +33,13 @@ beforeEach(() => {
 	window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
-function renderChatMessages(messages: DisplayMessage[]) {
+function renderChatMessages(
+	messages: DisplayMessage[],
+	chatId: string | null = "chat-1",
+) {
 	return render(
 		<MantineProvider>
-			<ChatMessages messages={messages} />
+			<ChatMessages chatId={chatId} messages={messages} />
 		</MantineProvider>,
 	);
 }
@@ -54,7 +57,10 @@ describe("ChatMessages", () => {
 
 		rerender(
 			<MantineProvider>
-				<ChatMessages messages={[makeMessage("1"), makeMessage("2")]} />
+				<ChatMessages
+					chatId="chat-1"
+					messages={[makeMessage("1"), makeMessage("2")]}
+				/>
 			</MantineProvider>,
 		);
 
@@ -81,7 +87,10 @@ describe("ChatMessages", () => {
 
 		rerender(
 			<MantineProvider>
-				<ChatMessages messages={[makeMessage("1"), makeMessage("2")]} />
+				<ChatMessages
+					chatId="chat-1"
+					messages={[makeMessage("1"), makeMessage("2")]}
+				/>
 			</MantineProvider>,
 		);
 
@@ -114,7 +123,40 @@ describe("ChatMessages", () => {
 
 		rerender(
 			<MantineProvider>
-				<ChatMessages messages={[makeMessage("1"), makeMessage("2")]} />
+				<ChatMessages
+					chatId="chat-1"
+					messages={[makeMessage("1"), makeMessage("2")]}
+				/>
+			</MantineProvider>,
+		);
+
+		// Assert
+
+		expect(scrollToMock).toHaveBeenCalledWith({
+			top: viewport.scrollHeight,
+			behavior: "auto",
+		});
+	});
+
+	it("Should scroll the viewport to the bottom when switching chats after the user scrolled up", async () => {
+		// Arrange
+
+		const { container, rerender } = renderChatMessages(
+			[makeMessage("1")],
+			"chat-1",
+		);
+		const viewport = getViewport(container);
+		await flushAutoScroll();
+		scrollTo(viewport, 500);
+		scrollTo(viewport, 100);
+		const scrollToMock = vi.fn();
+		viewport.scrollTo = scrollToMock;
+
+		// Act
+
+		rerender(
+			<MantineProvider>
+				<ChatMessages chatId="chat-2" messages={[makeMessage("2")]} />
 			</MantineProvider>,
 		);
 
