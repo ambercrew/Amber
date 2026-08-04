@@ -28,35 +28,51 @@ pub struct DefaultAgentProvider {
 
 impl DefaultAgentProvider {
     /// Builds the "**Context:**" section of the preamble: the name of the
-    /// element the user is currently viewing and, if relevant, the
-    /// bibliographical source (title + authors) it was derived from.
+    /// element the user is currently viewing, if relevant the bibliographical
+    /// source (title + authors) it was derived from, and any text snippets
+    /// the user selected and added as extra context.
     async fn build_context(
         &self,
         element_id: Option<ElementId>,
+        context_snippets: &[String],
     ) -> Result<Option<String>, AgentProviderError> {
-        let Some(element_id) = element_id else {
+        let mut lines = Vec::new();
+
+        if let Some(element_id) = element_id {
+            let meta = self.meta_repository.get_by_id(element_id.id()).await?;
+            lines.push(format!(
+                "- The user is currently viewing a {} named \"{}\".",
+                element_id.element_name(),
+                meta.name
+            ));
+
+            if let Some(bibliographical_source_id) = meta.bibliographical_source_id {
+                let source = self
+                    .bibliographical_source_service
+                    .get_bibliographical_source(bibliographical_source_id)
+                    .await?
+                    .bibliographical_source;
+
+                let origin = match source.authors {
+                    Some(authors) => format!("\"{}\" by {authors}", source.title),
+                    None => format!("\"{}\"", source.title),
+                };
+                lines.push(format!("- It originates from {origin}."));
+            }
+        }
+
+        for snippet in context_snippets {
+            let snippet = snippet.trim();
+            if snippet.is_empty() {
+                continue;
+            }
+            lines.push(format!(
+                "- The user selected this text as additional context: \"{snippet}\""
+            ));
+        }
+
+        if lines.is_empty() {
             return Ok(None);
-        };
-
-        let meta = self.meta_repository.get_by_id(element_id.id()).await?;
-        let mut lines = vec![format!(
-            "- The user is currently viewing a {} named \"{}\".",
-            element_id.element_name(),
-            meta.name
-        )];
-
-        if let Some(bibliographical_source_id) = meta.bibliographical_source_id {
-            let source = self
-                .bibliographical_source_service
-                .get_bibliographical_source(bibliographical_source_id)
-                .await?
-                .bibliographical_source;
-
-            let origin = match source.authors {
-                Some(authors) => format!("\"{}\" by {authors}", source.title),
-                None => format!("\"{}\"", source.title),
-            };
-            lines.push(format!("- It originates from {origin}."));
         }
 
         Ok(Some(lines.join("\n")))
@@ -70,10 +86,11 @@ impl AgentProvider for DefaultAgentProvider {
         chat_id: Uuid,
         messages: &[Message],
         element_id: Option<ElementId>,
+        context_snippets: &[String],
     ) -> Result<Agent<MultiCompletionModel>, AgentProviderError> {
         let client = self.ai_client_provider.get_client().await?;
         let completion_model_name = self.ai_client_provider.get_completion_model_name().await?;
-        let context = self.build_context(element_id).await?;
+        let context = self.build_context(element_id, context_snippets).await?;
 
         let builder = client
             .agent(&completion_model_name)
@@ -210,7 +227,7 @@ pub mod tests {
         // Act
 
         let agent = service
-            .get_agent(Uuid::new_v4(), &messages, None)
+            .get_agent(Uuid::new_v4(), &messages, None, &[])
             .await
             .unwrap();
         agent.prompt("Hello").await.unwrap();
@@ -256,7 +273,7 @@ pub mod tests {
         // Act
 
         let agent = service
-            .get_agent(Uuid::new_v4(), &messages, None)
+            .get_agent(Uuid::new_v4(), &messages, None, &[])
             .await
             .unwrap();
         agent.prompt("Hello").await.unwrap();
@@ -308,7 +325,10 @@ pub mod tests {
 
         // Act
 
-        let agent = service.get_agent(Uuid::new_v4(), &[], None).await.unwrap();
+        let agent = service
+            .get_agent(Uuid::new_v4(), &[], None, &[])
+            .await
+            .unwrap();
         agent.prompt("Hello").await.unwrap();
 
         // Assert
@@ -371,7 +391,7 @@ pub mod tests {
         // Act
 
         let agent = service
-            .get_agent(Uuid::new_v4(), &[], Some(element_id))
+            .get_agent(Uuid::new_v4(), &[], Some(element_id), &[])
             .await
             .unwrap();
         agent.prompt("Hello").await.unwrap();
@@ -379,5 +399,81 @@ pub mod tests {
         // Assert
 
         assert!(found_context.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    pub async fn get_agent_with_context_snippets_added_them_to_preamble_without_element() {
+        // Arrange
+
+        let found_context = Arc::new(AtomicBool::new(false));
+        let found_context_clone = found_context.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(move |request| {
+                let has_context = request.chat_history.iter().any(|message| {
+                    matches!(
+                        message,
+                        RigMessage::System { content } if content.contains("Selected passage")
+                    )
+                });
+                found_context_clone.store(has_context, Ordering::Relaxed);
+                mock_response_with_text("Answer")
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AgentProvider>().await;
+
+        // Act
+
+        let agent = service
+            .get_agent(Uuid::new_v4(), &[], None, &["Selected passage".to_string()])
+            .await
+            .unwrap();
+        agent.prompt("Hello").await.unwrap();
+
+        // Assert
+
+        assert!(found_context.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    pub async fn get_agent_with_blank_context_snippet_did_not_add_context_to_preamble() {
+        // Arrange
+
+        let preamble_has_context = Arc::new(AtomicBool::new(true));
+        let preamble_has_context_clone = preamble_has_context.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(move |request| {
+                let has_context = request.chat_history.iter().any(|message| {
+                    matches!(
+                        message,
+                        RigMessage::System { content } if content.contains("**Context:**")
+                    )
+                });
+                preamble_has_context_clone.store(has_context, Ordering::Relaxed);
+                mock_response_with_text("Answer")
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AgentProvider>().await;
+
+        // Act
+
+        let agent = service
+            .get_agent(Uuid::new_v4(), &[], None, &["   ".to_string()])
+            .await
+            .unwrap();
+        agent.prompt("Hello").await.unwrap();
+
+        // Assert
+
+        assert!(!preamble_has_context.load(Ordering::Relaxed));
     }
 }

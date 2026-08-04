@@ -16,6 +16,13 @@ import MessageDto from "../../../api/aiIntegration/dto/messageDto";
 import ChatDto from "../../../api/aiIntegration/dto/chatDto";
 import { CallApiFn } from "../../../hooks/useApi";
 import { ElementId } from "../../../types/elements/elementId";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
+import {
+	clearAiContextSnippets,
+	restoreAiContextSnippets,
+} from "../../../stores/aiContext/aiContextReducer";
+import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
 
 interface UseAiStreamingParams {
 	selectedChatId: string | null;
@@ -26,6 +33,7 @@ interface UseAiStreamingParams {
 	refreshChats: () => Promise<void>;
 	callApi: CallApiFn;
 	currentElementId: ElementId | null;
+	contextSnippets: string[];
 }
 
 /** Sends prompts and streams the assistant's response for the chat managed by `useAiChats`. */
@@ -38,7 +46,10 @@ export default function useAiStreaming({
 	refreshChats,
 	callApi,
 	currentElementId,
+	contextSnippets,
 }: UseAiStreamingParams) {
+	const dispatch = useAppDispatch();
+	const aiContextSnippets = useAppSelector(selectAiContextSnippets);
 	const [pendingHumanText, setPendingHumanText] = useState<string | null>(
 		null,
 	);
@@ -61,6 +72,9 @@ export default function useAiStreaming({
 			setIsStreaming(true);
 			activeChatIdRef.current = selectedChatId;
 			setStreamChatId(selectedChatId);
+
+			const snippetsToRestore = aiContextSnippets;
+			dispatch(clearAiContextSnippets());
 
 			// Read synchronously in `onFinally` below, since state set from
 			// the channel handler or the catch block hasn't re-rendered yet
@@ -92,6 +106,7 @@ export default function useAiStreaming({
 							prompt,
 							chatId: selectedChatId,
 							elementId: currentElementId,
+							contextSnippets,
 						});
 					} catch (e) {
 						failed = true;
@@ -106,6 +121,11 @@ export default function useAiStreaming({
 					if (failed) {
 						setFailedPrompt(prompt);
 						setRestoreKey(k => k + 1);
+						if (snippetsToRestore.length > 0) {
+							dispatch(
+								restoreAiContextSnippets(snippetsToRestore),
+							);
+						}
 					}
 
 					const chatId = activeChatIdRef.current;
@@ -119,8 +139,11 @@ export default function useAiStreaming({
 		},
 		[
 			activeChatIdRef,
+			aiContextSnippets,
 			callApi,
+			contextSnippets,
 			currentElementId,
+			dispatch,
 			refreshChats,
 			selectedChatId,
 			setChats,

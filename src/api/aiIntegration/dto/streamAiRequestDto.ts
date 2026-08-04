@@ -6,4 +6,6 @@ export default interface StreamAiRequestDto {
 	chatId: string | null;
 	/** The element the user is currently viewing, if any. Never sent for chat-title generation. */
 	elementId: ElementId | null;
+	/** User-selected text snippets added as extra context. Never sent for chat-title generation. */
+	contextSnippets: string[];
 }

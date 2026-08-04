@@ -9,6 +9,7 @@ import bibliographicalSourcesReducer from "./bibliographicalSources/bibliographi
 import elementDetailsReducer from "./elementDetails/elementDetailsReducer";
 import searchReducer from "./search/searchReducer";
 import trashReducer from "./trash/trashReducer";
+import aiContextReducer from "./aiContext/aiContextReducer";
 
 const reducers = combineReducers({
 	user: userReducer,
@@ -21,6 +22,7 @@ const reducers = combineReducers({
 	elementDetails: elementDetailsReducer,
 	search: searchReducer,
 	trash: trashReducer,
+	aiContext: aiContextReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {

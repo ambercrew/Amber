@@ -24,5 +24,6 @@ pub trait AgentProvider: Send + Sync {
         chat_id: Uuid,
         messages: &[Message],
         element_id: Option<ElementId>,
+        context_snippets: &[String],
     ) -> Result<Agent<MultiCompletionModel>, AgentProviderError>;
 }

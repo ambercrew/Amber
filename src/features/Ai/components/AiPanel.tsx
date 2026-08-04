@@ -12,15 +12,20 @@ import useAiDocumentUpload from "../hooks/useAiDocumentUpload";
 import { buildDisplayMessages } from "../utils/buildDisplayMessages";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
+import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
 import ChatSelectMenu from "./ChatSelectMenu";
 import RenameChatModal from "./RenameChatModal";
 import DeleteChatModal from "./DeleteChatModal";
+import AiContextSnippets from "./AiContextSnippets";
 
 function AiPanel() {
 	const currentElementId =
 		useAppSelector(selectCurrentElement)?.data.meta.elementId ?? null;
+	const contextSnippets = useAppSelector(selectAiContextSnippets).map(
+		snippet => snippet.text,
+	);
 
 	const {
 		chats,
@@ -59,6 +64,7 @@ function AiPanel() {
 		refreshChats,
 		callApi,
 		currentElementId,
+		contextSnippets,
 	});
 
 	const { isUploading, pendingDocumentFileName, uploadDocumentToChat } =
@@ -142,6 +148,7 @@ function AiPanel() {
 			)}
 
 			<ChatMessages messages={displayMessages} />
+			<AiContextSnippets />
 			<ChatInput
 				key={restoreKey}
 				isStreaming={isStreaming}

@@ -1,4 +1,6 @@
+import { PropsWithChildren } from "react";
 import { renderHook } from "@testing-library/react";
+import { Provider } from "react-redux";
 import { MemoryRouter } from "react-router";
 import {
 	$createParagraphNode,
@@ -25,6 +27,8 @@ import {
 import { CREATE_HIGHLIGHT_COMMAND } from "../../../../components/Editor/plugins/HighlightPlugin/highlightCommands";
 import { useElementViewerButtons } from "../../../../features/ElementViewer/hooks/useElementViewerButtons";
 import { FloatingMenuButton } from "../../../../components/Editor/plugins/FloatingMenuPlugin";
+import { setupStore } from "../../../../stores/store";
+import UpdateSettingsRequestDto from "../../../../api/settings/dto/updateSettingsRequestDto";
 
 const { mockNavigate } = vi.hoisted(() => ({ mockNavigate: vi.fn() }));
 
@@ -33,20 +37,52 @@ vi.mock(import("react-router"), async importOriginal => {
 	return { ...actual, useNavigate: () => mockNavigate };
 });
 
+const BASE_SETTINGS: UpdateSettingsRequestDto = {
+	baseDatabaseDirectory: "/home/user/amber",
+	theme: "Light",
+	zoomPercentage: 100,
+	autoSync: true,
+	trashRetentionDays: 30,
+	enableAi: false,
+	aiProvider: "ollama",
+	ollama: { modelName: null, embeddingsModelName: null },
+	openai: { modelName: null, embeddingsModelName: null },
+	openaiApiKeyIsSet: false,
+};
+
 interface Segment {
 	text: string;
 	highlight?: { id: string; color: MantineColor };
 }
 
-function renderButtons() {
+function makeStore(enableAi = false) {
+	return setupStore({
+		settings: { settings: { ...BASE_SETTINGS, enableAi } },
+	});
+}
+
+function makeWrapper(store: ReturnType<typeof makeStore>) {
+	return function Wrapper({ children }: PropsWithChildren) {
+		return (
+			<MemoryRouter>
+				<Provider store={store}>{children}</Provider>
+			</MemoryRouter>
+		);
+	};
+}
+
+function renderButtons(store: ReturnType<typeof makeStore> = makeStore()) {
 	const { result } = renderHook(() => useElementViewerButtons(), {
-		wrapper: ({ children }) => <MemoryRouter>{children}</MemoryRouter>,
+		wrapper: makeWrapper(store),
 	});
 	return result.current;
 }
 
-function getButton(name: string): FloatingMenuButton {
-	const buttons = renderButtons();
+function getButton(
+	name: string,
+	store: ReturnType<typeof makeStore> = makeStore(),
+): FloatingMenuButton {
+	const buttons = renderButtons(store);
 	const button = buttons.find(
 		(b): b is FloatingMenuButton => !("divider" in b) && b.name === name,
 	);
@@ -413,6 +449,74 @@ describe("useElementViewerButtons", () => {
 			// Assert
 
 			expect(mockNavigate).toHaveBeenCalledWith("/card/cloze-id");
+		});
+	});
+
+	describe("add-ai-context button", () => {
+		it("Should not be present when AI is disabled", () => {
+			// Arrange
+
+			const buttons = renderButtons(makeStore(false));
+
+			// Assert
+
+			expect(
+				buttons.some(
+					b => !("divider" in b) && b.name === "add-ai-context",
+				),
+			).toBe(false);
+		});
+
+		it("Should be present when AI is enabled", () => {
+			// Arrange
+
+			const buttons = renderButtons(makeStore(true));
+
+			// Assert
+
+			expect(
+				buttons.some(
+					b => !("divider" in b) && b.name === "add-ai-context",
+				),
+			).toBe(true);
+		});
+
+		it("Should add the selected text as a context snippet when clicked", () => {
+			// Arrange
+
+			const store = makeStore(true);
+			const button = getButton("add-ai-context", store);
+			const editor = createTestEditor();
+			setContent(editor, [{ text: "Selected passage" }]);
+			selectSegments(editor, 0, 0);
+
+			// Act
+
+			button.onClick(editor, false);
+
+			// Assert
+
+			expect(store.getState().aiContext.snippets).toEqual([
+				expect.objectContaining({ text: "Selected passage" }),
+			]);
+		});
+
+		it("Should not add an empty snippet when the selection is blank", () => {
+			// Arrange
+
+			const store = makeStore(true);
+			const button = getButton("add-ai-context", store);
+			const editor = createTestEditor();
+			setContent(editor, [{ text: "   " }]);
+			selectSegments(editor, 0, 0);
+
+			// Act
+
+			button.onClick(editor, false);
+
+			// Assert
+
+			expect(store.getState().aiContext.snippets).toEqual([]);
 		});
 	});
 });

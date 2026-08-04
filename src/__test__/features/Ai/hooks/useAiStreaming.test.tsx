@@ -1,4 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
+import { PropsWithChildren } from "react";
+import { Provider } from "react-redux";
 import { Channel } from "@tauri-apps/api/core";
 import useAiChats from "../../../../features/Ai/hooks/useAiChats";
 import useAiStreaming from "../../../../features/Ai/hooks/useAiStreaming";
@@ -12,6 +14,7 @@ import {
 import ChatDto from "../../../../api/aiIntegration/dto/chatDto";
 import MessageDto from "../../../../api/aiIntegration/dto/messageDto";
 import StreamLlmResponseEventDto from "../../../../api/aiIntegration/dto/streamLlmResponseEventDto";
+import { setupStore } from "../../../../stores/store";
 
 vi.mock(import("../../../../api/aiIntegration/api/aiApi"));
 
@@ -41,11 +44,25 @@ function getCapturedChannel() {
 	return calls[calls.length - 1][0] as Channel<StreamLlmResponseEventDto>;
 }
 
+function makeStore(snippets: { id: string; text: string }[] = []) {
+	return setupStore({ aiContext: { snippets } });
+}
+
+function makeWrapper(store: ReturnType<typeof makeStore>) {
+	return function Wrapper({ children }: PropsWithChildren) {
+		return <Provider store={store}>{children}</Provider>;
+	};
+}
+
 // `useAiStreaming` relies on state/setters owned by `useAiChats` (the same
 // way `AiPanel` composes them), so tests exercise both together.
 function useTestHarness() {
 	const chats = useAiChats();
-	const streaming = useAiStreaming({ ...chats, currentElementId: null });
+	const streaming = useAiStreaming({
+		...chats,
+		currentElementId: null,
+		contextSnippets: [],
+	});
 	return { ...chats, ...streaming };
 }
 
@@ -53,7 +70,9 @@ describe("useAiStreaming", () => {
 	it("Should call stopAiGeneration when stopping generation", async () => {
 		// Act
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			await result.current.stopGeneration();
 		});
@@ -68,7 +87,9 @@ describe("useAiStreaming", () => {
 
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 
 		// Act
 
@@ -86,6 +107,7 @@ describe("useAiStreaming", () => {
 			prompt: "hello",
 			chatId: null,
 			elementId: null,
+			contextSnippets: [],
 		});
 	});
 
@@ -95,13 +117,20 @@ describe("useAiStreaming", () => {
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 		const elementId: ElementId = { type: "reading", id: "reading-1" };
 
-		const { result } = renderHook(() => {
-			const chats = useAiChats();
-			return {
-				...chats,
-				...useAiStreaming({ ...chats, currentElementId: elementId }),
-			};
-		});
+		const { result } = renderHook(
+			() => {
+				const chats = useAiChats();
+				return {
+					...chats,
+					...useAiStreaming({
+						...chats,
+						currentElementId: elementId,
+						contextSnippets: [],
+					}),
+				};
+			},
+			{ wrapper: makeWrapper(makeStore()) },
+		);
 
 		// Act
 
@@ -116,7 +145,145 @@ describe("useAiStreaming", () => {
 			prompt: "hello",
 			chatId: null,
 			elementId,
+			contextSnippets: [],
 		});
+	});
+
+	it("Should forward context snippets when sending a prompt", async () => {
+		// Arrange
+
+		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
+
+		const { result } = renderHook(
+			() => {
+				const chats = useAiChats();
+				return {
+					...chats,
+					...useAiStreaming({
+						...chats,
+						currentElementId: null,
+						contextSnippets: [
+							"Selected text one",
+							"Selected text two",
+						],
+					}),
+				};
+			},
+			{ wrapper: makeWrapper(makeStore()) },
+		);
+
+		// Act
+
+		await act(async () => {
+			void result.current.sendPrompt("hello");
+			await Promise.resolve();
+		});
+
+		// Assert
+
+		expect(streamAiResponse).toHaveBeenCalledWith(expect.anything(), {
+			prompt: "hello",
+			chatId: null,
+			elementId: null,
+			contextSnippets: ["Selected text one", "Selected text two"],
+		});
+	});
+
+	it("Should clear ai context snippets once a prompt finishes without error", async () => {
+		// Arrange
+
+		let resolveStream: () => void = noop;
+		vi.mocked(streamAiResponse).mockImplementation(
+			() =>
+				new Promise(resolve => {
+					resolveStream = resolve;
+				}),
+		);
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
+		const store = makeStore([{ id: "snippet-1", text: "Selected text" }]);
+
+		const { result } = renderHook(
+			() => {
+				const chats = useAiChats();
+				return {
+					...chats,
+					...useAiStreaming({
+						...chats,
+						currentElementId: null,
+						contextSnippets: ["Selected text"],
+					}),
+				};
+			},
+			{ wrapper: makeWrapper(store) },
+		);
+
+		let sendPromise!: Promise<void>;
+		await act(async () => {
+			sendPromise = result.current.sendPrompt("hello");
+			await Promise.resolve();
+		});
+
+		// Act
+
+		await act(async () => {
+			resolveStream();
+			await sendPromise;
+		});
+
+		// Assert
+
+		expect(store.getState().aiContext.snippets).toEqual([]);
+	});
+
+	it("Should keep ai context snippets when a prompt errors", async () => {
+		// Arrange
+
+		let resolveStream: () => void = noop;
+		vi.mocked(streamAiResponse).mockImplementation(
+			() =>
+				new Promise(resolve => {
+					resolveStream = resolve;
+				}),
+		);
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
+		const snippet = { id: "snippet-1", text: "Selected text" };
+		const store = makeStore([snippet]);
+
+		const { result } = renderHook(
+			() => {
+				const chats = useAiChats();
+				return {
+					...chats,
+					...useAiStreaming({
+						...chats,
+						currentElementId: null,
+						contextSnippets: ["Selected text"],
+					}),
+				};
+			},
+			{ wrapper: makeWrapper(store) },
+		);
+
+		let sendPromise!: Promise<void>;
+		await act(async () => {
+			sendPromise = result.current.sendPrompt("hello");
+			await Promise.resolve();
+		});
+		const channel = getCapturedChannel();
+		act(() => {
+			channel.onmessage({ event: "error", data: "Something went wrong" });
+		});
+
+		// Act
+
+		await act(async () => {
+			resolveStream();
+			await sendPromise;
+		});
+
+		// Assert
+
+		expect(store.getState().aiContext.snippets).toEqual([snippet]);
 	});
 
 	it("Should append inProgress chunks to streamingAssistantText as they arrive", async () => {
@@ -125,7 +292,9 @@ describe("useAiStreaming", () => {
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			void result.current.sendPrompt("hello");
 			await Promise.resolve();
@@ -165,7 +334,9 @@ describe("useAiStreaming", () => {
 		]);
 		vi.mocked(getChatMessagesOrdered).mockResolvedValue([]);
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			await result.current.openChat("chat-1");
 		});
@@ -199,7 +370,9 @@ describe("useAiStreaming", () => {
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([chat1]);
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			await result.current.refreshChats();
 		});
@@ -226,7 +399,9 @@ describe("useAiStreaming", () => {
 
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			void result.current.sendPrompt("hello");
 			await Promise.resolve();
@@ -252,7 +427,9 @@ describe("useAiStreaming", () => {
 
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			void result.current.sendPrompt("hello");
 			await Promise.resolve();
@@ -289,7 +466,9 @@ describe("useAiStreaming", () => {
 		vi.mocked(getChatMessagesOrdered).mockResolvedValue([message1]);
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([chat1]);
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		let sendPromise!: Promise<void>;
 		await act(async () => {
 			sendPromise = result.current.sendPrompt("hello");
@@ -329,7 +508,9 @@ describe("useAiStreaming", () => {
 		);
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		let sendPromise!: Promise<void>;
 		await act(async () => {
 			sendPromise = result.current.sendPrompt("hello");
@@ -361,7 +542,9 @@ describe("useAiStreaming", () => {
 		);
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([chat1]);
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			await result.current.openChat("chat-1");
 		});
@@ -384,6 +567,7 @@ describe("useAiStreaming", () => {
 			prompt: "hello again",
 			chatId: "chat-1",
 			elementId: null,
+			contextSnippets: [],
 		});
 		expect(getChatMessagesOrdered).toHaveBeenLastCalledWith("chat-1");
 	});
@@ -398,7 +582,9 @@ describe("useAiStreaming", () => {
 
 		// Act
 
-		const { result } = renderHook(() => useTestHarness());
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
 		await act(async () => {
 			await result.current.sendPrompt("hello");
 		});

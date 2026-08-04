@@ -12,4 +12,7 @@ pub struct StreamAiRequestDto {
     /// context for the chat preamble (see `prompts::preamble`); never used
     /// for chat-title generation.
     pub element_id: Option<ElementId>,
+    /// Text snippets added as extra context. Never used for
+    /// chat-title generation.
+    pub context_snippets: Vec<String>,
 }

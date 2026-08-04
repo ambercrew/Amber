@@ -64,7 +64,12 @@ impl AiStreamer for DefaultAiStreamer {
 
         let agent = self
             .agent_provider
-            .get_agent(chat_id, &messages, request.element_id)
+            .get_agent(
+                chat_id,
+                &messages,
+                request.element_id,
+                &request.context_snippets,
+            )
             .await?;
         let rig_messages: Vec<rig::message::Message> = messages
             .into_iter()
