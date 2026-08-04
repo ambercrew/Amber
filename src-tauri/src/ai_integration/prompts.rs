@@ -32,9 +32,7 @@ pub(in crate::ai_integration) fn format_context_snippets(snippets: &[String]) ->
         .iter()
         .map(|snippet| snippet.trim())
         .filter(|snippet| !snippet.is_empty())
-        .map(|snippet| {
-            format!("- The user selected this text as additional context: \"{snippet}\"")
-        })
+        .map(|snippet| format!("- The user attached this snippet: \"{snippet}\""))
         .collect();
 
     if lines.is_empty() {
