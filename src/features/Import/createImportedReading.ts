@@ -14,7 +14,11 @@ export async function createImportedReading(
 	await ctx.dispatch(
 		createReadingAction({
 			id,
-			meta: { name, parent: ctx.parent, bibliographicalSourceId },
+			meta: {
+				name,
+				parent: ctx.parent,
+				origin: { type: "custom", bibliographicalSourceId },
+			},
 			splits: splitContent(content).map(html => htmlToLexicalJson(html)),
 		}),
 	);

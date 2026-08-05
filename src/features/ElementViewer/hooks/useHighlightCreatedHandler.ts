@@ -17,10 +17,7 @@ import {
 import { ElementId } from "../../../types/elements/elementId";
 import { CLOZE_COLOR } from "./useElementViewerButtons";
 
-export function useHighlightCreatedHandler(
-	elementId: ElementId | undefined,
-	bibliographicalSourceId: string | null | undefined,
-) {
+export function useHighlightCreatedHandler(elementId: ElementId | undefined) {
 	const dispatch = useAppDispatch();
 
 	return useCallback(
@@ -39,8 +36,7 @@ export function useHighlightCreatedHandler(
 						meta: {
 							name: truncateToWords(fullText),
 							parent: elementId!,
-							derivedFrom: elementId!,
-							bibliographicalSourceId,
+							origin: { type: "inherited" },
 						},
 						front: serializedNodesToLexicalJson(fullNodes, () => {
 							$stripOtherHighlights(id);
@@ -60,8 +56,7 @@ export function useHighlightCreatedHandler(
 					meta: {
 						name: truncateToWords(selectionText),
 						parent: elementId!,
-						derivedFrom: elementId!,
-						bibliographicalSourceId,
+						origin: { type: "inherited" },
 					},
 					content: serializedNodesToLexicalJson(selectionNodes, () =>
 						$stripOtherHighlights(id),
@@ -69,7 +64,7 @@ export function useHighlightCreatedHandler(
 				}),
 			);
 		},
-		[dispatch, elementId, bibliographicalSourceId],
+		[dispatch, elementId],
 	);
 }
 

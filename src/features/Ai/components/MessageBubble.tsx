@@ -53,6 +53,8 @@ function renderMarkdown(value: string) {
 	return sanitizeHtml(marked.parse(value, { async: false }) as string);
 }
 
+// TODO: when a tool is called the tool call is not shown until after the message is completed
+// TODO: show some more things about the tool call than name
 function ContextSnippets({ snippets }: { snippets: string[] }) {
 	const [opened, { toggle }] = useDisclosure(false);
 

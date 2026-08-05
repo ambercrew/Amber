@@ -17,6 +17,7 @@ use crate::elements::entities::reading::{Reading, ReadingSplit};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::meta_repository::MetaRepository;
 use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::{
     ElementCreationError, ElementCreationService,
@@ -25,6 +26,7 @@ use crate::elements::services::element_index_service::ElementIndexService;
 use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
+use crate::elements::value_objects::origin::Origin;
 use crate::study::entities::card_review::CardReview;
 use crate::study::entities::reading_review::ReadingReview;
 use crate::study::entities::study_profile::StudyProfile;
@@ -45,6 +47,7 @@ pub struct DefaultElementCreationService {
     reading_review_repository: Arc<dyn ReadingReviewRepository>,
     card_review_repository: Arc<dyn CardReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
+    meta_repository: Arc<dyn MetaRepository>,
 }
 
 #[async_trait]
@@ -54,6 +57,8 @@ impl ElementCreationService for DefaultElementCreationService {
         let position = self.index_service.get_new_last_index(parent).await?;
         let priority = self.priority_service.get_new_first_priority().await?;
         let now = Utc::now();
+        let (derived_from, bibliographical_source_id) =
+            self.resolve_origin(parent, dto.meta.origin).await?;
 
         let folder = Folder {
             meta: Meta {
@@ -63,8 +68,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 position,
                 priority,
                 study_profile_id: None,
-                bibliographical_source_id: dto.meta.bibliographical_source_id,
-                derived_from: dto.meta.derived_from,
+                bibliographical_source_id,
+                derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -83,6 +88,8 @@ impl ElementCreationService for DefaultElementCreationService {
             .profile_resolution_service
             .resolve_profile(parent)
             .await?;
+        let (derived_from, bibliographical_source_id) =
+            self.resolve_origin(parent, dto.meta.origin).await?;
 
         let reading = Reading {
             meta: Meta {
@@ -92,8 +99,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 position,
                 priority,
                 study_profile_id: None,
-                bibliographical_source_id: dto.meta.bibliographical_source_id,
-                derived_from: dto.meta.derived_from,
+                bibliographical_source_id,
+                derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -117,9 +124,11 @@ impl ElementCreationService for DefaultElementCreationService {
         let element_id = ElementId::Extract(dto.id);
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
+        let (derived_from, bibliographical_source_id) =
+            self.resolve_origin(parent, dto.meta.origin).await?;
         // Extracted text inherits the priority of the element it was pulled
         // from, so the reader isn't forced to re-triage every extract.
-        let priority = match dto.meta.derived_from {
+        let priority = match derived_from {
             Some(source) => self.priority_service.get_inherited_priority(source).await?,
             None => self.priority_service.get_new_first_priority().await?,
         };
@@ -137,8 +146,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 position,
                 priority,
                 study_profile_id: None,
-                bibliographical_source_id: dto.meta.bibliographical_source_id,
-                derived_from: dto.meta.derived_from,
+                bibliographical_source_id,
+                derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -156,6 +165,8 @@ impl ElementCreationService for DefaultElementCreationService {
         let position = self.index_service.get_new_last_index(parent).await?;
         let priority = self.priority_service.get_new_first_priority().await?;
         let now = Utc::now();
+        let (derived_from, bibliographical_source_id) =
+            self.resolve_origin(parent, dto.meta.origin).await?;
 
         let card = Card {
             meta: Meta {
@@ -165,8 +176,8 @@ impl ElementCreationService for DefaultElementCreationService {
                 position,
                 priority,
                 study_profile_id: None,
-                bibliographical_source_id: dto.meta.bibliographical_source_id,
-                derived_from: dto.meta.derived_from,
+                bibliographical_source_id,
+                derived_from,
                 created_at: now,
                 modified_at: now,
             },
@@ -179,6 +190,26 @@ impl ElementCreationService for DefaultElementCreationService {
 }
 
 impl DefaultElementCreationService {
+    async fn resolve_origin(
+        &self,
+        parent: Option<ElementId>,
+        origin: Origin,
+    ) -> Result<(Option<ElementId>, Option<Uuid>), ElementCreationError> {
+        match origin {
+            Origin::Custom {
+                derived_from,
+                bibliographical_source_id,
+            } => Ok((derived_from, bibliographical_source_id)),
+            Origin::Inherited => match parent {
+                Some(parent_id) => {
+                    let parent_meta = self.meta_repository.get_by_id(parent_id.id()).await?;
+                    Ok((Some(parent_id), parent_meta.bibliographical_source_id))
+                }
+                None => Ok((None, None)),
+            },
+        }
+    }
+
     async fn ensure_reading_review(
         &self,
         element_id: ElementId,
@@ -308,8 +339,10 @@ mod tests {
         crate::elements::dto::create_meta_dto::CreateMetaDto {
             name: "test".into(),
             parent,
-            derived_from: None,
-            bibliographical_source_id: None,
+            origin: Origin::Custom {
+                derived_from: None,
+                bibliographical_source_id: None,
+            },
         }
     }
 
@@ -351,6 +384,7 @@ mod tests {
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+            meta_repository: scope.resolve::<dyn MetaRepository>().await,
         };
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
@@ -392,6 +426,7 @@ mod tests {
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+            meta_repository: scope.resolve::<dyn MetaRepository>().await,
         };
         let dto = CreateCardDto {
             id: Uuid::new_v4(),
@@ -435,6 +470,7 @@ mod tests {
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+            meta_repository: scope.resolve::<dyn MetaRepository>().await,
         };
         let dto = CreateExtractDto {
             id: Uuid::new_v4(),
@@ -496,6 +532,7 @@ mod tests {
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+            meta_repository: scope.resolve::<dyn MetaRepository>().await,
         };
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
@@ -536,6 +573,7 @@ mod tests {
             reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
+            meta_repository: scope.resolve::<dyn MetaRepository>().await,
         };
         let dto = CreateExtractDto {
             id: Uuid::new_v4(),

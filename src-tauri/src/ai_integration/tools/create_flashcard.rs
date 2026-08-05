@@ -16,6 +16,7 @@ use crate::elements::services::element_creation_service::{
     ElementCreationError, ElementCreationService,
 };
 use crate::elements::value_objects::element_id::ElementId;
+use crate::elements::value_objects::origin::Origin;
 
 const MAX_NAME_LEN: usize = 60;
 const CLOZE_HIDDEN_TAG: &str = "mark";
@@ -103,9 +104,7 @@ impl Tool for CreateFlashcard {
             meta: CreateMetaDto {
                 name: flashcard_name(&args.front),
                 parent: self.parent,
-                // TODO: it needs the same as parent
-                derived_from: None,
-                bibliographical_source_id: None,
+                origin: Origin::Inherited,
             },
             front,
             back,
@@ -178,6 +177,11 @@ mod tests {
     use injector::{injector::Injector, register_scope};
 
     use crate::{
+        bibliographical_sources::{
+            entities::bibliographical_source::BibliographicalSource,
+            repositories::bibliographical_source_repository::BibliographicalSourceRepository,
+            value_objects::bibliographical_source_type::BibliographicalSourceType,
+        },
         elements::{
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
@@ -194,6 +198,7 @@ mod tests {
             },
         },
         infrastructure::repositories::sqlite::{
+            sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
             sqlite_extract_repository::SqliteExtractRepository,
@@ -242,6 +247,11 @@ mod tests {
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
+        register_scope!(
+            injector,
+            dyn BibliographicalSourceRepository,
+            SqliteBibliographicalSourceRepository
+        );
         register_scope!(
             injector,
             dyn ElementIndexService,
@@ -350,6 +360,78 @@ mod tests {
         assert_eq!(
             "The capital of France is <mark data-cloze-hidden=\"Paris\">[...]</mark>.",
             cards[0].front
+        );
+    }
+
+    #[tokio::test]
+    async fn call_inherited_origin_copies_parent_lineage_and_bibliographical_source() {
+        // Arrange
+
+        let injector = initialize_test_injector().await;
+        let scope = injector.start_scope();
+        let element_creation_service = scope.resolve::<dyn ElementCreationService>().await;
+        let folder_repository = scope.resolve::<dyn FolderRepository>().await;
+        let card_repository = scope.resolve::<dyn CardRepository>().await;
+        let bibliographical_source_repository =
+            scope.resolve::<dyn BibliographicalSourceRepository>().await;
+
+        let bibliographical_source_id = Uuid::new_v4();
+        let now = chrono::Utc::now();
+        bibliographical_source_repository
+            .create(&BibliographicalSource {
+                id: bibliographical_source_id,
+                title: "Test source".to_string(),
+                authors: None,
+                publication_date: None,
+                source_type: BibliographicalSourceType::File,
+                location: None,
+                created_at: now,
+                modified_at: now,
+            })
+            .await
+            .unwrap();
+        element_creation_service
+            .create_folder(crate::elements::dto::create_folder_dto::CreateFolderDto {
+                meta: CreateMetaDto {
+                    name: "Parent folder".to_string(),
+                    parent: None,
+                    origin: Origin::Custom {
+                        derived_from: None,
+                        bibliographical_source_id: Some(bibliographical_source_id),
+                    },
+                },
+            })
+            .await
+            .unwrap();
+        let parent = folder_repository.get_all().await.unwrap().remove(0);
+        let parent_id = parent.meta.element_id;
+
+        let tool = CreateFlashcard::new(
+            element_creation_service,
+            Arc::new(EchoLexicalJsonConverter),
+            Some(parent_id),
+        );
+
+        // Act
+
+        tool.call(
+            &mut ToolContext::default(),
+            CreateFlashcardArgs {
+                front: "What is the capital of France?".to_string(),
+                back: "Paris".to_string(),
+            },
+        )
+        .await
+        .unwrap();
+
+        // Assert
+
+        let cards = card_repository.get_all().await.unwrap();
+        assert_eq!(1, cards.len());
+        assert_eq!(Some(parent_id), cards[0].meta.derived_from);
+        assert_eq!(
+            Some(bibliographical_source_id),
+            cards[0].meta.bibliographical_source_id
         );
     }
 

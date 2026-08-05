@@ -11,14 +11,12 @@ import { type SerializedLexicalNodeTree } from "../../../../components/Editor/le
 vi.mock(import("../../../../stores/elements/elementsActions"));
 
 const ELEMENT_ID: ElementId = { type: "reading", id: "reading-1" };
-const SOURCE_ID = "source-1";
-
 function HookWrapper({
 	capture,
 }: {
 	capture: (handler: (payload: HighlightCreatedPayload) => void) => void;
 }) {
-	capture(useHighlightCreatedHandler(ELEMENT_ID, SOURCE_ID));
+	capture(useHighlightCreatedHandler(ELEMENT_ID));
 	return null;
 }
 
@@ -108,8 +106,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "A Old B New Text C",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -218,8 +215,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "Nested Rest",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 		expect(collectText(parseRoot(dto.content))).toBe("Nested Rest");
 		expect(createCardAction).not.toHaveBeenCalled();
@@ -265,8 +261,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "First Second New Text Third",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -317,8 +312,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "Old Cloze New Text",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 
 		const frontRoot = parseRoot(dto.front);
@@ -362,8 +356,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "Before Old Cloze Rest",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 		expect(collectText(parseRoot(dto.content))).toBe(
 			"Before Old Cloze Rest",
@@ -399,8 +392,7 @@ describe("useHighlightCreatedHandler", () => {
 		expect(dto.meta).toEqual({
 			name: "First Middle Second",
 			parent: ELEMENT_ID,
-			derivedFrom: ELEMENT_ID,
-			bibliographicalSourceId: SOURCE_ID,
+			origin: { type: "inherited" },
 		});
 		expect(collectText(parseRoot(dto.content))).toBe("First Middle Second");
 	});
