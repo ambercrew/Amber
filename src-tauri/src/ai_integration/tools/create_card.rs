@@ -19,40 +19,30 @@ use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::origin::Origin;
 
 const MAX_NAME_LEN: usize = 60;
-const CLOZE_HIDDEN_TAG: &str = "mark";
-const CLOZE_HIDDEN_ATTRIBUTE: &str = "data-cloze-hidden";
-const CLOZE_PLACEHOLDER: &str = "[...]";
 
 #[derive(Deserialize, Debug, Clone, Serialize, schemars::JsonSchema)]
-pub struct CreateFlashcardArgs {
-    #[schemars(
-        description = "The text shown on the front of the flashcard (the question or prompt), \
-        formatted as Markdown. To hide part of it as a cloze blank until the user reveals it, \
-        wrap that phrase in double curly braces, e.g. \"The capital of France is {{Paris}}.\""
-    )]
+pub struct CreateCardArgs {
+    #[schemars(description = "The text shown on the front of the card (the question or prompt).")]
     pub front: String,
-    #[schemars(
-        description = "The text shown on the back of the flashcard (the answer), formatted as \
-        Markdown. Cloze markers are not applied here."
-    )]
+    #[schemars(description = "The text shown on the back of the card (the answer)")]
     pub back: String,
 }
 
 #[derive(Error, Debug)]
-pub enum CreateFlashcardError {
-    #[error("Failed to create the flashcard")]
+pub enum CreateCardError {
+    #[error("Failed to create the card")]
     Creation(#[from] ElementCreationError),
-    #[error("Failed to convert the flashcard content")]
+    #[error("Failed to convert the card content")]
     Conversion(#[from] LexicalJsonConverterError),
 }
 
-pub struct CreateFlashcard {
+pub struct CreateCard {
     element_creation_service: Arc<dyn ElementCreationService>,
     lexical_json_converter: Arc<dyn LexicalJsonConverter>,
     parent: Option<ElementId>,
 }
 
-impl CreateFlashcard {
+impl CreateCard {
     pub fn new(
         element_creation_service: Arc<dyn ElementCreationService>,
         lexical_json_converter: Arc<dyn LexicalJsonConverter>,
@@ -66,24 +56,23 @@ impl CreateFlashcard {
     }
 }
 
-// TODO: split into create flashcards and create cloze
-impl Tool for CreateFlashcard {
-    const NAME: &'static str = "create_flashcard";
+impl Tool for CreateCard {
+    const NAME: &'static str = "create_card";
 
-    type Error = CreateFlashcardError;
-    type Args = CreateFlashcardArgs;
+    type Error = CreateCardError;
+    type Args = CreateCardArgs;
     type Output = String;
 
     fn description(&self) -> String {
-        "Creates a flashcard for the user to review later with spaced repetition, with a \
-        front and a back. Use this when the user asks you to make a flashcard, or when \
+        "Creates a card for the user to review later with spaced repetition, with a \
+        front and a back. Use this when the user asks you to make a card, or when \
         turning a fact or definition they're learning into a card would help them memorize \
         it."
         .to_string()
     }
 
     fn parameters(&self) -> Value {
-        serde_json::to_value(schema_for!(CreateFlashcardArgs)).unwrap()
+        serde_json::to_value(schema_for!(CreateCardArgs)).unwrap()
     }
 
     async fn call(
@@ -91,18 +80,15 @@ impl Tool for CreateFlashcard {
         _context: &mut ToolContext,
         args: Self::Args,
     ) -> Result<Self::Output, Self::Error> {
-        let front_markdown = insert_cloze_markers(&args.front);
-
         let (front, back) = tokio::try_join!(
-            self.lexical_json_converter
-                .convert_markdown(&front_markdown),
+            self.lexical_json_converter.convert_markdown(&args.front),
             self.lexical_json_converter.convert_markdown(&args.back),
         )?;
 
         let dto = CreateCardDto {
             id: Uuid::new_v4(),
             meta: CreateMetaDto {
-                name: flashcard_name(&args.front),
+                name: card_name(&args.front),
                 parent: self.parent,
                 origin: Origin::Inherited,
             },
@@ -112,15 +98,13 @@ impl Tool for CreateFlashcard {
 
         self.element_creation_service.create_card(dto).await?;
 
-        Ok("Flashcard created.".to_string())
+        Ok("Card created.".to_string())
     }
 }
 
-/// Derives a short element name from the front text, stripping cloze markers
-/// so the name reads naturally rather than showing literal `{{ }}` braces.
-fn flashcard_name(front: &str) -> String {
-    let plain = front.replace("{{", "").replace("}}", "");
-    let trimmed = plain.trim();
+/// Derives a short element name from the front text.
+fn card_name(front: &str) -> String {
+    let trimmed = front.trim();
 
     if trimmed.chars().count() > MAX_NAME_LEN {
         format!(
@@ -130,45 +114,6 @@ fn flashcard_name(front: &str) -> String {
     } else {
         trimmed.to_string()
     }
-}
-
-/// Replaces `{{hidden}}`-delimited spans in Markdown text with the raw
-/// `<mark data-cloze-hidden="…">` HTML `ClozeHiddenNode.importDOM` parses
-/// back into a cloze-hidden node — Markdown renderers pass through inline
-/// HTML unchanged, so this survives the frontend's Markdown-to-Lexical
-/// conversion. The rest of the text is left as-is, since it's Markdown the
-/// frontend renderer should interpret, not literal text to escape. An
-/// unterminated `{{` is kept as literal text rather than dropped.
-fn insert_cloze_markers(text: &str) -> String {
-    let mut markdown = String::new();
-
-    for (i, part) in text.split("{{").enumerate() {
-        if i == 0 {
-            markdown.push_str(part);
-            continue;
-        }
-
-        match part.split_once("}}") {
-            Some((hidden, rest)) => {
-                markdown.push_str(&format!(
-                    "<{CLOZE_HIDDEN_TAG} {CLOZE_HIDDEN_ATTRIBUTE}=\"{}\">{CLOZE_PLACEHOLDER}</{CLOZE_HIDDEN_TAG}>",
-                    escape_attribute(hidden)
-                ));
-                markdown.push_str(rest);
-            }
-            None => markdown.push_str(&format!("{{{{{part}")),
-        }
-    }
-
-    markdown
-}
-
-/// Escapes text for safe use inside an HTML attribute value.
-fn escape_attribute(text: &str) -> String {
-    text.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
 }
 
 #[cfg(test)]
@@ -296,7 +241,7 @@ mod tests {
         let element_creation_service = scope.resolve::<dyn ElementCreationService>().await;
         let card_repository = scope.resolve::<dyn CardRepository>().await;
 
-        let tool = CreateFlashcard::new(
+        let tool = CreateCard::new(
             element_creation_service,
             Arc::new(EchoLexicalJsonConverter),
             None,
@@ -307,7 +252,7 @@ mod tests {
         let actual = tool
             .call(
                 &mut ToolContext::default(),
-                CreateFlashcardArgs {
+                CreateCardArgs {
                     front: "What is the capital of France?".to_string(),
                     back: "Paris".to_string(),
                 },
@@ -317,50 +262,12 @@ mod tests {
 
         // Assert
 
-        assert_eq!("Flashcard created.", actual);
+        assert_eq!("Card created.", actual);
         let cards = card_repository.get_all().await.unwrap();
         assert_eq!(1, cards.len());
         assert_eq!("What is the capital of France?", cards[0].meta.name);
         assert_eq!("What is the capital of France?", cards[0].front);
         assert_eq!("Paris", cards[0].back);
-    }
-
-    #[tokio::test]
-    async fn call_front_with_cloze_marker_created_card_with_hidden_mark() {
-        // Arrange
-
-        let injector = initialize_test_injector().await;
-        let scope = injector.start_scope();
-        let element_creation_service = scope.resolve::<dyn ElementCreationService>().await;
-        let card_repository = scope.resolve::<dyn CardRepository>().await;
-
-        let tool = CreateFlashcard::new(
-            element_creation_service,
-            Arc::new(EchoLexicalJsonConverter),
-            None,
-        );
-
-        // Act
-
-        tool.call(
-            &mut ToolContext::default(),
-            CreateFlashcardArgs {
-                front: "The capital of France is {{Paris}}.".to_string(),
-                back: "Paris".to_string(),
-            },
-        )
-        .await
-        .unwrap();
-
-        // Assert
-
-        let cards = card_repository.get_all().await.unwrap();
-        assert_eq!(1, cards.len());
-        assert_eq!("The capital of France is Paris.", cards[0].meta.name);
-        assert_eq!(
-            "The capital of France is <mark data-cloze-hidden=\"Paris\">[...]</mark>.",
-            cards[0].front
-        );
     }
 
     #[tokio::test]
@@ -406,7 +313,7 @@ mod tests {
         let parent = folder_repository.get_all().await.unwrap().remove(0);
         let parent_id = parent.meta.element_id;
 
-        let tool = CreateFlashcard::new(
+        let tool = CreateCard::new(
             element_creation_service,
             Arc::new(EchoLexicalJsonConverter),
             Some(parent_id),
@@ -416,7 +323,7 @@ mod tests {
 
         tool.call(
             &mut ToolContext::default(),
-            CreateFlashcardArgs {
+            CreateCardArgs {
                 front: "What is the capital of France?".to_string(),
                 back: "Paris".to_string(),
             },
@@ -432,39 +339,6 @@ mod tests {
         assert_eq!(
             Some(bibliographical_source_id),
             cards[0].meta.bibliographical_source_id
-        );
-    }
-
-    #[test]
-    fn insert_cloze_markers_unterminated_marker_kept_as_literal_text() {
-        // Arrange
-
-        let text = "Hello {{world";
-
-        // Act
-
-        let actual = insert_cloze_markers(text);
-
-        // Assert
-
-        assert_eq!("Hello {{world", actual);
-    }
-
-    #[test]
-    fn insert_cloze_markers_hidden_text_special_characters_are_escaped() {
-        // Arrange
-
-        let text = "The answer is {{A & B <tag> \"quoted\"}}.";
-
-        // Act
-
-        let actual = insert_cloze_markers(text);
-
-        // Assert
-
-        assert_eq!(
-            "The answer is <mark data-cloze-hidden=\"A &amp; B &lt;tag&gt; &quot;quoted&quot;\">[...]</mark>.",
-            actual
         );
     }
 }

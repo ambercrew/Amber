@@ -11,7 +11,7 @@ use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::prompts::{format_context_snippets, preamble};
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
-use crate::ai_integration::tools::create_flashcard::CreateFlashcard;
+use crate::ai_integration::tools::create_card::CreateCard;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceService;
 use crate::common::services::lexical_json_converter::LexicalJsonConverter;
@@ -97,7 +97,7 @@ impl AgentProvider for DefaultAgentProvider {
             .name("Amber Tutor")
             .default_max_turns(DEFAULT_MAX_TURN)
             .preamble(preamble(context.as_deref()).as_str())
-            .tool(CreateFlashcard::new(
+            .tool(CreateCard::new(
                 self.element_creation_service.clone(),
                 self.lexical_json_converter.clone(),
                 element_id,
@@ -289,16 +289,16 @@ pub mod tests {
     }
 
     #[tokio::test]
-    pub async fn get_agent_no_document_messages_only_added_flashcard_tool() {
+    pub async fn get_agent_no_document_messages_only_added_card_tool() {
         // Arrange
 
-        let only_flashcard_tool_sent = Arc::new(AtomicBool::new(false));
-        let only_flashcard_tool_sent_clone = only_flashcard_tool_sent.clone();
+        let only_card_tool_sent = Arc::new(AtomicBool::new(false));
+        let only_card_tool_sent_clone = only_card_tool_sent.clone();
 
         let mock_client = MockClient {
             completion_fn: Arc::new(Some(Box::new(move |request| {
-                only_flashcard_tool_sent_clone.store(
-                    request.tools.len() == 1 && request.tools[0].name == "create_flashcard",
+                only_card_tool_sent_clone.store(
+                    request.tools.len() == 1 && request.tools[0].name == "create_card",
                     Ordering::Relaxed,
                 );
                 mock_response_with_text("Answer")
@@ -326,7 +326,7 @@ pub mod tests {
 
         // Assert
 
-        assert!(only_flashcard_tool_sent.load(Ordering::Relaxed));
+        assert!(only_card_tool_sent.load(Ordering::Relaxed));
     }
 
     #[tokio::test]
@@ -344,10 +344,7 @@ pub mod tests {
                             .tools
                             .iter()
                             .any(|tool| tool.name == "search_documents")
-                        && request
-                            .tools
-                            .iter()
-                            .any(|tool| tool.name == "create_flashcard"),
+                        && request.tools.iter().any(|tool| tool.name == "create_card"),
                     Ordering::Relaxed,
                 );
                 mock_response_with_text("Answer")

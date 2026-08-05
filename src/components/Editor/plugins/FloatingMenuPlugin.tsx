@@ -54,6 +54,7 @@ function isFloatingMenuDivider(
 	return !!item.divider;
 }
 
+// TODO: when adding ai context close menu
 interface Props {
 	buttons: FloatingMenuItem[];
 }

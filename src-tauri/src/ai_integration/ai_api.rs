@@ -43,10 +43,7 @@ pub async fn stream_ai_response(
 
     scope.save_changes().await?;
 
-    match result {
-        Ok(()) => Ok(()),
-        Err(err) => Err(ApiError::new(err.to_string())),
-    }
+    result.map_err(ApiError::from)
 }
 
 #[tauri::command]

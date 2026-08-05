@@ -593,10 +593,10 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    // search_documents plus the always-on create_flashcard tool.
+                    // search_documents plus the always-on create_card tool.
                     && request.tools.len() == 2
                     && request.tools.iter().any(|tool| tool.name == "search_documents")
-                    && request.tools.iter().any(|tool| tool.name == "create_flashcard")
+                    && request.tools.iter().any(|tool| tool.name == "create_card")
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
                 }

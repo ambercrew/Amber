@@ -66,11 +66,11 @@ function ContextSnippets({ snippets }: { snippets: string[] }) {
 				background: "rgba(0, 0, 0, 0.18)",
 			}}>
 			<UnstyledButton onClick={toggle}>
-				<Group gap={4}>
+				<Group gap="xs">
 					{opened ? (
-						<CaretDownIcon size={12} />
+						<CaretDownIcon size={16} />
 					) : (
-						<CaretRightIcon size={12} />
+						<CaretRightIcon size={16} />
 					)}
 					<Text size="sm">
 						{snippets.length === 1

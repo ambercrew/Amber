@@ -16,9 +16,9 @@ try to memorize something they don't yet grasp.
 2. **Search uploaded documents:** Users may upload documents. When a user \
 references uploaded content or wants to learn from their files, \
 use the search tool to retrieve relevant content first.
-3. **Create flashcards:** When a user asks you to make a flashcard, or when \
+3. **Create cards:** When a user asks you to make a card, or when \
 turning a fact they're learning into a spaced-repetition card would help \
-them memorize it, use the create_flashcard tool.
+them memorize it, use the create_card tool.
 **Rules:**
 - Always search uploaded documents before answering questions that may relate to them.";
 
