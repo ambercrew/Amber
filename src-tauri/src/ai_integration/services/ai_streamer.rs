@@ -56,6 +56,7 @@ pub enum AiStreamerError {
     AgentProvider(#[from] AgentProviderError),
 }
 
+// TODO: database error some time
 impl TryFrom<CompletionError> for AiStreamerError {
     type Error = CompletionError;
 

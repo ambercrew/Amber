@@ -108,16 +108,18 @@ impl AiStreamer for DefaultAiStreamer {
         let mut complete_ai_response = String::new();
 
         if let Some(agent) = agent {
-            let rig_messages: Vec<rig::message::Message> = messages
-                .into_iter()
-                .filter_map(|m| {
-                    let snippets = context_snippets_by_message
-                        .get(&m.id())
-                        .cloned()
-                        .unwrap_or_default();
-                    m.try_into_rig_message(&snippets).ok()
-                })
-                .collect();
+            let rig_messages: Vec<rig::message::Message> = merge_consecutive_assistant_messages(
+                messages
+                    .into_iter()
+                    .filter_map(|m| {
+                        let snippets = context_snippets_by_message
+                            .get(&m.id())
+                            .cloned()
+                            .unwrap_or_default();
+                        m.try_into_rig_message(&snippets).ok()
+                    })
+                    .collect(),
+            );
             let mut stream = agent
                 .stream_chat(request.prompt, rig_messages)
                 .add_hook(StateCancellationHook::new(self.state.clone()))
@@ -208,6 +210,38 @@ impl AiStreamer for DefaultAiStreamer {
 
         Ok(())
     }
+}
+
+/// A single model turn's tool calls stream in as separate `ToolCall` items
+/// before any of their `ToolResult`s arrive, so each ends up persisted as its
+/// own `MessageContent::ToolCall` message. Left as-is, replaying that history
+/// converts to consecutive `rig::message::Message::Assistant` entries — which
+/// violates providers' requirement that a tool-calling assistant message be
+/// immediately followed by the matching tool responses. Merging them back
+/// into one assistant message (with all of that turn's tool calls) restores
+/// the shape the provider expects.
+fn merge_consecutive_assistant_messages(
+    messages: Vec<rig::message::Message>,
+) -> Vec<rig::message::Message> {
+    let mut merged: Vec<rig::message::Message> = Vec::with_capacity(messages.len());
+
+    for message in messages {
+        if let (Some(rig::message::Message::Assistant { content: prev, .. }), true) = (
+            merged.last_mut(),
+            matches!(message, rig::message::Message::Assistant { .. }),
+        ) {
+            let rig::message::Message::Assistant { content, .. } = message else {
+                unreachable!()
+            };
+            for item in content {
+                prev.push(item);
+            }
+        } else {
+            merged.push(message);
+        }
+    }
+
+    merged
 }
 
 #[cfg(test)]
@@ -1091,5 +1125,100 @@ pub mod tests {
         } else {
             panic!("Expected ToolCall and ToolResult messages");
         }
+    }
+
+    #[test]
+    fn merge_consecutive_assistant_messages_multiple_tool_calls_merged_into_one_assistant_message()
+    {
+        // Arrange
+
+        let messages = vec![
+            RigMessage::User {
+                content: OneOrMany::one(UserContent::text("Make three cards")),
+            },
+            RigMessage::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::tool_call(
+                    "call-1",
+                    "create_card",
+                    serde_json::json!({}),
+                )),
+            },
+            RigMessage::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::tool_call(
+                    "call-2",
+                    "create_card",
+                    serde_json::json!({}),
+                )),
+            },
+            RigMessage::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::tool_call(
+                    "call-3",
+                    "create_card",
+                    serde_json::json!({}),
+                )),
+            },
+            RigMessage::User {
+                content: OneOrMany::one(UserContent::tool_result(
+                    "call-1",
+                    OneOrMany::one(rig::message::ToolResultContent::text("ok")),
+                )),
+            },
+            RigMessage::User {
+                content: OneOrMany::one(UserContent::tool_result(
+                    "call-2",
+                    OneOrMany::one(rig::message::ToolResultContent::text("ok")),
+                )),
+            },
+            RigMessage::User {
+                content: OneOrMany::one(UserContent::tool_result(
+                    "call-3",
+                    OneOrMany::one(rig::message::ToolResultContent::text("ok")),
+                )),
+            },
+        ];
+
+        // Act
+
+        let actual = merge_consecutive_assistant_messages(messages);
+
+        // Assert
+
+        assert_eq!(5, actual.len());
+        let RigMessage::Assistant { content, .. } = &actual[1] else {
+            panic!("Expected an assistant message");
+        };
+        assert_eq!(3, content.len());
+        for (item, expected_id) in content.iter().zip(["call-1", "call-2", "call-3"]) {
+            let AssistantContent::ToolCall(tool_call) = item else {
+                panic!("Expected a tool call");
+            };
+            assert_eq!(expected_id, tool_call.id);
+        }
+    }
+
+    #[test]
+    fn merge_consecutive_assistant_messages_no_consecutive_assistants_left_messages_unchanged() {
+        // Arrange
+
+        let messages = vec![
+            RigMessage::User {
+                content: OneOrMany::one(UserContent::text("Hi")),
+            },
+            RigMessage::Assistant {
+                id: None,
+                content: OneOrMany::one(AssistantContent::text("Hello")),
+            },
+        ];
+
+        // Act
+
+        let actual = merge_consecutive_assistant_messages(messages.clone());
+
+        // Assert
+
+        assert_eq!(messages, actual);
     }
 }
