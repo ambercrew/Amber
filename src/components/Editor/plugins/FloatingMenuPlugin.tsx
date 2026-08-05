@@ -36,7 +36,11 @@ export interface FloatingMenuButton {
 	showLabel?: boolean;
 	color?: MantineColor;
 	Icon: React.ComponentType<{ size?: number }>;
-	onClick: (editor: LexicalEditor, isActive: boolean) => void;
+	onClick: (
+		editor: LexicalEditor,
+		isActive: boolean,
+		closeMenu: () => void,
+	) => void;
 	isActive: (selection: RangeSelection) => boolean;
 	isVisible?: (selection: RangeSelection) => boolean;
 }
@@ -54,7 +58,6 @@ function isFloatingMenuDivider(
 	return !!item.divider;
 }
 
-// TODO: when adding ai context close menu
 interface Props {
 	buttons: FloatingMenuItem[];
 }
@@ -245,6 +248,11 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 		);
 	}, [editor, coords]);
 
+	const closeMenu = useCallback(() => {
+		escapedRef.current = true;
+		setCoords(null);
+	}, []);
+
 	const shouldShow = (isEditorFocused || isMenuFocused) && coords !== null;
 
 	// Only render a divider when it has a visible button on both sides,
@@ -312,6 +320,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 									btn.onClick(
 										editor,
 										activeState[btn.name] ?? false,
+										closeMenu,
 									)
 								}>
 								{btn.label ?? btn.title}
@@ -333,6 +342,7 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 									btn.onClick(
 										editor,
 										activeState[btn.name] ?? false,
+										closeMenu,
 									)
 								}>
 								<btn.Icon size={22} />

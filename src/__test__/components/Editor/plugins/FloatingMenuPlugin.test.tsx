@@ -267,7 +267,30 @@ describe("FloatingMenuPlugin", () => {
 
 		// Assert
 
-		expect(onClick).toHaveBeenCalledWith(editor, true);
+		expect(onClick).toHaveBeenCalledWith(
+			editor,
+			true,
+			expect.any(Function),
+		);
+	});
+
+	it("Should hide the menu when the button calls the closeMenu callback", async () => {
+		// Arrange
+
+		const button = makeButton({
+			onClick: (_editor, _isActive, closeMenu) => closeMenu(),
+		});
+		const { editor } = renderPlugin([button]);
+		setTextAndSelectAll(editor, "Hello world");
+		const user = userEvent.setup();
+
+		// Act
+
+		await user.click(screen.getByRole("button", { name: "Bold" }));
+
+		// Assert
+
+		expect(getMenuPaper()).toHaveStyle({ visibility: "hidden" });
 	});
 
 	it("Should hide the menu when the selection is collapsed", () => {

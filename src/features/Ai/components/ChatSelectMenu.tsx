@@ -17,6 +17,7 @@ function ChatSelectMenu({
 	onSelect,
 	onNewChat,
 }: ChatSelectMenuProps) {
+	// TODO: remember selected chat in local storage
 	return (
 		<Select
 			data={[

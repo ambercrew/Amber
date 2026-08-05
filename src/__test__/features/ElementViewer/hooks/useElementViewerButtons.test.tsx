@@ -220,7 +220,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 
 			// Assert
 
@@ -256,7 +256,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 
 			// Assert
 
@@ -317,7 +317,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 			editor.update(() => undefined, { discrete: true });
 
 			// Assert
@@ -339,7 +339,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 			editor.update(() => undefined, { discrete: true });
 
 			// Assert
@@ -425,7 +425,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 
 			// Assert
 
@@ -444,7 +444,7 @@ describe("useElementViewerButtons", () => {
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, vi.fn());
 
 			// Assert
 
@@ -489,16 +489,18 @@ describe("useElementViewerButtons", () => {
 			const editor = createTestEditor();
 			setContent(editor, [{ text: "Selected passage" }]);
 			selectSegments(editor, 0, 0);
+			const closeMenu = vi.fn();
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, closeMenu);
 
 			// Assert
 
 			expect(store.getState().aiContext.snippets).toEqual([
 				expect.objectContaining({ text: "Selected passage" }),
 			]);
+			expect(closeMenu).toHaveBeenCalledOnce();
 		});
 
 		it("Should not add an empty snippet when the selection is blank", () => {
@@ -509,14 +511,16 @@ describe("useElementViewerButtons", () => {
 			const editor = createTestEditor();
 			setContent(editor, [{ text: "   " }]);
 			selectSegments(editor, 0, 0);
+			const closeMenu = vi.fn();
 
 			// Act
 
-			button.onClick(editor, false);
+			button.onClick(editor, false, closeMenu);
 
 			// Assert
 
 			expect(store.getState().aiContext.snippets).toEqual([]);
+			expect(closeMenu).not.toHaveBeenCalled();
 		});
 	});
 });

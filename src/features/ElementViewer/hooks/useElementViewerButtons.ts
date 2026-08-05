@@ -105,13 +105,18 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 							title: "Add to AI Context",
 							Icon: SparkleIcon,
 							isActive: () => false,
-							onClick: (editor: LexicalEditor) => {
+							onClick: (
+								editor: LexicalEditor,
+								_isActive: boolean,
+								closeMenu: () => void,
+							) => {
 								editor.getEditorState().read(() => {
 									const selection = $getSelection();
 									if (!$isRangeSelection(selection)) return;
 									const text = selection.getTextContent();
 									if (!text.trim()) return;
 									dispatch(addAiContextSnippet(text));
+									closeMenu();
 								});
 							},
 						},
