@@ -23,6 +23,8 @@ const message1: MessageDto = {
 };
 
 describe("useAiChats", () => {
+	beforeEach(() => window.localStorage.clear());
+
 	it("Should populate chats when refreshChats resolves", async () => {
 		// Arrange
 
@@ -183,5 +185,26 @@ describe("useAiChats", () => {
 			{ ...chat1, title: "New name" },
 			chat2,
 		]);
+	});
+
+	it("Should restore the selected chat and its messages when remounted", async () => {
+		// Arrange
+
+		vi.mocked(getChatMessagesOrdered).mockResolvedValue([message1]);
+		const { result, unmount } = renderHook(() => useAiChats());
+		await act(async () => {
+			await result.current.openChat("chat-1");
+		});
+		unmount();
+
+		// Act
+
+		const { result: remounted } = renderHook(() => useAiChats());
+		await act(() => Promise.resolve());
+
+		// Assert
+
+		expect(remounted.current.selectedChatId).toBe("chat-1");
+		expect(remounted.current.messages).toEqual([message1]);
 	});
 });

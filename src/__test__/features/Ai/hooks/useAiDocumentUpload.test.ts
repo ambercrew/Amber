@@ -25,6 +25,8 @@ function useTestHarness() {
 }
 
 describe("useAiDocumentUpload", () => {
+	beforeEach(() => window.localStorage.clear());
+
 	it("Should create a new chat named after the file when no chat is selected", async () => {
 		// Arrange
 

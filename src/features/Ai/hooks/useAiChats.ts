@@ -1,4 +1,5 @@
-import { useCallback, useRef, useState } from "react";
+import { useLocalStorage } from "@mantine/hooks";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	deleteAiChat,
 	getAllAiChatsSortedByDateDesc,
@@ -20,14 +21,29 @@ export default function useAiChats() {
 		useApi();
 
 	const [chats, setChats] = useState<ChatDto[]>([]);
-	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+	const [selectedChatId, setSelectedChatId] = useLocalStorage<string | null>({
+		key: "ai-selected-chat-id",
+		defaultValue: null,
+		getInitialValueInEffect: false,
+	});
 	const [messages, setMessages] = useState<MessageDto[]>([]);
 
 	// The streaming/upload callbacks close over the chat id at the time the
 	// request was sent; a `createdChat` event or a first upload can change
 	// the active chat mid-request, so it's kept in a ref (shared with those
 	// hooks) rather than relying on the possibly-stale selectedChatId.
-	const activeChatIdRef = useRef<string | null>(null);
+	const activeChatIdRef = useRef<string | null>(selectedChatId);
+
+	// Restore the previously open chat's messages on mount, since the
+	// selected id is persisted but its messages are not.
+	useEffect(() => {
+		if (!selectedChatId) return;
+		void callApi(async () => {
+			setMessages(await getChatMessagesOrdered(selectedChatId));
+		});
+		// Only run once on mount.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const refreshChats = useCallback(async () => {
 		await callApi(async () => {
@@ -44,14 +60,14 @@ export default function useAiChats() {
 				setMessages(msgs);
 			});
 		},
-		[callApi],
+		[callApi, setSelectedChatId],
 	);
 
 	const startNewChat = useCallback(() => {
 		setSelectedChatId(null);
 		activeChatIdRef.current = null;
 		setMessages([]);
-	}, []);
+	}, [setSelectedChatId]);
 
 	const removeChat = useCallback(
 		async (chatId: string) => {

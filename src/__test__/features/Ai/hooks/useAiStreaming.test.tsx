@@ -68,6 +68,8 @@ function useTestHarness() {
 }
 
 describe("useAiStreaming", () => {
+	beforeEach(() => window.localStorage.clear());
+
 	it("Should call stopAiGeneration when stopping generation", async () => {
 		// Act
 
