@@ -248,24 +248,73 @@ pub mod tests {
                 implementations::default_bibliographical_source_service::DefaultBibliographicalSourceService,
             },
         },
-        elements::repositories::meta_repository::MetaRepository,
+        elements::{
+            repositories::{
+                card_repository::CardRepository, extract_repository::ExtractRepository,
+                folder_repository::FolderRepository, meta_repository::MetaRepository,
+                reading_repository::ReadingRepository,
+            },
+            services::implementations::{
+                default_element_creation_service::DefaultElementCreationService,
+                default_element_index_service::DefaultElementIndexService,
+                default_priority_service::DefaultPriorityService,
+            },
+            services::{
+                element_creation_service::ElementCreationService,
+                element_index_service::ElementIndexService, priority_service::PriorityService,
+            },
+        },
         infrastructure::repositories::{
             disk::disk_settings_repository::DiskSettingsRepository,
             sqlite::{
                 sqlite_ai_repository::SqliteAiRepository,
                 sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
+                sqlite_card_repository::SqliteCardRepository,
+                sqlite_card_review_repository::SqliteCardReviewRepository,
+                sqlite_extract_repository::SqliteExtractRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
                 sqlite_meta_repository::SqliteMetaRepository,
+                sqlite_reading_repository::SqliteReadingRepository,
+                sqlite_reading_review_repository::SqliteReadingReviewRepository,
+                sqlite_study_profile_repository::SqliteStudyProfileRepository,
             },
         },
         settings::{
             entities::settings::Settings, repositories::settings_repository::SettingsRepository,
             value_objects::settings_profile::SettingsProfile,
         },
+        study::{
+            repositories::{
+                card_review_repository::CardReviewRepository,
+                reading_review_repository::ReadingReviewRepository,
+                study_profile_repository::StudyProfileRepository,
+            },
+            services::{
+                implementations::default_profile_resolution_service::DefaultProfileResolutionService,
+                profile_resolution_service::ProfileResolutionService,
+            },
+        },
         test_utils::{create_temp_directory, create_test_injector},
     };
     use tokio::sync::Mutex;
 
+    use crate::common::services::lexical_json_converter::{
+        LexicalJsonConverter, LexicalJsonConverterError,
+    };
+
     use super::*;
+
+    struct MockLexicalJsonConverter;
+
+    #[async_trait]
+    impl LexicalJsonConverter for MockLexicalJsonConverter {
+        async fn convert_markdown(
+            &self,
+            markdown: &str,
+        ) -> Result<String, LexicalJsonConverterError> {
+            Ok(markdown.to_string())
+        }
+    }
 
     async fn initialize_test_injector(mock_client: MockClient, state: Arc<AiState>) -> Injector {
         let mut injector = create_test_injector().await;
@@ -276,6 +325,7 @@ pub mod tests {
         injector.register_singleton(Arc::new(Mutex::new(settings)));
         injector.register_singleton(Arc::new(mock_client));
         injector.register_singleton(state);
+        injector.register_singleton::<dyn LexicalJsonConverter>(Arc::new(MockLexicalJsonConverter));
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiRepository, SqliteAiRepository);
@@ -291,6 +341,41 @@ pub mod tests {
             injector,
             dyn BibliographicalSourceService,
             DefaultBibliographicalSourceService
+        );
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+        register_scope!(injector, dyn CardRepository, SqliteCardRepository);
+        register_scope!(
+            injector,
+            dyn ElementIndexService,
+            DefaultElementIndexService
+        );
+        register_scope!(injector, dyn PriorityService, DefaultPriorityService);
+        register_scope!(
+            injector,
+            dyn ReadingReviewRepository,
+            SqliteReadingReviewRepository
+        );
+        register_scope!(
+            injector,
+            dyn CardReviewRepository,
+            SqliteCardReviewRepository
+        );
+        register_scope!(
+            injector,
+            dyn StudyProfileRepository,
+            SqliteStudyProfileRepository
+        );
+        register_scope!(
+            injector,
+            dyn ProfileResolutionService,
+            DefaultProfileResolutionService
+        );
+        register_scope!(
+            injector,
+            dyn ElementCreationService,
+            DefaultElementCreationService
         );
         register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
@@ -508,9 +593,10 @@ pub mod tests {
                 if let RigMessage::User { content } = request.chat_history.last()
                     && let UserContent::Text(text) = content.last()
                     && text.text() == "User prompt"
-                    // Only tool: search documents.
-                    && request.tools.len() == 1
+                    // search_documents plus the always-on create_flashcard tool.
+                    && request.tools.len() == 2
                     && request.tools.iter().any(|tool| tool.name == "search_documents")
+                    && request.tools.iter().any(|tool| tool.name == "create_flashcard")
                 {
                     valid_request_clone.store(true, Ordering::Relaxed);
                 }

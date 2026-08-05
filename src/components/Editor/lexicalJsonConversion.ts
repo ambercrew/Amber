@@ -2,6 +2,8 @@ import { $generateNodesFromSerializedNodes } from "@lexical/clipboard";
 import { buildEditorFromExtensions, defineExtension } from "@lexical/extension";
 import { $generateNodesFromDOM } from "@lexical/html";
 import { $insertNodes, $setSelection, type LexicalEditor } from "lexical";
+import { marked } from "marked";
+import { sanitizeHtml } from "../../utils/sanitizeHtml";
 import {
 	editorExtensionDependencies,
 	editorNodes,
@@ -41,6 +43,16 @@ export function htmlToLexicalJson(html: string): string {
 		const dom = parser.parseFromString(html, "text/html");
 		$insertNodes($generateNodesFromDOM(editor, dom));
 	});
+}
+
+/**
+ * Converts Markdown into serialized Lexical editor state JSON, by rendering
+ * it to HTML (the same renderer used for AI chat messages, see
+ * MessageBubble.tsx) and sanitizing before parsing it into Lexical nodes.
+ */
+export function markdownToLexicalJson(markdown: string): string {
+	const html = marked.parse(markdown, { async: false });
+	return htmlToLexicalJson(sanitizeHtml(html));
 }
 
 /**

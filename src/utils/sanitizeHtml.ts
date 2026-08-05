@@ -1,4 +1,8 @@
 import DOMPurify from "dompurify";
+import {
+	CLOZE_HIDDEN_ATTRIBUTE,
+	CLOZE_HIDDEN_TAG_NAME,
+} from "../components/Editor/plugins/ClozePlugin/ClozeHiddenNode";
 
 const ALLOWED_TAGS = [
 	"p",
@@ -35,6 +39,7 @@ const ALLOWED_TAGS = [
 	"span",
 	"svg",
 	"path",
+	CLOZE_HIDDEN_TAG_NAME,
 ];
 
 const ALLOWED_ATTR = [
@@ -50,6 +55,7 @@ const ALLOWED_ATTR = [
 	"viewBox",
 	"preserveAspectRatio",
 	"d",
+	CLOZE_HIDDEN_ATTRIBUTE,
 ];
 
 // Also allows relative/protocol-relative URLs (no scheme, or starting with

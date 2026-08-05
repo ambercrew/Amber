@@ -11,9 +11,12 @@ use crate::ai_integration::entities::message::{Message, MessageContent};
 use crate::ai_integration::prompts::{format_context_snippets, preamble};
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
 use crate::ai_integration::services::ai_client_provider::AiClientProvider;
+use crate::ai_integration::tools::create_flashcard::CreateFlashcard;
 use crate::ai_integration::tools::search_documents::SearchDocuments;
 use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceService;
+use crate::common::services::lexical_json_converter::LexicalJsonConverter;
 use crate::elements::repositories::meta_repository::MetaRepository;
+use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::value_objects::element_id::ElementId;
 
 const DEFAULT_TEMPERATURE: f64 = 0.5;
@@ -24,6 +27,8 @@ pub struct DefaultAgentProvider {
     ai_client_provider: Arc<dyn AiClientProvider>,
     meta_repository: Arc<dyn MetaRepository>,
     bibliographical_source_service: Arc<dyn BibliographicalSourceService>,
+    element_creation_service: Arc<dyn ElementCreationService>,
+    lexical_json_converter: Arc<dyn LexicalJsonConverter>,
 }
 
 impl DefaultAgentProvider {
@@ -91,7 +96,12 @@ impl AgentProvider for DefaultAgentProvider {
             .temperature(DEFAULT_TEMPERATURE)
             .name("Amber Tutor")
             .default_max_turns(DEFAULT_MAX_TURN)
-            .preamble(preamble(context.as_deref()).as_str());
+            .preamble(preamble(context.as_deref()).as_str())
+            .tool(CreateFlashcard::new(
+                self.element_creation_service.clone(),
+                self.lexical_json_converter.clone(),
+                element_id,
+            ));
 
         let has_documents = messages
             .iter()
@@ -141,22 +151,69 @@ pub mod tests {
             repositories::bibliographical_source_repository::BibliographicalSourceRepository,
             services::implementations::default_bibliographical_source_service::DefaultBibliographicalSourceService,
         },
-        elements::{repositories::meta_repository::MetaRepository, value_objects::meta::Meta},
+        elements::{
+            repositories::{
+                card_repository::CardRepository, extract_repository::ExtractRepository,
+                folder_repository::FolderRepository, meta_repository::MetaRepository,
+                reading_repository::ReadingRepository,
+            },
+            services::implementations::{
+                default_element_creation_service::DefaultElementCreationService,
+                default_element_index_service::DefaultElementIndexService,
+                default_priority_service::DefaultPriorityService,
+            },
+            services::{
+                element_index_service::ElementIndexService, priority_service::PriorityService,
+            },
+            value_objects::meta::Meta,
+        },
         infrastructure::repositories::{
             disk::disk_settings_repository::DiskSettingsRepository,
             sqlite::{
                 sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
+                sqlite_card_repository::SqliteCardRepository,
+                sqlite_card_review_repository::SqliteCardReviewRepository,
+                sqlite_extract_repository::SqliteExtractRepository,
+                sqlite_folder_repository::SqliteFolderRepository,
                 sqlite_meta_repository::SqliteMetaRepository,
+                sqlite_reading_repository::SqliteReadingRepository,
+                sqlite_reading_review_repository::SqliteReadingReviewRepository,
+                sqlite_study_profile_repository::SqliteStudyProfileRepository,
             },
         },
         settings::{
             entities::settings::Settings, repositories::settings_repository::SettingsRepository,
             value_objects::settings_profile::SettingsProfile,
         },
+        study::{
+            repositories::{
+                card_review_repository::CardReviewRepository,
+                reading_review_repository::ReadingReviewRepository,
+                study_profile_repository::StudyProfileRepository,
+            },
+            services::{
+                implementations::default_profile_resolution_service::DefaultProfileResolutionService,
+                profile_resolution_service::ProfileResolutionService,
+            },
+        },
         test_utils::{create_temp_directory, create_test_injector},
     };
 
+    use crate::common::services::lexical_json_converter::LexicalJsonConverterError;
+
     use super::*;
+
+    struct MockLexicalJsonConverter;
+
+    #[async_trait]
+    impl LexicalJsonConverter for MockLexicalJsonConverter {
+        async fn convert_markdown(
+            &self,
+            markdown: &str,
+        ) -> Result<String, LexicalJsonConverterError> {
+            Ok(markdown.to_string())
+        }
+    }
 
     async fn initialize_test_injector(mock_client: MockClient) -> Injector {
         let mut injector = create_test_injector().await;
@@ -167,6 +224,7 @@ pub mod tests {
         injector.register_singleton(Arc::new(Mutex::new(settings)));
         injector.register_singleton(Arc::new(mock_client));
         injector.register_singleton(Arc::new(AiState::default()));
+        injector.register_singleton::<dyn LexicalJsonConverter>(Arc::new(MockLexicalJsonConverter));
 
         register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
         register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
@@ -180,6 +238,41 @@ pub mod tests {
             injector,
             dyn BibliographicalSourceService,
             DefaultBibliographicalSourceService
+        );
+        register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
+        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
+        register_scope!(injector, dyn CardRepository, SqliteCardRepository);
+        register_scope!(
+            injector,
+            dyn ElementIndexService,
+            DefaultElementIndexService
+        );
+        register_scope!(injector, dyn PriorityService, DefaultPriorityService);
+        register_scope!(
+            injector,
+            dyn ReadingReviewRepository,
+            SqliteReadingReviewRepository
+        );
+        register_scope!(
+            injector,
+            dyn CardReviewRepository,
+            SqliteCardReviewRepository
+        );
+        register_scope!(
+            injector,
+            dyn StudyProfileRepository,
+            SqliteStudyProfileRepository
+        );
+        register_scope!(
+            injector,
+            dyn ProfileResolutionService,
+            DefaultProfileResolutionService
+        );
+        register_scope!(
+            injector,
+            dyn ElementCreationService,
+            DefaultElementCreationService
         );
         register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
 
@@ -196,15 +289,18 @@ pub mod tests {
     }
 
     #[tokio::test]
-    pub async fn get_agent_no_document_messages_did_not_add_search_tool() {
+    pub async fn get_agent_no_document_messages_only_added_flashcard_tool() {
         // Arrange
 
-        let no_tools_sent = Arc::new(AtomicBool::new(false));
-        let no_tools_sent_clone = no_tools_sent.clone();
+        let only_flashcard_tool_sent = Arc::new(AtomicBool::new(false));
+        let only_flashcard_tool_sent_clone = only_flashcard_tool_sent.clone();
 
         let mock_client = MockClient {
             completion_fn: Arc::new(Some(Box::new(move |request| {
-                no_tools_sent_clone.store(request.tools.is_empty(), Ordering::Relaxed);
+                only_flashcard_tool_sent_clone.store(
+                    request.tools.len() == 1 && request.tools[0].name == "create_flashcard",
+                    Ordering::Relaxed,
+                );
                 mock_response_with_text("Answer")
             }))),
             ..Default::default()
@@ -230,7 +326,7 @@ pub mod tests {
 
         // Assert
 
-        assert!(no_tools_sent.load(Ordering::Relaxed));
+        assert!(only_flashcard_tool_sent.load(Ordering::Relaxed));
     }
 
     #[tokio::test]
@@ -243,7 +339,15 @@ pub mod tests {
         let mock_client = MockClient {
             completion_fn: Arc::new(Some(Box::new(move |request| {
                 search_tool_sent_clone.store(
-                    request.tools.len() == 1 && request.tools[0].name == "search_documents",
+                    request.tools.len() == 2
+                        && request
+                            .tools
+                            .iter()
+                            .any(|tool| tool.name == "search_documents")
+                        && request
+                            .tools
+                            .iter()
+                            .any(|tool| tool.name == "create_flashcard"),
                     Ordering::Relaxed,
                 );
                 mock_response_with_text("Answer")

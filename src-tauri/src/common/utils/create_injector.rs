@@ -19,6 +19,9 @@ use crate::ai_integration::services::implementations::default_document_uploader:
 use crate::backend::services::{
     authenticator::Authenticator, implementations::default_authenticator::DefaultAuthenticator,
 };
+use crate::common::request_bridge::RequestBridge;
+use crate::common::services::implementations::tauri_lexical_json_converter::TauriLexicalJsonConverter;
+use crate::common::services::lexical_json_converter::LexicalJsonConverter;
 #[cfg(test)]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 #[cfg(not(test))]
@@ -123,8 +126,19 @@ use crate::{
     },
 };
 
-pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
+pub async fn create_injector<R: tauri::Runtime>(
+    app_data_directory: AppDataDirectory,
+    app_handle: tauri::AppHandle<R>,
+) -> Injector {
     let mut injector = Injector::default();
+
+    injector.register_singleton(Arc::new(app_handle));
+    injector.register_singleton(Arc::new(RequestBridge::default()));
+    register_scope!(
+        injector,
+        dyn LexicalJsonConverter,
+        TauriLexicalJsonConverter<R>
+    );
 
     #[cfg(not(test))]
     let settings = DiskSettingsRepository::get_or_create_settings(
@@ -351,7 +365,8 @@ mod tests {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
-        let mut injector = create_injector(app_data_directory).await;
+        let app_handle = tauri::test::mock_app().handle().clone();
+        let mut injector = create_injector(app_data_directory, app_handle).await;
 
         // Needed for testing.
         injector.register_singleton(Arc::new(MockClient::default()));

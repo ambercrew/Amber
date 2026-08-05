@@ -1,4 +1,4 @@
-import { sanitizeHtml } from "./sanitize";
+import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 import { localizeImage } from "../images/localize";
 
 export interface NormalizeOptions {

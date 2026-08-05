@@ -4,6 +4,9 @@ import MessageDto from "../dto/messageDto";
 import StreamAiRequestDto from "../dto/streamAiRequestDto";
 import StreamLlmResponseEventDto from "../dto/streamLlmResponseEventDto";
 
+/** Event name the backend emits for `RequestBridge::request` calls that need Markdown converted to Lexical JSON. */
+export const CONVERT_MARKDOWN_TO_LEXICAL_EVENT = "convert-markdown-to-lexical";
+
 export function streamAiResponse(
 	onEvent: Channel<StreamLlmResponseEventDto>,
 	request: StreamAiRequestDto,

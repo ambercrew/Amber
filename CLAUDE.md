@@ -137,6 +137,15 @@ Routes are defined in `src/router.tsx`. For type-safe navigation and param readi
 
 The `useApi` hook standardizes async calls.
 
+### Backend → Frontend Request Bridge
+
+Some backend work (e.g. producing Lexical JSON) can only be done on the frontend. `common::request_bridge::RequestBridge` (backend, DI-registered) and `useFrontendRequestBridge` (`src/hooks/useFrontendRequestBridge.ts`, frontend) together provide a reusable backend-initiated request/response channel over Tauri events — the reverse direction of the normal `invoke()` flow above:
+
+1. Backend calls `bridge.request(app_handle, event, payload).await`, which emits `event` with `{ requestId, ...payload }` and awaits the frontend's answer (with a timeout).
+2. Frontend answers it by calling `useFrontendRequestBridge<TEvent>(event, handler)` once (e.g. in `App.tsx`) — it listens for `event`, runs `handler(payload)`, and reports the result back via the generic `resolve_frontend_request` command automatically. `TEvent` must extend `FrontendRequestEvent` (i.e. include `requestId`).
+
+Event name constants and the event's DTO type live in `src/api/<module>/` alongside that module's other typed wrappers (e.g. `CONVERT_HTML_TO_LEXICAL_EVENT` in `src/api/aiIntegration/api/aiApi.ts`, `ConvertHtmlToLexicalEventDto` in `src/api/aiIntegration/dto/`) — the event name string must match the `&str` the corresponding Rust `request()` call uses; there's no compile-time link across the language boundary, so keep them in sync by hand. See `src/features/Ai/hooks/useLexicalConversionBridge.ts` and `common/services/implementations/tauri_lexical_json_converter.rs` for the reference implementation.
+
 ### Rich Text (Lexical)
 
 The editor uses **Lexical**, built via its extension system (`@lexical/extension`'s `defineExtension`/`buildEditorFromExtensions`) rather than the older plugin-array API. `src/components/Editor/editorExtension.ts` exports the shared `editorNodes`, `editorExtensionDependencies`, and static `editorTheme` used by **both**:

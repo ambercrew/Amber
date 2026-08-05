@@ -20,7 +20,7 @@ import { marked } from "marked";
 import markedKatex from "marked-katex-extension";
 import "katex/dist/katex.min.css";
 import { MessageContentDto } from "../../../api/aiIntegration/dto/messageDto";
-import { sanitizeHtml } from "../../Import/normalize/sanitize";
+import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 
 marked.use(markedKatex({ throwOnError: false, output: "html" }));
 
