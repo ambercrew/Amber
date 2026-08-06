@@ -171,7 +171,7 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Empty trash"));
+		await user.click(screen.getByRole("button", { name: "Empty trash" }));
 		const confirmation = await openedConfirmation();
 		await user.click(
 			confirmation.getByRole("button", { name: "Empty trash" }),

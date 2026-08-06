@@ -40,6 +40,7 @@ function ChatMessages({ chatId, messages }: ChatMessagesProps) {
 				{messages.map(message => (
 					<MessageBubble
 						key={message.id}
+						id={message.id}
 						content={message.content}
 						toolName={message.toolName}
 						isStreaming={message.isStreaming}

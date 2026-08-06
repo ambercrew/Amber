@@ -9,7 +9,7 @@ import {
 	Typography,
 	UnstyledButton,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useLocalStorage } from "@mantine/hooks";
 import { createElement } from "react";
 import {
 	CardsIcon,
@@ -30,6 +30,7 @@ import { sanitizeHtml } from "../../../utils/sanitizeHtml";
 marked.use(markedKatex({ throwOnError: false, output: "html" }));
 
 interface MessageBubbleProps {
+	id: string;
 	content: MessageContentDto;
 	/** Name of the tool a `toolCall`/`toolResult` bubble belongs to. */
 	toolName?: string;
@@ -60,8 +61,12 @@ function renderMarkdown(value: string) {
 	return sanitizeHtml(marked.parse(value, { async: false }) as string);
 }
 
-function ContextSnippets({ snippets }: { snippets: string[] }) {
-	const [opened, { toggle }] = useDisclosure(false);
+function ContextSnippets({ id, snippets }: { id: string; snippets: string[] }) {
+	const [opened, setOpened] = useLocalStorage({
+		key: `ai-message.${id}.context-snippets-opened`,
+		defaultValue: false,
+	});
+	const toggle = () => setOpened(o => !o);
 
 	return (
 		<Box
@@ -101,6 +106,7 @@ function ContextSnippets({ snippets }: { snippets: string[] }) {
 }
 
 function MessageBubble({
+	id,
 	content,
 	toolName,
 	isStreaming,
@@ -118,7 +124,10 @@ function MessageBubble({
 					c="var(--mantine-primary-color-contrast)">
 					<Stack gap="xs">
 						{contextSnippets && contextSnippets.length > 0 && (
-							<ContextSnippets snippets={contextSnippets} />
+							<ContextSnippets
+								id={id}
+								snippets={contextSnippets}
+							/>
 						)}
 						<Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
 							{content.value}

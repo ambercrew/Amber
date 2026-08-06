@@ -6,6 +6,7 @@ function renderMessageBubble(contextSnippets?: string[]) {
 	return render(
 		<MantineProvider>
 			<MessageBubble
+				id="message-1"
 				content={{ type: "human", value: "What does this mean?" }}
 				contextSnippets={contextSnippets}
 			/>
@@ -23,7 +24,7 @@ describe("MessageBubble", () => {
 
 		// Assert
 
-		expect(screen.getByText("2 context snippets")).toBeInTheDocument();
+		expect(screen.getByText("2 snippets")).toBeInTheDocument();
 		expect(
 			screen.queryByText("Selected passage one"),
 		).not.toBeInTheDocument();
@@ -36,7 +37,7 @@ describe("MessageBubble", () => {
 
 		// Act
 
-		fireEvent.click(screen.getByText("2 context snippets"));
+		fireEvent.click(screen.getByText("2 snippets"));
 
 		// Assert
 

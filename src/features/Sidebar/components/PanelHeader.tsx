@@ -31,6 +31,7 @@ function PanelHeader({ title, actions = [] }: PanelHeaderProps) {
 						<ActionIcon
 							variant="subtle"
 							size="md"
+							aria-label={action.label}
 							disabled={action.disabled}
 							onClick={action.onClick}>
 							{cloneElement(action.icon, { size: ICON_SIZE })}
