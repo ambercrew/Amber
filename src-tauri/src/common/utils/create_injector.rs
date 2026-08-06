@@ -27,6 +27,7 @@ use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 #[cfg(not(test))]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool_from_location;
 use crate::database::database_connection_manager::DatabaseConnectionManager;
+use crate::database::transaction_manager::TransactionManager;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
@@ -47,6 +48,7 @@ use crate::elements::services::priority_service::PriorityService;
 use crate::generated_code;
 use crate::infrastructure::clients::amber_backend_http_client::AmberBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
+use crate::infrastructure::managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager;
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
@@ -332,6 +334,7 @@ pub async fn create_injector<R: tauri::Runtime>(
         dyn DatabaseConnectionManager,
         SqliteDatabaseConnectionManager
     );
+    register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
 
     // Other
 

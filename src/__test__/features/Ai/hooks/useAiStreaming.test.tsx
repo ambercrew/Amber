@@ -327,6 +327,73 @@ describe("useAiStreaming", () => {
 		expect(result.current.streamingAssistantText).toBe("Hi there");
 	});
 
+	it("Should surface toolCall and toolResult events in streamingToolMessages as they arrive", async () => {
+		// Arrange
+
+		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
+		vi.mocked(getAllAiChatsSortedByDateDesc).mockResolvedValue([]);
+
+		const { result } = renderHook(() => useTestHarness(), {
+			wrapper: makeWrapper(makeStore()),
+		});
+		await act(async () => {
+			void result.current.sendPrompt("hello");
+			await Promise.resolve();
+		});
+		const channel = getCapturedChannel();
+		act(() => {
+			channel.onmessage({ event: "createdChat", data: chat1 });
+		});
+
+		// Act
+
+		act(() => {
+			channel.onmessage({
+				event: "toolCall",
+				data: {
+					chatId: "chat-1",
+					toolCall: {
+						id: "tc-1",
+						name: "search_documents",
+						arguments: { query: "test" },
+					},
+				},
+			});
+		});
+		act(() => {
+			channel.onmessage({
+				event: "toolResult",
+				data: {
+					chatId: "chat-1",
+					toolResult: { id: "tc-1", text: "Found nothing" },
+				},
+			});
+		});
+
+		// Assert
+
+		expect(result.current.streamingToolMessages).toEqual([
+			{
+				id: "streaming-tool-call-tc-1",
+				content: {
+					type: "toolCall",
+					value: {
+						id: "tc-1",
+						name: "search_documents",
+						arguments: { query: "test" },
+					},
+				},
+			},
+			{
+				id: "streaming-tool-result-tc-1",
+				content: {
+					type: "toolResult",
+					value: { id: "tc-1", text: "Found nothing" },
+				},
+			},
+		]);
+	});
+
 	it("Should hide pendingHumanText and streamingAssistantText when the user switches to a different chat", async () => {
 		// Arrange
 

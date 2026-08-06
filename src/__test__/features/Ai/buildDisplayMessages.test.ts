@@ -142,4 +142,85 @@ describe("buildDisplayMessages", () => {
 			},
 		]);
 	});
+
+	it("Should place streaming tool messages between the pending human message and the streaming assistant message", () => {
+		// Arrange
+
+		const persisted: MessageDto[] = [];
+
+		// Act
+
+		const actual = buildDisplayMessages(
+			persisted,
+			"Prompt",
+			"Answer",
+			null,
+			null,
+			[
+				{
+					id: "streaming-tool-call-tc-1",
+					content: {
+						type: "toolCall",
+						value: {
+							id: "tc-1",
+							name: "search_documents",
+							arguments: {},
+						},
+					},
+				},
+				{
+					id: "streaming-tool-result-tc-1",
+					content: {
+						type: "toolResult",
+						value: { id: "tc-1", text: "Found nothing" },
+					},
+				},
+			],
+		);
+
+		// Assert
+
+		expect(actual.map(m => m.id)).toEqual([
+			"pending-human",
+			"streaming-tool-call-tc-1",
+			"streaming-tool-result-tc-1",
+			"pending-assistant",
+		]);
+	});
+
+	it("Should resolve a streaming toolResult's name from the matching streaming toolCall", () => {
+		// Arrange
+
+		const persisted: MessageDto[] = [];
+
+		// Act
+
+		const actual = buildDisplayMessages(persisted, null, null, null, null, [
+			{
+				id: "streaming-tool-call-tc-1",
+				content: {
+					type: "toolCall",
+					value: {
+						id: "tc-1",
+						name: "search_documents",
+						arguments: {},
+					},
+				},
+			},
+			{
+				id: "streaming-tool-result-tc-1",
+				content: {
+					type: "toolResult",
+					value: { id: "tc-1", text: "Found nothing" },
+				},
+			},
+		]);
+
+		// Assert
+
+		expect(actual.map(m => m.toolName)).toEqual([
+			"search_documents",
+			"search_documents",
+		]);
+	});
 });

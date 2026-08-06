@@ -1,37 +1,21 @@
 import { render } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
+import {
+	useStickToBottom,
+	type StickToBottomInstance,
+} from "use-stick-to-bottom";
 import ChatMessages from "../../../../features/Ai/components/ChatMessages";
 import { DisplayMessage } from "../../../../features/Ai/utils/buildDisplayMessages";
+
+vi.mock(import("use-stick-to-bottom"));
+
+function makeRefCallback() {
+	return vi.fn() as unknown as StickToBottomInstance["scrollRef"];
+}
 
 function makeMessage(id: string): DisplayMessage {
 	return { id, content: { type: "human", value: `message ${id}` } };
 }
-
-function getViewport(container: HTMLElement) {
-	const viewport = container.querySelector<HTMLElement>(
-		"[data-scrollarea-viewport]",
-	);
-	if (!viewport) throw new Error("Viewport not found");
-	return viewport;
-}
-
-function scrollTo(viewport: HTMLElement, y: number) {
-	viewport.scrollTop = y;
-	viewport.dispatchEvent(new Event("scroll", { bubbles: false }));
-}
-
-// The mount-time auto-scroll marks itself in-progress until the next
-// animation frame, during which scroll events are ignored (see
-// `isAutoScrollingRef` in ChatMessages.tsx) — flush it before simulating
-// user scrolling so those events aren't silently dropped.
-function flushAutoScroll() {
-	return new Promise(resolve => requestAnimationFrame(resolve));
-}
-
-beforeEach(() => {
-	// jsdom doesn't implement Element.scrollTo.
-	window.HTMLElement.prototype.scrollTo = vi.fn();
-});
 
 function renderChatMessages(
 	messages: DisplayMessage[],
@@ -44,113 +28,71 @@ function renderChatMessages(
 	);
 }
 
+const scrollToBottomMock = vi.fn();
+
+beforeEach(() => {
+	scrollToBottomMock.mockClear();
+	vi.mocked(useStickToBottom).mockReturnValue({
+		scrollRef: makeRefCallback(),
+		contentRef: makeRefCallback(),
+		scrollToBottom: scrollToBottomMock,
+		stopScroll: vi.fn(),
+		isAtBottom: true,
+		isNearBottom: true,
+		escapedFromLock: false,
+		state: {} as ReturnType<typeof useStickToBottom>["state"],
+	});
+});
+
 describe("ChatMessages", () => {
-	it("Should scroll the viewport to the bottom when a new message arrives while pinned to the bottom", () => {
+	it("Should render every message", () => {
 		// Arrange
 
-		const { container, rerender } = renderChatMessages([makeMessage("1")]);
-		const viewport = getViewport(container);
-		const scrollToMock = vi.fn();
-		viewport.scrollTo = scrollToMock;
+		const messages = [makeMessage("1"), makeMessage("2")];
 
 		// Act
 
-		rerender(
-			<MantineProvider>
-				<ChatMessages
-					chatId="chat-1"
-					messages={[makeMessage("1"), makeMessage("2")]}
-				/>
-			</MantineProvider>,
-		);
+		const { getByText } = renderChatMessages(messages);
 
 		// Assert
 
-		expect(scrollToMock).toHaveBeenCalledWith({
-			top: viewport.scrollHeight,
-			behavior: "auto",
-		});
+		expect(getByText("message 1")).toBeInTheDocument();
+		expect(getByText("message 2")).toBeInTheDocument();
 	});
 
-	it("Should not scroll the viewport when a new message arrives after the user scrolled up", async () => {
+	it("Should show a placeholder when there are no messages", () => {
 		// Arrange
-
-		const { container, rerender } = renderChatMessages([makeMessage("1")]);
-		const viewport = getViewport(container);
-		await flushAutoScroll();
-		scrollTo(viewport, 500);
-		scrollTo(viewport, 100);
-		const scrollToMock = vi.fn();
-		viewport.scrollTo = scrollToMock;
 
 		// Act
 
-		rerender(
-			<MantineProvider>
-				<ChatMessages
-					chatId="chat-1"
-					messages={[makeMessage("1"), makeMessage("2")]}
-				/>
-			</MantineProvider>,
-		);
+		const { getByText } = renderChatMessages([]);
 
 		// Assert
 
-		expect(scrollToMock).not.toHaveBeenCalled();
+		expect(
+			getByText("Ask a question to start a conversation."),
+		).toBeInTheDocument();
 	});
 
-	it("Should resume scrolling to the bottom once the user scrolls back near it", async () => {
+	it("Should jump to the bottom instantly on mount", () => {
 		// Arrange
-
-		const { container, rerender } = renderChatMessages([makeMessage("1")]);
-		const viewport = getViewport(container);
-		Object.defineProperty(viewport, "scrollHeight", {
-			value: 1000,
-			configurable: true,
-		});
-		Object.defineProperty(viewport, "clientHeight", {
-			value: 500,
-			configurable: true,
-		});
-		await flushAutoScroll();
-		scrollTo(viewport, 500);
-		scrollTo(viewport, 100);
-		scrollTo(viewport, 450);
-		const scrollToMock = vi.fn();
-		viewport.scrollTo = scrollToMock;
 
 		// Act
 
-		rerender(
-			<MantineProvider>
-				<ChatMessages
-					chatId="chat-1"
-					messages={[makeMessage("1"), makeMessage("2")]}
-				/>
-			</MantineProvider>,
-		);
+		renderChatMessages([makeMessage("1")]);
 
 		// Assert
 
-		expect(scrollToMock).toHaveBeenCalledWith({
-			top: viewport.scrollHeight,
-			behavior: "auto",
+		expect(scrollToBottomMock).toHaveBeenCalledWith({
+			animation: "instant",
 		});
 	});
 
-	it("Should scroll the viewport to the bottom when switching chats after the user scrolled up", async () => {
+	it("Should jump to the bottom instantly when switching chats", () => {
 		// Arrange
 
-		const { container, rerender } = renderChatMessages(
-			[makeMessage("1")],
-			"chat-1",
-		);
-		const viewport = getViewport(container);
-		await flushAutoScroll();
-		scrollTo(viewport, 500);
-		scrollTo(viewport, 100);
-		const scrollToMock = vi.fn();
-		viewport.scrollTo = scrollToMock;
+		const { rerender } = renderChatMessages([makeMessage("1")], "chat-1");
+		scrollToBottomMock.mockClear();
 
 		// Act
 
@@ -162,9 +104,30 @@ describe("ChatMessages", () => {
 
 		// Assert
 
-		expect(scrollToMock).toHaveBeenCalledWith({
-			top: viewport.scrollHeight,
-			behavior: "auto",
+		expect(scrollToBottomMock).toHaveBeenCalledWith({
+			animation: "instant",
 		});
+	});
+
+	it("Should not jump to the bottom again when the same chat receives a new message", () => {
+		// Arrange
+
+		const { rerender } = renderChatMessages([makeMessage("1")], "chat-1");
+		scrollToBottomMock.mockClear();
+
+		// Act
+
+		rerender(
+			<MantineProvider>
+				<ChatMessages
+					chatId="chat-1"
+					messages={[makeMessage("1"), makeMessage("2")]}
+				/>
+			</MantineProvider>,
+		);
+
+		// Assert
+
+		expect(scrollToBottomMock).not.toHaveBeenCalled();
 	});
 });

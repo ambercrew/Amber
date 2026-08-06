@@ -4,9 +4,13 @@ use injector::injector::Injector;
 use tokio::fs;
 use uuid::Uuid;
 
+use injector::register_scope;
+
 use crate::{
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
+    database::transaction_manager::TransactionManager,
     infrastructure::{
+        managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager,
         repositories::disk::disk_secrets_repository::DiskSecretsRepository,
         value_objects::{app_data_directory::AppDataDirectory, db_pool::DbPool},
     },
@@ -32,6 +36,7 @@ pub async fn create_test_injector() -> Injector {
     let db_pool = DbPool::new(sqlite_pool, database_location);
     injector.register_singleton(Arc::new(db_pool));
     register_scoped_tx(&mut injector);
+    register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
 
     let secrets_repository = DiskSecretsRepository::new(&app_data_directory);
     injector.register_singleton::<dyn SecretsRepository>(Arc::new(secrets_repository));

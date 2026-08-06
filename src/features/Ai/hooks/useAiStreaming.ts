@@ -23,6 +23,7 @@ import {
 	restoreAiContextSnippets,
 } from "../../../stores/aiContext/aiContextReducer";
 import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
+import { StreamingToolMessage } from "../utils/buildDisplayMessages";
 
 interface UseAiStreamingParams {
 	selectedChatId: string | null;
@@ -59,6 +60,9 @@ export default function useAiStreaming({
 	const [streamingAssistantText, setStreamingAssistantText] = useState<
 		string | null
 	>(null);
+	const [streamingToolMessages, setStreamingToolMessages] = useState<
+		StreamingToolMessage[]
+	>([]);
 	const [isStreaming, setIsStreaming] = useState(false);
 	const [streamError, setStreamError] = useState<string | null>(null);
 	const [failedPrompt, setFailedPrompt] = useState<string | null>(null);
@@ -73,6 +77,7 @@ export default function useAiStreaming({
 			setPendingHumanText(prompt);
 			setPendingContextSnippets(contextSnippets);
 			setStreamingAssistantText("");
+			setStreamingToolMessages([]);
 			setIsStreaming(true);
 			activeChatIdRef.current = selectedChatId;
 			setStreamChatId(selectedChatId);
@@ -97,6 +102,30 @@ export default function useAiStreaming({
 					setStreamingAssistantText(
 						prev => (prev ?? "") + event.data.text,
 					);
+				} else if (event.event === "toolCall") {
+					setStreamChatId(event.data.chatId);
+					setStreamingToolMessages(prev => [
+						...prev,
+						{
+							id: `streaming-tool-call-${event.data.toolCall.id}`,
+							content: {
+								type: "toolCall",
+								value: event.data.toolCall,
+							},
+						},
+					]);
+				} else if (event.event === "toolResult") {
+					setStreamChatId(event.data.chatId);
+					setStreamingToolMessages(prev => [
+						...prev,
+						{
+							id: `streaming-tool-result-${event.data.toolResult.id}`,
+							content: {
+								type: "toolResult",
+								value: event.data.toolResult,
+							},
+						},
+					]);
 				} else if (event.event === "error") {
 					failed = true;
 					setStreamError(event.data);
@@ -122,6 +151,7 @@ export default function useAiStreaming({
 					setPendingHumanText(null);
 					setPendingContextSnippets(null);
 					setStreamingAssistantText(null);
+					setStreamingToolMessages([]);
 					setStreamChatId(null);
 					if (failed) {
 						setFailedPrompt(prompt);
@@ -175,6 +205,7 @@ export default function useAiStreaming({
 		streamingAssistantText: isViewingStreamChat
 			? streamingAssistantText
 			: null,
+		streamingToolMessages: isViewingStreamChat ? streamingToolMessages : [],
 		isStreaming,
 		streamError,
 		clearStreamError,

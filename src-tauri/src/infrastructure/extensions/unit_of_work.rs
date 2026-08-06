@@ -1,14 +1,12 @@
 use async_trait::async_trait;
 use injector::injector_scope::InjectorScope;
 
-use crate::infrastructure::value_objects::{
-    db_pool::DbPool,
-    db_transaction::{DbTransaction, SqliteTransaction},
-};
+use crate::database::transaction_manager::{TransactionManager, TransactionManagerError};
+use crate::infrastructure::value_objects::db_transaction::DbTransaction;
 
 #[async_trait]
 pub trait UnitOfWorkExt {
-    async fn save_changes(&self) -> Result<(), sqlx::Error>;
+    async fn save_changes(&self) -> Result<(), TransactionManagerError>;
     async fn disable_foreign_key_constraint_for_current_transaction(
         &self,
     ) -> Result<(), sqlx::Error>;
@@ -16,10 +14,12 @@ pub trait UnitOfWorkExt {
 
 #[async_trait]
 impl<'a> UnitOfWorkExt for InjectorScope<'a> {
-    async fn save_changes(&self) -> Result<(), sqlx::Error> {
+    async fn save_changes(&self) -> Result<(), TransactionManagerError> {
         log::info!("Saving changes");
-        let old_tx = replace_current_transaction_with_new_one(self).await;
-        old_tx.commit().await?;
+        self.resolve::<dyn TransactionManager>()
+            .await
+            .save_changes()
+            .await?;
         log::info!("Changes saved!");
         Ok(())
     }
@@ -41,15 +41,4 @@ impl<'a> UnitOfWorkExt for InjectorScope<'a> {
 
         Ok(())
     }
-}
-
-/// Returns the old transaction.
-async fn replace_current_transaction_with_new_one(scope: &InjectorScope<'_>) -> SqliteTransaction {
-    let tx = scope.resolve::<DbTransaction>().await;
-    let db_pool = scope.resolve::<DbPool>().await;
-    let pool = db_pool.pool().await;
-
-    let mut guard = tx.lock().await;
-    let new_tx = pool.begin().await.expect("Cannot create a new transaction");
-    std::mem::replace(&mut *guard, new_tx)
 }

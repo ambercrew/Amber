@@ -22,17 +22,23 @@ export interface DisplayMessage {
  * finishes, so until then the human prompt and the assistant's growing reply
  * exist only in memory here.
  */
+export interface StreamingToolMessage {
+	id: string;
+	content: MessageContentDto;
+}
+
 export function buildDisplayMessages(
 	persisted: MessageDto[],
 	pendingHumanText: string | null,
 	streamingAssistantText: string | null,
 	pendingDocumentFileName: string | null = null,
 	pendingContextSnippets: string[] | null = null,
+	streamingToolMessages: StreamingToolMessage[] = [],
 ): DisplayMessage[] {
 	// `toolResult` messages don't carry the tool's name, only the id of the
 	// `toolCall` they answer, so it has to be looked up from that call.
 	const toolNamesById = new Map<string, string>();
-	for (const message of persisted) {
+	for (const message of [...persisted, ...streamingToolMessages]) {
 		if (message.content.type === "toolCall") {
 			toolNamesById.set(
 				message.content.value.id,
@@ -78,6 +84,21 @@ export function buildDisplayMessages(
 				pendingContextSnippets.length > 0 && {
 					contextSnippets: pendingContextSnippets,
 				}),
+		});
+	}
+
+	for (const message of streamingToolMessages) {
+		const toolName =
+			message.content.type === "toolCall"
+				? message.content.value.name
+				: message.content.type === "toolResult"
+					? toolNamesById.get(message.content.value.id)
+					: undefined;
+
+		items.push({
+			id: message.id,
+			content: message.content,
+			...(toolName !== undefined && { toolName }),
 		});
 	}
 

@@ -8,12 +8,15 @@ use uuid::Uuid;
 
 use crate::{
     ai_integration::{
-        dto::stream_ai_request_dto::StreamAiRequestDto, entities::chat::Chat,
+        dto::stream_ai_request_dto::StreamAiRequestDto,
+        entities::chat::Chat,
+        entities::message::{ToolCallContent, ToolResultContent},
         services::agent_provider::AgentProviderError,
         services::ai_client_provider::AiClientProviderError,
         services::chat_creator::ChatCreatorError,
     },
     common::repository_error::RepositoryError,
+    database::transaction_manager::TransactionManagerError,
 };
 
 #[derive(Clone, Serialize)]
@@ -25,7 +28,18 @@ use crate::{
 )]
 pub enum StreamLlmResponseEvent {
     CreatedChat(Chat),
-    InProgress { chat_id: Uuid, text: String },
+    InProgress {
+        chat_id: Uuid,
+        text: String,
+    },
+    ToolCall {
+        chat_id: Uuid,
+        tool_call: ToolCallContent,
+    },
+    ToolResult {
+        chat_id: Uuid,
+        tool_result: ToolResultContent,
+    },
     Error(String),
 }
 
@@ -54,9 +68,10 @@ pub enum AiStreamerError {
     ChatCreator(#[from] ChatCreatorError),
     #[error(transparent)]
     AgentProvider(#[from] AgentProviderError),
+    #[error(transparent)]
+    TransactionManager(#[from] TransactionManagerError),
 }
 
-// TODO: database error some time
 impl TryFrom<CompletionError> for AiStreamerError {
     type Error = CompletionError;
 

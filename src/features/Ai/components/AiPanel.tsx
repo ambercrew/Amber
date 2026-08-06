@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActionIcon, Alert, Group, Menu, Stack } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Group, Menu, Stack } from "@mantine/core";
 import {
 	DotsThreeVerticalIcon,
 	PencilSimpleIcon,
@@ -19,6 +19,7 @@ import ChatSelectMenu from "./ChatSelectMenu";
 import RenameChatModal from "./RenameChatModal";
 import DeleteChatModal from "./DeleteChatModal";
 import AiContextSnippets from "./AiContextSnippets";
+import AiCapabilitiesModal from "./AiCapabilitiesModal";
 
 function AiPanel() {
 	const currentElementId =
@@ -49,6 +50,7 @@ function AiPanel() {
 		pendingHumanText,
 		pendingContextSnippets,
 		streamingAssistantText,
+		streamingToolMessages,
 		isStreaming,
 		streamError,
 		clearStreamError,
@@ -80,6 +82,7 @@ function AiPanel() {
 
 	const [isRenaming, setIsRenaming] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [isCapabilitiesOpen, setIsCapabilitiesOpen] = useState(false);
 
 	const selectedChat = chats.find(chat => chat.id === selectedChatId);
 
@@ -95,6 +98,7 @@ function AiPanel() {
 		streamingAssistantText,
 		pendingDocumentFileName,
 		pendingContextSnippets,
+		streamingToolMessages,
 	);
 
 	return (
@@ -159,6 +163,20 @@ function AiPanel() {
 				onStop={() => void stopGeneration()}
 				onUpload={path => void uploadDocumentToChat(path)}
 				initialValue={failedPrompt ?? undefined}
+			/>
+			<Anchor
+				component="button"
+				type="button"
+				size="xs"
+				c="dimmed"
+				mt="xs"
+				onClick={() => setIsCapabilitiesOpen(true)}>
+				What can the AI do?
+			</Anchor>
+
+			<AiCapabilitiesModal
+				opened={isCapabilitiesOpen}
+				onClose={() => setIsCapabilitiesOpen(false)}
 			/>
 
 			{selectedChat && (

@@ -16,7 +16,9 @@ use uuid::Uuid;
 use crate::ai_integration::ai_state::AiState;
 use crate::ai_integration::dto::stream_ai_request_dto::StreamAiRequestDto;
 use crate::ai_integration::entities::context_snippet::{ContextSnippet, group_snippets_by_message};
-use crate::ai_integration::entities::message::{Message, MessageContent};
+use crate::ai_integration::entities::message::{
+    Message, MessageContent, ToolCallContent, ToolResultContent,
+};
 use crate::ai_integration::repositories::ai_repository::AiRepository;
 use crate::ai_integration::services::agent_provider::{AgentProvider, AgentProviderError};
 use crate::ai_integration::services::ai_client_provider::AiClientProviderError;
@@ -25,6 +27,7 @@ use crate::ai_integration::services::ai_streamer::{
 };
 use crate::ai_integration::services::chat_creator::{ChatCreator, ChatCreatorError};
 use crate::ai_integration::state_cancellation_hook::StateCancellationHook;
+use crate::database::transaction_manager::TransactionManager;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultAiStreamer {
@@ -32,6 +35,7 @@ pub struct DefaultAiStreamer {
     ai_repository: Arc<dyn AiRepository>,
     chat_creator: Arc<dyn ChatCreator>,
     agent_provider: Arc<dyn AgentProvider>,
+    transaction_manager: Arc<dyn TransactionManager>,
 }
 
 #[async_trait]
@@ -105,6 +109,13 @@ impl AiStreamer for DefaultAiStreamer {
             Err(err) => return Err(err.into()),
         };
 
+        // The transaction resolved above (for the initial reads and agent
+        // setup) would otherwise stay open — and its snapshot stale — for the
+        // whole LLM round-trip, so committing it here before the potentially
+        // long streaming loop avoids a SQLITE_BUSY_SNAPSHOT when the deferred
+        // writes below finally run against a fresh transaction.
+        self.transaction_manager.save_changes().await?;
+
         let mut complete_ai_response = String::new();
 
         if let Some(agent) = agent {
@@ -135,27 +146,58 @@ impl AiStreamer for DefaultAiStreamer {
                             complete_ai_response = format!("{complete_ai_response}{text}");
                             on_event(StreamLlmResponseEvent::InProgress { chat_id, text })?;
                         } else if let MultiTurnStreamItem::StreamAssistantItem(
-                            StreamedAssistantContent::ToolCall { tool_call, .. },
+                            StreamedAssistantContent::ToolCall {
+                                tool_call,
+                                internal_call_id,
+                            },
                         ) = content
                         {
                             log::info!("Tool call: {:#?}", tool_call);
 
+                            let mut tool_call_content: ToolCallContent = tool_call.into();
+                            // Some providers (e.g. Ollama, whose chat API has
+                            // no tool-call id concept) always hand back an
+                            // empty id, which would otherwise make every call
+                            // in a chat indistinguishable to consumers pairing
+                            // calls with results by id. Fall back to rig's own
+                            // `internal_call_id`, which it generates uniquely
+                            // per call regardless of provider.
+                            if tool_call_content.id.is_empty() {
+                                tool_call_content.id = internal_call_id;
+                            }
+                            on_event(StreamLlmResponseEvent::ToolCall {
+                                chat_id,
+                                tool_call: tool_call_content.clone(),
+                            })?;
                             messages_to_upsert.lock().await.push(Message::new(
                                 None,
                                 chat_id,
-                                MessageContent::ToolCall(tool_call.into()),
+                                MessageContent::ToolCall(tool_call_content),
                             ));
+                            self.transaction_manager.save_changes().await?;
                         } else if let MultiTurnStreamItem::StreamUserItem(
-                            StreamedUserContent::ToolResult { tool_result, .. },
+                            StreamedUserContent::ToolResult {
+                                tool_result,
+                                internal_call_id,
+                            },
                         ) = content
                         {
                             log::info!("Tool result: {:#?}", tool_result);
 
+                            let mut tool_result_content: ToolResultContent = tool_result.into();
+                            if tool_result_content.id.is_empty() {
+                                tool_result_content.id = internal_call_id;
+                            }
+                            on_event(StreamLlmResponseEvent::ToolResult {
+                                chat_id,
+                                tool_result: tool_result_content.clone(),
+                            })?;
                             messages_to_upsert.lock().await.push(Message::new(
                                 None,
                                 chat_id,
-                                MessageContent::ToolResult(tool_result.into()),
+                                MessageContent::ToolResult(tool_result_content),
                             ));
+                            self.transaction_manager.save_changes().await?;
                         }
                     }
                     Err(err) => {
@@ -298,6 +340,7 @@ pub mod tests {
                 element_index_service::ElementIndexService, priority_service::PriorityService,
             },
         },
+        infrastructure::managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager,
         infrastructure::repositories::{
             disk::disk_settings_repository::DiskSettingsRepository,
             sqlite::{
@@ -412,6 +455,7 @@ pub mod tests {
             DefaultElementCreationService
         );
         register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
+        register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
         register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
 
         injector
@@ -1124,6 +1168,137 @@ pub mod tests {
             assert_eq!(tc.name, "search_documents");
         } else {
             panic!("Expected ToolCall and ToolResult messages");
+        }
+    }
+
+    #[tokio::test]
+    pub async fn stream_tool_call_emitted_tool_call_and_tool_result_events_while_streaming() {
+        // Arrange
+
+        let call_count = Arc::new(AtomicU32::new(0));
+        let call_count_clone = call_count.clone();
+
+        let mock_client = MockClient {
+            completion_fn: Arc::new(Some(Box::new(|_| {
+                let tool_call = AssistantContent::tool_call(
+                    "id",
+                    "submit",
+                    serde_json::to_value(GenerateTitle {
+                        title: "Chat title".to_string(),
+                    })
+                    .unwrap(),
+                );
+                CompletionResponse {
+                    choice: OneOrMany::one(tool_call),
+                    raw_response: MultiResponse::Mock,
+                    usage: Usage::default(),
+                    message_id: None,
+                }
+            }))),
+            stream_fn: Arc::new(Some(Box::new(move |_| {
+                match call_count_clone.fetch_add(1, Ordering::Relaxed) {
+                    0 => Ok(Some(RawStreamingChoice::ToolCall(
+                        rig::streaming::RawStreamingToolCall::new(
+                            "tc-1".to_string(),
+                            "search_documents".to_string(),
+                            serde_json::json!({ "query": "test", "top_k": 3 }),
+                        ),
+                    ))),
+                    2 => Ok(Some(RawStreamingChoice::Message(
+                        "Final answer".to_string(),
+                    ))),
+                    _ => Ok(None),
+                }
+            }))),
+            embeddings_model_dims: Some(
+                crate::ai_integration::clients::mock_client::DEFAULT_MOCK_EMBEDDINGS_DIMS,
+            ),
+            embed_texts_fn: Arc::new(Some(Box::new(|texts| {
+                Ok(texts
+                    .into_iter()
+                    .map(|text| rig::embeddings::Embedding {
+                        document: text,
+                        vec: vec![
+                            0f64;
+                            crate::ai_integration::clients::mock_client::DEFAULT_MOCK_EMBEDDINGS_DIMS
+                        ],
+                    })
+                    .collect())
+            }))),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(mock_client, Arc::new(AiState::default())).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<dyn AiStreamer>().await;
+        let repository = scope.resolve::<dyn AiRepository>().await;
+
+        let chat = Chat::new(None, "Chat title".to_string());
+        let chat_id = chat.id();
+        repository.upsert_chat(&chat).await.unwrap();
+        repository
+            .upsert_message(&Message::new(
+                None,
+                chat_id,
+                MessageContent::Document(
+                    crate::ai_integration::entities::message::DocumentContent {
+                        file_name: "file.pdf".to_string(),
+                    },
+                ),
+            ))
+            .await
+            .unwrap();
+
+        let request = StreamAiRequestDto {
+            prompt: "User prompt".to_string(),
+            chat_id: Some(chat_id),
+            ..Default::default()
+        };
+
+        let received_events = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let received_events_clone = received_events.clone();
+
+        // Act
+
+        service
+            .stream(
+                request,
+                Arc::new(move |event| {
+                    if matches!(
+                        event,
+                        StreamLlmResponseEvent::ToolCall { .. }
+                            | StreamLlmResponseEvent::ToolResult { .. }
+                    ) {
+                        received_events_clone.lock().unwrap().push(event);
+                    }
+                    Ok(())
+                }),
+            )
+            .await
+            .unwrap();
+
+        // Assert
+
+        let received_events = received_events.lock().unwrap();
+        assert_eq!(2, received_events.len());
+        assert!(matches!(
+            received_events[0],
+            StreamLlmResponseEvent::ToolCall { .. }
+        ));
+        assert!(matches!(
+            received_events[1],
+            StreamLlmResponseEvent::ToolResult { .. }
+        ));
+
+        if let (
+            StreamLlmResponseEvent::ToolCall { tool_call, .. },
+            StreamLlmResponseEvent::ToolResult { tool_result, .. },
+        ) = (&received_events[0], &received_events[1])
+        {
+            assert_eq!(tool_call.id, tool_result.id);
+            assert_eq!(tool_call.name, "search_documents");
+        } else {
+            unreachable!();
         }
     }
 

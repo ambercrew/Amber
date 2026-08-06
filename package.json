@@ -68,7 +68,8 @@
 		"react-dom": "19.2.7",
 		"react-redux": "9.3.0",
 		"react-router": "8.2.0",
-		"shiki": "^4.3.1"
+		"shiki": "^4.3.1",
+		"use-stick-to-bottom": "^1.1.6"
 	},
 	"devDependencies": {
 		"@choochmeque/tauri-windows-bundle": "^0.1.28",

@@ -51,7 +51,8 @@ export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
-// TODO: update element tree when the AI create something
+// TODO: update element tree when the AI create something, create a more general notification system/event system
+// TODO: ask if we should support AI reading user content
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 

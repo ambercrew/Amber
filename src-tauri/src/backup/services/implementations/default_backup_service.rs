@@ -164,9 +164,11 @@ pub mod tests {
         common::utils::{
             create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool,
         },
+        database::transaction_manager::TransactionManager,
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
             managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
+            managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager,
             repositories::{
                 disk::disk_settings_repository::DiskSettingsRepository,
                 sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
@@ -217,6 +219,7 @@ pub mod tests {
             dyn DatabaseConnectionManager,
             SqliteDatabaseConnectionManager
         );
+        register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
         register_scope!(injector, dyn BackupService, DefaultBackupService);
         register_scope!(injector, DefaultBackupService);
 

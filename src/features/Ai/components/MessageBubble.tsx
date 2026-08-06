@@ -10,11 +10,16 @@ import {
 	UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { createElement } from "react";
 import {
+	CardsIcon,
 	CaretDownIcon,
 	CaretRightIcon,
+	CheckIcon,
 	FileIcon,
+	Icon,
 	MagnifyingGlassIcon,
+	PaperclipIcon,
 } from "@phosphor-icons/react";
 import { marked } from "marked";
 import markedKatex from "marked-katex-extension";
@@ -34,26 +39,27 @@ interface MessageBubbleProps {
 	contextSnippets?: string[];
 }
 
-const TOOL_LABELS: Record<string, { inProgress: string; done: string }> = {
-	search_documents: {
-		inProgress: "Searching uploaded documents…",
-		done: "Searched uploaded documents",
-	},
+const TOOL_ICONS: Record<string, Icon> = {
+	search_documents: PaperclipIcon,
+	create_card: CardsIcon,
 };
 
 function toolLabel(toolName: string | undefined, done: boolean): string {
-	const known = toolName ? TOOL_LABELS[toolName] : undefined;
-	if (known) return done ? known.done : known.inProgress;
-
 	const readable = toolName?.replace(/_/g, " ") ?? "tool";
 	return done ? `Ran ${readable}` : `Running ${readable}…`;
+}
+
+function toolIcon(toolName: string | undefined, done: boolean) {
+	const Component = done
+		? CheckIcon
+		: ((toolName ? TOOL_ICONS[toolName] : null) ?? MagnifyingGlassIcon);
+	return createElement(Component, { size: 12 });
 }
 
 function renderMarkdown(value: string) {
 	return sanitizeHtml(marked.parse(value, { async: false }) as string);
 }
 
-// TODO: when a tool is called the tool call is not shown until after the message is completed
 // TODO: show some more things about the tool call than name
 function ContextSnippets({ snippets }: { snippets: string[] }) {
 	const [opened, { toggle }] = useDisclosure(false);
@@ -74,8 +80,8 @@ function ContextSnippets({ snippets }: { snippets: string[] }) {
 					)}
 					<Text size="sm">
 						{snippets.length === 1
-							? "1 context snippet"
-							: `${snippets.length} context snippets`}
+							? "1 snippet"
+							: `${snippets.length} snippets`}
 					</Text>
 				</Group>
 			</UnstyledButton>
@@ -186,7 +192,7 @@ function MessageBubble({
 	return (
 		<Box>
 			<Group gap={4} wrap="nowrap">
-				<MagnifyingGlassIcon size={12} />
+				{toolIcon(name, done)}
 				<Text size="xs" c="dimmed" fs="italic">
 					{toolLabel(name, done)}
 				</Text>
