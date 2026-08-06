@@ -6,10 +6,14 @@ use chrono::{DateTime, Duration, Utc};
 use injector_derive::ScopeInjectable;
 use uuid::Uuid;
 
+use crate::common::event_manager::EventManager;
 use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
+use crate::elements::dto::element_created_event_dto::{
+    ELEMENT_CREATED_EVENT, ElementCreatedEventDto,
+};
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
@@ -48,6 +52,7 @@ pub struct DefaultElementCreationService {
     card_review_repository: Arc<dyn CardReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
     meta_repository: Arc<dyn MetaRepository>,
+    event_manager: Arc<dyn EventManager>,
 }
 
 #[async_trait]
@@ -75,6 +80,7 @@ impl ElementCreationService for DefaultElementCreationService {
             },
         };
         self.folder_repository.create(folder).await?;
+        self.emit_element_created(parent).await;
         Ok(())
     }
 
@@ -117,7 +123,9 @@ impl ElementCreationService for DefaultElementCreationService {
             })
             .collect();
         self.reading_repository.create(reading, splits).await?;
-        self.ensure_reading_review(element_id, profile).await
+        self.ensure_reading_review(element_id, profile).await?;
+        self.emit_element_created(parent).await;
+        Ok(())
     }
 
     async fn create_extract(&self, dto: CreateExtractDto) -> Result<(), ElementCreationError> {
@@ -156,7 +164,9 @@ impl ElementCreationService for DefaultElementCreationService {
         };
         self.extract_repository.create(extract).await?;
         // Extracts are reviewed like readings.
-        self.ensure_reading_review(element_id, profile).await
+        self.ensure_reading_review(element_id, profile).await?;
+        self.emit_element_created(parent).await;
+        Ok(())
     }
 
     async fn create_card(&self, dto: CreateCardDto) -> Result<(), ElementCreationError> {
@@ -185,11 +195,21 @@ impl ElementCreationService for DefaultElementCreationService {
             back: dto.back,
         };
         self.card_repository.create(card).await?;
-        self.ensure_card_review(dto.id, element_id).await
+        self.ensure_card_review(dto.id, element_id).await?;
+        self.emit_element_created(parent).await;
+        Ok(())
     }
 }
 
 impl DefaultElementCreationService {
+    async fn emit_element_created(&self, parent: Option<ElementId>) {
+        let body = serde_json::to_value(ElementCreatedEventDto {
+            parent_id: parent.map(|parent_id| parent_id.id()),
+        })
+        .expect("ElementCreatedEventDto always serializes");
+        self.event_manager.push(ELEMENT_CREATED_EVENT, body).await;
+    }
+
     async fn resolve_origin(
         &self,
         parent: Option<ElementId>,
@@ -278,6 +298,7 @@ mod tests {
     use injector::{injector::Injector, register_scope};
 
     use crate::{
+        common::event_manager::{EventManager, MockEventManager},
         elements::repositories::meta_repository::MetaRepository,
         elements::services::implementations::default_element_index_service::DefaultElementIndexService,
         elements::services::implementations::default_priority_service::DefaultPriorityService,
@@ -298,6 +319,12 @@ mod tests {
     };
 
     use super::*;
+
+    fn permissive_event_manager() -> Arc<dyn EventManager> {
+        let mut mock = MockEventManager::new();
+        mock.expect_push().returning(|_, _| Box::pin(async {}));
+        Arc::new(mock)
+    }
 
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
@@ -385,6 +412,7 @@ mod tests {
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
+            event_manager: permissive_event_manager(),
         };
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
@@ -427,6 +455,7 @@ mod tests {
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
+            event_manager: permissive_event_manager(),
         };
         let dto = CreateCardDto {
             id: Uuid::new_v4(),
@@ -471,6 +500,7 @@ mod tests {
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
+            event_manager: permissive_event_manager(),
         };
         let dto = CreateExtractDto {
             id: Uuid::new_v4(),
@@ -533,6 +563,7 @@ mod tests {
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
+            event_manager: permissive_event_manager(),
         };
         let dto = CreateReadingDto {
             id: Uuid::new_v4(),
@@ -574,6 +605,7 @@ mod tests {
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
+            event_manager: permissive_event_manager(),
         };
         let dto = CreateExtractDto {
             id: Uuid::new_v4(),

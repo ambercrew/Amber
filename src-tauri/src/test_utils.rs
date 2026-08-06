@@ -7,6 +7,8 @@ use uuid::Uuid;
 use injector::register_scope;
 
 use crate::{
+    common::event_manager::EventManager,
+    common::services::implementations::tauri_event_manager::TauriEventManager,
     common::utils::{create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool},
     database::transaction_manager::TransactionManager,
     infrastructure::{
@@ -36,6 +38,15 @@ pub async fn create_test_injector() -> Injector {
     let db_pool = DbPool::new(sqlite_pool, database_location);
     injector.register_singleton(Arc::new(db_pool));
     register_scoped_tx(&mut injector);
+
+    let app_handle = tauri::test::mock_app().handle().clone();
+    injector.register_singleton(Arc::new(app_handle));
+    register_scope!(
+        injector,
+        dyn EventManager,
+        TauriEventManager<tauri::test::MockRuntime>
+    );
+
     register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
 
     let secrets_repository = DiskSecretsRepository::new(&app_data_directory);

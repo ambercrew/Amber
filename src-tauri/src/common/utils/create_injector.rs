@@ -19,7 +19,9 @@ use crate::ai_integration::services::implementations::default_document_uploader:
 use crate::backend::services::{
     authenticator::Authenticator, implementations::default_authenticator::DefaultAuthenticator,
 };
+use crate::common::event_manager::EventManager;
 use crate::common::request_bridge::RequestBridge;
+use crate::common::services::implementations::tauri_event_manager::TauriEventManager;
 use crate::common::services::implementations::tauri_lexical_json_converter::TauriLexicalJsonConverter;
 use crate::common::services::lexical_json_converter::LexicalJsonConverter;
 #[cfg(test)]
@@ -141,6 +143,7 @@ pub async fn create_injector<R: tauri::Runtime>(
         dyn LexicalJsonConverter,
         TauriLexicalJsonConverter<R>
     );
+    register_scope!(injector, dyn EventManager, TauriEventManager<R>);
 
     #[cfg(not(test))]
     let settings = DiskSettingsRepository::get_or_create_settings(

@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useWindowEvent } from "@mantine/hooks";
+import { ELEMENT_CREATED_EVENT } from "../../../api/elements/api/elementsApi";
 import { getDueElements } from "../../../api/study/api/studyApi";
 import useApi from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
+import { useTauriEvent } from "../../../hooks/useTauriEvent";
 import { queueLoaded } from "../../../stores/study/studyReducer";
 import { selectStudyStatus } from "../../../stores/study/studySelectors";
-import { ELEMENT_CREATED } from "../../../types/events/elementCreatedEvent";
 import { PRIORITY_CHANGED } from "../../../types/events/priorityChangedEvent";
 import { STUDY_SESSION_SETTINGS_CHANGED } from "../../../types/events/studySessionSettingsChangedEvent";
 
@@ -33,7 +34,7 @@ export function useDueElementsPreview() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [isStudying, callApi, dispatch]);
 
-	useWindowEvent(ELEMENT_CREATED, () => {
+	useTauriEvent(ELEMENT_CREATED_EVENT, () => {
 		if (isStudying) return;
 		refresh();
 	});

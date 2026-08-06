@@ -161,6 +161,8 @@ pub mod tests {
 
     use super::*;
     use crate::{
+        common::event_manager::EventManager,
+        common::services::implementations::tauri_event_manager::TauriEventManager,
         common::utils::{
             create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool,
         },
@@ -207,6 +209,14 @@ pub mod tests {
         let db_pool = DbPool::new(sqlite_pool, database_location);
         injector.register_singleton(Arc::new(db_pool));
         register_scoped_tx(&mut injector);
+
+        let app_handle = tauri::test::mock_app().handle().clone();
+        injector.register_singleton(Arc::new(app_handle));
+        register_scope!(
+            injector,
+            dyn EventManager,
+            TauriEventManager<tauri::test::MockRuntime>
+        );
 
         register_scope!(
             injector,

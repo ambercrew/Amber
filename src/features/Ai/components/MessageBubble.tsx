@@ -60,7 +60,6 @@ function renderMarkdown(value: string) {
 	return sanitizeHtml(marked.parse(value, { async: false }) as string);
 }
 
-// TODO: show some more things about the tool call than name
 function ContextSnippets({ snippets }: { snippets: string[] }) {
 	const [opened, { toggle }] = useDisclosure(false);
 

@@ -3,6 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
+use crate::common::event_manager::EventManager;
 use crate::database::transaction_manager::{TransactionManager, TransactionManagerError};
 use crate::infrastructure::value_objects::{db_pool::DbPool, db_transaction::DbTransaction};
 
@@ -10,6 +11,7 @@ use crate::infrastructure::value_objects::{db_pool::DbPool, db_transaction::DbTr
 pub struct SqliteTransactionManager {
     db_transaction: Arc<DbTransaction>,
     db_pool: Arc<DbPool>,
+    event_manager: Arc<dyn EventManager>,
 }
 
 #[async_trait]
@@ -24,6 +26,10 @@ impl TransactionManager for SqliteTransactionManager {
         old_tx
             .commit()
             .await
-            .map_err(|err| TransactionManagerError::CommitFailed(Box::new(err)))
+            .map_err(|err| TransactionManagerError::CommitFailed(Box::new(err)))?;
+
+        self.event_manager.emit_all().await;
+
+        Ok(())
     }
 }

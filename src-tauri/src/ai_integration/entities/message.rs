@@ -59,10 +59,6 @@ impl Message {
         &self.content
     }
 
-    pub fn content_mut(&mut self) -> &mut MessageContent {
-        &mut self.content
-    }
-
     pub fn try_into_rig_message(
         self,
         context_snippets: &[String],

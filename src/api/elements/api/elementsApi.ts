@@ -15,6 +15,9 @@ import { AnyElementDto } from "../dto/anyElementDto";
 import { ElementDetailsResponseDto } from "../dto/elementDetailsDto";
 import { NodeDto } from "../dto/nodeDto";
 
+/** Event name the backend emits after creating a reading, extract or card under a parent (src-tauri/src/elements/dto/element_created_event_dto.rs). */
+export const ELEMENT_CREATED_EVENT = "elementCreated";
+
 export function getElementTree(): Promise<NodeDto[]> {
 	return invoke("get_element_tree");
 }

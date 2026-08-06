@@ -12,6 +12,15 @@ vi.mock("@tauri-apps/plugin-os", () => ({
 	type: vi.fn().mockReturnValue("linux"),
 }));
 
+// Real `listen` reaches into Tauri internals jsdom doesn't provide. Tests
+// that care about a specific backend event mock this module themselves and
+// capture the handler instead.
+vi.mock("@tauri-apps/api/event", () => ({
+	listen: vi.fn().mockResolvedValue(() => {
+		/* Empty */
+	}),
+}));
+
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { getComputedStyle } = window;
 window.getComputedStyle = elt => getComputedStyle(elt);
