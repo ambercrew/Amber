@@ -2,10 +2,8 @@ use std::collections::HashMap;
 
 use uuid::Uuid;
 
-/// A text snippet the user selected as additional context when sending a
-/// human message. Stored separately from `Message` so it is only fetched
-/// when actually needed (displaying a chat, or resending history to the AI),
-/// rather than always joined onto every message row.
+/// A text snippet used  as additional context when sending a
+/// human message.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContextSnippet {
     id: Uuid,

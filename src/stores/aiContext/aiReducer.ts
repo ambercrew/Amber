@@ -13,7 +13,7 @@ const initialState: AiContextState = {
 	snippets: [],
 };
 
-const aiContextSlice = createSlice({
+const aiSlice = createSlice({
 	name: "aiContext",
 	initialState,
 	reducers: {
@@ -40,11 +40,11 @@ const aiContextSlice = createSlice({
 	},
 });
 
-export default aiContextSlice.reducer;
+export default aiSlice.reducer;
 
 export const {
 	addAiContextSnippet,
 	removeAiContextSnippet,
 	clearAiContextSnippets,
 	restoreAiContextSnippets,
-} = aiContextSlice.actions;
+} = aiSlice.actions;

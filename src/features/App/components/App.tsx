@@ -51,6 +51,7 @@ export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
+// TODO: add about events to CLAUDE.md
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 

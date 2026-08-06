@@ -21,7 +21,7 @@ import useAppSelector from "../../../hooks/useAppSelector";
 import {
 	clearAiContextSnippets,
 	restoreAiContextSnippets,
-} from "../../../stores/aiContext/aiContextReducer";
+} from "../../../stores/aiContext/aiReducer";
 import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
 import { StreamingToolMessage } from "../utils/buildDisplayMessages";
 

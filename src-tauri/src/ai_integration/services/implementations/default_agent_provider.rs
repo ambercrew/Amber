@@ -110,6 +110,7 @@ impl AgentProvider for DefaultAgentProvider {
             return Ok(builder.build());
         }
 
+        // TODO: no need to provide it here let the search document create the index
         let embed_model = self
             .ai_client_provider
             .get_embeddings_model(&client)

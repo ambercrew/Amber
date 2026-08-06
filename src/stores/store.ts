@@ -9,7 +9,7 @@ import bibliographicalSourcesReducer from "./bibliographicalSources/bibliographi
 import elementDetailsReducer from "./elementDetails/elementDetailsReducer";
 import searchReducer from "./search/searchReducer";
 import trashReducer from "./trash/trashReducer";
-import aiContextReducer from "./aiContext/aiContextReducer";
+import aiReducer from "./aiContext/aiReducer";
 
 const reducers = combineReducers({
 	user: userReducer,
@@ -22,7 +22,7 @@ const reducers = combineReducers({
 	elementDetails: elementDetailsReducer,
 	search: searchReducer,
 	trash: trashReducer,
-	aiContext: aiContextReducer,
+	aiContext: aiReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {

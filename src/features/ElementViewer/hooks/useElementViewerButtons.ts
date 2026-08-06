@@ -25,7 +25,7 @@ import { paths } from "../../../paths";
 import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectSettings } from "../../../stores/settings/settingsSelector";
-import { addAiContextSnippet } from "../../../stores/aiContext/aiContextReducer";
+import { addAiContextSnippet } from "../../../stores/aiContext/aiReducer";
 
 export const CLOZE_COLOR = "blue";
 
