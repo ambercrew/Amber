@@ -2,15 +2,15 @@ import { invoke } from "@tauri-apps/api/core";
 import { CreateCardDto } from "../../../types/elements/createCardDto";
 import { CreateExtractDto } from "../../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../../types/elements/createFolderDto";
-import { CreateReadingDto } from "../../../types/elements/createReadingDto";
+import { CreateLearningAssetDto } from "../../../types/elements/createLearningAssetDto";
 import { ElementId } from "../../../types/elements/elementId";
 import { UpdateCardDto } from "../../../types/elements/updateCardDto";
 import { UpdateExtractDto } from "../../../types/elements/updateExtractDto";
-import { UpdateReadingDto } from "../../../types/elements/updateReadingDto";
+import { UpdateLearningAssetDto } from "../../../types/elements/updateLearningAssetDto";
 import { UpdateReadPointDto } from "../../../types/elements/updateReadPointDto";
-import { ReadingSplitIdDto } from "../../../types/elements/readingSplitIdDto";
-import { ReadingSplitMetaDto } from "../../../types/elements/readingSplitMetaDto";
-import { ReadingSplitTextDto } from "../../../types/elements/readingSplitTextDto";
+import { LearningAssetSplitIdDto } from "../../../types/elements/learningAssetSplitIdDto";
+import { LearningAssetSplitMetaDto } from "../../../types/elements/learningAssetSplitMetaDto";
+import { LearningAssetSplitTextDto } from "../../../types/elements/learningAssetSplitTextDto";
 import { AnyElementDto } from "../dto/anyElementDto";
 import { ElementDetailsResponseDto } from "../dto/elementDetailsDto";
 import { NodeDto } from "../dto/nodeDto";
@@ -30,8 +30,10 @@ export function createFolder(dto: CreateFolderDto): Promise<void> {
 	return invoke("create_folder", { dto });
 }
 
-export function createReading(dto: CreateReadingDto): Promise<void> {
-	return invoke("create_reading", { dto });
+export function createLearningAsset(
+	dto: CreateLearningAssetDto,
+): Promise<void> {
+	return invoke("create_learning_asset", { dto });
 }
 
 export function createExtract(dto: CreateExtractDto): Promise<void> {
@@ -42,26 +44,28 @@ export function createCard(dto: CreateCardDto): Promise<void> {
 	return invoke("create_card", { dto });
 }
 
-export function updateReading(dto: UpdateReadingDto): Promise<void> {
-	return invoke("update_reading", { dto });
+export function updateLearningAsset(
+	dto: UpdateLearningAssetDto,
+): Promise<void> {
+	return invoke("update_learning_asset", { dto });
 }
 
-export function getReadingSplitManifest(
-	readingId: string,
-): Promise<ReadingSplitMetaDto[]> {
-	return invoke("get_reading_split_manifest", { readingId });
+export function getLearningAssetSplitManifest(
+	learningAssetId: string,
+): Promise<LearningAssetSplitMetaDto[]> {
+	return invoke("get_learning_asset_split_manifest", { learningAssetId });
 }
 
-export function getReadingSplitContent(
-	splitId: ReadingSplitIdDto,
+export function getLearningAssetSplitContent(
+	splitId: LearningAssetSplitIdDto,
 ): Promise<string> {
-	return invoke("get_reading_split_content", { dto: splitId });
+	return invoke("get_learning_asset_split_content", { dto: splitId });
 }
 
-export function getReadingSplitTexts(
-	readingId: string,
-): Promise<ReadingSplitTextDto[]> {
-	return invoke("get_reading_split_texts", { readingId });
+export function getLearningAssetSplitTexts(
+	learningAssetId: string,
+): Promise<LearningAssetSplitTextDto[]> {
+	return invoke("get_learning_asset_split_texts", { learningAssetId });
 }
 
 export function updateReadPoint(dto: UpdateReadPointDto): Promise<void> {

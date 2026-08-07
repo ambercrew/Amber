@@ -8,7 +8,7 @@ export interface NormalizeOptions {
 }
 
 /** Sanitizes HTML and localizes its images. The result is stored directly as
- * a Reading's content — the editor already knows how to load HTML. */
+ * a LearningAsset's content — the editor already knows how to load HTML. */
 export async function normalize(
 	html: string,
 	opts: NormalizeOptions,

@@ -1,6 +1,6 @@
 import { normalize } from "../normalize";
 import { deriveTitle } from "../deriveTitle";
-import { createImportedReading } from "../createImportedReading";
+import { createImportedLearningAsset } from "../createImportedLearningAsset";
 import { ImportContext } from "../importContext";
 
 export interface PastedContent {
@@ -16,7 +16,7 @@ export async function runContentImport(
 	const content = await normalize(html, { baseUrl: null });
 	const title = deriveTitle(content, input.text);
 
-	await createImportedReading(ctx, title, content);
+	await createImportedLearningAsset(ctx, title, content);
 }
 
 function textToParagraphs(text: string): string {

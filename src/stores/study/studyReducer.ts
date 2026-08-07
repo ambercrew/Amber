@@ -7,7 +7,7 @@ export type CardPhase = "question" | "answer";
 
 export interface StudyCounts {
 	cards: number;
-	readings: number;
+	learningAssets: number;
 	finished: number;
 }
 
@@ -29,7 +29,7 @@ const initialState: StudyState = {
 	queue: [],
 	cardPhase: "question",
 	shownAt: null,
-	counts: { cards: 0, readings: 0, finished: 0 },
+	counts: { cards: 0, learningAssets: 0, finished: 0 },
 	summary: null,
 };
 
@@ -46,7 +46,7 @@ const studySlice = createSlice({
 			state.queue = action.payload;
 			state.cardPhase = "question";
 			state.shownAt = Date.now();
-			state.counts = { cards: 0, readings: 0, finished: 0 };
+			state.counts = { cards: 0, learningAssets: 0, finished: 0 };
 			state.summary = null;
 		},
 		answerShown: state => {
@@ -73,12 +73,12 @@ const studySlice = createSlice({
 			state.queue.splice(currentIndex, 1);
 			state.queue.splice(insertAt - 1, 0, current);
 		},
-		readingAdvanced: state => {
-			state.counts.readings += 1;
+		learningAssetAdvanced: state => {
+			state.counts.learningAssets += 1;
 		},
-		// Moves a reading/extract to the end of the queue when the user
+		// Moves a learning asset/extract to the end of the queue when the user
 		// isn't ready to review it yet, without marking it done.
-		readingSkipped: (
+		learningAssetSkipped: (
 			state,
 			action: PayloadAction<{ elementId: ElementId }>,
 		) => {
@@ -89,7 +89,7 @@ const studySlice = createSlice({
 			const [current] = state.queue.splice(currentIndex, 1);
 			state.queue.push(current);
 		},
-		readingFinished: state => {
+		learningAssetFinished: state => {
 			state.counts.finished += 1;
 		},
 		// Removes the reviewed element (if any — a requeued card isn't done
@@ -151,9 +151,9 @@ export const {
 	answerShown,
 	cardGraded,
 	cardRequeued,
-	readingAdvanced,
-	readingFinished,
-	readingSkipped,
+	learningAssetAdvanced,
+	learningAssetFinished,
+	learningAssetSkipped,
 	sessionAdvanced,
 	sessionStopped,
 	summaryDismissed,

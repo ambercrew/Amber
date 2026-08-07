@@ -1,7 +1,7 @@
 import { runFileImport } from "../../../../features/Import/flows/file";
 import { extractPdf } from "../../../../features/Import/pdf/extract";
 import { normalize } from "../../../../features/Import/normalize";
-import { createImportedReading } from "../../../../features/Import/createImportedReading";
+import { createImportedLearningAsset } from "../../../../features/Import/createImportedLearningAsset";
 import { createBibliographicalSource } from "../../../../api/bibliographicalSources/api/bibliographicalSourcesApi";
 import { BibliographicalSourceResponseDto } from "../../../../api/bibliographicalSources/dto/bibliographicalSourceDto";
 import { ImportContext } from "../../../../features/Import/importContext";
@@ -11,7 +11,7 @@ type Thunk = (dispatch: AppDispatch, getState: () => RootState) => unknown;
 
 vi.mock(import("../../../../features/Import/pdf/extract"));
 vi.mock(import("../../../../features/Import/normalize"));
-vi.mock(import("../../../../features/Import/createImportedReading"));
+vi.mock(import("../../../../features/Import/createImportedLearningAsset"));
 vi.mock(
 	import("../../../../api/bibliographicalSources/api/bibliographicalSourcesApi"),
 );
@@ -71,7 +71,7 @@ describe("runFileImport", () => {
 		expect(extractPdf).not.toHaveBeenCalled();
 	});
 
-	it("Should extract, normalize, and create a reading for a valid pdf", async () => {
+	it("Should extract, normalize, and create a learning asset for a valid pdf", async () => {
 		// Arrange
 
 		vi.mocked(extractPdf).mockResolvedValue({
@@ -103,7 +103,7 @@ describe("runFileImport", () => {
 			sourceType: "File",
 			location: "document.pdf",
 		});
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"PDF Title",
 			"<p>normalized</p>",
@@ -131,7 +131,7 @@ describe("runFileImport", () => {
 
 		// Assert
 
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"report",
 			"<p>content</p>",
@@ -159,7 +159,7 @@ describe("runFileImport", () => {
 
 		// Assert
 
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"myfile",
 			"<p>content</p>",

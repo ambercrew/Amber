@@ -5,7 +5,7 @@ import {
 	createCardAction,
 	createExtractAction,
 	createFolderAction,
-	createReadingAction,
+	createLearningAssetAction,
 } from "../../../stores/elements/elementsActions";
 import { AppDispatch } from "../../../stores/store";
 import { ElementId } from "../../../types/elements/elementId";
@@ -36,16 +36,16 @@ function useCreateHandlers(
 					},
 				}),
 			),
-		reading: () =>
+		learningAsset: () =>
 			run(
-				createReadingAction({
+				createLearningAssetAction({
 					id: crypto.randomUUID(),
 					meta: {
-						name: defaultElementName("Reading"),
+						name: defaultElementName("Learning Asset"),
 						parent: elementId,
 						origin: { type: "custom" },
 					},
-					// A new reading is a single empty split (seq 0) so it can be
+					// A new learning asset is a single empty split (seq 0) so it can be
 					// edited immediately.
 					splits: [""],
 				}),
@@ -95,9 +95,9 @@ export default function CreateElementDropDown({
 				Folder
 			</Menu.Item>
 			<Menu.Item
-				leftSection={<ElementNodeIcon type="reading" size={16} />}
-				onClick={handlers.reading}>
-				Reading
+				leftSection={<ElementNodeIcon type="learningAsset" size={16} />}
+				onClick={handlers.learningAsset}>
+				Learning Asset
 			</Menu.Item>
 			<Menu.Item
 				leftSection={<ElementNodeIcon type="extract" size={16} />}

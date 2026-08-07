@@ -3,7 +3,7 @@ import CardElementViewer from "./CardElementViewer";
 import ExtractElementViewer from "./ExtractElementViewer";
 import FindInPageBar from "./FindInPageBar";
 import FolderView from "./FolderView";
-import ReadingView from "./ReadingView/ReadingView";
+import LearningAssetView from "./LearningAssetView/LearningAssetView";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../stores/elements/elementsSelectors";
 import { selectStudyStatus } from "../../stores/study/studySelectors";
@@ -79,10 +79,10 @@ export default function ElementViewer() {
 					onHighlightCreated={handleHighlightCreated}
 				/>
 			)}
-			{currentElement.type === "reading" && (
-				<ReadingView
-					key={`reading-${elementId.id}`}
-					readingId={elementId.id}
+			{currentElement.type === "learningAsset" && (
+				<LearningAssetView
+					key={`learningAsset-${elementId.id}`}
+					learningAssetId={elementId.id}
 					readPoint={currentElement.data.readPoint}
 					meta={currentElement.data.meta}
 					buttons={buttons}

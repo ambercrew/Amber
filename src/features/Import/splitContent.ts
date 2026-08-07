@@ -1,5 +1,5 @@
 /**
- * Reading splits are bounded by a top-level-block budget, not by page, chapter,
+ * LearningAsset splits are bounded by a top-level-block budget, not by page, chapter,
  * or outline structure — those break unpredictably (mid-paragraph after PDF
  * reflow) or are unbounded (a chapter can exceed the whole editor budget).
  * Preferring a heading boundary near the target keeps most seams at a place a

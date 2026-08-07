@@ -82,7 +82,7 @@ The `EventManager` trait (implemented by `TauriEventManager`, `common/services/i
 
 ### Domain Modules
 
-- **elements** — Core content tree: `Folder`, `Reading`, `Extract`, `Card` (see Element Duplication below)
+- **elements** — Core content tree: `Folder`, `LearningAsset`, `Extract`, `Card` (see Element Duplication below)
 - **study** — FSRS spaced-repetition scheduling (study profiles, card grading) and the global review-priority queue (`MetaRepository`'s priority-ordering methods)
 - **bibliographical_sources** — Registry of original works (book, article, video, etc.) that elements are imported from; one `BibliographicalSource` is shared by every element derived from it (`Meta::bibliographical_source_id`). The UI pairs it with the per-element `derived_from` lineage under the umbrella term **origin**
 - **import** — PDF/HTML/URL content import pipeline (extraction, conversion to elements)
@@ -108,11 +108,11 @@ Backend → frontend event names and their payloads live under a module's `event
 
 ### Element Duplication
 
-Elements (`Folder`, `Reading`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent`). These traits live in `elements/entities/traits.rs`. Avoid duplicating logic that can be expressed through these traits:
+Elements (`Folder`, `LearningAsset`, `Extract`, `Card`) share significant structure — all implement `Element` (for `meta`) and `Tagged` (for `tags`); `Extract` and `Card` also implement `Derived` (for `parent`). These traits live in `elements/entities/traits.rs`. Avoid duplicating logic that can be expressed through these traits:
 
 - Use `element.meta()` (via `Element`) instead of repeating `element.meta.id / .name / .position` patterns across element types.
 - Use `tag_strings(tagged)` or equivalent helpers rather than inlining `.tags().iter().map(|t| t.to_string()).collect()` per element.
-- Use `ExtractParent::from_type_and_id` / `CardParent::from_type_and_id` and their `type_str()` / `id()` methods instead of repeating the `"reading" / "extract" / "folder"` match arms. `Extract` uses `ExtractParent` (Reading | Extract | Folder); `Card` uses `CardParent` (Reading | Extract | Folder).
+- Use `ExtractParent::from_type_and_id` / `CardParent::from_type_and_id` and their `type_str()` / `id()` methods instead of repeating the `"learning_asset" / "extract" / "folder"` match arms. `Extract` uses `ExtractParent` (LearningAsset | Extract | Folder); `Card` uses `CardParent` (LearningAsset | Extract | Folder).
 - Use generic helpers for patterns that repeat over different element types.
 
 ## Frontend Architecture (`src/`)

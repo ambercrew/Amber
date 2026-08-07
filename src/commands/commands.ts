@@ -63,7 +63,7 @@ export const commandGroups = [
 	"General",
 	"Study",
 	"Settings",
-	"Reading",
+	"Learning Asset",
 ] as const;
 export type CommandGroup = (typeof commandGroups)[number];
 
@@ -144,11 +144,11 @@ export const commandsById: Record<CommandId, Command> = {
 	},
 	"set-read-point": {
 		id: "set-read-point",
-		group: "Reading",
+		group: "Learning Asset",
 		label: "Set read point",
 		shortcut: SET_READ_POINT_SHORTCUT,
 		icon: createElement(BookmarkSimpleIcon),
-		enabled: state => selectCurrentElement(state)?.type === "reading",
+		enabled: state => selectCurrentElement(state)?.type === "learningAsset",
 		execute: () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_SET_REQUESTED));
 			notifications.show({ message: "Read point set" });
@@ -156,10 +156,10 @@ export const commandsById: Record<CommandId, Command> = {
 	},
 	"clear-read-point": {
 		id: "clear-read-point",
-		group: "Reading",
+		group: "Learning Asset",
 		label: "Clear read point",
 		icon: createElement(EraserIcon),
-		enabled: state => selectCurrentElement(state)?.type === "reading",
+		enabled: state => selectCurrentElement(state)?.type === "learningAsset",
 		execute: () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_CLEAR_REQUESTED));
 			notifications.show({ message: "Read point cleared" });
@@ -167,10 +167,10 @@ export const commandsById: Record<CommandId, Command> = {
 	},
 	"go-to-read-point": {
 		id: "go-to-read-point",
-		group: "Reading",
+		group: "Learning Asset",
 		label: "Go to read point",
 		icon: createElement(MapPinIcon),
-		enabled: state => selectCurrentElement(state)?.type === "reading",
+		enabled: state => selectCurrentElement(state)?.type === "learningAsset",
 		execute: () => {
 			window.dispatchEvent(new Event(READ_POINT_MANUAL_GOTO_REQUESTED));
 		},

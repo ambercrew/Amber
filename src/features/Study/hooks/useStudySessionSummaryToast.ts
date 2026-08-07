@@ -14,7 +14,7 @@ export function useStudySessionSummaryToast() {
 	useEffect(() => {
 		if (!summary) return;
 		notifications.show({
-			message: `Done for today — ${summary.cards} cards, ${summary.readings} readings`,
+			message: `Done for today — ${summary.cards} cards, ${summary.learningAssets} learningAssets`,
 		});
 		dispatch(summaryDismissed());
 	}, [summary, dispatch]);

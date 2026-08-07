@@ -27,16 +27,19 @@ const TREE: NodeDto[] = [
 		},
 		children: {
 			folders: [],
-			readings: [
+			learningAssets: [
 				{
 					meta: {
-						elementId: { type: "reading", id: "reading-biology" },
+						elementId: {
+							type: "learningAsset",
+							id: "learningAsset-biology",
+						},
 						name: "Biology Basics",
 						position: "0",
 					},
 					children: {
 						folders: [],
-						readings: [],
+						learningAssets: [],
 						extracts: [],
 						cards: [],
 					},
@@ -88,7 +91,7 @@ describe("ElementTree create child", () => {
 		);
 	});
 
-	it("Should dispatch createExtractAction with the reading as parent when Extract is clicked", async () => {
+	it("Should dispatch createExtractAction with the learning asset as parent when Extract is clicked", async () => {
 		// Arrange
 
 		vi.mocked(createExtractAction).mockReturnValue(() => Promise.resolve());
@@ -116,7 +119,10 @@ describe("ElementTree create child", () => {
 		expect(createExtractAction).toHaveBeenCalledWith(
 			expect.objectContaining({
 				meta: expect.objectContaining({
-					parent: { type: "reading", id: "reading-biology" },
+					parent: {
+						type: "learningAsset",
+						id: "learningAsset-biology",
+					},
 				}) as object,
 			}),
 		);

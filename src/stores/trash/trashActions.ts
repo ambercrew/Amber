@@ -7,7 +7,7 @@ import {
 	trashElement,
 } from "../../api/trash/api/trashApi";
 import { TrashedElementDto } from "../../api/trash/dto/trashedElementDto";
-import { clearSplitHeights } from "../../features/ElementViewer/ReadingView/heights/splitHeightsStorage";
+import { clearSplitHeights } from "../../features/ElementViewer/LearningAssetView/heights/splitHeightsStorage";
 import { ElementId } from "../../types/elements/elementId";
 import errorToString from "../../utils/errorToString";
 import { setTree } from "../elements/elementsReducer";
@@ -40,11 +40,11 @@ export function emptyTrashAction(items: TrashedElementDto[]) {
 	});
 }
 
-/** A permanently deleted reading's cached split heights are dead weight in
+/** A permanently deleted learning asset's cached split heights are dead weight in
  * localStorage, so they go with it. */
 function forgetSplitHeights(elementIds: ElementId[]) {
 	for (const elementId of elementIds) {
-		if (elementId.type === "reading") clearSplitHeights(elementId.id);
+		if (elementId.type === "learningAsset") clearSplitHeights(elementId.id);
 	}
 }
 

@@ -4,7 +4,7 @@ import { Rating } from "../../../types/study/rating";
 import { CardDuePreviewDto } from "../dto/cardDuePreviewDto";
 import { CardReviewDto } from "../dto/cardReviewDto";
 import { DueElementDto } from "../dto/dueElementDto";
-import { ReadingReviewDto } from "../dto/readingReviewDto";
+import { LearningAssetReviewDto } from "../dto/learningAssetReviewDto";
 
 export function getDueElements(): Promise<DueElementDto[]> {
 	return invoke("get_due_elements");
@@ -22,32 +22,38 @@ export function previewCardReview(cardId: string): Promise<CardDuePreviewDto> {
 	return invoke("preview_card_review", { cardId });
 }
 
-export function nextReading(elementId: ElementId): Promise<ReadingReviewDto> {
-	return invoke("next_reading", { elementId });
-}
-
-export function previewNextReading(elementId: ElementId): Promise<string> {
-	return invoke("preview_next_reading", { elementId });
-}
-
-export function finishReading(elementId: ElementId): Promise<ReadingReviewDto> {
-	return invoke("finish_reading", { elementId });
-}
-
-export function unfinishReading(
+export function nextLearningAsset(
 	elementId: ElementId,
-): Promise<ReadingReviewDto> {
-	return invoke("unfinish_reading", { elementId });
+): Promise<LearningAssetReviewDto> {
+	return invoke("next_learning_asset", { elementId });
+}
+
+export function previewNextLearningAsset(
+	elementId: ElementId,
+): Promise<string> {
+	return invoke("preview_next_learning_asset", { elementId });
+}
+
+export function finishLearningAsset(
+	elementId: ElementId,
+): Promise<LearningAssetReviewDto> {
+	return invoke("finish_learning_asset", { elementId });
+}
+
+export function unfinishLearningAsset(
+	elementId: ElementId,
+): Promise<LearningAssetReviewDto> {
+	return invoke("unfinish_learning_asset", { elementId });
 }
 
 export function getCardReview(cardId: string): Promise<CardReviewDto | null> {
 	return invoke("get_card_review", { cardId });
 }
 
-export function getReadingReview(
+export function getLearningAssetReview(
 	elementId: ElementId,
-): Promise<ReadingReviewDto | null> {
-	return invoke("get_reading_review", { elementId });
+): Promise<LearningAssetReviewDto | null> {
+	return invoke("get_learning_asset_review", { elementId });
 }
 
 export function getFuzzFactor(): Promise<number> {

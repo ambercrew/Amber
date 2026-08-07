@@ -5,7 +5,7 @@ import { useElementTreeExpansion } from "../../../../features/Sidebar/hooks/useE
 // Tree used across tests:
 //
 //   science-folder
-//     └── biology-reading
+//     └── biology-learning asset
 //           └── cell-card
 //   art-folder
 
@@ -18,7 +18,9 @@ function node(value: string, children: TreeNodeData[]): TreeNodeData {
 }
 
 const DATA: TreeNodeData[] = [
-	node("science-folder", [node("biology-reading", [leaf("cell-card")])]),
+	node("science-folder", [
+		node("biology-learningAsset", [leaf("cell-card")]),
+	]),
 	leaf("art-folder"),
 ];
 
@@ -51,7 +53,7 @@ describe("useElementTreeExpansion", () => {
 
 		const { result } = renderHook(() => useElementTreeExpansion(DATA));
 
-		// Act — search for "cell" which is inside biology-reading inside science-folder
+		// Act — search for "cell" which is inside biology-learning asset inside science-folder
 
 		act(() => result.current.handleSearchChange("cell"));
 
@@ -61,7 +63,9 @@ describe("useElementTreeExpansion", () => {
 			result.current.treeController.expandedState["science-folder"],
 		).toBe(true);
 		expect(
-			result.current.treeController.expandedState["biology-reading"],
+			result.current.treeController.expandedState[
+				"biology-learningAsset"
+			],
 		).toBe(true);
 	});
 
@@ -134,21 +138,23 @@ describe("useElementTreeExpansion", () => {
 		act(() => result.current.handleSearchChange(""));
 		await flushMicrotasks();
 
-		// Assert — the path to cell-card must be open: science-folder and biology-reading
+		// Assert — the path to cell-card must be open: science-folder and biology-learning asset
 
 		expect(
 			result.current.treeController.expandedState["science-folder"],
 		).toBe(true);
 		expect(
-			result.current.treeController.expandedState["biology-reading"],
+			result.current.treeController.expandedState[
+				"biology-learningAsset"
+			],
 		).toBe(true);
 	});
 
 	it("Should merge pre-search expanded state with selected ancestors on clear", async () => {
-		// Arrange — art-folder was expanded before searching; biology-reading is selected
+		// Arrange — art-folder was expanded before searching; biology-learning asset is selected
 
 		const { result } = renderHook(() =>
-			useElementTreeExpansion(DATA, "biology-reading"),
+			useElementTreeExpansion(DATA, "biology-learningAsset"),
 		);
 		act(() => result.current.treeController.expand("art-folder"));
 		await flushMicrotasks();
@@ -194,7 +200,9 @@ describe("useElementTreeExpansion", () => {
 			result.current.treeController.expandedState["science-folder"],
 		).toBe(true);
 		expect(
-			result.current.treeController.expandedState["biology-reading"],
+			result.current.treeController.expandedState[
+				"biology-learningAsset"
+			],
 		).toBe(true);
 	});
 
@@ -221,7 +229,9 @@ describe("useElementTreeExpansion", () => {
 			result.current.treeController.expandedState["science-folder"],
 		).toBe(true);
 		expect(
-			result.current.treeController.expandedState["biology-reading"],
+			result.current.treeController.expandedState[
+				"biology-learningAsset"
+			],
 		).toBe(true);
 	});
 

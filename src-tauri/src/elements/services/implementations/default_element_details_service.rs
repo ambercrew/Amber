@@ -11,7 +11,7 @@ use crate::elements::services::element_details_service::{
 use crate::elements::services::priority_service::PriorityService;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::learning_asset_review_repository::LearningAssetReviewRepository;
 use crate::study::services::profile_resolution_service::{ProfileResolutionService, ProfileSource};
 use crate::study::services::study_profile_service::StudyProfileService;
 
@@ -20,7 +20,7 @@ pub struct DefaultElementDetailsService {
     meta_repository: Arc<dyn MetaRepository>,
     bibliographical_source_service: Arc<dyn BibliographicalSourceService>,
     card_review_repository: Arc<dyn CardReviewRepository>,
-    reading_review_repository: Arc<dyn ReadingReviewRepository>,
+    learning_asset_review_repository: Arc<dyn LearningAssetReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
     study_profile_service: Arc<dyn StudyProfileService>,
     priority_service: Arc<dyn PriorityService>,
@@ -61,9 +61,11 @@ impl ElementDetailsService for DefaultElementDetailsService {
             None
         };
 
-        let reading_review = if matches!(element_id, ElementId::Reading(_) | ElementId::Extract(_))
-        {
-            self.reading_review_repository
+        let learning_asset_review = if matches!(
+            element_id,
+            ElementId::LearningAsset(_) | ElementId::Extract(_)
+        ) {
+            self.learning_asset_review_repository
                 .get_by_element_id(element_id.id())
                 .await?
         } else {
@@ -98,7 +100,7 @@ impl ElementDetailsService for DefaultElementDetailsService {
             bibliographical_source,
             derived_from_name,
             card_review,
-            reading_review,
+            learning_asset_review,
             effective_profile,
             profiles,
             inherited_profile_name,
@@ -131,13 +133,14 @@ mod tests {
             sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository,
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
+            sqlite_learning_asset_review_repository::SqliteLearningAssetReviewRepository,
             sqlite_meta_repository::SqliteMetaRepository,
-            sqlite_reading_review_repository::SqliteReadingReviewRepository,
             sqlite_study_profile_repository::SqliteStudyProfileRepository,
         },
         study::{
             entities::{
-                card_review::CardReview, reading_review::ReadingReview, study_profile::StudyProfile,
+                card_review::CardReview, learning_asset_review::LearningAssetReview,
+                study_profile::StudyProfile,
             },
             repositories::study_profile_repository::StudyProfileRepository,
             services::implementations::default_profile_resolution_service::DefaultProfileResolutionService,
@@ -170,8 +173,8 @@ mod tests {
         );
         register_scope!(
             injector,
-            dyn ReadingReviewRepository,
-            SqliteReadingReviewRepository
+            dyn LearningAssetReviewRepository,
+            SqliteLearningAssetReviewRepository
         );
         register_scope!(
             injector,
@@ -257,7 +260,7 @@ mod tests {
         assert!(details.bibliographical_source.is_none());
         assert!(details.derived_from_name.is_none());
         assert!(details.card_review.is_none());
-        assert!(details.reading_review.is_none());
+        assert!(details.learning_asset_review.is_none());
         assert_eq!(details.inherited_profile_name, Some("Default".to_string()));
     }
 
@@ -324,10 +327,10 @@ mod tests {
 
         profile_repo.create(&make_profile(true)).await.unwrap();
 
-        let bibliographical_source_id = ElementId::Reading(Uuid::new_v4());
+        let bibliographical_source_id = ElementId::LearningAsset(Uuid::new_v4());
         meta_repo
             .create_meta(&Meta {
-                name: "BibliographicalSource reading".into(),
+                name: "BibliographicalSource Learning Asset".into(),
                 ..make_meta(bibliographical_source_id, None)
             })
             .await
@@ -350,7 +353,7 @@ mod tests {
 
         assert_eq!(
             details.derived_from_name,
-            Some("BibliographicalSource reading".to_string())
+            Some("BibliographicalSource Learning Asset".to_string())
         );
     }
 
@@ -397,30 +400,30 @@ mod tests {
         // Assert
 
         assert_eq!(details.card_review.unwrap().card_id, card_id.id());
-        assert!(details.reading_review.is_none());
+        assert!(details.learning_asset_review.is_none());
     }
 
     #[tokio::test]
-    async fn get_element_details_reading_with_review_returns_reading_review() {
+    async fn get_element_details_learning_asset_with_review_returns_learning_asset_review() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
-        let reading_review_repo = scope.resolve::<dyn ReadingReviewRepository>().await;
+        let learning_asset_review_repo = scope.resolve::<dyn LearningAssetReviewRepository>().await;
         let profile_repo = scope.resolve::<dyn StudyProfileRepository>().await;
         let service = scope.resolve::<dyn ElementDetailsService>().await;
 
         profile_repo.create(&make_profile(true)).await.unwrap();
 
-        let reading_id = ElementId::Reading(Uuid::new_v4());
+        let learning_asset_id = ElementId::LearningAsset(Uuid::new_v4());
         meta_repo
-            .create_meta(&make_meta(reading_id, None))
+            .create_meta(&make_meta(learning_asset_id, None))
             .await
             .unwrap();
-        reading_review_repo
-            .upsert(&ReadingReview {
-                element_id: reading_id,
+        learning_asset_review_repo
+            .upsert(&LearningAssetReview {
+                element_id: learning_asset_id,
                 due: Utc::now() + Duration::days(5),
                 interval_days: 5.0,
                 last_reviewed: Some(Utc::now()),
@@ -431,12 +434,18 @@ mod tests {
 
         // Act
 
-        let details = service.get_element_details(reading_id).await.unwrap();
+        let details = service
+            .get_element_details(learning_asset_id)
+            .await
+            .unwrap();
 
         // Assert
 
         assert!(details.card_review.is_none());
-        assert_eq!(details.reading_review.unwrap().element_id, reading_id);
+        assert_eq!(
+            details.learning_asset_review.unwrap().element_id,
+            learning_asset_id
+        );
     }
 
     #[tokio::test]

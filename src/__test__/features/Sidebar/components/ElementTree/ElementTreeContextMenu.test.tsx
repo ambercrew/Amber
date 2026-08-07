@@ -13,7 +13,7 @@ const TREE: NodeDto[] = [
 			name: "Science",
 			position: "0",
 		},
-		children: { folders: [], readings: [], extracts: [], cards: [] },
+		children: { folders: [], learningAssets: [], extracts: [], cards: [] },
 	},
 ];
 

@@ -18,7 +18,7 @@ export interface FolderResponseDto {
 	meta: MetaResponseDto;
 }
 
-export interface ReadingResponseDto {
+export interface LearningAssetResponseDto {
 	meta: MetaResponseDto;
 	readPoint: ReadPoint;
 	intervalMultiplier: number;
@@ -38,6 +38,6 @@ export interface CardResponseDto {
 
 export type AnyElementDto =
 	| { type: "folder"; data: FolderResponseDto }
-	| { type: "reading"; data: ReadingResponseDto }
+	| { type: "learningAsset"; data: LearningAssetResponseDto }
 	| { type: "extract"; data: ExtractResponseDto }
 	| { type: "card"; data: CardResponseDto };

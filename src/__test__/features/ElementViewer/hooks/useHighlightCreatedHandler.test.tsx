@@ -10,7 +10,7 @@ import { type SerializedLexicalNodeTree } from "../../../../components/Editor/le
 
 vi.mock(import("../../../../stores/elements/elementsActions"));
 
-const ELEMENT_ID: ElementId = { type: "reading", id: "reading-1" };
+const ELEMENT_ID: ElementId = { type: "learningAsset", id: "learningAsset-1" };
 function HookWrapper({
 	capture,
 }: {

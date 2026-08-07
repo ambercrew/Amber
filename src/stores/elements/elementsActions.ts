@@ -3,7 +3,7 @@ import {
 	createCard,
 	createExtract,
 	createFolder,
-	createReading,
+	createLearningAsset,
 	getElementTree,
 	moveElement,
 	MoveElementDto,
@@ -13,7 +13,7 @@ import { NodeDto } from "../../api/elements/dto/nodeDto";
 import { CreateCardDto } from "../../types/elements/createCardDto";
 import { CreateExtractDto } from "../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../types/elements/createFolderDto";
-import { CreateReadingDto } from "../../types/elements/createReadingDto";
+import { CreateLearningAssetDto } from "../../types/elements/createLearningAssetDto";
 import { ElementId } from "../../types/elements/elementId";
 import errorToString from "../../utils/errorToString";
 import { AppDispatch } from "../store";
@@ -46,8 +46,8 @@ export function createFolderAction(dto: CreateFolderDto) {
 	return withErrorHandling(() => createFolder(dto));
 }
 
-export function createReadingAction(dto: CreateReadingDto) {
-	return withErrorHandling(() => createReading(dto));
+export function createLearningAssetAction(dto: CreateLearningAssetDto) {
+	return withErrorHandling(() => createLearningAsset(dto));
 }
 
 export function createExtractAction(dto: CreateExtractDto) {
@@ -95,10 +95,10 @@ export function existsInTree(
 			node.meta.elementId.id === target.id
 		)
 			return true;
-		const { folders, readings, extracts, cards } = node.children;
+		const { folders, learningAssets, extracts, cards } = node.children;
 		if (
 			existsInTree(
-				[...folders, ...readings, ...extracts, ...cards],
+				[...folders, ...learningAssets, ...extracts, ...cards],
 				target,
 			)
 		)

@@ -7,7 +7,7 @@ import {
 	trashElement,
 } from "../../../api/trash/api/trashApi";
 import { TrashedElementDto } from "../../../api/trash/dto/trashedElementDto";
-import { clearSplitHeights } from "../../../features/ElementViewer/ReadingView/heights/splitHeightsStorage";
+import { clearSplitHeights } from "../../../features/ElementViewer/LearningAssetView/heights/splitHeightsStorage";
 import { setTree } from "../../../stores/elements/elementsReducer";
 import {
 	deleteElementPermanentlyAction,
@@ -24,11 +24,11 @@ import {
 vi.mock(import("../../../api/trash/api/trashApi"));
 vi.mock(import("../../../api/elements/api/elementsApi"));
 vi.mock(
-	import("../../../features/ElementViewer/ReadingView/heights/splitHeightsStorage"),
+	import("../../../features/ElementViewer/LearningAssetView/heights/splitHeightsStorage"),
 );
 
-const TRASHED_READING: TrashedElementDto = {
-	elementId: { type: "reading", id: "reading-1" },
+const TRASHED_LEARNING_ASSET: TrashedElementDto = {
+	elementId: { type: "learningAsset", id: "learningAsset-1" },
 	name: "Photosynthesis",
 	trashedAt: "2026-07-01T00:00:00Z",
 	descendantCount: 0,
@@ -37,7 +37,7 @@ const TRASHED_READING: TrashedElementDto = {
 describe("trashActions", () => {
 	beforeEach(() => {
 		vi.mocked(getElementTree).mockResolvedValue([]);
-		vi.mocked(getTrash).mockResolvedValue([TRASHED_READING]);
+		vi.mocked(getTrash).mockResolvedValue([TRASHED_LEARNING_ASSET]);
 	});
 
 	it("Should reload both the tree and the trash when an element is trashed", async () => {
@@ -55,7 +55,9 @@ describe("trashActions", () => {
 		expect(trashElement).toHaveBeenCalledWith(elementId);
 		expect(dispatch).toHaveBeenNthCalledWith(1, setTrashLoading());
 		expect(dispatch).toHaveBeenCalledWith(setTree([]));
-		expect(dispatch).toHaveBeenCalledWith(setTrash([TRASHED_READING]));
+		expect(dispatch).toHaveBeenCalledWith(
+			setTrash([TRASHED_LEARNING_ASSET]),
+		);
 	});
 
 	it("Should reload both the tree and the trash when an element is restored", async () => {
@@ -72,29 +74,31 @@ describe("trashActions", () => {
 
 		expect(restoreElement).toHaveBeenCalledWith(elementId);
 		expect(dispatch).toHaveBeenCalledWith(setTree([]));
-		expect(dispatch).toHaveBeenCalledWith(setTrash([TRASHED_READING]));
+		expect(dispatch).toHaveBeenCalledWith(
+			setTrash([TRASHED_LEARNING_ASSET]),
+		);
 	});
 
-	it("Should clear the cached split heights when a reading is deleted permanently", async () => {
+	it("Should clear the cached split heights when a learning asset is deleted permanently", async () => {
 		// Arrange
 
 		const dispatch = vi.fn();
 
 		// Act
 
-		await deleteElementPermanentlyAction(TRASHED_READING.elementId)(
+		await deleteElementPermanentlyAction(TRASHED_LEARNING_ASSET.elementId)(
 			dispatch,
 		);
 
 		// Assert
 
 		expect(deleteElementPermanently).toHaveBeenCalledWith(
-			TRASHED_READING.elementId,
+			TRASHED_LEARNING_ASSET.elementId,
 		);
-		expect(clearSplitHeights).toHaveBeenCalledWith("reading-1");
+		expect(clearSplitHeights).toHaveBeenCalledWith("learningAsset-1");
 	});
 
-	it("Should clear the cached split heights of every trashed reading when the trash is emptied", async () => {
+	it("Should clear the cached split heights of every trashed learning asset when the trash is emptied", async () => {
 		// Arrange
 
 		const dispatch = vi.fn();
@@ -102,7 +106,7 @@ describe("trashActions", () => {
 		// Act
 
 		await emptyTrashAction([
-			TRASHED_READING,
+			TRASHED_LEARNING_ASSET,
 			{
 				elementId: { type: "folder", id: "folder-1" },
 				name: "Science",
@@ -114,7 +118,9 @@ describe("trashActions", () => {
 		// Assert
 
 		expect(emptyTrash).toHaveBeenCalled();
-		expect(clearSplitHeights).toHaveBeenCalledExactlyOnceWith("reading-1");
+		expect(clearSplitHeights).toHaveBeenCalledExactlyOnceWith(
+			"learningAsset-1",
+		);
 	});
 
 	it("Should dispatch the error when the trash operation fails", async () => {

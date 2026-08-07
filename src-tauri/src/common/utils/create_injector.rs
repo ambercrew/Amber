@@ -34,7 +34,7 @@ use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
-use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::repositories::learning_asset_repository::LearningAssetRepository;
 use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::services::element_details_service::ElementDetailsService;
 use crate::elements::services::element_index_service::ElementIndexService;
@@ -60,9 +60,9 @@ use crate::infrastructure::repositories::sqlite::sqlite_extract_repository::Sqli
 use crate::infrastructure::repositories::sqlite::sqlite_folder_repository::SqliteFolderRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteMetaRepository;
-use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
-use crate::infrastructure::repositories::sqlite::sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository;
-use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repository::SqliteReadingReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_learning_asset_repository::SqliteLearningAssetRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_learning_asset_review_log_repository::SqliteLearningAssetReviewLogRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_learning_asset_review_repository::SqliteLearningAssetReviewRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
@@ -82,18 +82,18 @@ use crate::bibliographical_sources::services::implementations::default_bibliogra
 use crate::bibliographical_sources::services::bibliographical_source_service::BibliographicalSourceService;
 use crate::study::repositories::card_review_log_repository::CardReviewLogRepository;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::repositories::reading_review_log_repository::ReadingReviewLogRepository;
-use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::learning_asset_review_log_repository::LearningAssetReviewLogRepository;
+use crate::study::repositories::learning_asset_review_repository::LearningAssetReviewRepository;
 use crate::study::repositories::study_profile_repository::StudyProfileRepository;
 use crate::study::services::card_grading_service::CardGradingService;
 use crate::study::services::due_elements_service::DueElementsService;
 use crate::study::services::implementations::default_card_grading_service::DefaultCardGradingService;
 use crate::study::services::implementations::default_due_elements_service::DefaultDueElementsService;
 use crate::study::services::implementations::default_profile_resolution_service::DefaultProfileResolutionService;
-use crate::study::services::implementations::default_reading_scheduling_service::DefaultReadingSchedulingService;
+use crate::study::services::implementations::default_learning_asset_scheduling_service::DefaultLearningAssetSchedulingService;
 use crate::study::services::implementations::default_study_profile_service::DefaultStudyProfileService;
 use crate::study::services::profile_resolution_service::ProfileResolutionService;
-use crate::study::services::reading_scheduling_service::ReadingSchedulingService;
+use crate::study::services::learning_asset_scheduling_service::LearningAssetSchedulingService;
 use crate::study::services::study_profile_service::StudyProfileService;
 use crate::sync::repositories::sync_repository::SyncRepository;
 use crate::{
@@ -206,7 +206,11 @@ pub async fn create_injector<R: tauri::Runtime>(
     // Elements
 
     register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-    register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+    register_scope!(
+        injector,
+        dyn LearningAssetRepository,
+        SqliteLearningAssetRepository
+    );
     register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
     register_scope!(injector, dyn CardRepository, SqliteCardRepository);
     register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
@@ -249,20 +253,20 @@ pub async fn create_injector<R: tauri::Runtime>(
     );
     register_scope!(
         injector,
-        dyn ReadingReviewRepository,
-        SqliteReadingReviewRepository
+        dyn LearningAssetReviewRepository,
+        SqliteLearningAssetReviewRepository
     );
     register_scope!(
         injector,
-        dyn ReadingReviewLogRepository,
-        SqliteReadingReviewLogRepository
+        dyn LearningAssetReviewLogRepository,
+        SqliteLearningAssetReviewLogRepository
     );
     register_scope!(injector, dyn DueElementsService, DefaultDueElementsService);
     register_scope!(injector, dyn CardGradingService, DefaultCardGradingService);
     register_scope!(
         injector,
-        dyn ReadingSchedulingService,
-        DefaultReadingSchedulingService
+        dyn LearningAssetSchedulingService,
+        DefaultLearningAssetSchedulingService
     );
     register_scope!(
         injector,

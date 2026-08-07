@@ -9,7 +9,7 @@ const FOLDER_NODE: NodeDto = {
 		name: "Science",
 		position: "a",
 	},
-	children: { folders: [], readings: [], extracts: [], cards: [] },
+	children: { folders: [], learningAssets: [], extracts: [], cards: [] },
 };
 
 const CURRENT_EXTRACT: AnyElementDto = {
@@ -57,7 +57,12 @@ describe("selectCurrentElementIsTrashed", () => {
 
 		const extractNode: NodeDto = {
 			meta: CURRENT_EXTRACT.data.meta,
-			children: { folders: [], readings: [], extracts: [], cards: [] },
+			children: {
+				folders: [],
+				learningAssets: [],
+				extracts: [],
+				cards: [],
+			},
 		};
 		const state = stateWith(
 			[

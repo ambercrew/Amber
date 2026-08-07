@@ -22,7 +22,7 @@ const FOLDER_NODE: NodeDto = {
 		name: "Science",
 		position: "0",
 	},
-	children: { folders: [], readings: [], extracts: [], cards: [] },
+	children: { folders: [], learningAssets: [], extracts: [], cards: [] },
 };
 
 const FOLDER_ELEMENT: AnyElementDto = {

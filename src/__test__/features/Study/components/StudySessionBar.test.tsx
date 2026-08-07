@@ -4,7 +4,7 @@ import StudySessionBar from "../../../../features/Study/components/StudySessionB
 import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 import {
 	previewCardReview,
-	previewNextReading,
+	previewNextLearningAsset,
 } from "../../../../api/study/api/studyApi";
 import { AnyElementDto } from "../../../../api/elements/dto/anyElementDto";
 import { formatRelativeDueDate } from "../../../../utils/formatRelativeDueDate";
@@ -12,9 +12,15 @@ import { formatRelativeDueDate } from "../../../../utils/formatRelativeDueDate";
 vi.mock(import("../../../../api/study/api/studyApi.ts"));
 
 const cardElementId = { type: "card" as const, id: "card-1" };
-const readingElementId = { type: "reading" as const, id: "reading-1" };
+const learningAssetElementId = {
+	type: "learningAsset" as const,
+	id: "learningAsset-1",
+};
 const cardQueueItem = { elementId: cardElementId, title: "Card 1" };
-const readingQueueItem = { elementId: readingElementId, title: "Reading 1" };
+const learningAssetQueueItem = {
+	elementId: learningAssetElementId,
+	title: "LearningAsset 1",
+};
 
 const META_FIELDS = {
 	parent: null,
@@ -35,12 +41,12 @@ const cardCurrentElement: AnyElementDto = {
 	},
 };
 
-const readingCurrentElement: AnyElementDto = {
-	type: "reading",
+const learningAssetCurrentElement: AnyElementDto = {
+	type: "learningAsset",
 	data: {
 		meta: {
-			elementId: readingElementId,
-			name: "Reading 1",
+			elementId: learningAssetElementId,
+			name: "LearningAsset 1",
 			...META_FIELDS,
 		},
 		readPoint: { split: 0, block: 0 },
@@ -51,7 +57,7 @@ const readingCurrentElement: AnyElementDto = {
 const BASE_STUDY_STATE = {
 	status: "studying" as const,
 	shownAt: null,
-	counts: { cards: 0, readings: 0, finished: 0 },
+	counts: { cards: 0, learningAssets: 0, finished: 0 },
 	summary: null,
 };
 
@@ -148,7 +154,7 @@ describe("StudySessionBar", () => {
 
 		const user = userEvent.setup();
 		const due = inMs(2 * 24 * 3_600_000);
-		vi.mocked(previewNextReading).mockResolvedValue(due);
+		vi.mocked(previewNextLearningAsset).mockResolvedValue(due);
 
 		// Act
 
@@ -156,10 +162,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [readingQueueItem],
+					queue: [learningAssetQueueItem],
 					cardPhase: "question",
 				},
-				elements: elementsStateFor(readingCurrentElement),
+				elements: elementsStateFor(learningAssetCurrentElement),
 			},
 		});
 		await user.hover(screen.getByRole("button", { name: "Next" }));
@@ -178,7 +184,7 @@ describe("StudySessionBar", () => {
 
 		const user = userEvent.setup();
 		const due = inMs(2 * 24 * 3_600_000);
-		vi.mocked(previewNextReading).mockResolvedValue(due);
+		vi.mocked(previewNextLearningAsset).mockResolvedValue(due);
 
 		// Act
 
@@ -186,10 +192,10 @@ describe("StudySessionBar", () => {
 			preloadedState: {
 				study: {
 					...BASE_STUDY_STATE,
-					queue: [readingQueueItem],
+					queue: [learningAssetQueueItem],
 					cardPhase: "question",
 				},
-				elements: elementsStateFor(readingCurrentElement),
+				elements: elementsStateFor(learningAssetCurrentElement),
 			},
 		});
 		await user.hover(screen.getByRole("button", { name: "Finish" }));

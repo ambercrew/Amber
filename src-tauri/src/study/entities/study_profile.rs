@@ -11,7 +11,7 @@ pub struct StudyProfile {
     // FSRS (cards)
     pub desired_retention: f32,
     pub fsrs_params: Option<Vec<f32>>,
-    // Incremental reading (readings/extracts)
+    // Incremental reading (learning_assets/extracts)
     pub initial_interval_multiplier: f32,
     /// Days added to "today" to compute the due date the first time an element is
     /// scheduled: when it's created, and for its first incremental-reading pass.

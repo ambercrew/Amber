@@ -1,5 +1,5 @@
 import { CardReviewDto } from "../../study/dto/cardReviewDto";
-import { ReadingReviewDto } from "../../study/dto/readingReviewDto";
+import { LearningAssetReviewDto } from "../../study/dto/learningAssetReviewDto";
 import {
 	EffectiveProfileDto,
 	StudyProfileDto,
@@ -11,7 +11,7 @@ export interface ElementDetailsResponseDto {
 	bibliographicalSource: BibliographicalSourceResponseDto | null;
 	derivedFromName: string | null;
 	cardReview: CardReviewDto | null;
-	readingReview: ReadingReviewDto | null;
+	learningAssetReview: LearningAssetReviewDto | null;
 	effectiveProfile: EffectiveProfileDto;
 	profiles: StudyProfileDto[];
 	inheritedProfileName: string | null;

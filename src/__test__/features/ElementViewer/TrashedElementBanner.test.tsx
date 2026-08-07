@@ -35,7 +35,7 @@ const FOLDER_NODE: NodeDto = {
 		name: "Folder",
 		position: "a",
 	},
-	children: { folders: [], readings: [], extracts: [], cards: [] },
+	children: { folders: [], learningAssets: [], extracts: [], cards: [] },
 };
 
 function render(currentElement: AnyElementDto | null, tree: NodeDto[] = []) {
@@ -72,7 +72,12 @@ describe("TrashedElementBanner", () => {
 
 		const extractNode: NodeDto = {
 			meta: CURRENT_EXTRACT.data.meta,
-			children: { folders: [], readings: [], extracts: [], cards: [] },
+			children: {
+				folders: [],
+				learningAssets: [],
+				extracts: [],
+				cards: [],
+			},
 		};
 
 		// Act

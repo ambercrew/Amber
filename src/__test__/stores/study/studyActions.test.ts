@@ -1,24 +1,24 @@
 import { NavigateFunction } from "react-router";
 import { setupStore } from "../../../stores/store";
 import {
-	finishReadingAction,
+	finishLearningAssetAction,
 	gradeCardAction,
-	nextReadingAction,
-	skipReadingAction,
+	nextLearningAssetAction,
+	skipLearningAssetAction,
 	startStudySession,
 } from "../../../stores/study/studyActions";
 import { StudyState } from "../../../stores/study/studyReducer";
 import {
-	finishReading,
+	finishLearningAsset,
 	getDueElements,
 	gradeCard,
-	nextReading,
+	nextLearningAsset,
 } from "../../../api/study/api/studyApi";
 import { DueElementDto } from "../../../api/study/dto/dueElementDto";
 import { AnyElementDto } from "../../../api/elements/dto/anyElementDto";
 import { ElementsState } from "../../../stores/elements/elementsReducer";
 import { CardReviewDto } from "../../../api/study/dto/cardReviewDto";
-import { ReadingReviewDto } from "../../../api/study/dto/readingReviewDto";
+import { LearningAssetReviewDto } from "../../../api/study/dto/learningAssetReviewDto";
 
 vi.mock(import("../../../api/study/api/studyApi.ts"));
 
@@ -36,8 +36,11 @@ function cardQueueItem(id: string): DueElementDto {
 	return { elementId: { type: "card", id }, title: `Card ${id}` };
 }
 
-function readingQueueItem(id: string): DueElementDto {
-	return { elementId: { type: "reading", id }, title: `Reading ${id}` };
+function learningAssetQueueItem(id: string): DueElementDto {
+	return {
+		elementId: { type: "learningAsset", id },
+		title: `LearningAsset ${id}`,
+	};
 }
 
 function cardElement(id: string): AnyElementDto {
@@ -55,13 +58,13 @@ function cardElement(id: string): AnyElementDto {
 	};
 }
 
-function readingElement(id: string): AnyElementDto {
+function learningAssetElement(id: string): AnyElementDto {
 	return {
-		type: "reading",
+		type: "learningAsset",
 		data: {
 			meta: {
-				elementId: { type: "reading", id },
-				name: `Reading ${id}`,
+				elementId: { type: "learningAsset", id },
+				name: `LearningAsset ${id}`,
 				...META_FIELDS,
 			},
 			readPoint: { split: 0, block: 0 },
@@ -83,8 +86,8 @@ function makeCardReview(due: string): CardReviewDto {
 	};
 }
 
-const READING_REVIEW: ReadingReviewDto = {
-	elementId: { type: "reading", id: "1" },
+const LEARNING_ASSET_REVIEW: LearningAssetReviewDto = {
+	elementId: { type: "learningAsset", id: "1" },
 	due: "2024-02-01T00:00:00Z",
 	intervalDays: 1,
 	lastReviewed: "2024-01-01T00:00:00Z",
@@ -96,7 +99,7 @@ const BASE_STUDY_STATE: StudyState = {
 	queue: [],
 	cardPhase: "question",
 	shownAt: null,
-	counts: { cards: 0, readings: 0, finished: 0 },
+	counts: { cards: 0, learningAssets: 0, finished: 0 },
 	summary: null,
 };
 
@@ -133,7 +136,7 @@ describe("startStudySession", () => {
 	it("Should start a session and navigate to the first due element", async () => {
 		// Arrange
 
-		const queue = [cardQueueItem("1"), readingQueueItem("2")];
+		const queue = [cardQueueItem("1"), learningAssetQueueItem("2")];
 		vi.mocked(getDueElements).mockResolvedValue(queue);
 		const navigate = vi.fn() as unknown as NavigateFunction;
 		const store = setupStore();
@@ -265,45 +268,55 @@ describe("gradeCardAction", () => {
 		const state = store.getState().study;
 		expect(state.status).toBe("editing");
 		expect(state.queue).toEqual([]);
-		expect(state.summary).toEqual({ cards: 1, readings: 0, finished: 0 });
+		expect(state.summary).toEqual({
+			cards: 1,
+			learningAssets: 0,
+			finished: 0,
+		});
 		expect(navigate).not.toHaveBeenCalled();
 	});
 });
 
-describe("nextReadingAction", () => {
-	it("Should increment the reading count and advance to the next element", async () => {
+describe("nextLearningAssetAction", () => {
+	it("Should increment the learning asset count and advance to the next element", async () => {
 		// Arrange
 
-		vi.mocked(nextReading).mockResolvedValue(READING_REVIEW);
+		vi.mocked(nextLearningAsset).mockResolvedValue(LEARNING_ASSET_REVIEW);
 		const navigate = vi.fn() as unknown as NavigateFunction;
 		const store = setupStore({
 			study: {
 				...BASE_STUDY_STATE,
-				queue: [readingQueueItem("1"), readingQueueItem("2")],
+				queue: [
+					learningAssetQueueItem("1"),
+					learningAssetQueueItem("2"),
+				],
 			},
-			elements: elementsStateFor(readingElement("1")),
+			elements: elementsStateFor(learningAssetElement("1")),
 		});
 
 		// Act
 
 		await store.dispatch(
-			nextReadingAction({ type: "reading", id: "1" }, navigate),
+			nextLearningAssetAction(
+				{ type: "learningAsset", id: "1" },
+				navigate,
+			),
 		);
 
 		// Assert
 
 		const state = store.getState().study;
-		expect(state.counts.readings).toBe(1);
+		expect(state.counts.learningAssets).toBe(1);
 		expect(state.queue.map(item => item.elementId.id)).toEqual(["2"]);
 		expect(navigate).toHaveBeenCalledWith(
-			"/reading/2",
+			"/learningAsset/2",
 			expect.objectContaining({ state: { studySessionNav: true } }),
 		);
 	});
 });
 
-describe("skipReadingAction", () => {
-	it("Should move the skipped reading to the end of the queue and advance without incrementing any counts", () => {
+describe("skipLearningAssetAction", () => {
+	it("Should move the skipped learning asset to the end of the queue and advance without incrementing any counts", () => {
 		// Arrange
 
 		const navigate = vi.fn() as unknown as NavigateFunction;
@@ -311,18 +324,21 @@ describe("skipReadingAction", () => {
 			study: {
 				...BASE_STUDY_STATE,
 				queue: [
-					readingQueueItem("1"),
-					readingQueueItem("2"),
-					readingQueueItem("3"),
+					learningAssetQueueItem("1"),
+					learningAssetQueueItem("2"),
+					learningAssetQueueItem("3"),
 				],
 			},
-			elements: elementsStateFor(readingElement("1")),
+			elements: elementsStateFor(learningAssetElement("1")),
 		});
 
 		// Act
 
 		store.dispatch(
-			skipReadingAction({ type: "reading", id: "1" }, navigate),
+			skipLearningAssetAction(
+				{ type: "learningAsset", id: "1" },
+				navigate,
+			),
 		);
 
 		// Assert
@@ -333,27 +349,33 @@ describe("skipReadingAction", () => {
 			"3",
 			"1",
 		]);
-		expect(state.counts.readings).toBe(0);
+		expect(state.counts.learningAssets).toBe(0);
 		expect(state.counts.finished).toBe(0);
 		expect(navigate).toHaveBeenCalledWith(
-			"/reading/2",
+			"/learningAsset/2",
 			expect.objectContaining({ state: { studySessionNav: true } }),
 		);
 	});
 
-	it("Should keep the session active and revisit the same element when skipping the only reading in the queue", () => {
+	it("Should keep the session active and revisit the same element when skipping the only learning asset in the queue", () => {
 		// Arrange
 
 		const navigate = vi.fn() as unknown as NavigateFunction;
 		const store = setupStore({
-			study: { ...BASE_STUDY_STATE, queue: [readingQueueItem("1")] },
-			elements: elementsStateFor(readingElement("1")),
+			study: {
+				...BASE_STUDY_STATE,
+				queue: [learningAssetQueueItem("1")],
+			},
+			elements: elementsStateFor(learningAssetElement("1")),
 		});
 
 		// Act
 
 		store.dispatch(
-			skipReadingAction({ type: "reading", id: "1" }, navigate),
+			skipLearningAssetAction(
+				{ type: "learningAsset", id: "1" },
+				navigate,
+			),
 		);
 
 		// Assert
@@ -362,30 +384,36 @@ describe("skipReadingAction", () => {
 		expect(state.status).toBe("studying");
 		expect(state.queue.map(item => item.elementId.id)).toEqual(["1"]);
 		expect(navigate).toHaveBeenCalledWith(
-			"/reading/1",
+			"/learningAsset/1",
 			expect.objectContaining({ state: { studySessionNav: true } }),
 		);
 	});
 });
 
-describe("finishReadingAction", () => {
+describe("finishLearningAssetAction", () => {
 	it("Should increment the finished count and advance to the next element", async () => {
 		// Arrange
 
-		vi.mocked(finishReading).mockResolvedValue(READING_REVIEW);
+		vi.mocked(finishLearningAsset).mockResolvedValue(LEARNING_ASSET_REVIEW);
 		const navigate = vi.fn() as unknown as NavigateFunction;
 		const store = setupStore({
 			study: {
 				...BASE_STUDY_STATE,
-				queue: [readingQueueItem("1"), readingQueueItem("2")],
+				queue: [
+					learningAssetQueueItem("1"),
+					learningAssetQueueItem("2"),
+				],
 			},
-			elements: elementsStateFor(readingElement("1")),
+			elements: elementsStateFor(learningAssetElement("1")),
 		});
 
 		// Act
 
 		await store.dispatch(
-			finishReadingAction({ type: "reading", id: "1" }, navigate),
+			finishLearningAssetAction(
+				{ type: "learningAsset", id: "1" },
+				navigate,
+			),
 		);
 
 		// Assert
@@ -394,7 +422,7 @@ describe("finishReadingAction", () => {
 		expect(state.counts.finished).toBe(1);
 		expect(state.queue.map(item => item.elementId.id)).toEqual(["2"]);
 		expect(navigate).toHaveBeenCalledWith(
-			"/reading/2",
+			"/learningAsset/2",
 			expect.objectContaining({ state: { studySessionNav: true } }),
 		);
 	});

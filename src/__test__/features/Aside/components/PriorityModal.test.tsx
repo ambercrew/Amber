@@ -57,7 +57,7 @@ function makeDetails(
 		bibliographicalSource: null,
 		derivedFromName: null,
 		cardReview: null,
-		readingReview: null,
+		learningAssetReview: null,
 		effectiveProfile: { profile, source: "default", inheritedFrom: null },
 		profiles: [],
 		inheritedProfileName: null,

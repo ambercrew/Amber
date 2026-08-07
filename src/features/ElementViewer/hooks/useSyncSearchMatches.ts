@@ -18,7 +18,7 @@ interface Props<Target> {
 /**
  * Keeps the `search` Redux slice's `totalMatches`/`currentIndex` in sync with
  * a surface's own match aggregation, and scrolls to the current match
- * whenever it changes. Shared by all three find-in-page surfaces (reading,
+ * whenever it changes. Shared by all three find-in-page surfaces (learning asset,
  * extract, card).
  */
 export function useSyncSearchMatches<Target>({

@@ -34,7 +34,7 @@ function makeNode(
 		meta: { elementId: id, name, position },
 		children: {
 			folders: [],
-			readings: [],
+			learningAssets: [],
 			extracts: [],
 			cards: [],
 			...children,
@@ -44,9 +44,9 @@ function makeNode(
 
 const TREE: NodeDto[] = [
 	makeNode({ type: "folder", id: "folder-science" }, "Science", {
-		readings: [
+		learningAssets: [
 			makeNode(
-				{ type: "reading", id: "reading-biology" },
+				{ type: "learningAsset", id: "learningAsset-biology" },
 				"Biology Basics",
 			),
 		],
@@ -261,7 +261,7 @@ describe("ElementTree search", () => {
 
 		render();
 
-		// Assert — Science has 1 reading child.
+		// Assert — Science has 1 learning asset child.
 		expect(screen.getByText("Science (1)")).toBeInTheDocument();
 	});
 
@@ -303,10 +303,13 @@ describe("ElementTree sorting", () => {
 							"c",
 						),
 					],
-					readings: [
+					learningAssets: [
 						makeNode(
-							{ type: "reading", id: "child-reading" },
-							"Child Reading",
+							{
+								type: "learningAsset",
+								id: "child-learningAsset",
+							},
+							"Child LearningAsset",
 							{},
 							"a",
 						),
@@ -341,7 +344,7 @@ describe("ElementTree sorting", () => {
 
 		await user.click(screen.getByRole("button", { name: "Expand" }));
 
-		// Assert — children appear in position order: Reading(a) < Card(b) < Folder(c) < Extract(d)
+		// Assert — children appear in position order: LearningAsset(a) < Card(b) < Folder(c) < Extract(d)
 
 		const items = screen
 			.getAllByRole("treeitem")
@@ -349,7 +352,7 @@ describe("ElementTree sorting", () => {
 			.filter(Boolean);
 
 		const childIndex = (name: string) => items.indexOf(name);
-		expect(childIndex("Child Reading")).toBeLessThan(
+		expect(childIndex("Child LearningAsset")).toBeLessThan(
 			childIndex("Child Card"),
 		);
 		expect(childIndex("Child Card")).toBeLessThan(
@@ -361,8 +364,8 @@ describe("ElementTree sorting", () => {
 	});
 
 	it("Should sort root-level nodes by position regardless of type", () => {
-		// Arrange — two folders and a reading at root, with positions that
-		// put the reading between the two folders.
+		// Arrange — two folders and a learning asset at root, with positions that
+		// put the learning asset between the two folders.
 
 		const tree: NodeDto[] = [
 			makeNode(
@@ -372,8 +375,8 @@ describe("ElementTree sorting", () => {
 				"a",
 			),
 			makeNode(
-				{ type: "reading", id: "reading-middle" },
-				"Middle Reading",
+				{ type: "learningAsset", id: "learningAsset-middle" },
+				"Middle LearningAsset",
 				{},
 				"b",
 			),
@@ -398,7 +401,7 @@ describe("ElementTree sorting", () => {
 			.filter(Boolean);
 
 		const idx = (name: string) => items.indexOf(name);
-		expect(idx("First Folder")).toBeLessThan(idx("Middle Reading"));
-		expect(idx("Middle Reading")).toBeLessThan(idx("Last Folder"));
+		expect(idx("First Folder")).toBeLessThan(idx("Middle LearningAsset"));
+		expect(idx("Middle LearningAsset")).toBeLessThan(idx("Last Folder"));
 	});
 });

@@ -40,9 +40,9 @@ function computeDueState(
 	if (elementType === "card") {
 		return formatDue(details.cardReview?.due ?? null, false);
 	}
-	if (elementType === "reading" || elementType === "extract") {
-		const finished = Boolean(details.readingReview?.finishedAt);
-		return formatDue(details.readingReview?.due ?? null, finished);
+	if (elementType === "learningAsset" || elementType === "extract") {
+		const finished = Boolean(details.learningAssetReview?.finishedAt);
+		return formatDue(details.learningAssetReview?.due ?? null, finished);
 	}
 	return null;
 }
@@ -154,7 +154,7 @@ function ElementInfoPanel() {
 
 			{currentElement &&
 				(currentElement.type === "card" ||
-					currentElement.type === "reading" ||
+					currentElement.type === "learningAsset" ||
 					currentElement.type === "extract") && (
 					<>
 						<Divider />

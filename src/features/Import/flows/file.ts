@@ -1,6 +1,6 @@
 import { extractPdf, PdfProgress } from "../pdf/extract";
 import { normalize } from "../normalize";
-import { createImportedReading } from "../createImportedReading";
+import { createImportedLearningAsset } from "../createImportedLearningAsset";
 import { createBibliographicalSourceAction } from "../../../stores/bibliographicalSources/bibliographicalSourcesActions";
 import { ImportContext } from "../importContext";
 
@@ -38,7 +38,7 @@ export async function runFileImport(
 				}),
 			);
 
-			await createImportedReading(
+			await createImportedLearningAsset(
 				ctx,
 				title,
 				content,

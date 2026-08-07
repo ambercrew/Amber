@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import { SMALL_SCREEN_BREAKPOINT } from "../../../hooks/useIsSmallScreen";
 import {
 	previewCardReview,
-	previewNextReading,
+	previewNextLearningAsset,
 } from "../../../api/study/api/studyApi";
 import { CardDuePreviewDto } from "../../../api/study/dto/cardDuePreviewDto";
 import { formatShortcut } from "../../../commands/formatShortcut";
@@ -13,10 +13,10 @@ import useAppDispatch from "../../../hooks/useAppDispatch";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { useElapsedSeconds } from "../hooks/useElapsedSeconds";
 import {
-	finishReadingAction,
+	finishLearningAssetAction,
 	gradeCardAction,
-	nextReadingAction,
-	skipReadingAction,
+	nextLearningAssetAction,
+	skipLearningAssetAction,
 } from "../../../stores/study/studyActions";
 import { answerShown, elementShown } from "../../../stores/study/studyReducer";
 import {
@@ -62,13 +62,15 @@ function StudySessionBar() {
 	const [trackedKey, setTrackedKey] = useState(currentKey);
 	const [cardDuePreview, setCardDuePreview] =
 		useState<CardDuePreviewDto | null>(null);
-	const [nextReadingDue, setNextReadingDue] = useState<string | null>(null);
+	const [nextLearningAssetDue, setNextLearningAssetDue] = useState<
+		string | null
+	>(null);
 	const isFirstRender = useRef(true);
 
 	if (currentKey !== trackedKey) {
 		setTrackedKey(currentKey);
 		setCardDuePreview(null);
-		setNextReadingDue(null);
+		setNextLearningAssetDue(null);
 	}
 
 	useEffect(() => {
@@ -87,7 +89,9 @@ function StudySessionBar() {
 		if (current.type === "card") {
 			void previewCardReview(current.id).then(setCardDuePreview);
 		} else {
-			void previewNextReading(current).then(setNextReadingDue);
+			void previewNextLearningAsset(current).then(
+				setNextLearningAssetDue,
+			);
 		}
 	}, [current, dispatch]);
 
@@ -97,10 +101,11 @@ function StudySessionBar() {
 		if (current?.type !== "card" || answerHidden) return;
 		void dispatch(gradeCardAction(current.id, rating, navigate));
 	};
-	const readingShortcut = (action: (id: typeof current) => void) => () => {
-		if (!current || current.type === "card") return;
-		action(current);
-	};
+	const learningAssetShortcut =
+		(action: (id: typeof current) => void) => () => {
+			if (!current || current.type === "card") return;
+			action(current);
+		};
 
 	useHotkeys([
 		[
@@ -113,17 +118,22 @@ function StudySessionBar() {
 		["2", gradeShortcut("hard")],
 		["3", gradeShortcut("good")],
 		["4", gradeShortcut("easy")],
-		["1", readingShortcut(id => dispatch(skipReadingAction(id, navigate)))],
+		[
+			"1",
+			learningAssetShortcut(id =>
+				dispatch(skipLearningAssetAction(id, navigate)),
+			),
+		],
 		[
 			"2",
-			readingShortcut(
-				id => void dispatch(nextReadingAction(id, navigate)),
+			learningAssetShortcut(
+				id => void dispatch(nextLearningAssetAction(id, navigate)),
 			),
 		],
 		[
 			"3",
-			readingShortcut(
-				id => void dispatch(finishReadingAction(id, navigate)),
+			learningAssetShortcut(
+				id => void dispatch(finishLearningAssetAction(id, navigate)),
 			),
 		],
 	]);
@@ -191,15 +201,17 @@ function StudySessionBar() {
 							variant="default"
 							size="sm"
 							onClick={() =>
-								dispatch(skipReadingAction(current, navigate))
+								dispatch(
+									skipLearningAssetAction(current, navigate),
+								)
 							}>
 							Skip
 						</Button>
 					</Tooltip>
 					<Tooltip
 						label={withShortcut(
-							nextReadingDue
-								? formatRelativeDueDate(nextReadingDue)
+							nextLearningAssetDue
+								? formatRelativeDueDate(nextLearningAssetDue)
 								: null,
 							"2",
 						)}>
@@ -208,7 +220,7 @@ function StudySessionBar() {
 							size="sm"
 							onClick={() =>
 								void dispatch(
-									nextReadingAction(current, navigate),
+									nextLearningAssetAction(current, navigate),
 								)
 							}>
 							Next
@@ -220,7 +232,10 @@ function StudySessionBar() {
 							size="sm"
 							onClick={() =>
 								void dispatch(
-									finishReadingAction(current, navigate),
+									finishLearningAssetAction(
+										current,
+										navigate,
+									),
 								)
 							}>
 							Finish

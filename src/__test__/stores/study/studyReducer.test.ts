@@ -2,8 +2,8 @@ import studyReducer, {
 	answerShown,
 	cardGraded,
 	cardRequeued,
-	readingAdvanced,
-	readingFinished,
+	learningAssetAdvanced,
+	learningAssetFinished,
 	sessionAdvanced,
 	sessionStarted,
 	sessionStopped,
@@ -12,7 +12,7 @@ import studyReducer, {
 } from "../../../stores/study/studyReducer";
 import { DueElementDto } from "../../../api/study/dto/dueElementDto";
 
-function queueItem(type: "card" | "reading", id: string): DueElementDto {
+function queueItem(type: "card" | "learningAsset", id: string): DueElementDto {
 	return { elementId: { type, id }, title: `${type} ${id}` };
 }
 
@@ -21,7 +21,7 @@ const BASE_STATE: StudyState = {
 	queue: [],
 	cardPhase: "question",
 	shownAt: null,
-	counts: { cards: 0, readings: 0, finished: 0 },
+	counts: { cards: 0, learningAssets: 0, finished: 0 },
 	summary: null,
 };
 
@@ -29,7 +29,7 @@ describe("studyReducer", () => {
 	it("Should start a studying session when sessionStarted is dispatched", () => {
 		// Arrange
 
-		const queue = [queueItem("card", "1"), queueItem("reading", "2")];
+		const queue = [queueItem("card", "1"), queueItem("learningAsset", "2")];
 
 		// Act
 
@@ -41,7 +41,11 @@ describe("studyReducer", () => {
 		expect(actual.queue).toEqual(queue);
 		expect(actual.cardPhase).toBe("question");
 		expect(actual.shownAt).not.toBeNull();
-		expect(actual.counts).toEqual({ cards: 0, readings: 0, finished: 0 });
+		expect(actual.counts).toEqual({
+			cards: 0,
+			learningAssets: 0,
+			finished: 0,
+		});
 		expect(actual.summary).toBeNull();
 	});
 
@@ -50,8 +54,8 @@ describe("studyReducer", () => {
 
 		const state: StudyState = {
 			...BASE_STATE,
-			counts: { cards: 4, readings: 1, finished: 2 },
-			summary: { cards: 4, readings: 1, finished: 2 },
+			counts: { cards: 4, learningAssets: 1, finished: 2 },
+			summary: { cards: 4, learningAssets: 1, finished: 2 },
 		};
 		const queue = [queueItem("card", "1")];
 
@@ -61,7 +65,11 @@ describe("studyReducer", () => {
 
 		// Assert
 
-		expect(actual.counts).toEqual({ cards: 0, readings: 0, finished: 0 });
+		expect(actual.counts).toEqual({
+			cards: 0,
+			learningAssets: 0,
+			finished: 0,
+		});
 		expect(actual.summary).toBeNull();
 	});
 
@@ -84,7 +92,7 @@ describe("studyReducer", () => {
 
 		const state: StudyState = {
 			...BASE_STATE,
-			counts: { cards: 2, readings: 0, finished: 0 },
+			counts: { cards: 2, learningAssets: 0, finished: 0 },
 		};
 
 		// Act
@@ -96,34 +104,34 @@ describe("studyReducer", () => {
 		expect(actual.counts.cards).toBe(3);
 	});
 
-	it("Should increment the reading count when readingAdvanced is dispatched", () => {
+	it("Should increment the learning asset count when learningAssetAdvanced is dispatched", () => {
 		// Arrange
 
 		const state: StudyState = {
 			...BASE_STATE,
-			counts: { cards: 0, readings: 1, finished: 0 },
+			counts: { cards: 0, learningAssets: 1, finished: 0 },
 		};
 
 		// Act
 
-		const actual = studyReducer(state, readingAdvanced());
+		const actual = studyReducer(state, learningAssetAdvanced());
 
 		// Assert
 
-		expect(actual.counts.readings).toBe(2);
+		expect(actual.counts.learningAssets).toBe(2);
 	});
 
-	it("Should increment the finished count when readingFinished is dispatched", () => {
+	it("Should increment the finished count when learningAssetFinished is dispatched", () => {
 		// Arrange
 
 		const state: StudyState = {
 			...BASE_STATE,
-			counts: { cards: 0, readings: 0, finished: 1 },
+			counts: { cards: 0, learningAssets: 0, finished: 1 },
 		};
 
 		// Act
 
-		const actual = studyReducer(state, readingFinished());
+		const actual = studyReducer(state, learningAssetFinished());
 
 		// Assert
 
@@ -269,7 +277,7 @@ describe("studyReducer", () => {
 				...BASE_STATE,
 				status: "studying",
 				queue,
-				counts: { cards: 3, readings: 1, finished: 2 },
+				counts: { cards: 3, learningAssets: 1, finished: 2 },
 			};
 
 			// Act
@@ -287,7 +295,7 @@ describe("studyReducer", () => {
 			expect(actual.queue).toEqual([]);
 			expect(actual.summary).toEqual({
 				cards: 3,
-				readings: 1,
+				learningAssets: 1,
 				finished: 2,
 			});
 		});
@@ -321,7 +329,7 @@ describe("studyReducer", () => {
 
 		const state: StudyState = {
 			...BASE_STATE,
-			summary: { cards: 1, readings: 0, finished: 0 },
+			summary: { cards: 1, learningAssets: 0, finished: 0 },
 		};
 
 		// Act

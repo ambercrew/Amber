@@ -147,19 +147,22 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{card::Card, extract::Extract, folder::Folder, reading::Reading},
+            entities::{
+                card::Card, extract::Extract, folder::Folder, learning_asset::LearningAsset,
+            },
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
-                folder_repository::FolderRepository, meta_repository::MetaRepository,
-                reading_repository::ReadingRepository,
+                folder_repository::FolderRepository,
+                learning_asset_repository::LearningAssetRepository,
+                meta_repository::MetaRepository,
             },
             value_objects::{element_id::ElementId, meta::Meta},
         },
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
             sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_learning_asset_repository::SqliteLearningAssetRepository,
             sqlite_meta_repository::SqliteMetaRepository,
-            sqlite_reading_repository::SqliteReadingRepository,
         },
         test_utils::create_test_injector,
     };
@@ -169,7 +172,11 @@ mod tests {
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
@@ -194,8 +201,8 @@ mod tests {
     fn folder_meta() -> Meta {
         make_meta(ElementId::Folder(Uuid::new_v4()))
     }
-    fn reading_meta() -> Meta {
-        make_meta(ElementId::Reading(Uuid::new_v4()))
+    fn learning_asset_meta() -> Meta {
+        make_meta(ElementId::LearningAsset(Uuid::new_v4()))
     }
     fn extract_meta() -> Meta {
         make_meta(ElementId::Extract(Uuid::new_v4()))
@@ -211,25 +218,25 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder {
             meta: folder_meta(),
         };
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
         let parent_extract = Extract {
             interval_multiplier: 1.2,
             meta: Meta {
-                parent: Some(reading.meta.element_id),
+                parent: Some(learning_asset.meta.element_id),
                 ..extract_meta()
             },
             content: String::new(),
@@ -243,7 +250,10 @@ mod tests {
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading, Vec::new()).await.unwrap();
+        learning_asset_repo
+            .create(learning_asset, Vec::new())
+            .await
+            .unwrap();
         extract_repo.create(parent_extract.clone()).await.unwrap();
         extract_repo.create(child_extract.clone()).await.unwrap();
 
@@ -271,7 +281,7 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let card_repo = scope.resolve::<dyn CardRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
@@ -279,18 +289,18 @@ mod tests {
         let folder = Folder {
             meta: folder_meta(),
         };
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
             interval_multiplier: 1.2,
             meta: Meta {
-                parent: Some(reading.meta.element_id),
+                parent: Some(learning_asset.meta.element_id),
                 ..extract_meta()
             },
             content: String::new(),
@@ -304,7 +314,10 @@ mod tests {
             back: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading, Vec::new()).await.unwrap();
+        learning_asset_repo
+            .create(learning_asset, Vec::new())
+            .await
+            .unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
         card_repo.create(card.clone()).await.unwrap();
 
@@ -329,31 +342,34 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder {
             meta: folder_meta(),
         };
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
             interval_multiplier: 1.2,
             meta: Meta {
-                parent: Some(reading.meta.element_id),
+                parent: Some(learning_asset.meta.element_id),
                 ..extract_meta()
             },
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading, Vec::new()).await.unwrap();
+        learning_asset_repo
+            .create(learning_asset, Vec::new())
+            .await
+            .unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
 
         // Act
@@ -380,31 +396,34 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let folder_repo = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
         let extract_repo = scope.resolve::<dyn ExtractRepository>().await;
         let meta_repo = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = Folder {
             meta: folder_meta(),
         };
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 parent: Some(folder.meta.element_id),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
         let extract = Extract {
             interval_multiplier: 1.2,
             meta: Meta {
-                parent: Some(reading.meta.element_id),
+                parent: Some(learning_asset.meta.element_id),
                 ..extract_meta()
             },
             content: String::new(),
         };
         folder_repo.create(folder).await.unwrap();
-        reading_repo.create(reading, Vec::new()).await.unwrap();
+        learning_asset_repo
+            .create(learning_asset, Vec::new())
+            .await
+            .unwrap();
         extract_repo.create(extract.clone()).await.unwrap();
 
         // Act

@@ -1,12 +1,12 @@
 import { runContentImport } from "../../../../features/Import/flows/content";
 import { normalize } from "../../../../features/Import/normalize";
 import { deriveTitle } from "../../../../features/Import/deriveTitle";
-import { createImportedReading } from "../../../../features/Import/createImportedReading";
+import { createImportedLearningAsset } from "../../../../features/Import/createImportedLearningAsset";
 import { ImportContext } from "../../../../features/Import/importContext";
 
 vi.mock(import("../../../../features/Import/normalize"));
 vi.mock(import("../../../../features/Import/deriveTitle"));
-vi.mock(import("../../../../features/Import/createImportedReading"));
+vi.mock(import("../../../../features/Import/createImportedLearningAsset"));
 
 function makeCtx(): ImportContext {
 	return {
@@ -74,7 +74,7 @@ describe("runContentImport", () => {
 		);
 	});
 
-	it("Should derive the title from the normalized content and create the reading", async () => {
+	it("Should derive the title from the normalized content and create the learning asset", async () => {
 		// Arrange
 
 		vi.mocked(normalize).mockResolvedValue("<p>normalized</p>");
@@ -91,7 +91,7 @@ describe("runContentImport", () => {
 			"<p>normalized</p>",
 			"raw text",
 		);
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"Derived Title",
 			"<p>normalized</p>",

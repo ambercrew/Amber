@@ -151,7 +151,7 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					/>
 				</Tooltip>
 				<Tooltip
-					label="Starting multiplier applied to the interval each time an incremental reading or extract is revisited. Copied onto each reading/extract when it's created; editing this afterwards only affects newly created ones."
+					label="Starting multiplier applied to the interval each time an incremental learning asset or extract is revisited. Copied onto each learning asset/extract when it's created; editing this afterwards only affects newly created ones."
 					multiline>
 					<NumberInput
 						label="Initial interval multiplier"
@@ -162,7 +162,7 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					/>
 				</Tooltip>
 				<Tooltip
-					label="Days until the first due date for readings, extracts and cards created under this profile."
+					label="Days until the first due date for learning assets, extracts and cards created under this profile."
 					multiline>
 					<NumberInput
 						label="Initial interval (days)"
@@ -172,7 +172,7 @@ function ProfileForm({ profile, onSaved, onSubmitted }: ProfileFormProps) {
 					/>
 				</Tooltip>
 				<Tooltip
-					label="Floor applied to computed intervals, so incremental reading items are never scheduled sooner than this."
+					label="Floor applied to computed intervals, so incremental learning asset items are never scheduled sooner than this."
 					multiline>
 					<NumberInput
 						label="Min interval (days)"

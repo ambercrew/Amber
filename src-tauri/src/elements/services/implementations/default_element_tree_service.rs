@@ -9,18 +9,20 @@ use injector_derive::ScopeInjectable;
 use crate::common::repository_error::RepositoryError;
 use crate::elements::dto::tree_dto::{MetaNodeDto, NodeChildrenDto, NodeDto};
 use crate::elements::entities::traits::Element;
-use crate::elements::entities::{card::Card, extract::Extract, folder::Folder, reading::Reading};
+use crate::elements::entities::{
+    card::Card, extract::Extract, folder::Folder, learning_asset::LearningAsset,
+};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
-use crate::elements::repositories::reading_repository::ReadingRepository;
+use crate::elements::repositories::learning_asset_repository::LearningAssetRepository;
 use crate::elements::services::element_tree_service::ElementTreeService;
 use crate::elements::value_objects::element_id::ElementId;
 
 #[derive(ScopeInjectable)]
 pub struct DefaultElementTreeService {
     folder_repository: Arc<dyn FolderRepository>,
-    reading_repository: Arc<dyn ReadingRepository>,
+    learning_asset_repository: Arc<dyn LearningAssetRepository>,
     extract_repository: Arc<dyn ExtractRepository>,
     card_repository: Arc<dyn CardRepository>,
 }
@@ -31,12 +33,12 @@ type ElementMap<V> = HashMap<Option<ElementId>, Vec<V>>;
 impl ElementTreeService for DefaultElementTreeService {
     async fn get_element_tree(&self) -> Result<Vec<NodeDto>, RepositoryError> {
         let folders = self.folder_repository.get_all().await?;
-        let readings = self.reading_repository.get_all().await?;
+        let learning_assets = self.learning_asset_repository.get_all().await?;
         let extracts = self.extract_repository.get_all().await?;
         let cards = self.card_repository.get_all().await?;
 
         let folders_by_parent = group_by_parent(folders, |f| f.meta().parent);
-        let readings_by_parent = group_by_parent(readings, |r| r.meta().parent);
+        let learning_assets_by_parent = group_by_parent(learning_assets, |r| r.meta().parent);
         let extracts_by_parent = group_by_parent(extracts, |e| e.meta().parent);
         let cards_by_parent = group_by_parent(cards, |c| c.meta().parent);
 
@@ -49,20 +51,20 @@ impl ElementTreeService for DefaultElementTreeService {
                     f,
                     Some(f.meta().element_id),
                     &folders_by_parent,
-                    &readings_by_parent,
+                    &learning_assets_by_parent,
                     &extracts_by_parent,
                     &cards_by_parent,
                 ),
             ));
         }
-        for r in readings_by_parent.get(&None).into_iter().flatten() {
+        for r in learning_assets_by_parent.get(&None).into_iter().flatten() {
             root_nodes.push((
                 r.meta().position.clone(),
                 build_node(
                     r,
                     Some(r.meta().element_id),
                     &folders_by_parent,
-                    &readings_by_parent,
+                    &learning_assets_by_parent,
                     &extracts_by_parent,
                     &cards_by_parent,
                 ),
@@ -75,7 +77,7 @@ impl ElementTreeService for DefaultElementTreeService {
                     e,
                     Some(e.meta().element_id),
                     &folders_by_parent,
-                    &readings_by_parent,
+                    &learning_assets_by_parent,
                     &extracts_by_parent,
                     &cards_by_parent,
                 ),
@@ -88,7 +90,7 @@ impl ElementTreeService for DefaultElementTreeService {
                     c,
                     Some(c.meta().element_id),
                     &folders_by_parent,
-                    &readings_by_parent,
+                    &learning_assets_by_parent,
                     &extracts_by_parent,
                     &cards_by_parent,
                 ),
@@ -128,7 +130,7 @@ fn build_node(
     element: &impl Element,
     parent_key: Option<ElementId>,
     folders_by_parent: &ElementMap<Folder>,
-    readings_by_parent: &ElementMap<Reading>,
+    learning_assets_by_parent: &ElementMap<LearningAsset>,
     extracts_by_parent: &ElementMap<Extract>,
     cards_by_parent: &ElementMap<Card>,
 ) -> NodeDto {
@@ -144,7 +146,7 @@ fn build_node(
                                 f,
                                 Some(f.meta().element_id),
                                 folders_by_parent,
-                                readings_by_parent,
+                                learning_assets_by_parent,
                                 extracts_by_parent,
                                 cards_by_parent,
                             )
@@ -152,7 +154,7 @@ fn build_node(
                         .collect()
                 })
                 .unwrap_or_default(),
-            readings: readings_by_parent
+            learning_assets: learning_assets_by_parent
                 .get(&parent_key)
                 .map(|rs| {
                     rs.iter()
@@ -161,7 +163,7 @@ fn build_node(
                                 r,
                                 Some(r.meta().element_id),
                                 folders_by_parent,
-                                readings_by_parent,
+                                learning_assets_by_parent,
                                 extracts_by_parent,
                                 cards_by_parent,
                             )
@@ -178,7 +180,7 @@ fn build_node(
                                 e,
                                 Some(e.meta().element_id),
                                 folders_by_parent,
-                                readings_by_parent,
+                                learning_assets_by_parent,
                                 extracts_by_parent,
                                 cards_by_parent,
                             )
@@ -195,7 +197,7 @@ fn build_node(
                                 c,
                                 Some(c.meta().element_id),
                                 folders_by_parent,
-                                readings_by_parent,
+                                learning_assets_by_parent,
                                 extracts_by_parent,
                                 cards_by_parent,
                             )
@@ -216,11 +218,14 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{card::Card, extract::Extract, folder::Folder, reading::Reading},
+            entities::{
+                card::Card, extract::Extract, folder::Folder, learning_asset::LearningAsset,
+            },
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
-                folder_repository::FolderRepository, meta_repository::MetaRepository,
-                reading_repository::ReadingRepository,
+                folder_repository::FolderRepository,
+                learning_asset_repository::LearningAssetRepository,
+                meta_repository::MetaRepository,
             },
             services::element_tree_service::ElementTreeService,
             value_objects::{element_id::ElementId, meta::Meta},
@@ -230,8 +235,8 @@ mod tests {
                 sqlite_card_repository::SqliteCardRepository,
                 sqlite_extract_repository::SqliteExtractRepository,
                 sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_learning_asset_repository::SqliteLearningAssetRepository,
                 sqlite_meta_repository::SqliteMetaRepository,
-                sqlite_reading_repository::SqliteReadingRepository,
             },
             value_objects::db_transaction::DbTransaction,
         },
@@ -244,7 +249,11 @@ mod tests {
         let mut injector = create_test_injector().await;
 
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
@@ -271,8 +280,8 @@ mod tests {
     fn folder_meta() -> Meta {
         make_meta(ElementId::Folder(Uuid::new_v4()))
     }
-    fn reading_meta() -> Meta {
-        make_meta(ElementId::Reading(Uuid::new_v4()))
+    fn learning_asset_meta() -> Meta {
+        make_meta(ElementId::LearningAsset(Uuid::new_v4()))
     }
     fn extract_meta() -> Meta {
         make_meta(ElementId::Extract(Uuid::new_v4()))
@@ -372,7 +381,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_element_tree_folder_with_reading_extract_and_card_returns_full_chain() {
+    async fn get_element_tree_folder_with_learning_asset_extract_and_card_returns_full_chain() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -386,21 +395,21 @@ mod tests {
             },
         };
         let folder_id = folder.meta.element_id;
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 name: "Photosynthesis".to_string(),
                 parent: Some(folder_id),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
-        let reading_id = reading.meta.element_id;
+        let learning_asset_id = learning_asset.meta.element_id;
         let extract = Extract {
             interval_multiplier: 1.2,
             meta: Meta {
                 name: "Key passage".to_string(),
-                parent: Some(reading_id),
+                parent: Some(learning_asset_id),
                 ..extract_meta()
             },
             content: "Plants convert sunlight".to_string(),
@@ -424,9 +433,9 @@ mod tests {
             .await
             .unwrap();
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
         scope
@@ -450,18 +459,18 @@ mod tests {
 
         assert_eq!(1, actual.len());
         let folder = &actual[0];
-        assert_eq!(1, folder.children.readings.len());
-        let reading = &folder.children.readings[0];
-        assert_eq!(reading_id, reading.meta.element_id);
-        assert_eq!(1, reading.children.extracts.len());
-        let extract = &reading.children.extracts[0];
+        assert_eq!(1, folder.children.learning_assets.len());
+        let learning_asset = &folder.children.learning_assets[0];
+        assert_eq!(learning_asset_id, learning_asset.meta.element_id);
+        assert_eq!(1, learning_asset.children.extracts.len());
+        let extract = &learning_asset.children.extracts[0];
         assert_eq!(extract_id, extract.meta.element_id);
         assert_eq!(1, extract.children.cards.len());
         assert_eq!(card_id, extract.children.cards[0].meta.element_id);
     }
 
     #[tokio::test]
-    async fn get_element_tree_multiple_readings_returned_sorted_by_position() {
+    async fn get_element_tree_multiple_learning_assets_returned_sorted_by_position() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -482,17 +491,17 @@ mod tests {
             .await
             .unwrap();
 
-        let reading_first = Reading {
+        let learning_asset_first = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 name: "First".to_string(),
                 parent: Some(folder_id),
                 position: FractionalIndex::new_after(&FractionalIndex::default()),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
-        let reading_second = Reading {
+        let learning_asset_second = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
                 name: "Second".to_string(),
@@ -500,21 +509,21 @@ mod tests {
                 position: FractionalIndex::new_after(&FractionalIndex::new_after(
                     &FractionalIndex::default(),
                 )),
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
-        let reading_first_id = reading_first.meta.element_id;
-        let reading_second_id = reading_second.meta.element_id;
+        let learning_asset_first_id = learning_asset_first.meta.element_id;
+        let learning_asset_second_id = learning_asset_second.meta.element_id;
 
         // Insert in reverse position order to verify sorting
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
-        reading_repo
-            .create(reading_second, Vec::new())
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
+        learning_asset_repo
+            .create(learning_asset_second, Vec::new())
             .await
             .unwrap();
-        reading_repo
-            .create(reading_first, Vec::new())
+        learning_asset_repo
+            .create(learning_asset_first, Vec::new())
             .await
             .unwrap();
 
@@ -524,10 +533,10 @@ mod tests {
 
         // Assert
 
-        let readings = &actual[0].children.readings;
-        assert_eq!(2, readings.len());
-        assert_eq!(reading_first_id, readings[0].meta.element_id);
-        assert_eq!(reading_second_id, readings[1].meta.element_id);
+        let learning_assets = &actual[0].children.learning_assets;
+        assert_eq!(2, learning_assets.len());
+        assert_eq!(learning_asset_first_id, learning_assets[0].meta.element_id);
+        assert_eq!(learning_asset_second_id, learning_assets[1].meta.element_id);
     }
 
     #[tokio::test]
@@ -578,26 +587,26 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_element_tree_root_reading_appears_at_root() {
+    async fn get_element_tree_root_learning_asset_appears_at_root() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn ElementTreeService>().await;
 
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
-                name: "Orphan Reading".to_string(),
-                ..reading_meta()
+                name: "Orphan LearningAsset".to_string(),
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
-        let reading_id = reading.meta.element_id;
+        let learning_asset_id = learning_asset.meta.element_id;
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
@@ -608,8 +617,8 @@ mod tests {
         // Assert
 
         assert_eq!(1, actual.len());
-        assert_eq!(reading_id, actual[0].meta.element_id);
-        assert_eq!("Orphan Reading", actual[0].meta.name);
+        assert_eq!(learning_asset_id, actual[0].meta.element_id);
+        assert_eq!("Orphan LearningAsset", actual[0].meta.name);
     }
 
     #[tokio::test]
@@ -624,12 +633,12 @@ mod tests {
         let pos_second = FractionalIndex::new_after(&pos_first);
         let pos_third = FractionalIndex::new_after(&pos_second);
 
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             interval_multiplier: 1.2,
             meta: Meta {
-                name: "Reading".to_string(),
+                name: "LearningAsset".to_string(),
                 position: pos_first,
-                ..reading_meta()
+                ..learning_asset_meta()
             },
             read_point: ReadPoint::default(),
         };
@@ -649,14 +658,14 @@ mod tests {
             },
             content: "Some text".to_string(),
         };
-        let reading_id = reading.meta.element_id;
+        let learning_asset_id = learning_asset.meta.element_id;
         let folder_id = folder.meta.element_id;
         let extract_id = extract.meta.element_id;
 
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
         scope
@@ -679,7 +688,7 @@ mod tests {
         // Assert
 
         assert_eq!(3, actual.len());
-        assert_eq!(reading_id, actual[0].meta.element_id);
+        assert_eq!(learning_asset_id, actual[0].meta.element_id);
         assert_eq!(folder_id, actual[1].meta.element_id);
         assert_eq!(extract_id, actual[2].meta.element_id);
     }
@@ -729,7 +738,7 @@ mod tests {
         // Assert
 
         let folder = &actual[0];
-        assert!(folder.children.readings.is_empty());
+        assert!(folder.children.learning_assets.is_empty());
         assert_eq!(1, folder.children.extracts.len());
         assert_eq!(extract_id, folder.children.extracts[0].meta.element_id);
     }

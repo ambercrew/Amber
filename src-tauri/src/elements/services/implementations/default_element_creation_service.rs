@@ -10,19 +10,19 @@ use crate::common::event_manager::EventManager;
 use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
-use crate::elements::dto::create_reading_dto::CreateReadingDto;
+use crate::elements::dto::create_learning_asset_dto::CreateLearningAssetDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
-use crate::elements::entities::reading::{Reading, ReadingSplit};
+use crate::elements::entities::learning_asset::{LearningAsset, LearningAssetSplit};
 use crate::elements::events::element_created_event::{
     ELEMENT_CREATED_EVENT, ElementCreatedEventDto,
 };
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::learning_asset_repository::LearningAssetRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
-use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::{
     ElementCreationError, ElementCreationService,
 };
@@ -32,10 +32,10 @@ use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 use crate::elements::value_objects::origin::Origin;
 use crate::study::entities::card_review::CardReview;
-use crate::study::entities::reading_review::ReadingReview;
+use crate::study::entities::learning_asset_review::LearningAssetReview;
 use crate::study::entities::study_profile::StudyProfile;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::learning_asset_review_repository::LearningAssetReviewRepository;
 use crate::study::services::profile_resolution_service::ProfileResolutionService;
 use crate::study::utils::day_boundary::start_of_today_utc;
 use crate::study::value_objects::card_state::CardState;
@@ -43,12 +43,12 @@ use crate::study::value_objects::card_state::CardState;
 #[derive(ScopeInjectable)]
 pub struct DefaultElementCreationService {
     folder_repository: Arc<dyn FolderRepository>,
-    reading_repository: Arc<dyn ReadingRepository>,
+    learning_asset_repository: Arc<dyn LearningAssetRepository>,
     extract_repository: Arc<dyn ExtractRepository>,
     card_repository: Arc<dyn CardRepository>,
     index_service: Arc<dyn ElementIndexService>,
     priority_service: Arc<dyn PriorityService>,
-    reading_review_repository: Arc<dyn ReadingReviewRepository>,
+    learning_asset_review_repository: Arc<dyn LearningAssetReviewRepository>,
     card_review_repository: Arc<dyn CardReviewRepository>,
     profile_resolution_service: Arc<dyn ProfileResolutionService>,
     meta_repository: Arc<dyn MetaRepository>,
@@ -84,8 +84,11 @@ impl ElementCreationService for DefaultElementCreationService {
         Ok(())
     }
 
-    async fn create_reading(&self, dto: CreateReadingDto) -> Result<(), ElementCreationError> {
-        let element_id = ElementId::Reading(dto.id);
+    async fn create_learning_asset(
+        &self,
+        dto: CreateLearningAssetDto,
+    ) -> Result<(), ElementCreationError> {
+        let element_id = ElementId::LearningAsset(dto.id);
         let parent = dto.meta.parent;
         let position = self.index_service.get_new_last_index(parent).await?;
         let priority = self.priority_service.get_new_first_priority().await?;
@@ -97,7 +100,7 @@ impl ElementCreationService for DefaultElementCreationService {
         let (derived_from, bibliographical_source_id) =
             self.resolve_origin(parent, dto.meta.origin).await?;
 
-        let reading = Reading {
+        let learning_asset = LearningAsset {
             meta: Meta {
                 element_id,
                 name: dto.meta.name,
@@ -117,13 +120,16 @@ impl ElementCreationService for DefaultElementCreationService {
             .splits
             .into_iter()
             .enumerate()
-            .map(|(seq, content)| ReadingSplit {
+            .map(|(seq, content)| LearningAssetSplit {
                 seq: seq as u32,
                 content,
             })
             .collect();
-        self.reading_repository.create(reading, splits).await?;
-        self.ensure_reading_review(element_id, profile).await?;
+        self.learning_asset_repository
+            .create(learning_asset, splits)
+            .await?;
+        self.ensure_learning_asset_review(element_id, profile)
+            .await?;
         self.emit_element_created(parent).await;
         Ok(())
     }
@@ -163,8 +169,9 @@ impl ElementCreationService for DefaultElementCreationService {
             interval_multiplier: profile.initial_interval_multiplier,
         };
         self.extract_repository.create(extract).await?;
-        // Extracts are reviewed like readings.
-        self.ensure_reading_review(element_id, profile).await?;
+        // Extracts are reviewed like learning_assets.
+        self.ensure_learning_asset_review(element_id, profile)
+            .await?;
         self.emit_element_created(parent).await;
         Ok(())
     }
@@ -230,13 +237,13 @@ impl DefaultElementCreationService {
         }
     }
 
-    async fn ensure_reading_review(
+    async fn ensure_learning_asset_review(
         &self,
         element_id: ElementId,
         profile: StudyProfile,
     ) -> Result<(), ElementCreationError> {
         let exists = self
-            .reading_review_repository
+            .learning_asset_review_repository
             .get_by_element_id(element_id.id())
             .await?
             .is_some();
@@ -244,14 +251,16 @@ impl DefaultElementCreationService {
             return Ok(());
         }
 
-        let review = ReadingReview {
+        let review = LearningAssetReview {
             element_id,
             due: due_from_today(profile.initial_interval_days),
             interval_days: 0.0,
             last_reviewed: None,
             finished_at: None,
         };
-        self.reading_review_repository.upsert(&review).await?;
+        self.learning_asset_review_repository
+            .upsert(&review)
+            .await?;
         Ok(())
     }
 
@@ -307,9 +316,9 @@ mod tests {
             sqlite_card_review_repository::SqliteCardReviewRepository,
             sqlite_extract_repository::SqliteExtractRepository,
             sqlite_folder_repository::SqliteFolderRepository,
+            sqlite_learning_asset_repository::SqliteLearningAssetRepository,
+            sqlite_learning_asset_review_repository::SqliteLearningAssetReviewRepository,
             sqlite_meta_repository::SqliteMetaRepository,
-            sqlite_reading_repository::SqliteReadingRepository,
-            sqlite_reading_review_repository::SqliteReadingReviewRepository,
             sqlite_study_profile_repository::SqliteStudyProfileRepository,
         },
         study::entities::study_profile::StudyProfile,
@@ -329,7 +338,11 @@ mod tests {
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
@@ -341,8 +354,8 @@ mod tests {
         register_scope!(injector, dyn PriorityService, DefaultPriorityService);
         register_scope!(
             injector,
-            dyn ReadingReviewRepository,
-            SqliteReadingReviewRepository
+            dyn LearningAssetReviewRepository,
+            SqliteLearningAssetReviewRepository
         );
         register_scope!(
             injector,
@@ -395,7 +408,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_reading_creates_review_due_today_plus_initial_interval() {
+    async fn create_learning_asset_creates_review_due_today_plus_initial_interval() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -403,32 +416,34 @@ mod tests {
         create_test_profile(&scope, 3.0).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
-            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            learning_asset_repository: scope.resolve::<dyn LearningAssetRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
             priority_service: scope.resolve::<dyn PriorityService>().await,
-            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            learning_asset_review_repository: scope
+                .resolve::<dyn LearningAssetReviewRepository>()
+                .await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
             event_manager: permissive_event_manager(),
         };
-        let dto = CreateReadingDto {
+        let dto = CreateLearningAssetDto {
             id: Uuid::new_v4(),
             meta: dto_meta(None),
             splits: Vec::new(),
         };
-        let element_id = ElementId::Reading(dto.id);
+        let element_id = ElementId::LearningAsset(dto.id);
 
         // Act
 
-        service.create_reading(dto).await.unwrap();
+        service.create_learning_asset(dto).await.unwrap();
 
         // Assert
 
         let review = scope
-            .resolve::<dyn ReadingReviewRepository>()
+            .resolve::<dyn LearningAssetReviewRepository>()
             .await
             .get_by_element_id(element_id.id())
             .await
@@ -446,12 +461,14 @@ mod tests {
         create_test_profile(&scope, 2.0).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
-            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            learning_asset_repository: scope.resolve::<dyn LearningAssetRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
             priority_service: scope.resolve::<dyn PriorityService>().await,
-            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            learning_asset_review_repository: scope
+                .resolve::<dyn LearningAssetReviewRepository>()
+                .await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
@@ -483,7 +500,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_extract_creates_reading_review() {
+    async fn create_extract_creates_learning_asset_review() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -491,12 +508,14 @@ mod tests {
         create_test_profile(&scope, 1.0).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
-            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            learning_asset_repository: scope.resolve::<dyn LearningAssetRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
             priority_service: scope.resolve::<dyn PriorityService>().await,
-            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            learning_asset_review_repository: scope
+                .resolve::<dyn LearningAssetReviewRepository>()
+                .await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
@@ -516,7 +535,7 @@ mod tests {
         // Assert
 
         let review = scope
-            .resolve::<dyn ReadingReviewRepository>()
+            .resolve::<dyn LearningAssetReviewRepository>()
             .await
             .get_by_element_id(element_id.id())
             .await
@@ -546,7 +565,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_reading_valid_dto_seeds_interval_multiplier_from_profile() {
+    async fn create_learning_asset_valid_dto_seeds_interval_multiplier_from_profile() {
         // Arrange
 
         let injector = initialize_test_injector().await;
@@ -554,37 +573,39 @@ mod tests {
         create_test_profile_with_interval_multiplier(&scope, 1.5).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
-            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            learning_asset_repository: scope.resolve::<dyn LearningAssetRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
             priority_service: scope.resolve::<dyn PriorityService>().await,
-            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            learning_asset_review_repository: scope
+                .resolve::<dyn LearningAssetReviewRepository>()
+                .await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,
             event_manager: permissive_event_manager(),
         };
-        let dto = CreateReadingDto {
+        let dto = CreateLearningAssetDto {
             id: Uuid::new_v4(),
             meta: dto_meta(None),
             splits: Vec::new(),
         };
-        let reading_id = dto.id;
+        let learning_asset_id = dto.id;
 
         // Act
 
-        service.create_reading(dto).await.unwrap();
+        service.create_learning_asset(dto).await.unwrap();
 
         // Assert
 
-        let reading = scope
-            .resolve::<dyn ReadingRepository>()
+        let learning_asset = scope
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .get_by_id(reading_id)
+            .get_by_id(learning_asset_id)
             .await
             .unwrap();
-        assert_eq!(1.5, reading.interval_multiplier);
+        assert_eq!(1.5, learning_asset.interval_multiplier);
     }
 
     #[tokio::test]
@@ -596,12 +617,14 @@ mod tests {
         create_test_profile_with_interval_multiplier(&scope, 1.5).await;
         let service = DefaultElementCreationService {
             folder_repository: scope.resolve::<dyn FolderRepository>().await,
-            reading_repository: scope.resolve::<dyn ReadingRepository>().await,
+            learning_asset_repository: scope.resolve::<dyn LearningAssetRepository>().await,
             extract_repository: scope.resolve::<dyn ExtractRepository>().await,
             card_repository: scope.resolve::<dyn CardRepository>().await,
             index_service: scope.resolve::<dyn ElementIndexService>().await,
             priority_service: scope.resolve::<dyn PriorityService>().await,
-            reading_review_repository: scope.resolve::<dyn ReadingReviewRepository>().await,
+            learning_asset_review_repository: scope
+                .resolve::<dyn LearningAssetReviewRepository>()
+                .await,
             card_review_repository: scope.resolve::<dyn CardReviewRepository>().await,
             profile_resolution_service: scope.resolve::<dyn ProfileResolutionService>().await,
             meta_repository: scope.resolve::<dyn MetaRepository>().await,

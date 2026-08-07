@@ -2,8 +2,8 @@ import { NavigateFunction } from "react-router";
 import {
 	gradeCard,
 	getDueElements,
-	finishReading,
-	nextReading,
+	finishLearningAsset,
+	nextLearningAsset,
 } from "../../api/study/api/studyApi";
 import { paths } from "../../paths";
 import { ElementId } from "../../types/elements/elementId";
@@ -13,9 +13,9 @@ import { AppDispatch, RootState } from "../store";
 import {
 	cardGraded,
 	cardRequeued,
-	readingAdvanced,
-	readingFinished,
-	readingSkipped,
+	learningAssetAdvanced,
+	learningAssetFinished,
+	learningAssetSkipped,
 	sessionAdvanced,
 	sessionStarted,
 } from "./studyReducer";
@@ -65,37 +65,37 @@ export function gradeCardAction(
 	};
 }
 
-export function nextReadingAction(
+export function nextLearningAssetAction(
 	elementId: ElementId,
 	navigate: NavigateFunction,
 ) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const currentIndex = selectStudyIndex(getState());
-		await nextReading(elementId);
-		dispatch(readingAdvanced());
+		await nextLearningAsset(elementId);
+		dispatch(learningAssetAdvanced());
 		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
 	};
 }
 
-export function skipReadingAction(
+export function skipLearningAssetAction(
 	elementId: ElementId,
 	navigate: NavigateFunction,
 ) {
 	return (dispatch: AppDispatch, getState: () => RootState) => {
 		const currentIndex = selectStudyIndex(getState());
-		dispatch(readingSkipped({ elementId }));
+		dispatch(learningAssetSkipped({ elementId }));
 		advanceSession(dispatch, getState, navigate, null, currentIndex);
 	};
 }
 
-export function finishReadingAction(
+export function finishLearningAssetAction(
 	elementId: ElementId,
 	navigate: NavigateFunction,
 ) {
 	return async (dispatch: AppDispatch, getState: () => RootState) => {
 		const currentIndex = selectStudyIndex(getState());
-		await finishReading(elementId);
-		dispatch(readingFinished());
+		await finishLearningAsset(elementId);
+		dispatch(learningAssetFinished());
 		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
 	};
 }

@@ -23,15 +23,15 @@ interface ReviewDetailsProps {
 function ReviewDetails({ element, details }: ReviewDetailsProps) {
 	const elementId = element.data.meta.elementId;
 	const cardReview = details?.cardReview ?? null;
-	const readingReview = details?.readingReview ?? null;
+	const learningAssetReview = details?.learningAssetReview ?? null;
 
 	const debouncedUpdateIntervalMultiplier = useDebouncedCallback(
 		(id: ElementId, value: number) => updateIntervalMultiplier(id, value),
 		500,
 	);
 
-	if (element.type === "reading" || element.type === "extract") {
-		const finished = Boolean(readingReview?.finishedAt);
+	if (element.type === "learningAsset" || element.type === "extract") {
+		const finished = Boolean(learningAssetReview?.finishedAt);
 		return (
 			<InfoGroup
 				title="Scheduling"
@@ -57,20 +57,22 @@ function ReviewDetails({ element, details }: ReviewDetailsProps) {
 				</InfoField>
 				<InfoField label="Interval (days)">
 					<Text size="sm">
-						{readingReview
-							? formatNumber(readingReview.intervalDays)
+						{learningAssetReview
+							? formatNumber(learningAssetReview.intervalDays)
 							: "—"}
 					</Text>
 				</InfoField>
 				<InfoField label="Last reviewed">
 					<Text size="sm">
-						{formatDateTime(readingReview?.lastReviewed ?? null)}
+						{formatDateTime(
+							learningAssetReview?.lastReviewed ?? null,
+						)}
 					</Text>
 				</InfoField>
 				<InfoField label="Finished">
 					<Text size="sm">
 						{finished
-							? `Yes · ${formatDateTime(readingReview?.finishedAt ?? null)}`
+							? `Yes · ${formatDateTime(learningAssetReview?.finishedAt ?? null)}`
 							: "No"}
 					</Text>
 				</InfoField>

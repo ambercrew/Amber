@@ -21,7 +21,7 @@ function ElementNodeIcon({ type, expanded, size }: ElementNodeIconProps) {
 			) : (
 				<FolderIcon size={size} />
 			);
-		case "reading":
+		case "learningAsset":
 			return <FileTextIcon size={size} />;
 		case "extract":
 			return <ScissorsIcon size={size} />;

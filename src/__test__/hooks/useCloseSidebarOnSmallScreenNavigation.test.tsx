@@ -82,8 +82,8 @@ describe("useCloseSidebarOnSmallScreenNavigation", () => {
 		// Act
 
 		vi.mocked(useElementParams).mockReturnValue({
-			type: "reading",
-			id: "reading-1",
+			type: "learningAsset",
+			id: "learningAsset-1",
 		});
 		rerender();
 

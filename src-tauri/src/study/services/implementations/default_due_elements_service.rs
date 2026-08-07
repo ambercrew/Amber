@@ -15,7 +15,7 @@ use crate::local_configurations::repositories::local_configuration_repository::{
     LocalConfigurationRepository, LocalConfigurationRepositoryExt,
 };
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::learning_asset_review_repository::LearningAssetReviewRepository;
 use crate::study::services::due_elements_service::DueElementsService;
 use crate::study::value_objects::fuzz_factor_configuration::{
     FUZZ_FACTOR_CONFIGURATION_NAME, FuzzFactorConfiguration,
@@ -24,7 +24,7 @@ use crate::study::value_objects::fuzz_factor_configuration::{
 #[derive(ScopeInjectable)]
 pub struct DefaultDueElementsService {
     card_review_repository: Arc<dyn CardReviewRepository>,
-    reading_review_repository: Arc<dyn ReadingReviewRepository>,
+    learning_asset_review_repository: Arc<dyn LearningAssetReviewRepository>,
     local_configuration_repository: Arc<dyn LocalConfigurationRepository>,
 }
 
@@ -36,7 +36,7 @@ impl DueElementsService for DefaultDueElementsService {
         let mut due = self.card_review_repository.get_due_cards(as_of).await?;
 
         due.extend(
-            self.reading_review_repository
+            self.learning_asset_review_repository
                 .get_due_elements(as_of)
                 .await?,
         );
@@ -92,22 +92,23 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{card::Card, reading::Reading},
+            entities::{card::Card, learning_asset::LearningAsset},
             repositories::{
-                card_repository::CardRepository, meta_repository::MetaRepository,
-                reading_repository::ReadingRepository,
+                card_repository::CardRepository,
+                learning_asset_repository::LearningAssetRepository,
+                meta_repository::MetaRepository,
             },
             value_objects::{element_id_with_priority::ElementIdWithPriority, meta::Meta},
         },
         infrastructure::repositories::sqlite::{
             sqlite_card_repository::SqliteCardRepository,
             sqlite_card_review_repository::SqliteCardReviewRepository,
+            sqlite_learning_asset_repository::SqliteLearningAssetRepository,
+            sqlite_learning_asset_review_repository::SqliteLearningAssetReviewRepository,
             sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
             sqlite_meta_repository::SqliteMetaRepository,
-            sqlite_reading_repository::SqliteReadingRepository,
-            sqlite_reading_review_repository::SqliteReadingReviewRepository,
         },
-        study::entities::reading_review::ReadingReview,
+        study::entities::learning_asset_review::LearningAssetReview,
         test_utils::create_test_injector,
     };
 
@@ -116,7 +117,11 @@ mod tests {
     async fn initialize_test_injector() -> Injector {
         let mut injector = create_test_injector().await;
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         register_scope!(
             injector,
@@ -125,8 +130,8 @@ mod tests {
         );
         register_scope!(
             injector,
-            dyn ReadingReviewRepository,
-            SqliteReadingReviewRepository
+            dyn LearningAssetReviewRepository,
+            SqliteLearningAssetReviewRepository
         );
         register_scope!(
             injector,
@@ -153,14 +158,14 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_due_elements_new_card_and_future_reading_returns_only_card() {
+    async fn get_due_elements_new_card_and_future_learning_asset_returns_only_card() {
         // Arrange
 
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let card_repo = scope.resolve::<dyn CardRepository>().await;
-        let reading_repo = scope.resolve::<dyn ReadingRepository>().await;
-        let reading_review_repo = scope.resolve::<dyn ReadingReviewRepository>().await;
+        let learning_asset_repo = scope.resolve::<dyn LearningAssetRepository>().await;
+        let learning_asset_review_repo = scope.resolve::<dyn LearningAssetReviewRepository>().await;
         let service = scope.resolve::<dyn DueElementsService>().await;
 
         let card_id = ElementId::Card(Uuid::new_v4());
@@ -173,21 +178,21 @@ mod tests {
             .await
             .unwrap();
 
-        let reading_id = ElementId::Reading(Uuid::new_v4());
-        reading_repo
+        let learning_asset_id = ElementId::LearningAsset(Uuid::new_v4());
+        learning_asset_repo
             .create(
-                Reading {
+                LearningAsset {
                     interval_multiplier: 1.2,
-                    meta: make_meta(reading_id),
+                    meta: make_meta(learning_asset_id),
                     read_point: ReadPoint::default(),
                 },
                 Vec::new(),
             )
             .await
             .unwrap();
-        reading_review_repo
-            .upsert(&ReadingReview {
-                element_id: reading_id,
+        learning_asset_review_repo
+            .upsert(&LearningAssetReview {
+                element_id: learning_asset_id,
                 due: Utc::now() + Duration::days(30),
                 interval_days: 30.0,
                 last_reviewed: Some(Utc::now()),
@@ -203,7 +208,7 @@ mod tests {
         // Assert
 
         assert!(due.contains(&card_id));
-        assert!(!due.contains(&reading_id));
+        assert!(!due.contains(&learning_asset_id));
     }
 
     fn ordered_entries(count: usize) -> Vec<ElementIdWithPriority> {

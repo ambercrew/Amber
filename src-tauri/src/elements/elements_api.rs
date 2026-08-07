@@ -8,23 +8,23 @@ use crate::elements::dto::any_element_dto::AnyElementDto;
 use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
-use crate::elements::dto::create_reading_dto::CreateReadingDto;
+use crate::elements::dto::create_learning_asset_dto::CreateLearningAssetDto;
 use crate::elements::dto::element_details_dto::ElementDetailsResponseDto;
+use crate::elements::dto::learning_asset_split_id_dto::LearningAssetSplitIdDto;
+use crate::elements::dto::learning_asset_split_meta_dto::LearningAssetSplitMetaDto;
+use crate::elements::dto::learning_asset_split_text_dto::LearningAssetSplitTextDto;
 use crate::elements::dto::move_element_dto::MoveElementRequestDto;
-use crate::elements::dto::reading_split_id_dto::ReadingSplitIdDto;
-use crate::elements::dto::reading_split_meta_dto::ReadingSplitMetaDto;
-use crate::elements::dto::reading_split_text_dto::ReadingSplitTextDto;
 use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::dto::tree_dto::NodeDto;
 use crate::elements::dto::update_card_dto::UpdateCardDto;
 use crate::elements::dto::update_extract_dto::UpdateExtractDto;
+use crate::elements::dto::update_learning_asset_dto::UpdateLearningAssetDto;
 use crate::elements::dto::update_read_point_dto::UpdateReadPointDto;
-use crate::elements::dto::update_reading_dto::UpdateReadingDto;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
+use crate::elements::repositories::learning_asset_repository::LearningAssetRepository;
 use crate::elements::repositories::meta_repository::MetaRepository;
-use crate::elements::repositories::reading_repository::ReadingRepository;
 use crate::elements::services::element_creation_service::ElementCreationService;
 use crate::elements::services::element_details_service::ElementDetailsService;
 use crate::elements::services::element_move_service::ElementMoveService;
@@ -79,15 +79,15 @@ pub async fn create_folder(
 }
 
 #[tauri::command]
-pub async fn create_reading(
+pub async fn create_learning_asset(
     injector: State<'_, Arc<Injector>>,
-    dto: CreateReadingDto,
+    dto: CreateLearningAssetDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
         .resolve::<dyn ElementCreationService>()
         .await
-        .create_reading(dto)
+        .create_learning_asset(dto)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -138,13 +138,13 @@ pub async fn create_card(
 }
 
 #[tauri::command]
-pub async fn update_reading(
+pub async fn update_learning_asset(
     injector: State<'_, Arc<Injector>>,
-    dto: UpdateReadingDto,
+    dto: UpdateLearningAssetDto,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn LearningAssetRepository>()
         .await
         .update_content(dto.split_id.into(), dto.content)
         .await?;
@@ -153,44 +153,47 @@ pub async fn update_reading(
 }
 
 #[tauri::command]
-pub async fn get_reading_split_manifest(
+pub async fn get_learning_asset_split_manifest(
     injector: State<'_, Arc<Injector>>,
-    reading_id: Uuid,
-) -> Result<Vec<ReadingSplitMetaDto>, ApiError> {
+    learning_asset_id: Uuid,
+) -> Result<Vec<LearningAssetSplitMetaDto>, ApiError> {
     let scope = injector.start_scope();
     let manifest = scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn LearningAssetRepository>()
         .await
-        .get_split_manifest(reading_id)
+        .get_split_manifest(learning_asset_id)
         .await?;
     Ok(manifest
         .into_iter()
-        .map(ReadingSplitMetaDto::from)
+        .map(LearningAssetSplitMetaDto::from)
         .collect())
 }
 
 #[tauri::command]
-pub async fn get_reading_split_texts(
+pub async fn get_learning_asset_split_texts(
     injector: State<'_, Arc<Injector>>,
-    reading_id: Uuid,
-) -> Result<Vec<ReadingSplitTextDto>, ApiError> {
+    learning_asset_id: Uuid,
+) -> Result<Vec<LearningAssetSplitTextDto>, ApiError> {
     let scope = injector.start_scope();
     let texts = scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn LearningAssetRepository>()
         .await
-        .get_split_texts(reading_id)
+        .get_split_texts(learning_asset_id)
         .await?;
-    Ok(texts.into_iter().map(ReadingSplitTextDto::from).collect())
+    Ok(texts
+        .into_iter()
+        .map(LearningAssetSplitTextDto::from)
+        .collect())
 }
 
 #[tauri::command]
-pub async fn get_reading_split_content(
+pub async fn get_learning_asset_split_content(
     injector: State<'_, Arc<Injector>>,
-    dto: ReadingSplitIdDto,
+    dto: LearningAssetSplitIdDto,
 ) -> Result<String, ApiError> {
     let scope = injector.start_scope();
     let content = scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn LearningAssetRepository>()
         .await
         .get_split_content(dto.into())
         .await?;
@@ -204,9 +207,9 @@ pub async fn update_read_point(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     scope
-        .resolve::<dyn ReadingRepository>()
+        .resolve::<dyn LearningAssetRepository>()
         .await
-        .update_read_point(dto.reading_id, dto.read_point)
+        .update_read_point(dto.learning_asset_id, dto.read_point)
         .await?;
     scope.save_changes().await?;
     Ok(())
@@ -235,9 +238,9 @@ pub async fn update_interval_multiplier(
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
     match element_id {
-        ElementId::Reading(id) => {
+        ElementId::LearningAsset(id) => {
             scope
-                .resolve::<dyn ReadingRepository>()
+                .resolve::<dyn LearningAssetRepository>()
                 .await
                 .update_interval_multiplier(id, interval_multiplier)
                 .await?;
@@ -251,7 +254,7 @@ pub async fn update_interval_multiplier(
         }
         _ => {
             return Err(ApiError::new(
-                "interval_multiplier is only valid for readings and extracts".to_string(),
+                "interval_multiplier is only valid for learning_assets and extracts".to_string(),
             ));
         }
     }
@@ -333,8 +336,8 @@ pub async fn get_element_by_id(
             .get_by_id(element_id.id())
             .await?
             .into(),
-        ElementId::Reading(_) => scope
-            .resolve::<dyn ReadingRepository>()
+        ElementId::LearningAsset(_) => scope
+            .resolve::<dyn LearningAssetRepository>()
             .await
             .get_by_id(element_id.id())
             .await?

@@ -119,9 +119,10 @@ mod tests {
 
     use crate::{
         elements::{
-            entities::{folder::Folder, reading::Reading},
+            entities::{folder::Folder, learning_asset::LearningAsset},
             repositories::{
-                folder_repository::FolderRepository, reading_repository::ReadingRepository,
+                folder_repository::FolderRepository,
+                learning_asset_repository::LearningAssetRepository,
             },
             services::implementations::{
                 default_element_index_service::DefaultElementIndexService,
@@ -133,8 +134,8 @@ mod tests {
         infrastructure::{
             repositories::sqlite::{
                 sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_learning_asset_repository::SqliteLearningAssetRepository,
                 sqlite_meta_repository::SqliteMetaRepository,
-                sqlite_reading_repository::SqliteReadingRepository,
                 sqlite_trash_repository::SqliteTrashRepository,
             },
             value_objects::db_transaction::DbTransaction,
@@ -148,7 +149,11 @@ mod tests {
         let mut injector = create_test_injector().await;
 
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn MetaRepository, SqliteMetaRepository);
         register_scope!(injector, dyn TrashRepository, SqliteTrashRepository);
         register_scope!(
@@ -187,14 +192,14 @@ mod tests {
         }
     }
 
-    fn make_reading(name: &str, parent: Option<ElementId>) -> Reading {
-        Reading {
+    fn make_learning_asset(name: &str, parent: Option<ElementId>) -> LearningAsset {
+        LearningAsset {
             interval_multiplier: 1.2,
             read_point: ReadPoint::default(),
             meta: Meta {
                 name: name.into(),
                 parent,
-                ..make_meta(ElementId::Reading(Uuid::new_v4()))
+                ..make_meta(ElementId::LearningAsset(Uuid::new_v4()))
             },
         }
     }
@@ -207,14 +212,14 @@ mod tests {
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repository = scope.resolve::<dyn LearningAssetRepository>().await;
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
         folder_repository.create(folder).await.unwrap();
-        reading_repository
-            .create(reading, Vec::new())
+        learning_asset_repository
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
@@ -225,7 +230,13 @@ mod tests {
         // Assert
 
         assert!(folder_repository.get_all().await.unwrap().is_empty());
-        assert!(reading_repository.get_all().await.unwrap().is_empty());
+        assert!(
+            learning_asset_repository
+                .get_all()
+                .await
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[tokio::test]
@@ -238,8 +249,8 @@ mod tests {
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -247,20 +258,20 @@ mod tests {
             .await
             .unwrap();
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
-        service.trash_element(reading_id).await.unwrap();
+        service.trash_element(learning_asset_id).await.unwrap();
 
         // Act
 
         service.trash_element(folder_id).await.unwrap();
 
         // Assert — both are trash roots, and restoring the folder leaves the
-        // reading the user trashed separately in the trash.
+        // learning_asset the user trashed separately in the trash.
 
         let trashed = service.list_trash().await.unwrap();
         assert_eq!(2, trashed.len());
@@ -277,7 +288,7 @@ mod tests {
 
         let trashed = service.list_trash().await.unwrap();
         assert_eq!(1, trashed.len());
-        assert_eq!(reading_id, trashed[0].element_id);
+        assert_eq!(learning_asset_id, trashed[0].element_id);
     }
 
     #[tokio::test]
@@ -291,8 +302,8 @@ mod tests {
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -300,17 +311,17 @@ mod tests {
             .await
             .unwrap();
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
         service.trash_element(folder_id).await.unwrap();
-        // Makes the reading a trash root of its own inside the trashed folder,
+        // Makes the learning asset a trash root of its own inside the trashed folder,
         // the way an incoming sync of a trash state can.
         trash_repository
-            .trash(reading_id, Utc::now())
+            .trash(learning_asset_id, Utc::now())
             .await
             .unwrap();
 
@@ -322,7 +333,7 @@ mod tests {
 
         let trashed = service.list_trash().await.unwrap();
         assert_eq!(1, trashed.len());
-        assert_eq!(reading_id, trashed[0].element_id);
+        assert_eq!(learning_asset_id, trashed[0].element_id);
     }
 
     #[tokio::test]
@@ -332,24 +343,24 @@ mod tests {
         let injector = initialize_test_injector().await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
-        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repository = scope.resolve::<dyn LearningAssetRepository>().await;
 
         let grandparent = make_folder("Science", None);
         let grandparent_id = grandparent.meta.element_id;
         let parent = make_folder("Biology", Some(grandparent_id));
         let parent_id = parent.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(parent_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(parent_id));
+        let learning_asset_id = learning_asset.meta.element_id;
 
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;
         folder_repository.create(grandparent).await.unwrap();
         folder_repository.create(parent).await.unwrap();
-        reading_repository
-            .create(reading, Vec::new())
+        learning_asset_repository
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
-        service.trash_element(reading_id).await.unwrap();
+        service.trash_element(learning_asset_id).await.unwrap();
         // Trashes only the grandparent's own row, leaving the parent live —
         // not reachable through `trash_element`, which always cascades to
         // descendants, but exercises the same ancestry check.
@@ -368,14 +379,14 @@ mod tests {
 
         // Act
 
-        service.restore_element(reading_id).await.unwrap();
+        service.restore_element(learning_asset_id).await.unwrap();
 
         // Assert — the live parent is itself hidden behind the trashed
-        // grandparent, so the reading cannot come back under it.
+        // grandparent, so the learning asset cannot come back under it.
 
-        let readings = reading_repository.get_all().await.unwrap();
-        assert_eq!(1, readings.len());
-        assert_eq!(None, readings[0].meta.parent);
+        let learning_assets = learning_asset_repository.get_all().await.unwrap();
+        assert_eq!(1, learning_assets.len());
+        assert_eq!(None, learning_assets[0].meta.parent);
     }
 
     #[tokio::test]
@@ -388,7 +399,7 @@ mod tests {
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -396,9 +407,9 @@ mod tests {
             .await
             .unwrap();
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
         service.trash_element(folder_id).await.unwrap();
@@ -423,15 +434,15 @@ mod tests {
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repository = scope.resolve::<dyn LearningAssetRepository>().await;
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         folder_repository.create(folder).await.unwrap();
-        reading_repository
-            .create(reading, Vec::new())
+        learning_asset_repository
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
         service.trash_element(folder_id).await.unwrap();
@@ -443,10 +454,10 @@ mod tests {
         // Assert
 
         assert!(service.list_trash().await.unwrap().is_empty());
-        let readings = reading_repository.get_all().await.unwrap();
-        assert_eq!(1, readings.len());
-        assert_eq!(reading_id, readings[0].meta.element_id);
-        assert_eq!(Some(folder_id), readings[0].meta.parent);
+        let learning_assets = learning_asset_repository.get_all().await.unwrap();
+        assert_eq!(1, learning_assets.len());
+        assert_eq!(learning_asset_id, learning_assets[0].meta.element_id);
+        assert_eq!(Some(folder_id), learning_assets[0].meta.parent);
     }
 
     #[tokio::test]
@@ -495,23 +506,23 @@ mod tests {
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
         let folder_repository = scope.resolve::<dyn FolderRepository>().await;
-        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repository = scope.resolve::<dyn LearningAssetRepository>().await;
         let meta_repository = scope.resolve::<dyn MetaRepository>().await;
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         folder_repository.create(folder).await.unwrap();
-        reading_repository
-            .create(reading, Vec::new())
+        learning_asset_repository
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
-        // Give the reading a higher priority (later in the queue) than its
+        // Give the learning asset a higher priority (later in the queue) than its
         // parent folder before trashing them together.
         meta_repository
             .set_priority(
-                reading_id,
+                learning_asset_id,
                 FractionalIndex::new_after(&FractionalIndex::default()),
             )
             .await
@@ -522,12 +533,15 @@ mod tests {
 
         service.restore_element(folder_id).await.unwrap();
 
-        // Assert — the folder still ranks ahead of the reading, and neither
+        // Assert — the folder still ranks ahead of the learning asset, and neither
         // was simply dumped at the front of the queue.
 
         let folder_meta = meta_repository.get_by_id(folder_id.id()).await.unwrap();
-        let reading_meta = meta_repository.get_by_id(reading_id.id()).await.unwrap();
-        assert!(folder_meta.priority < reading_meta.priority);
+        let learning_asset_meta = meta_repository
+            .get_by_id(learning_asset_id.id())
+            .await
+            .unwrap();
+        assert!(folder_meta.priority < learning_asset_meta.priority);
     }
 
     #[tokio::test]
@@ -538,40 +552,40 @@ mod tests {
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn TrashService>().await;
         let trash_repository = scope.resolve::<dyn TrashRepository>().await;
-        let reading_repository = scope.resolve::<dyn ReadingRepository>().await;
+        let learning_asset_repository = scope.resolve::<dyn LearningAssetRepository>().await;
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
             .create(folder)
             .await
             .unwrap();
-        reading_repository
-            .create(reading, Vec::new())
+        learning_asset_repository
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
 
         service.trash_element(folder_id).await.unwrap();
-        // Makes the reading a trash root of its own inside the trashed folder,
+        // Makes the learning asset a trash root of its own inside the trashed folder,
         // the way an incoming sync of a trash state can.
         trash_repository
-            .trash(reading_id, Utc::now())
+            .trash(learning_asset_id, Utc::now())
             .await
             .unwrap();
 
         // Act
 
-        service.restore_element(reading_id).await.unwrap();
+        service.restore_element(learning_asset_id).await.unwrap();
 
         // Assert
 
-        let readings = reading_repository.get_all().await.unwrap();
-        assert_eq!(1, readings.len());
-        assert_eq!(None, readings[0].meta.parent);
+        let learning_assets = learning_asset_repository.get_all().await.unwrap();
+        assert_eq!(1, learning_assets.len());
+        assert_eq!(None, learning_assets[0].meta.parent);
     }
 
     #[tokio::test]
@@ -613,8 +627,8 @@ mod tests {
 
         let folder = make_folder("Science", None);
         let folder_id = folder.meta.element_id;
-        let reading = make_reading("Photosynthesis", Some(folder_id));
-        let reading_id = reading.meta.element_id;
+        let learning_asset = make_learning_asset("Photosynthesis", Some(folder_id));
+        let learning_asset_id = learning_asset.meta.element_id;
         scope
             .resolve::<dyn FolderRepository>()
             .await
@@ -622,20 +636,20 @@ mod tests {
             .await
             .unwrap();
         scope
-            .resolve::<dyn ReadingRepository>()
+            .resolve::<dyn LearningAssetRepository>()
             .await
-            .create(reading, Vec::new())
+            .create(learning_asset, Vec::new())
             .await
             .unwrap();
         service.trash_element(folder_id).await.unwrap();
 
         // Act
 
-        service.delete_permanently(reading_id).await.unwrap();
+        service.delete_permanently(learning_asset_id).await.unwrap();
 
         // Assert
 
-        assert!(!meta_repository.exists(reading_id).await.unwrap());
+        assert!(!meta_repository.exists(learning_asset_id).await.unwrap());
         assert!(meta_repository.exists(folder_id).await.unwrap());
     }
 

@@ -6,7 +6,7 @@ use crate::elements::dto::tag_dto::TagResponseDto;
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
-use crate::elements::entities::reading::Reading;
+use crate::elements::entities::learning_asset::LearningAsset;
 use crate::elements::value_objects::element_id::ElementId;
 use crate::elements::value_objects::meta::Meta;
 use crate::elements::value_objects::read_point::ReadPoint;
@@ -49,7 +49,7 @@ pub struct FolderResponseDto {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ReadingResponseDto {
+pub struct LearningAssetResponseDto {
     pub meta: MetaResponseDto,
     /// Where the user last read up to. The split index and per-split content are
     /// fetched separately (lazily) rather than inlined here.
@@ -77,7 +77,7 @@ pub struct CardResponseDto {
 #[serde(tag = "type", content = "data", rename_all = "camelCase")]
 pub enum AnyElementDto {
     Folder(FolderResponseDto),
-    Reading(ReadingResponseDto),
+    LearningAsset(LearningAssetResponseDto),
     Extract(ExtractResponseDto),
     Card(CardResponseDto),
 }
@@ -86,7 +86,7 @@ impl AnyElementDto {
     pub fn meta_mut(&mut self) -> &mut MetaResponseDto {
         match self {
             AnyElementDto::Folder(d) => &mut d.meta,
-            AnyElementDto::Reading(d) => &mut d.meta,
+            AnyElementDto::LearningAsset(d) => &mut d.meta,
             AnyElementDto::Extract(d) => &mut d.meta,
             AnyElementDto::Card(d) => &mut d.meta,
         }
@@ -101,14 +101,14 @@ impl From<Folder> for AnyElementDto {
     }
 }
 
-impl From<Reading> for AnyElementDto {
-    fn from(reading: Reading) -> Self {
+impl From<LearningAsset> for AnyElementDto {
+    fn from(learning_asset: LearningAsset) -> Self {
         // Split content is loaded lazily via the split index / split content
-        // commands, so only the reading's position and metadata are returned here.
-        AnyElementDto::Reading(ReadingResponseDto {
-            meta: reading.meta.into(),
-            read_point: reading.read_point,
-            interval_multiplier: reading.interval_multiplier,
+        // commands, so only the learning asset's position and metadata are returned here.
+        AnyElementDto::LearningAsset(LearningAssetResponseDto {
+            meta: learning_asset.meta.into(),
+            read_point: learning_asset.read_point,
+            interval_multiplier: learning_asset.interval_multiplier,
         })
     }
 }

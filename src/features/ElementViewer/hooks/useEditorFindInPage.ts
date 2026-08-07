@@ -24,8 +24,8 @@ interface ReturnValue {
 
 /**
  * Wires up find-in-page for a small, fixed, always-mounted set of editors
- * (an extract's single editor, or a card's front/back). Reading uses
- * `useReadingSearch`/`useSearchNavigation` instead, since unmounted splits
+ * (an extract's single editor, or a card's front/back). LearningAsset uses
+ * `useLearningAssetSearch`/`useSearchNavigation` instead, since unmounted splits
  * make that case more involved.
  */
 export function useEditorFindInPage(editorKeys: string[]): ReturnValue {

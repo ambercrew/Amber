@@ -14,7 +14,7 @@ pub struct MetaNodeDto {
 #[serde(rename_all = "camelCase")]
 pub struct NodeChildrenDto {
     pub folders: Vec<NodeDto>,
-    pub readings: Vec<NodeDto>,
+    pub learning_assets: Vec<NodeDto>,
     pub extracts: Vec<NodeDto>,
     pub cards: Vec<NodeDto>,
 }

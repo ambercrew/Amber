@@ -4,7 +4,7 @@ use crate::bibliographical_sources::dto::bibliographical_source_dto::Bibliograph
 use crate::elements::dto::priority_info_dto::PriorityInfoResponseDto;
 use crate::elements::services::element_details_service::ElementDetails;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
-use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
+use crate::study::dto::learning_asset_review_dto::LearningAssetReviewResponseDto;
 use crate::study::dto::study_profile_dto::{EffectiveProfileResponseDto, StudyProfileResponseDto};
 
 /// Everything the Aside details panel needs for the currently viewed
@@ -15,7 +15,7 @@ pub struct ElementDetailsResponseDto {
     pub bibliographical_source: Option<BibliographicalSourceResponseDto>,
     pub derived_from_name: Option<String>,
     pub card_review: Option<CardReviewResponseDto>,
-    pub reading_review: Option<ReadingReviewResponseDto>,
+    pub learning_asset_review: Option<LearningAssetReviewResponseDto>,
     pub effective_profile: EffectiveProfileResponseDto,
     pub profiles: Vec<StudyProfileResponseDto>,
     /// Name to display for the "inherit from parent" option: the parent's
@@ -31,7 +31,7 @@ impl From<ElementDetails> for ElementDetailsResponseDto {
             bibliographical_source: details.bibliographical_source.map(Into::into),
             derived_from_name: details.derived_from_name,
             card_review: details.card_review.map(Into::into),
-            reading_review: details.reading_review.map(Into::into),
+            learning_asset_review: details.learning_asset_review.map(Into::into),
             effective_profile: details.effective_profile.into(),
             profiles: details.profiles.into_iter().map(Into::into).collect(),
             inherited_profile_name: details.inherited_profile_name,

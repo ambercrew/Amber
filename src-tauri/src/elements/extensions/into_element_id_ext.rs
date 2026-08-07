@@ -13,7 +13,7 @@ impl IntoElementIdExt for (Uuid, String) {
     fn into_element_id(self) -> ElementId {
         match self.1.as_str() {
             "folder" => ElementId::Folder(self.0),
-            "reading" => ElementId::Reading(self.0),
+            "learning_asset" => ElementId::LearningAsset(self.0),
             "extract" => ElementId::Extract(self.0),
             _ => ElementId::Card(self.0),
         }
@@ -28,7 +28,7 @@ impl IntoOptionalElementIdExt for (Option<Uuid>, Option<String>) {
     fn into_element_id(self) -> Option<ElementId> {
         match (self.0, self.1.as_deref()) {
             (Some(id), Some("folder")) => Some(ElementId::Folder(id)),
-            (Some(id), Some("reading")) => Some(ElementId::Reading(id)),
+            (Some(id), Some("learning_asset")) => Some(ElementId::LearningAsset(id)),
             (Some(id), Some("extract")) => Some(ElementId::Extract(id)),
             (Some(id), Some("card")) => Some(ElementId::Card(id)),
             _ => None,

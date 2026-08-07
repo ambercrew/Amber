@@ -2,7 +2,7 @@ import { Menu } from "@mantine/core";
 import { CommandMenuItem } from "../../../commands/CommandMenuItem";
 import { commandIcon } from "../../../commands/commandIcon";
 
-/** Submenu of read point actions, shown in the editor's right-click menu for a reading. */
+/** Submenu of read point actions, shown in the editor's right-click menu for a learning asset. */
 export default function ReadPointMenu() {
 	return (
 		<Menu.Sub>

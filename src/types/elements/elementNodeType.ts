@@ -1,1 +1,1 @@
-export type ElementNodeType = "folder" | "reading" | "extract" | "card";
+export type ElementNodeType = "folder" | "learningAsset" | "extract" | "card";

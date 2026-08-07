@@ -1,6 +1,6 @@
 import { ReadPoint } from "./readPoint";
 
 export interface UpdateReadPointDto {
-	readingId: string;
+	learningAssetId: string;
 	readPoint: ReadPoint;
 }

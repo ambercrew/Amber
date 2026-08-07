@@ -5,7 +5,7 @@ import errorToString from "../../../utils/errorToString";
 import { normalize } from "../normalize";
 import { hydrateLazyImages } from "../normalize/hydrateLazyImages";
 import { deriveTitle } from "../deriveTitle";
-import { createImportedReading } from "../createImportedReading";
+import { createImportedLearningAsset } from "../createImportedLearningAsset";
 import { ImportContext } from "../importContext";
 import { runFileImport, FileImportError } from "./file";
 
@@ -109,7 +109,7 @@ async function importArticleHtml(
 		}),
 	);
 
-	await createImportedReading(
+	await createImportedLearningAsset(
 		ctx,
 		finalTitle,
 		content,

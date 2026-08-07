@@ -10,7 +10,7 @@ export function dtosToTreeData(nodes: NodeDto[]): TreeNodeData[] {
 function nodeToTreeNode(node: NodeDto): TreeNodeData {
 	const children = [
 		...node.children.folders.map(nodeToTreeNode),
-		...node.children.readings.map(nodeToTreeNode),
+		...node.children.learningAssets.map(nodeToTreeNode),
 		...node.children.extracts.map(nodeToTreeNode),
 		...node.children.cards.map(nodeToTreeNode),
 	];

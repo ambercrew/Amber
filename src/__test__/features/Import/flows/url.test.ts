@@ -5,7 +5,7 @@ import {
 import { fetchPage } from "../../../../api/import/api/importApi";
 import { normalize } from "../../../../features/Import/normalize";
 import { hydrateLazyImages } from "../../../../features/Import/normalize/hydrateLazyImages";
-import { createImportedReading } from "../../../../features/Import/createImportedReading";
+import { createImportedLearningAsset } from "../../../../features/Import/createImportedLearningAsset";
 import { runFileImport } from "../../../../features/Import/flows/file";
 import { createBibliographicalSource } from "../../../../api/bibliographicalSources/api/bibliographicalSourcesApi";
 import { BibliographicalSourceResponseDto } from "../../../../api/bibliographicalSources/dto/bibliographicalSourceDto";
@@ -17,7 +17,7 @@ type Thunk = (dispatch: AppDispatch, getState: () => RootState) => unknown;
 vi.mock(import("../../../../api/import/api/importApi"));
 vi.mock(import("../../../../features/Import/normalize"));
 vi.mock(import("../../../../features/Import/normalize/hydrateLazyImages"));
-vi.mock(import("../../../../features/Import/createImportedReading"));
+vi.mock(import("../../../../features/Import/createImportedLearningAsset"));
 vi.mock(import("../../../../features/Import/flows/file"));
 vi.mock(
 	import("../../../../api/bibliographicalSources/api/bibliographicalSourcesApi"),
@@ -216,7 +216,7 @@ describe("runUrlImport", () => {
 		});
 	});
 
-	it("Should normalize the extracted article and create a reading on success", async () => {
+	it("Should normalize the extracted article and create a learning asset on success", async () => {
 		// Arrange
 
 		vi.mocked(fetchPage).mockResolvedValue({
@@ -246,7 +246,7 @@ describe("runUrlImport", () => {
 			sourceType: "WebPage",
 			location: "https://example.com/article",
 		});
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"Article Title",
 			"<p>normalized</p>",
@@ -308,7 +308,7 @@ describe("runUrlImport", () => {
 });
 
 describe("importRawPage", () => {
-	it("Should normalize the raw html and create a reading with a derived title", async () => {
+	it("Should normalize the raw html and create a learning asset with a derived title", async () => {
 		// Arrange
 
 		vi.mocked(normalize).mockResolvedValue(
@@ -334,7 +334,7 @@ describe("importRawPage", () => {
 			sourceType: "WebPage",
 			location: "https://example.com/raw",
 		});
-		expect(createImportedReading).toHaveBeenCalledWith(
+		expect(createImportedLearningAsset).toHaveBeenCalledWith(
 			ctx,
 			"Fallback Title",
 			"<h1>Fallback Title</h1><p>body</p>",

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// The point a reader last read up to within a reading. Device-independent.
+/// The point a reader last read up to within a learning asset. Device-independent.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ReadPoint {

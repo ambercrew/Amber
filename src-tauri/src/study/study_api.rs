@@ -15,12 +15,12 @@ use crate::local_configurations::repositories::local_configuration_repository::{
 use crate::study::dto::card_due_preview_dto::CardDuePreviewDto;
 use crate::study::dto::card_review_dto::CardReviewResponseDto;
 use crate::study::dto::due_element_dto::DueElementDto;
-use crate::study::dto::reading_review_dto::ReadingReviewResponseDto;
+use crate::study::dto::learning_asset_review_dto::LearningAssetReviewResponseDto;
 use crate::study::repositories::card_review_repository::CardReviewRepository;
-use crate::study::repositories::reading_review_repository::ReadingReviewRepository;
+use crate::study::repositories::learning_asset_review_repository::LearningAssetReviewRepository;
 use crate::study::services::card_grading_service::CardGradingService;
 use crate::study::services::due_elements_service::DueElementsService;
-use crate::study::services::reading_scheduling_service::ReadingSchedulingService;
+use crate::study::services::learning_asset_scheduling_service::LearningAssetSchedulingService;
 use crate::study::value_objects::fuzz_factor_configuration::{
     FUZZ_FACTOR_CONFIGURATION_NAME, FuzzFactorConfiguration,
 };
@@ -42,13 +42,13 @@ pub async fn get_card_review(
 }
 
 #[tauri::command]
-pub async fn get_reading_review(
+pub async fn get_learning_asset_review(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
-) -> Result<Option<ReadingReviewResponseDto>, ApiError> {
+) -> Result<Option<LearningAssetReviewResponseDto>, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ReadingReviewRepository>()
+        .resolve::<dyn LearningAssetReviewRepository>()
         .await
         .get_by_element_id(element_id.id())
         .await?;
@@ -110,13 +110,13 @@ pub async fn preview_card_review(
 }
 
 #[tauri::command]
-pub async fn next_reading(
+pub async fn next_learning_asset(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
-) -> Result<ReadingReviewResponseDto, ApiError> {
+) -> Result<LearningAssetReviewResponseDto, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ReadingSchedulingService>()
+        .resolve::<dyn LearningAssetSchedulingService>()
         .await
         .next(element_id)
         .await?;
@@ -125,13 +125,13 @@ pub async fn next_reading(
 }
 
 #[tauri::command]
-pub async fn preview_next_reading(
+pub async fn preview_next_learning_asset(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
 ) -> Result<DateTime<Utc>, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ReadingSchedulingService>()
+        .resolve::<dyn LearningAssetSchedulingService>()
         .await
         .preview_next(element_id)
         .await?;
@@ -139,13 +139,13 @@ pub async fn preview_next_reading(
 }
 
 #[tauri::command]
-pub async fn finish_reading(
+pub async fn finish_learning_asset(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
-) -> Result<ReadingReviewResponseDto, ApiError> {
+) -> Result<LearningAssetReviewResponseDto, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ReadingSchedulingService>()
+        .resolve::<dyn LearningAssetSchedulingService>()
         .await
         .finish(element_id)
         .await?;
@@ -184,13 +184,13 @@ pub async fn set_fuzz_factor(
 }
 
 #[tauri::command]
-pub async fn unfinish_reading(
+pub async fn unfinish_learning_asset(
     injector: State<'_, Arc<Injector>>,
     element_id: ElementId,
-) -> Result<ReadingReviewResponseDto, ApiError> {
+) -> Result<LearningAssetReviewResponseDto, ApiError> {
     let scope = injector.start_scope();
     let result = scope
-        .resolve::<dyn ReadingSchedulingService>()
+        .resolve::<dyn LearningAssetSchedulingService>()
         .await
         .unfinish(element_id)
         .await?;

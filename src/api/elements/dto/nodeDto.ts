@@ -13,7 +13,7 @@ export interface MetaNodeDto {
 
 export interface NodeChildrenDto {
 	folders: NodeDto[];
-	readings: NodeDto[];
+	learningAssets: NodeDto[];
 	extracts: NodeDto[];
 	cards: NodeDto[];
 }

@@ -9,7 +9,7 @@ interface RootElementPluginProps {
 /**
  * Reports the editor's root element — the contenteditable whose direct children
  * are the top-level blocks — to the parent. Lets callers read block geometry
- * (e.g. reading-position restore) through Lexical's own API instead of querying
+ * (e.g. learning asset-position restore) through Lexical's own API instead of querying
  * the DOM for its internals. Fires immediately with the current root, on every
  * root change, and with `null` when the editor unmounts.
  */

@@ -8,7 +8,7 @@ use uuid::Uuid;
 #[serde(tag = "type", content = "id", rename_all = "camelCase")]
 pub enum ElementId {
     Folder(Uuid),
-    Reading(Uuid),
+    LearningAsset(Uuid),
     Extract(Uuid),
     Card(Uuid),
 }
@@ -17,7 +17,7 @@ impl ElementId {
     pub fn id(&self) -> Uuid {
         match self {
             ElementId::Folder(id)
-            | ElementId::Reading(id)
+            | ElementId::LearningAsset(id)
             | ElementId::Extract(id)
             | ElementId::Card(id) => *id,
         }
@@ -26,7 +26,7 @@ impl ElementId {
     pub fn element_name(&self) -> &'static str {
         match self {
             ElementId::Folder(_) => "folder",
-            ElementId::Reading(_) => "reading",
+            ElementId::LearningAsset(_) => "learning_asset",
             ElementId::Extract(_) => "extract",
             ElementId::Card(_) => "card",
         }

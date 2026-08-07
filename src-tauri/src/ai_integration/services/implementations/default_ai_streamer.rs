@@ -327,8 +327,9 @@ pub mod tests {
         elements::{
             repositories::{
                 card_repository::CardRepository, extract_repository::ExtractRepository,
-                folder_repository::FolderRepository, meta_repository::MetaRepository,
-                reading_repository::ReadingRepository,
+                folder_repository::FolderRepository,
+                learning_asset_repository::LearningAssetRepository,
+                meta_repository::MetaRepository,
             },
             services::implementations::{
                 default_element_creation_service::DefaultElementCreationService,
@@ -350,9 +351,9 @@ pub mod tests {
                 sqlite_card_review_repository::SqliteCardReviewRepository,
                 sqlite_extract_repository::SqliteExtractRepository,
                 sqlite_folder_repository::SqliteFolderRepository,
+                sqlite_learning_asset_repository::SqliteLearningAssetRepository,
+                sqlite_learning_asset_review_repository::SqliteLearningAssetReviewRepository,
                 sqlite_meta_repository::SqliteMetaRepository,
-                sqlite_reading_repository::SqliteReadingRepository,
-                sqlite_reading_review_repository::SqliteReadingReviewRepository,
                 sqlite_study_profile_repository::SqliteStudyProfileRepository,
             },
         },
@@ -363,7 +364,7 @@ pub mod tests {
         study::{
             repositories::{
                 card_review_repository::CardReviewRepository,
-                reading_review_repository::ReadingReviewRepository,
+                learning_asset_review_repository::LearningAssetReviewRepository,
                 study_profile_repository::StudyProfileRepository,
             },
             services::{
@@ -420,7 +421,11 @@ pub mod tests {
             DefaultBibliographicalSourceService
         );
         register_scope!(injector, dyn FolderRepository, SqliteFolderRepository);
-        register_scope!(injector, dyn ReadingRepository, SqliteReadingRepository);
+        register_scope!(
+            injector,
+            dyn LearningAssetRepository,
+            SqliteLearningAssetRepository
+        );
         register_scope!(injector, dyn ExtractRepository, SqliteExtractRepository);
         register_scope!(injector, dyn CardRepository, SqliteCardRepository);
         register_scope!(
@@ -431,8 +436,8 @@ pub mod tests {
         register_scope!(injector, dyn PriorityService, DefaultPriorityService);
         register_scope!(
             injector,
-            dyn ReadingReviewRepository,
-            SqliteReadingReviewRepository
+            dyn LearningAssetReviewRepository,
+            SqliteLearningAssetReviewRepository
         );
         register_scope!(
             injector,

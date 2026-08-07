@@ -118,7 +118,10 @@ describe("useAiStreaming", () => {
 		// Arrange
 
 		vi.mocked(streamAiResponse).mockImplementation(() => new Promise(noop));
-		const elementId: ElementId = { type: "reading", id: "reading-1" };
+		const elementId: ElementId = {
+			type: "learningAsset",
+			id: "learningAsset-1",
+		};
 
 		const { result } = renderHook(
 			() => {
