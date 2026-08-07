@@ -17,7 +17,7 @@ pub async fn resolve_frontend_request(
     response: String,
 ) -> Result<(), ApiError> {
     let scope = injector.start_scope();
-    let bridge = scope.resolve::<RequestBridge>().await;
+    let bridge = scope.resolve::<RequestBridge<crate::AppRuntime>>().await;
     bridge.resolve(request_id, response);
     Ok(())
 }

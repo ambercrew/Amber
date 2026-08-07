@@ -1,7 +1,7 @@
 import { Group, Pill, Tooltip } from "@mantine/core";
 import useAppSelector from "../../../hooks/useAppSelector";
 import useAppDispatch from "../../../hooks/useAppDispatch";
-import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
+import { selectAiContextSnippets } from "../../../stores/aiContext/aiSelectors";
 import { removeAiContextSnippet } from "../../../stores/aiContext/aiReducer";
 import { previewText } from "../utils/contextSnippetPreview";
 

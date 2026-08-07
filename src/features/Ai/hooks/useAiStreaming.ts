@@ -22,7 +22,7 @@ import {
 	clearAiContextSnippets,
 	restoreAiContextSnippets,
 } from "../../../stores/aiContext/aiReducer";
-import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
+import { selectAiContextSnippets } from "../../../stores/aiContext/aiSelectors";
 import { StreamingToolMessage } from "../utils/buildDisplayMessages";
 
 interface UseAiStreamingParams {

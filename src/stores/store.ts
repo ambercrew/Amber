@@ -22,7 +22,7 @@ const reducers = combineReducers({
 	elementDetails: elementDetailsReducer,
 	search: searchReducer,
 	trash: trashReducer,
-	aiContext: aiReducer,
+	ai: aiReducer,
 });
 
 export const setupStore = (preloadedState?: Partial<RootState>) => {

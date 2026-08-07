@@ -9,11 +9,7 @@ pub enum LexicalJsonConverterError {
     Timeout,
 }
 
-/// Converts Markdown into serialized Lexical editor state JSON, the format
-/// used for `Reading`/`Extract`/`Card` content. The backend has no Lexical
-/// schema implementation of its own, so this delegates to the frontend's
-/// headless Lexical editor (via its Markdown-to-HTML-to-Lexical pipeline)
-/// through a request/response round trip over Tauri events.
+/// Converts Markdown into serialized Lexical editor state JSON
 #[async_trait]
 pub trait LexicalJsonConverter: Send + Sync {
     async fn convert_markdown(&self, markdown: &str) -> Result<String, LexicalJsonConverterError>;

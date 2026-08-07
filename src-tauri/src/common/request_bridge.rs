@@ -1,7 +1,9 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use async_trait::async_trait;
+use injector::injector_scope::{InjectorScope, ScopeInjectable};
 use serde::Serialize;
 use tauri::Emitter;
 use thiserror::Error;
@@ -32,25 +34,39 @@ struct RequestEnvelope<T: Serialize> {
 /// emits an event carrying a request id and payload, then awaits the
 /// frontend's answer, which it delivers by calling the
 /// `resolve_frontend_request` command with the same request id.
-#[derive(Default)]
-pub struct RequestBridge {
+pub struct RequestBridge<R: tauri::Runtime> {
+    app_handle: Arc<tauri::AppHandle<R>>,
     pending: Mutex<HashMap<Uuid, oneshot::Sender<String>>>,
 }
 
-impl RequestBridge {
+#[async_trait]
+impl<R: tauri::Runtime> ScopeInjectable for RequestBridge<R> {
+    async fn from_injector_scope(scope: &InjectorScope<'_>) -> Self {
+        let app_handle = scope.resolve::<tauri::AppHandle<R>>().await;
+        Self::new(app_handle)
+    }
+}
+
+impl<R: tauri::Runtime> RequestBridge<R> {
+    pub fn new(app_handle: Arc<tauri::AppHandle<R>>) -> Self {
+        Self {
+            app_handle,
+            pending: Mutex::new(HashMap::new()),
+        }
+    }
+
     /// Emits `event` with `payload` (plus a generated request id) and
     /// awaits the frontend's response to that request id, failing after
     /// `DEFAULT_TIMEOUT` if the frontend never resolves it.
-    pub async fn request<R: tauri::Runtime, T: Serialize + Send + Clone>(
+    pub async fn request<T: Serialize + Send + Clone>(
         &self,
-        app_handle: &tauri::AppHandle<R>,
         event: &str,
         payload: T,
     ) -> Result<String, RequestBridgeError> {
         let request_id = Uuid::new_v4();
         let receiver = self.register(request_id);
 
-        app_handle
+        self.app_handle
             .emit(
                 event,
                 RequestEnvelope {
@@ -89,8 +105,6 @@ impl RequestBridge {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
-
     use serde::Serialize;
     use tauri::Listener;
 
@@ -105,9 +119,9 @@ mod tests {
     async fn request_resolved_before_timeout_returns_response() {
         // Arrange
 
-        let bridge = Arc::new(RequestBridge::default());
         let app = tauri::test::mock_app();
-        let app_handle = app.handle().clone();
+        let app_handle = Arc::new(app.handle().clone());
+        let bridge = Arc::new(RequestBridge::new(app_handle));
 
         let resolving_bridge = bridge.clone();
         app.listen("ping", move |event| {
@@ -120,7 +134,6 @@ mod tests {
 
         let actual = bridge
             .request(
-                &app_handle,
                 "ping",
                 PingPayload {
                     message: "hello".to_string(),
@@ -138,7 +151,8 @@ mod tests {
     async fn resolve_unknown_request_id_does_not_panic() {
         // Arrange
 
-        let bridge = RequestBridge::default();
+        let app_handle = Arc::new(tauri::test::mock_app().handle().clone());
+        let bridge = RequestBridge::new(app_handle);
 
         // Act
 
@@ -153,7 +167,8 @@ mod tests {
     async fn cancel_pending_request_drops_sender_and_receiver_errors() {
         // Arrange
 
-        let bridge = RequestBridge::default();
+        let app_handle = Arc::new(tauri::test::mock_app().handle().clone());
+        let bridge = RequestBridge::new(app_handle);
         let request_id = Uuid::new_v4();
         let receiver = bridge.register(request_id);
 

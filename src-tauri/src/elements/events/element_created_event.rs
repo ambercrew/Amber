@@ -2,7 +2,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 /// Event name emitted whenever a folder, reading, extract or card is
-/// created. Must match the string listened for by `src/api/elements/api/elementsApi.ts`.
+/// created.
 pub const ELEMENT_CREATED_EVENT: &str = "elementCreated";
 
 #[derive(Serialize)]

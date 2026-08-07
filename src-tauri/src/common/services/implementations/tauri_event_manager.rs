@@ -6,7 +6,13 @@ use serde_json::Value;
 use tauri::Emitter;
 use tokio::sync::Mutex;
 
-use crate::common::event_manager::{AppEvent, EventManager};
+use crate::common::event_manager::EventManager;
+
+#[derive(Debug, Clone, PartialEq)]
+struct AppEvent {
+    name: String,
+    body: Value,
+}
 
 pub struct TauriEventManager<R: tauri::Runtime> {
     app_handle: Arc<tauri::AppHandle<R>>,

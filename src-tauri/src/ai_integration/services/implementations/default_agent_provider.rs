@@ -110,19 +110,13 @@ impl AgentProvider for DefaultAgentProvider {
             return Ok(builder.build());
         }
 
-        // TODO: no need to provide it here let the search document create the index
-        let embed_model = self
-            .ai_client_provider
-            .get_embeddings_model(&client)
-            .await?;
-
-        let vector_store = self
-            .ai_client_provider
-            .get_vector_store(&embed_model)
-            .await?;
-        let index = Arc::new(vector_store.index(embed_model));
-
-        Ok(builder.tool(SearchDocuments::new(index, chat_id)).build())
+        Ok(builder
+            .tool(SearchDocuments::new(
+                self.ai_client_provider.clone(),
+                client,
+                chat_id,
+            ))
+            .build())
     }
 }
 

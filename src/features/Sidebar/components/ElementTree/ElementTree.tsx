@@ -8,12 +8,12 @@ import {
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
+import { MoveElementDto } from "../../../../api/elements/api/elementsApi";
+import { NodeDto } from "../../../../api/elements/dto/nodeDto";
 import {
 	ELEMENT_CREATED_EVENT,
-	MoveElementDto,
-} from "../../../../api/elements/api/elementsApi";
-import { ElementCreatedEventDto } from "../../../../api/elements/dto/elementCreatedEventDto";
-import { NodeDto } from "../../../../api/elements/dto/nodeDto";
+	ElementCreatedEventDto,
+} from "../../../../api/elements/events/elementCreatedEvent";
 import { useElementParams } from "../../../../hooks/useElementParams";
 import { useTauriEvent } from "../../../../hooks/useTauriEvent";
 import { paths } from "../../../../paths";

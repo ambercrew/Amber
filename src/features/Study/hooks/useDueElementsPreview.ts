@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useWindowEvent } from "@mantine/hooks";
-import { ELEMENT_CREATED_EVENT } from "../../../api/elements/api/elementsApi";
+import { ELEMENT_CREATED_EVENT } from "../../../api/elements/events/elementCreatedEvent";
 import { getDueElements } from "../../../api/study/api/studyApi";
 import useApi from "../../../hooks/useApi";
 import useAppDispatch from "../../../hooks/useAppDispatch";

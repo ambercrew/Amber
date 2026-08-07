@@ -42,7 +42,7 @@ import {
 } from "../../../utils/safeArea.ts";
 import useBackButtonPress from "../../../hooks/useBackButtonPress.ts";
 import { BackButtonPriority } from "../../../managers/backButtonManager.ts";
-import { useLexicalConversionBridge } from "../../Ai/hooks/useLexicalConversionBridge.ts";
+import { useLexicalConversionBridge } from "../hooks/useLexicalConversionBridge.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
@@ -51,7 +51,6 @@ export const HEADROOM_FIXED_AT = 120;
 const SIDEBAR_DEFAULT = 320;
 const ASIDE_DEFAULT = 320;
 
-// TODO: add about events to CLAUDE.md
 function App() {
 	const { pinned } = useHeadroom({ fixedAt: HEADROOM_FIXED_AT });
 

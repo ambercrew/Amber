@@ -76,6 +76,10 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 }
 ```
 
+### Event Manager (`common/event_manager.rs`)
+
+The `EventManager` trait (implemented by `TauriEventManager`, `common/services/implementations/tauri_event_manager.rs`) lets services queue frontend-bound events during a request scope without emitting them immediately. Services call `event_manager.push(name, body)` (e.g. `ELEMENT_CREATED_EVENT` in `default_element_creation_service.rs`); identical `AppEvent`s are deduplicated and buffered rather than sent right away. The buffered events are only flushed — via `emit_all()`, which emits each one through `AppHandle::emit` — from inside `SqliteTransactionManager::save_changes` (`infrastructure/managers/sqlite/sqlite_transaction_manager.rs`), right after the DB transaction commits, and reached through the same `UnitOfWorkExt::save_changes` call shown above. This ties event emission to the Unit-of-Work commit so the frontend never observes an event for a change that didn't actually persist (e.g. because the transaction was rolled back or an earlier step in the scope failed).
+
 ### Domain Modules
 
 - **elements** — Core content tree: `Folder`, `Reading`, `Extract`, `Card` (see Element Duplication below)
@@ -97,6 +101,10 @@ async fn some_command(injector: State<'_, Arc<Injector>>, ...) -> Result<Dto, Ap
 - Entities: plain struct names
 - Repository traits live in `repositories/`, implementations in `repositories/infrastructure/sqlite/`
 - Error types use `thiserror`; all commands return `Result<T, ApiError>`
+
+### Events
+
+Backend → frontend event names and their payloads live under a module's `events/` directory (e.g. `elements/events/element_created_event.rs`, `common/events/convert_markdown_to_lexical_event.rs`), never in `dto/` or inlined in a service. Each event gets its own file containing both the name constant and its payload struct together — e.g. `ELEMENT_CREATED_EVENT` and `ElementCreatedEventDto` both live in `elements/events/element_created_event.rs`. The frontend mirrors this: the event name constant and its DTO type live together in `src/api/<module>/events/<eventName>.ts` (e.g. `CONVERT_MARKDOWN_TO_LEXICAL_EVENT` and `ConvertMarkdownToLexicalEventDto` in `src/api/common/events/convertMarkdownToLexicalEvent.ts`), placed in whichever module's `api/` directory matches where the Rust event lives (`common/events/` → `src/api/common/events/`). Keep the event name string identical on both sides by hand — there's no compile-time link across the language boundary.
 
 ### Element Duplication
 
@@ -144,7 +152,7 @@ Some backend work (e.g. producing Lexical JSON) can only be done on the frontend
 1. Backend calls `bridge.request(app_handle, event, payload).await`, which emits `event` with `{ requestId, ...payload }` and awaits the frontend's answer (with a timeout).
 2. Frontend answers it by calling `useFrontendRequestBridge<TEvent>(event, handler)` once (e.g. in `App.tsx`) — it listens for `event`, runs `handler(payload)`, and reports the result back via the generic `resolve_frontend_request` command automatically. `TEvent` must extend `FrontendRequestEvent` (i.e. include `requestId`).
 
-Event name constants and the event's DTO type live in `src/api/<module>/` alongside that module's other typed wrappers (e.g. `CONVERT_HTML_TO_LEXICAL_EVENT` in `src/api/aiIntegration/api/aiApi.ts`, `ConvertHtmlToLexicalEventDto` in `src/api/aiIntegration/dto/`) — the event name string must match the `&str` the corresponding Rust `request()` call uses; there's no compile-time link across the language boundary, so keep them in sync by hand. See `src/features/Ai/hooks/useLexicalConversionBridge.ts` and `common/services/implementations/tauri_lexical_json_converter.rs` for the reference implementation.
+Event name constants and the event's DTO type live together under `src/api/<module>/events/` (see Events under Naming Conventions above, e.g. `CONVERT_MARKDOWN_TO_LEXICAL_EVENT` and `ConvertMarkdownToLexicalEventDto` in `src/api/common/events/convertMarkdownToLexicalEvent.ts`) — the event name string must match the `&str` the corresponding Rust `request()` call uses; there's no compile-time link across the language boundary, so keep them in sync by hand. See `src/features/Ai/hooks/useLexicalConversionBridge.ts` and `common/services/implementations/tauri_lexical_json_converter.rs` for the reference implementation.
 
 ### Rich Text (Lexical)
 

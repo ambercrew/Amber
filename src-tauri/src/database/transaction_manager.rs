@@ -13,10 +13,8 @@ pub enum TransactionManagerError {
 }
 
 /// Commits the scope's currently open transaction and immediately opens a
-/// fresh one in its place, without ending the scope. Useful for releasing a
-/// long-held read snapshot before a slow, non-database operation (e.g. an
-/// LLM round-trip) that would otherwise keep it open for the operation's
-/// whole duration and risk a stale-snapshot conflict on the next write.
+/// fresh one in its place, without ending the scope. Also emits any events
+/// queued during the scope, once the commit has succeeded.
 #[async_trait]
 #[cfg_attr(test, automock)]
 pub trait TransactionManager: Send + Sync {

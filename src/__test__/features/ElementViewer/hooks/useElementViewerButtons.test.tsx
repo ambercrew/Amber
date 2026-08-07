@@ -497,7 +497,7 @@ describe("useElementViewerButtons", () => {
 
 			// Assert
 
-			expect(store.getState().aiContext.snippets).toEqual([
+			expect(store.getState().ai.snippets).toEqual([
 				expect.objectContaining({ text: "Selected passage" }),
 			]);
 			expect(closeMenu).toHaveBeenCalledOnce();
@@ -519,7 +519,7 @@ describe("useElementViewerButtons", () => {
 
 			// Assert
 
-			expect(store.getState().aiContext.snippets).toEqual([]);
+			expect(store.getState().ai.snippets).toEqual([]);
 			expect(closeMenu).not.toHaveBeenCalled();
 		});
 	});

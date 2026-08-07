@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use rig::sqlite::{SqliteSearchFilter, SqliteVectorIndex};
+use rig::sqlite::SqliteSearchFilter;
 use rig::{
     tool::{Tool, ToolContext},
     vector_store::{
@@ -13,8 +13,9 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::ai_integration::{
-    clients::multi_client::multi_embedding_model::MultiEmbeddingModel,
+    clients::multi_client::MultiClient,
     entities::document::{CHAT_ID_COLUMN_NAME, Document},
+    services::ai_client_provider::{AiClientProvider, AiClientProviderError},
 };
 
 #[derive(Deserialize, Debug, Clone, Serialize, schemars::JsonSchema)]
@@ -31,19 +32,27 @@ pub struct SearchDocumentsArgs {
 pub enum SearchDocumentsError {
     #[error("Failed to fetch documents from the vector store")]
     Fetching(#[from] VectorStoreError),
+    #[error(transparent)]
+    AiClientProvider(#[from] AiClientProviderError),
 }
 
 pub struct SearchDocuments {
     chat_id: Uuid,
-    index: Arc<SqliteVectorIndex<MultiEmbeddingModel, Document>>,
+    client: MultiClient,
+    ai_client_provider: Arc<dyn AiClientProvider>,
 }
 
 impl SearchDocuments {
     pub fn new(
-        index: Arc<SqliteVectorIndex<MultiEmbeddingModel, Document>>,
+        ai_client_provider: Arc<dyn AiClientProvider>,
+        client: MultiClient,
         chat_id: Uuid,
     ) -> Self {
-        Self { index, chat_id }
+        Self {
+            ai_client_provider,
+            client,
+            chat_id,
+        }
     }
 }
 
@@ -70,6 +79,16 @@ impl Tool for SearchDocuments {
         _context: &mut ToolContext,
         args: Self::Args,
     ) -> Result<Self::Output, Self::Error> {
+        let embed_model = self
+            .ai_client_provider
+            .get_embeddings_model(&self.client)
+            .await?;
+        let vector_store = self
+            .ai_client_provider
+            .get_vector_store(&embed_model)
+            .await?;
+        let index = vector_store.index(embed_model);
+
         let filter = SqliteSearchFilter::eq(
             CHAT_ID_COLUMN_NAME,
             serde_json::to_value(self.chat_id.to_string()).unwrap(),
@@ -81,8 +100,7 @@ impl Tool for SearchDocuments {
             .filter(filter)
             .build();
 
-        let results = self
-            .index
+        let results = index
             .top_n::<Document>(req)
             .await?
             .into_iter()
@@ -97,14 +115,41 @@ impl Tool for SearchDocuments {
 pub mod tests {
     use std::iter;
 
-    use rig::sqlite::SqliteVectorStore;
+    use injector::{injector::Injector, register_scope};
     use rig::{OneOrMany, embeddings::Embedding};
-    use sqlite_vec::sqlite3_vec_init;
-    use tokio_rusqlite::{Connection, ffi::sqlite3_auto_extension};
+    use tokio::sync::Mutex;
 
-    use crate::ai_integration::clients::mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient};
+    use crate::{
+        ai_integration::{
+            ai_state::AiState,
+            clients::mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient},
+            services::implementations::default_ai_client_provider::DefaultAiClientProvider,
+        },
+        infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
+        settings::{
+            entities::settings::Settings, repositories::settings_repository::SettingsRepository,
+            value_objects::settings_profile::SettingsProfile,
+        },
+        test_utils::{create_temp_directory, create_test_injector},
+    };
 
     use super::*;
+
+    async fn initialize_test_injector(mock_client: MockClient) -> Injector {
+        let mut injector = create_test_injector().await;
+
+        let mut settings = Settings::new(create_temp_directory().await, SettingsProfile::Default);
+        settings.enable_ai = true;
+
+        injector.register_singleton(Arc::new(Mutex::new(settings)));
+        injector.register_singleton(Arc::new(mock_client));
+        injector.register_singleton(Arc::new(AiState::default()));
+
+        register_scope!(injector, dyn SettingsRepository, DiskSettingsRepository);
+        register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+
+        injector
+    }
 
     fn create_embedding(
         chat_id: Uuid,
@@ -132,19 +177,15 @@ pub mod tests {
     pub async fn call_multiple_documents_returned_closest_documents() {
         // Arrange
 
-        unsafe {
-            #[allow(clippy::missing_transmute_annotations)]
-            sqlite3_auto_extension(Some(std::mem::transmute(sqlite3_vec_init as *const ())));
-        }
-        let conn = Connection::open_in_memory().await.unwrap();
-
         // Query points in the same direction as "same-direction" and forms a
         // narrower angle with "close-direction" than with "opposite-direction",
         // so cosine similarity (the vector store's distance metric) ranks them
         // unambiguously: same-direction, then close-direction, excluding
         // opposite-direction from the requested top 2.
         let chat_id = Uuid::new_v4();
-        let embed_model = MultiEmbeddingModel::Mock(MockClient {
+        let mock_client = MockClient {
+            embeddings_model: Some("mock-model".to_string()),
+            embeddings_model_dims: Some(DEFAULT_MOCK_EMBEDDINGS_DIMS),
             embed_texts_fn: Arc::new(Some(Box::new(move |request| {
                 if request.len() == 1 && request[0] == "request" {
                     return Ok(vec![
@@ -153,11 +194,23 @@ pub mod tests {
                 }
                 unreachable!()
             }))),
-            embeddings_model_dims: Some(DEFAULT_MOCK_EMBEDDINGS_DIMS),
             ..Default::default()
-        });
+        };
 
-        let vector_store = SqliteVectorStore::new(conn, &embed_model).await.unwrap();
+        let injector = initialize_test_injector(mock_client).await;
+        let scope = injector.start_scope();
+        let ai_client_provider = scope.resolve::<dyn AiClientProvider>().await;
+
+        let client = ai_client_provider.get_client().await.unwrap();
+        let embed_model = ai_client_provider
+            .get_embeddings_model(&client)
+            .await
+            .unwrap();
+        let vector_store = ai_client_provider
+            .get_vector_store(&embed_model)
+            .await
+            .unwrap();
+
         let embeddings: Vec<(Document, OneOrMany<Embedding>)> = vec![
             create_embedding(chat_id, "close-direction", 1f64, 0f64),
             create_embedding(chat_id, "same-direction", 2f64, 2f64),
@@ -165,8 +218,7 @@ pub mod tests {
         ];
         vector_store.add_rows(embeddings).await.unwrap();
 
-        let index = Arc::new(vector_store.index(embed_model));
-        let tool = SearchDocuments::new(index, chat_id);
+        let tool = SearchDocuments::new(ai_client_provider, client, chat_id);
 
         // Act
 

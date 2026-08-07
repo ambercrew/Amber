@@ -136,8 +136,9 @@ pub async fn create_injector<R: tauri::Runtime>(
 ) -> Injector {
     let mut injector = Injector::default();
 
-    injector.register_singleton(Arc::new(app_handle));
-    injector.register_singleton(Arc::new(RequestBridge::default()));
+    let app_handle = Arc::new(app_handle);
+    injector.register_singleton(Arc::new(RequestBridge::new(app_handle.clone())));
+    injector.register_singleton(app_handle);
     register_scope!(
         injector,
         dyn LexicalJsonConverter,

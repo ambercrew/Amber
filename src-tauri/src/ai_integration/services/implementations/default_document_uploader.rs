@@ -128,10 +128,7 @@ pub mod tests {
     use crate::{
         ai_integration::{
             ai_state::AiState,
-            clients::{
-                mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient},
-                multi_client::multi_embedding_model::MultiEmbeddingModel,
-            },
+            clients::mock_client::{DEFAULT_MOCK_EMBEDDINGS_DIMS, MockClient},
             entities::{chat::Chat, message::MessageContent},
             repositories::ai_repository::AiRepository,
             services::{
@@ -202,7 +199,7 @@ pub mod tests {
             ..Default::default()
         };
 
-        let injector = initialize_test_injector(mock_client.clone()).await;
+        let injector = initialize_test_injector(mock_client).await;
         let scope = injector.start_scope();
         let service = scope.resolve::<dyn DocumentUploader>().await;
 
@@ -233,15 +230,9 @@ pub mod tests {
             panic!("Expected document");
         }
 
-        let multi_embedding_model = MultiEmbeddingModel::Mock(mock_client);
-        let store = scope
-            .resolve::<dyn AiClientProvider>()
-            .await
-            .get_vector_store(&multi_embedding_model)
-            .await
-            .unwrap();
-        let index = Arc::new(store.index(multi_embedding_model));
-        let search_tool = SearchDocuments::new(index, chat_id);
+        let ai_client_provider = scope.resolve::<dyn AiClientProvider>().await;
+        let client = ai_client_provider.get_client().await.unwrap();
+        let search_tool = SearchDocuments::new(ai_client_provider, client, chat_id);
         let search_result = Tool::call(
             &search_tool,
             &mut rig::tool::ToolContext::default(),

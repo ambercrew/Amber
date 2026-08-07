@@ -7,7 +7,7 @@ export interface FrontendRequestEvent {
 }
 
 /**
- * Answers a backend `RequestBridge::request` call: listens for `event`,
+ * Answers a backend request call: listens for `event`,
  * runs `handler` on its payload, and reports the result back via
  * `resolve_frontend_request` under the same request id — the frontend
  * counterpart of the backend's generic request/response bridge.

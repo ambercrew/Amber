@@ -46,7 +46,7 @@ function getCapturedChannel() {
 }
 
 function makeStore(snippets: { id: string; text: string }[] = []) {
-	return setupStore({ aiContext: { snippets } });
+	return setupStore({ ai: { snippets } });
 }
 
 function makeWrapper(store: ReturnType<typeof makeStore>) {
@@ -235,7 +235,7 @@ describe("useAiStreaming", () => {
 
 		// Assert
 
-		expect(store.getState().aiContext.snippets).toEqual([]);
+		expect(store.getState().ai.snippets).toEqual([]);
 	});
 
 	it("Should keep ai context snippets when a prompt errors", async () => {
@@ -286,7 +286,7 @@ describe("useAiStreaming", () => {
 
 		// Assert
 
-		expect(store.getState().aiContext.snippets).toEqual([snippet]);
+		expect(store.getState().ai.snippets).toEqual([snippet]);
 	});
 
 	it("Should append inProgress chunks to streamingAssistantText as they arrive", async () => {

@@ -12,7 +12,7 @@ import useAiDocumentUpload from "../hooks/useAiDocumentUpload";
 import { buildDisplayMessages } from "../utils/buildDisplayMessages";
 import useAppSelector from "../../../hooks/useAppSelector";
 import { selectCurrentElement } from "../../../stores/elements/elementsSelectors";
-import { selectAiContextSnippets } from "../../../stores/aiContext/aiContextSelectors";
+import { selectAiContextSnippets } from "../../../stores/aiContext/aiSelectors";
 import ChatMessages from "./ChatMessages";
 import ChatInput from "./ChatInput";
 import ChatSelectMenu from "./ChatSelectMenu";

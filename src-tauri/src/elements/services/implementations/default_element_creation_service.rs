@@ -11,13 +11,13 @@ use crate::elements::dto::create_card_dto::CreateCardDto;
 use crate::elements::dto::create_extract_dto::CreateExtractDto;
 use crate::elements::dto::create_folder_dto::CreateFolderDto;
 use crate::elements::dto::create_reading_dto::CreateReadingDto;
-use crate::elements::dto::element_created_event_dto::{
-    ELEMENT_CREATED_EVENT, ElementCreatedEventDto,
-};
 use crate::elements::entities::card::Card;
 use crate::elements::entities::extract::Extract;
 use crate::elements::entities::folder::Folder;
 use crate::elements::entities::reading::{Reading, ReadingSplit};
+use crate::elements::events::element_created_event::{
+    ELEMENT_CREATED_EVENT, ElementCreatedEventDto,
+};
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
