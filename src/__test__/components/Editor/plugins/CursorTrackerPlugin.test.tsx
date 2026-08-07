@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { act, render } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { act } from "@testing-library/react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
@@ -19,6 +18,7 @@ import CursorTrackerPlugin from "../../../../components/Editor/plugins/CursorTra
 import { ImagePlugin } from "../../../../components/Editor/plugins/ImagePlugin/ImagePlugin";
 import { ImageNode } from "../../../../components/Editor/plugins/ImagePlugin/ImageNode";
 import { INSERT_IMAGE_COMMAND } from "../../../../components/Editor/plugins/ImagePlugin/imageCommands";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 function EditorCapture({
 	onReady,
@@ -33,30 +33,28 @@ function EditorCapture({
 function renderEditor(onCursorMove: (blockIndex: number) => void) {
 	let capturedEditor: LexicalEditor | null = null;
 
-	const { unmount } = render(
-		<MantineProvider>
-			<LexicalComposer
-				initialConfig={{
-					namespace: "test",
-					nodes: [ImageNode],
-					onError: error => {
-						throw error;
-					},
-				}}>
-				<RichTextPlugin
-					contentEditable={<ContentEditable aria-label="editor" />}
-					placeholder={null}
-					ErrorBoundary={LexicalErrorBoundary}
-				/>
-				<ImagePlugin />
-				<CursorTrackerPlugin onCursorMove={onCursorMove} />
-				<EditorCapture
-					onReady={editor => {
-						capturedEditor = editor;
-					}}
-				/>
-			</LexicalComposer>
-		</MantineProvider>,
+	const { unmount } = renderWithProviders(
+		<LexicalComposer
+			initialConfig={{
+				namespace: "test",
+				nodes: [ImageNode],
+				onError: error => {
+					throw error;
+				},
+			}}>
+			<RichTextPlugin
+				contentEditable={<ContentEditable aria-label="editor" />}
+				placeholder={null}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<ImagePlugin />
+			<CursorTrackerPlugin onCursorMove={onCursorMove} />
+			<EditorCapture
+				onReady={editor => {
+					capturedEditor = editor;
+				}}
+			/>
+		</LexicalComposer>,
 	);
 
 	if (!capturedEditor) throw new Error("Editor was not captured");

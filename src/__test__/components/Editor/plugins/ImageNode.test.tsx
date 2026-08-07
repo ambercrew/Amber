@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { act, render } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { act } from "@testing-library/react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
@@ -13,6 +12,7 @@ import {
 	$isImageNode,
 	ImageNode,
 } from "../../../../components/Editor/plugins/ImagePlugin/ImageNode";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 function EditorCapture({
 	onReady,
@@ -27,28 +27,26 @@ function EditorCapture({
 function renderEditor() {
 	let capturedEditor: LexicalEditor | null = null;
 
-	render(
-		<MantineProvider>
-			<LexicalComposer
-				initialConfig={{
-					namespace: "test",
-					nodes: [ImageNode],
-					onError: error => {
-						throw error;
-					},
-				}}>
-				<RichTextPlugin
-					contentEditable={<ContentEditable aria-label="editor" />}
-					placeholder={null}
-					ErrorBoundary={LexicalErrorBoundary}
-				/>
-				<EditorCapture
-					onReady={editor => {
-						capturedEditor = editor;
-					}}
-				/>
-			</LexicalComposer>
-		</MantineProvider>,
+	renderWithProviders(
+		<LexicalComposer
+			initialConfig={{
+				namespace: "test",
+				nodes: [ImageNode],
+				onError: error => {
+					throw error;
+				},
+			}}>
+			<RichTextPlugin
+				contentEditable={<ContentEditable aria-label="editor" />}
+				placeholder={null}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<EditorCapture
+				onReady={editor => {
+					capturedEditor = editor;
+				}}
+			/>
+		</LexicalComposer>,
 	);
 
 	if (!capturedEditor) throw new Error("Editor was not captured");

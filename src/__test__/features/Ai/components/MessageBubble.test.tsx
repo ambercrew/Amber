@@ -1,16 +1,14 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import MessageBubble from "../../../../features/Ai/components/MessageBubble";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 function renderMessageBubble(contextSnippets?: string[]) {
-	return render(
-		<MantineProvider>
-			<MessageBubble
-				id="message-1"
-				content={{ type: "human", value: "What does this mean?" }}
-				contextSnippets={contextSnippets}
-			/>
-		</MantineProvider>,
+	return renderWithProviders(
+		<MessageBubble
+			id="message-1"
+			content={{ type: "human", value: "What does this mean?" }}
+			contextSnippets={contextSnippets}
+		/>,
 	);
 }
 

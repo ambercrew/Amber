@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { screen } from "@testing-library/react";
 import AppDrawer from "../../../components/AppDrawer/AppDrawer";
 import useBackButtonPress from "../../../hooks/useBackButtonPress";
 import { BackButtonPriority } from "../../../managers/backButtonManager";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../hooks/useBackButtonPress"));
 
@@ -17,16 +17,10 @@ function renderDrawer({
 	onClose = vi.fn(),
 	...props
 }: RenderDrawerProps = {}) {
-	render(
-		<MantineProvider>
-			<AppDrawer
-				opened={opened}
-				onClose={onClose}
-				title="Title"
-				{...props}>
-				Body
-			</AppDrawer>
-		</MantineProvider>,
+	renderWithProviders(
+		<AppDrawer opened={opened} onClose={onClose} title="Title" {...props}>
+			Body
+		</AppDrawer>,
 	);
 }
 

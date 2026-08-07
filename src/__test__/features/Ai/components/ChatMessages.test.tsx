@@ -1,11 +1,10 @@
-import { render } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
 import {
 	useStickToBottom,
 	type StickToBottomInstance,
 } from "use-stick-to-bottom";
 import ChatMessages from "../../../../features/Ai/components/ChatMessages";
 import { DisplayMessage } from "../../../../features/Ai/utils/buildDisplayMessages";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 vi.mock(import("use-stick-to-bottom"));
 
@@ -21,10 +20,8 @@ function renderChatMessages(
 	messages: DisplayMessage[],
 	chatId: string | null = "chat-1",
 ) {
-	return render(
-		<MantineProvider>
-			<ChatMessages chatId={chatId} messages={messages} />
-		</MantineProvider>,
+	return renderWithProviders(
+		<ChatMessages chatId={chatId} messages={messages} />,
 	);
 }
 
@@ -97,9 +94,7 @@ describe("ChatMessages", () => {
 		// Act
 
 		rerender(
-			<MantineProvider>
-				<ChatMessages chatId="chat-2" messages={[makeMessage("2")]} />
-			</MantineProvider>,
+			<ChatMessages chatId="chat-2" messages={[makeMessage("2")]} />,
 		);
 
 		// Assert
@@ -118,12 +113,10 @@ describe("ChatMessages", () => {
 		// Act
 
 		rerender(
-			<MantineProvider>
-				<ChatMessages
-					chatId="chat-1"
-					messages={[makeMessage("1"), makeMessage("2")]}
-				/>
-			</MantineProvider>,
+			<ChatMessages
+				chatId="chat-1"
+				messages={[makeMessage("1"), makeMessage("2")]}
+			/>,
 		);
 
 		// Assert
