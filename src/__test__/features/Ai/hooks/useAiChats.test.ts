@@ -48,6 +48,7 @@ describe("useAiChats", () => {
 	it("Should set errorMessage when refreshChats fails", async () => {
 		// Arrange
 
+		vi.spyOn(console, "error").mockImplementation(() => {});
 		vi.mocked(getAllAiChatsSortedByDateDesc).mockRejectedValue(
 			new Error("Could not load chats"),
 		);

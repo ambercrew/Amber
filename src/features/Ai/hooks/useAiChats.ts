@@ -12,8 +12,7 @@ import useApi from "../../../hooks/useApi";
 
 /**
  * Owns the chat list, the selected chat, and its messages, plus the shared
- * `callApi`/loading/error state that `useAiStreaming` and
- * `useAiDocumentUpload` are handed so every AI action surfaces through the
+ * state that are handed so every AI action surfaces through the
  * same error state.
  */
 export default function useAiChats() {

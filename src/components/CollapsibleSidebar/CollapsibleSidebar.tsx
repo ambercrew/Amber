@@ -17,16 +17,15 @@ export interface SidebarTab {
 	icon: ReactNode;
 	panel: ReactNode;
 	/**
-	 * Whether CollapsibleSidebar should scroll the panel's content for it.
-	 * Set to false when the panel manages its own height and scrolling
-	 * (e.g. a chat view that pins an input to the bottom). Defaults to true.
+	 * Whether the sidebar should scroll the panel's content for it.
+	 * Set to false when the panel manages its own height and scrolling.
+	 * Defaults to true.
 	 */
 	scrollable?: boolean;
 	/**
-	 * Whether CollapsibleSidebar should apply the common panel padding
+	 * Whether the sidebar should apply the common panel padding
 	 * around the panel's content. Set to false when the panel manages its
-	 * own padding (e.g. to get edge-to-edge rows or a custom full-height
-	 * layout). Defaults to true.
+	 * own padding. Defaults to true.
 	 */
 	padded?: boolean;
 }
