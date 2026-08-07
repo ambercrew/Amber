@@ -15,7 +15,7 @@ CREATE TABLE ai_messages(
     FOREIGN KEY (ai_chat_id) REFERENCES ai_chats(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE INDEX ai_messages_ai_chat_id_index ON ai_messages(ai_chat_id);
+CREATE INDEX ai_messages_ai_chat_id_created_date_index ON ai_messages(ai_chat_id, created_date);
 
 -------------------------------------------------------------------------
 
