@@ -4,7 +4,9 @@ use async_trait::async_trait;
 use injector_derive::ScopeInjectable;
 
 use crate::{
+    ai_integration::services::implementations::default_ai_client_provider::OPENAI_API_KEY_SECRET,
     database::database_connection_manager::DatabaseConnectionManager,
+    secrets::repositories::secrets_repository::SecretsRepository,
     settings::{
         dto::update_settings_request_dto::UpdateSettingsRequestDto,
         repositories::settings_repository::SettingsRepository,
@@ -17,6 +19,7 @@ use crate::{
 pub struct DefaultSettingsUpdater {
     settings_repository: Arc<dyn SettingsRepository>,
     database_connection_manager: Arc<dyn DatabaseConnectionManager>,
+    secrets_repository: Arc<dyn SecretsRepository>,
 }
 
 #[async_trait]
@@ -52,6 +55,27 @@ impl SettingsUpdater for DefaultSettingsUpdater {
         if let Some(trash_retention_days) = new_settings.trash_retention_days {
             settings.trash_retention_days = trash_retention_days;
         }
+        if let Some(enable_ai) = new_settings.enable_ai {
+            settings.enable_ai = enable_ai;
+        }
+        if let Some(ai_provider) = new_settings.ai_provider {
+            settings.ai_provider = ai_provider;
+        }
+        if let Some(mut ollama) = new_settings.ollama {
+            // Ollama has no API key concept today; drop whatever was sent
+            // rather than persisting it in plain-text settings.
+            ollama.api_key = None;
+            settings.ollama = ollama;
+        }
+
+        let mut openai_api_key_to_save = None;
+        if let Some(mut openai) = new_settings.openai {
+            // The key is a secret, so it's pulled out here and saved via
+            // `SecretsRepository` below instead of being persisted as part
+            // of the plain-text settings file.
+            openai_api_key_to_save = openai.api_key.take();
+            settings.openai = openai;
+        }
 
         if change_database_location {
             log::info!(
@@ -64,6 +88,12 @@ impl SettingsUpdater for DefaultSettingsUpdater {
         }
 
         self.settings_repository.save_settings(settings).await?;
+
+        if let Some(api_key) = &openai_api_key_to_save {
+            self.secrets_repository
+                .set_secret(OPENAI_API_KEY_SECRET, api_key)
+                .await?;
+        }
 
         Ok(())
     }
@@ -97,8 +127,11 @@ mod tests {
         infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository,
         settings::{
             dto::update_settings_request_dto::UpdateSettingsRequestDto,
-            entities::settings::Settings, services::settings_updater::SettingsUpdater,
-            value_objects::database_location::DatabaseLocation,
+            entities::settings::Settings,
+            services::settings_updater::SettingsUpdater,
+            value_objects::{
+                ai_provider_settings::AiProviderSettings, database_location::DatabaseLocation,
+            },
         },
         test_utils::create_test_injector,
     };
@@ -171,5 +204,72 @@ mod tests {
         // Act & Assert
 
         service.update_settings(request).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn update_settings_openai_api_key_provided_saved_secret_and_not_persisted_in_settings()
+     {
+        // Arrange
+
+        let request = UpdateSettingsRequestDto {
+            openai: Some(AiProviderSettings {
+                model_name: Some("gpt-4o".to_string()),
+                api_key: Some("sk-test-key".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(MockDatabaseConnectionManager::new()).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<DefaultSettingsUpdater>().await;
+
+        // Act
+
+        service.update_settings(request).await.unwrap();
+
+        // Assert
+
+        let secret = scope
+            .resolve::<dyn SecretsRepository>()
+            .await
+            .get_secret(OPENAI_API_KEY_SECRET)
+            .await;
+        assert_eq!(Some("sk-test-key".to_string()), secret);
+
+        let settings = scope.resolve::<dyn SettingsRepository>().await;
+        let saved = settings.get_settings().await;
+        assert_eq!(Some("gpt-4o".to_string()), saved.openai.model_name);
+        assert_eq!(None, saved.openai.api_key);
+    }
+
+    #[tokio::test]
+    pub async fn update_settings_openai_api_key_not_provided_did_not_save_secret() {
+        // Arrange
+
+        let request = UpdateSettingsRequestDto {
+            openai: Some(AiProviderSettings {
+                model_name: Some("gpt-4o".to_string()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        let injector = initialize_test_injector(MockDatabaseConnectionManager::new()).await;
+        let scope = injector.start_scope();
+        let service = scope.resolve::<DefaultSettingsUpdater>().await;
+
+        // Act
+
+        service.update_settings(request).await.unwrap();
+
+        // Assert
+
+        let secret = scope
+            .resolve::<dyn SecretsRepository>()
+            .await
+            .get_secret(OPENAI_API_KEY_SECRET)
+            .await;
+        assert_eq!(None, secret);
     }
 }

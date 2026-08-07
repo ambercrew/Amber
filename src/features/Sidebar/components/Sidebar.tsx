@@ -25,12 +25,14 @@ function Sidebar({ onCollapse }: SidebarProps) {
 					title: "Priority queue - used for reviewing your learning materials",
 					icon: <QueueIcon size={16} />,
 					panel: <PriorityQueuePanel />,
+					padded: false,
 				},
 				{
 					value: "trash",
 					title: "Trash - deleted elements you can still restore",
 					icon: <TrashIcon size={16} />,
 					panel: <TrashPanel />,
+					padded: false,
 				},
 			]}
 		/>

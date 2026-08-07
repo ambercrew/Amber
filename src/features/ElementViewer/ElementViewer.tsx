@@ -15,13 +15,8 @@ export default function ElementViewer() {
 	const currentElement = useAppSelector(selectCurrentElement);
 	const studyStatus = useAppSelector(selectStudyStatus);
 	const elementId = currentElement?.data?.meta?.elementId;
-	const bibliographicalSourceId =
-		currentElement?.data?.meta?.bibliographicalSourceId;
 	const buttons = useElementViewerButtons();
-	const handleHighlightCreated = useHighlightCreatedHandler(
-		elementId,
-		bibliographicalSourceId,
-	);
+	const handleHighlightCreated = useHighlightCreatedHandler(elementId);
 
 	const frontContentRef = useRef("");
 	const backContentRef = useRef("");

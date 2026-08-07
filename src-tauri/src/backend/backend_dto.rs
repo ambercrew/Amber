@@ -56,7 +56,6 @@ pub struct SyncedEntitiesPageDto {
 #[serde(rename_all = "camelCase")]
 pub struct SyncEntityDto {
     pub entity_id: Uuid,
-    // TODO: rename at backend to created_at and modified_at
     pub created_at: DateTime<Utc>,
     pub entity_type: EntityType,
     pub data: String,

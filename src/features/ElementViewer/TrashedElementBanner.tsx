@@ -10,7 +10,7 @@ import { restoreElementAction } from "../../stores/trash/trashActions";
 
 // The App header grows by exactly this much while the banner is shown, so
 // its own height must stay fixed rather than driven by its content.
-export const TRASHED_ELEMENT_BANNER_HEIGHT = 40;
+export const TRASHED_ELEMENT_BANNER_HEIGHT = 52;
 
 export default function TrashedElementBanner() {
 	const dispatch = useAppDispatch();

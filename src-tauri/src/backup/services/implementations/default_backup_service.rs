@@ -161,12 +161,16 @@ pub mod tests {
 
     use super::*;
     use crate::{
+        common::event_manager::EventManager,
+        common::services::implementations::tauri_event_manager::TauriEventManager,
         common::utils::{
             create_injector::register_scoped_tx, create_sqlite_pool::create_sqlite_pool,
         },
+        database::transaction_manager::TransactionManager,
         infrastructure::{
             extensions::unit_of_work::UnitOfWorkExt,
             managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager,
+            managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager,
             repositories::{
                 disk::disk_settings_repository::DiskSettingsRepository,
                 sqlite::sqlite_local_configuration_repository::SqliteLocalConfigurationRepository,
@@ -206,6 +210,14 @@ pub mod tests {
         injector.register_singleton(Arc::new(db_pool));
         register_scoped_tx(&mut injector);
 
+        let app_handle = tauri::test::mock_app().handle().clone();
+        injector.register_singleton(Arc::new(app_handle));
+        register_scope!(
+            injector,
+            dyn EventManager,
+            TauriEventManager<tauri::test::MockRuntime>
+        );
+
         register_scope!(
             injector,
             dyn LocalConfigurationRepository,
@@ -217,6 +229,7 @@ pub mod tests {
             dyn DatabaseConnectionManager,
             SqliteDatabaseConnectionManager
         );
+        register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
         register_scope!(injector, dyn BackupService, DefaultBackupService);
         register_scope!(injector, DefaultBackupService);
 

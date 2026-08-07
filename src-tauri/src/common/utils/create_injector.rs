@@ -4,14 +4,32 @@ use injector::{injector::Injector, register_scope};
 use tauri::Url;
 use tokio::sync::Mutex;
 
+use crate::ai_integration::ai_state::AiState;
+use crate::ai_integration::repositories::ai_repository::AiRepository;
+use crate::ai_integration::services::agent_provider::AgentProvider;
+use crate::ai_integration::services::ai_client_provider::AiClientProvider;
+use crate::ai_integration::services::ai_streamer::AiStreamer;
+use crate::ai_integration::services::chat_creator::ChatCreator;
+use crate::ai_integration::services::document_uploader::DocumentUploader;
+use crate::ai_integration::services::implementations::default_agent_provider::DefaultAgentProvider;
+use crate::ai_integration::services::implementations::default_ai_client_provider::DefaultAiClientProvider;
+use crate::ai_integration::services::implementations::default_ai_streamer::DefaultAiStreamer;
+use crate::ai_integration::services::implementations::default_chat_creator::DefaultChatCreator;
+use crate::ai_integration::services::implementations::default_document_uploader::DefaultDocumentUploader;
 use crate::backend::services::{
     authenticator::Authenticator, implementations::default_authenticator::DefaultAuthenticator,
 };
+use crate::common::event_manager::EventManager;
+use crate::common::request_bridge::RequestBridge;
+use crate::common::services::implementations::tauri_event_manager::TauriEventManager;
+use crate::common::services::implementations::tauri_lexical_json_converter::TauriLexicalJsonConverter;
+use crate::common::services::lexical_json_converter::LexicalJsonConverter;
 #[cfg(test)]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool;
 #[cfg(not(test))]
 use crate::common::utils::create_sqlite_pool::create_sqlite_pool_from_location;
 use crate::database::database_connection_manager::DatabaseConnectionManager;
+use crate::database::transaction_manager::TransactionManager;
 use crate::elements::repositories::card_repository::CardRepository;
 use crate::elements::repositories::extract_repository::ExtractRepository;
 use crate::elements::repositories::folder_repository::FolderRepository;
@@ -32,6 +50,7 @@ use crate::elements::services::priority_service::PriorityService;
 use crate::generated_code;
 use crate::infrastructure::clients::amber_backend_http_client::AmberBackendHttpClient;
 use crate::infrastructure::managers::sqlite::sqlite_database_connection_manager::SqliteDatabaseConnectionManager;
+use crate::infrastructure::managers::sqlite::sqlite_transaction_manager::SqliteTransactionManager;
 use crate::infrastructure::repositories::disk::disk_secrets_repository::DiskSecretsRepository;
 use crate::infrastructure::repositories::disk::disk_settings_repository::DiskSettingsRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_card_repository::SqliteCardRepository;
@@ -44,6 +63,7 @@ use crate::infrastructure::repositories::sqlite::sqlite_meta_repository::SqliteM
 use crate::infrastructure::repositories::sqlite::sqlite_reading_repository::SqliteReadingRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_log_repository::SqliteReadingReviewLogRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_reading_review_repository::SqliteReadingReviewRepository;
+use crate::infrastructure::repositories::sqlite::sqlite_ai_repository::SqliteAiRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_bibliographical_source_repository::SqliteBibliographicalSourceRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_study_profile_repository::SqliteStudyProfileRepository;
 use crate::infrastructure::repositories::sqlite::sqlite_sync_repository::SqliteSyncRepository;
@@ -110,8 +130,21 @@ use crate::{
     },
 };
 
-pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
+pub async fn create_injector<R: tauri::Runtime>(
+    app_data_directory: AppDataDirectory,
+    app_handle: tauri::AppHandle<R>,
+) -> Injector {
     let mut injector = Injector::default();
+
+    let app_handle = Arc::new(app_handle);
+    injector.register_singleton(Arc::new(RequestBridge::new(app_handle.clone())));
+    injector.register_singleton(app_handle);
+    register_scope!(
+        injector,
+        dyn LexicalJsonConverter,
+        TauriLexicalJsonConverter<R>
+    );
+    register_scope!(injector, dyn EventManager, TauriEventManager<R>);
 
     #[cfg(not(test))]
     let settings = DiskSettingsRepository::get_or_create_settings(
@@ -287,6 +320,16 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
 
     register_scope!(injector, dyn BackupService, DefaultBackupService);
 
+    // AI
+
+    injector.register_singleton(Arc::new(AiState::default()));
+    register_scope!(injector, dyn AiRepository, SqliteAiRepository);
+    register_scope!(injector, dyn AiClientProvider, DefaultAiClientProvider);
+    register_scope!(injector, dyn ChatCreator, DefaultChatCreator);
+    register_scope!(injector, dyn AgentProvider, DefaultAgentProvider);
+    register_scope!(injector, dyn AiStreamer, DefaultAiStreamer);
+    register_scope!(injector, dyn DocumentUploader, DefaultDocumentUploader);
+
     // Auth
 
     register_scope!(injector, dyn Authenticator, DefaultAuthenticator);
@@ -295,6 +338,7 @@ pub async fn create_injector(app_data_directory: AppDataDirectory) -> Injector {
         dyn DatabaseConnectionManager,
         SqliteDatabaseConnectionManager
     );
+    register_scope!(injector, dyn TransactionManager, SqliteTransactionManager);
 
     // Other
 
@@ -317,7 +361,9 @@ pub fn register_scoped_tx(injector: &mut Injector) {
 
 #[cfg(test)]
 mod tests {
-    use crate::test_utils::create_temp_directory;
+    use crate::{
+        ai_integration::clients::mock_client::MockClient, test_utils::create_temp_directory,
+    };
 
     use super::*;
 
@@ -326,7 +372,11 @@ mod tests {
         // Arrange
 
         let app_data_directory = AppDataDirectory::new(create_temp_directory().await);
-        let injector = create_injector(app_data_directory).await;
+        let app_handle = tauri::test::mock_app().handle().clone();
+        let mut injector = create_injector(app_data_directory, app_handle).await;
+
+        // Needed for testing.
+        injector.register_singleton(Arc::new(MockClient::default()));
 
         // Act & Assert
 

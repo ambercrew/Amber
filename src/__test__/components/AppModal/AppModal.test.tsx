@@ -1,10 +1,10 @@
-import { render, screen } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { screen } from "@testing-library/react";
 import AppModal from "../../../components/AppModal/AppModal";
 import useBackButtonPress from "../../../hooks/useBackButtonPress";
 import { BackButtonPriority } from "../../../managers/backButtonManager";
 import { useIsSmallScreen } from "../../../hooks/useIsSmallScreen";
 import { isMobile } from "../../../utils/tauriUtils";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../hooks/useIsSmallScreen"));
 vi.mock(import("../../../hooks/useBackButtonPress"));
@@ -25,16 +25,10 @@ function renderModal({
 	onClose = vi.fn(),
 	...props
 }: RenderModalProps = {}) {
-	render(
-		<MantineProvider>
-			<AppModal
-				opened={opened}
-				onClose={onClose}
-				title="Title"
-				{...props}>
-				Body
-			</AppModal>
-		</MantineProvider>,
+	renderWithProviders(
+		<AppModal opened={opened} onClose={onClose} title="Title" {...props}>
+			Body
+		</AppModal>,
 	);
 	return document.querySelector<HTMLElement>(".mantine-Modal-content")!;
 }

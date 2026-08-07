@@ -1,8 +1,8 @@
 import { ElementId } from "./elementId";
+import { Origin } from "./origin";
 
 export interface CreateMetaDto {
 	name: string;
 	parent: ElementId | null;
-	derivedFrom?: ElementId | null;
-	bibliographicalSourceId?: string | null;
+	origin: Origin;
 }

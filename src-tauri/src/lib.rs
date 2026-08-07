@@ -1,3 +1,4 @@
+mod ai_integration;
 mod app_info;
 mod backend;
 mod backup;
@@ -20,10 +21,12 @@ use std::sync::Arc;
 
 use tauri::Manager;
 
+use ai_integration::ai_api::*;
 use app_info::app_info_api::*;
 use backend::api::auth_api::*;
 use backend::api::user_api::*;
 use bibliographical_sources::bibliographical_sources_api::*;
+use common::common_api::*;
 use elements::elements_api::*;
 use import::import_api::*;
 use settings::settings_api::*;
@@ -99,8 +102,9 @@ pub async fn run() -> Result<(), String> {
                 .expect("Cannot get the data directory");
             let app_data_directory = AppDataDirectory::new(app_data_dir);
 
+            let app_handle = app.handle().clone();
             let injector = Arc::new(tokio::task::block_in_place(|| {
-                Handle::current().block_on(create_injector(app_data_directory))
+                Handle::current().block_on(create_injector(app_data_directory, app_handle))
             }));
 
             app.manage(injector.clone());
@@ -202,6 +206,17 @@ pub async fn run() -> Result<(), String> {
             extract_pdf,
             // App Info
             is_store_installed,
+            // AI
+            create_ai_chat,
+            stream_ai_response,
+            stop_ai_generation,
+            get_all_ai_chats_sorted_by_date_desc,
+            delete_ai_chat,
+            get_chat_messages_ordered,
+            rename_ai_chat,
+            upload_document,
+            // Common
+            resolve_frontend_request,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

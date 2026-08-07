@@ -16,7 +16,6 @@ export default interface UpdateSettingsRequest {
 	aiProvider: AiProvider | null;
 	ollama: AiProviderSettings | null;
 	openai: AiProviderSettings | null;
-	openaiApiKey: string | null;
 }
 
 /**
@@ -37,7 +36,6 @@ export function buildUpdateSettingsRequest(
 		aiProvider: null,
 		ollama: null,
 		openai: null,
-		openaiApiKey: null,
 		...overrides,
 	};
 }

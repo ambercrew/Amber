@@ -1,5 +1,13 @@
-import { ReactNode } from "react";
-import { AppShell, Tabs, Group, ActionIcon, ScrollArea } from "@mantine/core";
+import { ReactNode, useState } from "react";
+import {
+	AppShell,
+	Tabs,
+	Group,
+	ActionIcon,
+	ScrollArea,
+	Tooltip,
+	Box,
+} from "@mantine/core";
 import { XIcon } from "@phosphor-icons/react";
 import { SMALL_SCREEN_BREAKPOINT } from "../../hooks/useIsSmallScreen";
 
@@ -8,6 +16,18 @@ export interface SidebarTab {
 	title: string;
 	icon: ReactNode;
 	panel: ReactNode;
+	/**
+	 * Whether the sidebar should scroll the panel's content for it.
+	 * Set to false when the panel manages its own height and scrolling.
+	 * Defaults to true.
+	 */
+	scrollable?: boolean;
+	/**
+	 * Whether the sidebar should apply the common panel padding
+	 * around the panel's content. Set to false when the panel manages its
+	 * own padding. Defaults to true.
+	 */
+	padded?: boolean;
 }
 
 interface CollapsibleSidebarProps {
@@ -24,18 +44,41 @@ function CollapsibleSidebar({
 	onCollapse,
 	collapsePosition = "right",
 }: CollapsibleSidebarProps) {
+	const [value, setValue] = useState(defaultValue);
+	const activeValue = tabs.some(tab => tab.value === value)
+		? value
+		: (tabs[0]?.value ?? "");
+
 	return (
-		<AppShell.Section py="sm" grow component={ScrollArea}>
-			<Tabs defaultValue={defaultValue} variant="pills">
-				<Group justify="center" style={{ position: "relative" }}>
+		<AppShell.Section
+			grow
+			style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+			<Tabs
+				value={activeValue}
+				onChange={v => v && setValue(v)}
+				variant="pills"
+				style={{
+					flex: 1,
+					display: "flex",
+					flexDirection: "column",
+					minHeight: 0,
+				}}>
+				<Group
+					justify="center"
+					py="sm"
+					style={{ position: "relative" }}>
 					<Tabs.List>
 						{tabs.map(tab => (
-							<Tabs.Tab
+							<Tooltip
 								key={tab.value}
-								value={tab.value}
-								title={tab.title}>
-								{tab.icon}
-							</Tabs.Tab>
+								label={tab.title}
+								position="bottom">
+								<Tabs.Tab
+									value={tab.value}
+									aria-label={tab.title}>
+									{tab.icon}
+								</Tabs.Tab>
+							</Tooltip>
 						))}
 					</Tabs.List>
 					<ActionIcon
@@ -51,11 +94,36 @@ function CollapsibleSidebar({
 					</ActionIcon>
 				</Group>
 
-				{tabs.map(tab => (
-					<Tabs.Panel key={tab.value} value={tab.value}>
-						{tab.panel}
-					</Tabs.Panel>
-				))}
+				{tabs.map(tab => {
+					const content = (
+						<Box
+							py={tab.padded === false ? undefined : "sm"}
+							px={tab.padded === false ? undefined : "sm"}
+							h="100%">
+							{tab.panel}
+						</Box>
+					);
+
+					return (
+						<Tabs.Panel
+							key={tab.value}
+							value={tab.value}
+							style={{
+								flex: 1,
+								minHeight: 0,
+								display: "flex",
+								flexDirection: "column",
+							}}>
+							{tab.scrollable === false ? (
+								content
+							) : (
+								<ScrollArea style={{ flex: 1 }}>
+									{content}
+								</ScrollArea>
+							)}
+						</Tabs.Panel>
+					);
+				})}
 			</Tabs>
 		</AppShell.Section>
 	);

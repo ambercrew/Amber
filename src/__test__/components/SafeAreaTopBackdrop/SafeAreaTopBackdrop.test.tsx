@@ -1,16 +1,15 @@
-import { render } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
 import SafeAreaTopBackdrop from "../../../components/SafeAreaTopBackdrop/SafeAreaTopBackdrop";
 import { isMobile } from "../../../utils/tauriUtils";
+import { renderWithProviders } from "../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../utils/tauriUtils"));
 
 function renderBackdrop() {
-	return render(
-		<MantineProvider>
-			<SafeAreaTopBackdrop />
-		</MantineProvider>,
-	);
+	return renderWithProviders(<SafeAreaTopBackdrop />);
+}
+
+function getBackdrop(container: HTMLElement) {
+	return container.querySelector<HTMLElement>("div:not([data-testid])");
 }
 
 describe("SafeAreaTopBackdrop", () => {
@@ -25,7 +24,7 @@ describe("SafeAreaTopBackdrop", () => {
 
 		// Assert
 
-		const backdrop = container.querySelector("div");
+		const backdrop = getBackdrop(container);
 		expect(backdrop).toBeInTheDocument();
 		expect(backdrop).toHaveStyle({ position: "fixed", top: "0px" });
 	});
@@ -41,6 +40,6 @@ describe("SafeAreaTopBackdrop", () => {
 
 		// Assert
 
-		expect(container.querySelector("div")).not.toBeInTheDocument();
+		expect(getBackdrop(container)).not.toBeInTheDocument();
 	});
 });

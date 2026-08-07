@@ -1,4 +1,4 @@
-import { sanitizeHtml } from "../../../../features/Import/normalize/sanitize";
+import { sanitizeHtml } from "../../utils/sanitizeHtml";
 
 describe("sanitizeHtml", () => {
 	it("Should keep allowed tags and attributes", () => {

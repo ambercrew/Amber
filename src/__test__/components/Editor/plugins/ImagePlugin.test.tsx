@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { act, render, waitFor } from "@testing-library/react";
-import { MantineProvider } from "@mantine/core";
+import { act, waitFor } from "@testing-library/react";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
@@ -12,6 +11,7 @@ import { ImagePlugin } from "../../../../components/Editor/plugins/ImagePlugin/I
 import { ImageNode } from "../../../../components/Editor/plugins/ImagePlugin/ImageNode";
 import { INSERT_IMAGE_COMMAND } from "../../../../components/Editor/plugins/ImagePlugin/imageCommands";
 import { DRAG_DROP_PASTE } from "@lexical/rich-text";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 vi.mock(import("@tauri-apps/plugin-clipboard-manager"), () => ({
 	readImage: vi.fn(),
@@ -30,29 +30,27 @@ function EditorCapture({
 function renderEditor() {
 	let capturedEditor: LexicalEditor | null = null;
 
-	render(
-		<MantineProvider>
-			<LexicalComposer
-				initialConfig={{
-					namespace: "test",
-					nodes: [ImageNode],
-					onError: error => {
-						throw error;
-					},
-				}}>
-				<RichTextPlugin
-					contentEditable={<ContentEditable aria-label="editor" />}
-					placeholder={null}
-					ErrorBoundary={LexicalErrorBoundary}
-				/>
-				<ImagePlugin />
-				<EditorCapture
-					onReady={editor => {
-						capturedEditor = editor;
-					}}
-				/>
-			</LexicalComposer>
-		</MantineProvider>,
+	renderWithProviders(
+		<LexicalComposer
+			initialConfig={{
+				namespace: "test",
+				nodes: [ImageNode],
+				onError: error => {
+					throw error;
+				},
+			}}>
+			<RichTextPlugin
+				contentEditable={<ContentEditable aria-label="editor" />}
+				placeholder={null}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<ImagePlugin />
+			<EditorCapture
+				onReady={editor => {
+					capturedEditor = editor;
+				}}
+			/>
+		</LexicalComposer>,
 	);
 
 	if (!capturedEditor) throw new Error("Editor was not captured");

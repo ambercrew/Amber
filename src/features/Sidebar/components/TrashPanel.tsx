@@ -73,16 +73,17 @@ function TrashPanel() {
 	}
 
 	const header = (
-		<PanelHeader title="Trash">
-			<ActionIcon
-				variant="subtle"
-				size="md"
-				title="Empty trash"
-				disabled={items.length === 0}
-				onClick={() => setPendingDeletion({ scope: "trash" })}>
-				<TrashIcon size={20} />
-			</ActionIcon>
-		</PanelHeader>
+		<PanelHeader
+			title="Trash"
+			actions={[
+				{
+					icon: <TrashIcon />,
+					label: "Empty trash",
+					disabled: items.length === 0,
+					onClick: () => setPendingDeletion({ scope: "trash" }),
+				},
+			]}
+		/>
 	);
 
 	const confirmModal = (

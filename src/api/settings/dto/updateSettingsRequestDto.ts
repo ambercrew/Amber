@@ -4,6 +4,7 @@ export type AiProvider = "ollama" | "openAI";
 export interface AiProviderSettings {
 	modelName: string | null;
 	embeddingsModelName: string | null;
+	apiKey?: string | null;
 }
 
 export default interface UpdateSettingsRequestDto {

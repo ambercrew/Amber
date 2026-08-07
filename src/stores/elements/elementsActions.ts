@@ -15,10 +15,6 @@ import { CreateExtractDto } from "../../types/elements/createExtractDto";
 import { CreateFolderDto } from "../../types/elements/createFolderDto";
 import { CreateReadingDto } from "../../types/elements/createReadingDto";
 import { ElementId } from "../../types/elements/elementId";
-import {
-	ELEMENT_CREATED,
-	ElementCreatedPayload,
-} from "../../types/events/elementCreatedEvent";
 import errorToString from "../../utils/errorToString";
 import { AppDispatch } from "../store";
 import {
@@ -43,42 +39,27 @@ export function renameElementAction(elementId: ElementId, newName: string) {
 	return withTreeRefresh(() => renameElement(elementId, newName));
 }
 
+// The backend emits an `elementCreated` event for every one of these, which
+// ElementTree listens for and reloads the tree from — no need to refetch it
+// here too.
 export function createFolderAction(dto: CreateFolderDto) {
-	return withTreeRefresh(() => createFolder(dto));
+	return withErrorHandling(() => createFolder(dto));
 }
 
 export function createReadingAction(dto: CreateReadingDto) {
-	return withTreeRefresh(async () => {
-		await createReading(dto);
-		dispatchElementCreated(dto.meta.parent?.id);
-	});
+	return withErrorHandling(() => createReading(dto));
 }
 
 export function createExtractAction(dto: CreateExtractDto) {
-	return withTreeRefresh(async () => {
-		await createExtract(dto);
-		dispatchElementCreated(dto.meta.parent?.id);
-	});
+	return withErrorHandling(() => createExtract(dto));
 }
 
 export function createCardAction(dto: CreateCardDto) {
-	return withTreeRefresh(async () => {
-		await createCard(dto);
-		dispatchElementCreated(dto.meta.parent?.id);
-	});
+	return withErrorHandling(() => createCard(dto));
 }
 
 export function moveElementAction(dto: MoveElementDto) {
 	return withTreeRefresh(() => moveElement(dto));
-}
-
-function dispatchElementCreated(parentId: string | undefined) {
-	if (!parentId) return;
-	window.dispatchEvent(
-		new CustomEvent<ElementCreatedPayload>(ELEMENT_CREATED, {
-			detail: { parentId },
-		}),
-	);
 }
 
 function withTreeRefresh(operation: () => Promise<void>) {
@@ -88,6 +69,16 @@ function withTreeRefresh(operation: () => Promise<void>) {
 			await operation();
 			const tree = await getElementTree();
 			dispatch(setTree(tree));
+		} catch (error) {
+			dispatch(setTreeError(errorToString(error)));
+		}
+	};
+}
+
+function withErrorHandling(operation: () => Promise<void>) {
+	return async (dispatch: AppDispatch) => {
+		try {
+			await operation();
 		} catch (error) {
 			dispatch(setTreeError(errorToString(error)));
 		}

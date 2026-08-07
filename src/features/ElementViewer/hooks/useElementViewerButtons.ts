@@ -5,10 +5,12 @@ import {
 	ScissorsIcon,
 	EraserIcon,
 	ArrowSquareOutIcon,
+	SparkleIcon,
 } from "@phosphor-icons/react";
 import {
 	$getSelection,
 	$isRangeSelection,
+	LexicalEditor,
 	LexicalNode,
 	RangeSelection,
 } from "lexical";
@@ -20,6 +22,10 @@ import {
 	HighlightNode,
 } from "../../../components/Editor/plugins/HighlightPlugin/HighlightNode";
 import { paths } from "../../../paths";
+import useAppDispatch from "../../../hooks/useAppDispatch";
+import useAppSelector from "../../../hooks/useAppSelector";
+import { selectSettings } from "../../../stores/settings/settingsSelector";
+import { addAiContextSnippet } from "../../../stores/aiContext/aiReducer";
 
 export const CLOZE_COLOR = "blue";
 
@@ -57,6 +63,8 @@ function $isClozeHighlight(selection: RangeSelection): boolean {
 
 export function useElementViewerButtons(): FloatingMenuItem[] {
 	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
+	const aiEnabled = useAppSelector(selectSettings)?.enableAi ?? false;
 
 	return useMemo<FloatingMenuItem[]>(
 		() => [
@@ -86,6 +94,34 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 					);
 				},
 			},
+			...(aiEnabled
+				? [
+						{
+							name: "add-ai-context-divider",
+							divider: true as const,
+						},
+						{
+							name: "add-ai-context",
+							title: "Add to AI Context",
+							Icon: SparkleIcon,
+							isActive: () => false,
+							onClick: (
+								editor: LexicalEditor,
+								_isActive: boolean,
+								closeMenu: () => void,
+							) => {
+								editor.getEditorState().read(() => {
+									const selection = $getSelection();
+									if (!$isRangeSelection(selection)) return;
+									const text = selection.getTextContent();
+									if (!text.trim()) return;
+									dispatch(addAiContextSnippet(text));
+									closeMenu();
+								});
+							},
+						},
+					]
+				: []),
 			{ name: "create-highlight-divider", divider: true },
 			// Acts on the highlight (if any) under the current selection.
 			{
@@ -135,6 +171,6 @@ export function useElementViewerButtons(): FloatingMenuItem[] {
 				},
 			},
 		],
-		[navigate],
+		[navigate, dispatch, aiEnabled],
 	);
 }

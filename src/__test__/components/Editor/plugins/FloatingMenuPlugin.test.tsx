@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MantineProvider } from "@mantine/core";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
@@ -20,6 +19,7 @@ import {
 	FloatingMenuPlugin,
 } from "../../../../components/Editor/plugins/FloatingMenuPlugin";
 import { useIsCoarsePointer } from "../../../../hooks/useIsCoarsePointer";
+import { renderWithProviders } from "../../../test-utils/renderWithProviders";
 
 vi.mock(import("../../../../hooks/useIsCoarsePointer"), () => ({
 	useIsCoarsePointer: vi.fn().mockReturnValue(false),
@@ -55,28 +55,26 @@ function EditorCapture({
 function renderPlugin(buttons: FloatingMenuButton[]) {
 	let capturedEditor: LexicalEditor | null = null;
 
-	const utils = render(
-		<MantineProvider>
-			<LexicalComposer
-				initialConfig={{
-					namespace: "test",
-					onError: error => {
-						throw error;
-					},
-				}}>
-				<RichTextPlugin
-					contentEditable={<ContentEditable aria-label="editor" />}
-					placeholder={null}
-					ErrorBoundary={LexicalErrorBoundary}
-				/>
-				<FloatingMenuPlugin buttons={buttons} />
-				<EditorCapture
-					onReady={editor => {
-						capturedEditor = editor;
-					}}
-				/>
-			</LexicalComposer>
-		</MantineProvider>,
+	const utils = renderWithProviders(
+		<LexicalComposer
+			initialConfig={{
+				namespace: "test",
+				onError: error => {
+					throw error;
+				},
+			}}>
+			<RichTextPlugin
+				contentEditable={<ContentEditable aria-label="editor" />}
+				placeholder={null}
+				ErrorBoundary={LexicalErrorBoundary}
+			/>
+			<FloatingMenuPlugin buttons={buttons} />
+			<EditorCapture
+				onReady={editor => {
+					capturedEditor = editor;
+				}}
+			/>
+		</LexicalComposer>,
 	);
 
 	if (!capturedEditor) throw new Error("Editor was not captured");
@@ -255,6 +253,7 @@ describe("FloatingMenuPlugin", () => {
 	it("Should call onClick with the editor and the current active state when the button is clicked", async () => {
 		// Arrange
 
+		vi.spyOn(console, "error").mockImplementation(() => {});
 		const onClick = vi.fn();
 		const button = makeButton({ onClick, isActive: () => true });
 		const { editor } = renderPlugin([button]);
@@ -267,7 +266,31 @@ describe("FloatingMenuPlugin", () => {
 
 		// Assert
 
-		expect(onClick).toHaveBeenCalledWith(editor, true);
+		expect(onClick).toHaveBeenCalledWith(
+			editor,
+			true,
+			expect.any(Function),
+		);
+	});
+
+	it("Should hide the menu when the button calls the closeMenu callback", async () => {
+		// Arrange
+
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		const button = makeButton({
+			onClick: (_editor, _isActive, closeMenu) => closeMenu(),
+		});
+		const { editor } = renderPlugin([button]);
+		setTextAndSelectAll(editor, "Hello world");
+		const user = userEvent.setup();
+
+		// Act
+
+		await user.click(screen.getByRole("button", { name: "Bold" }));
+
+		// Assert
+
+		expect(getMenuPaper()).toHaveStyle({ visibility: "hidden" });
 	});
 
 	it("Should hide the menu when the selection is collapsed", () => {

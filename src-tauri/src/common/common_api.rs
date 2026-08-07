@@ -1,0 +1,23 @@
+use std::sync::Arc;
+
+use injector::injector::Injector;
+use tauri::State;
+use uuid::Uuid;
+
+use crate::common::api_error::ApiError;
+use crate::common::request_bridge::RequestBridge;
+
+/// Delivers the frontend's answer to a pending `RequestBridge::request` call
+/// (e.g. a Lexical JSON conversion), identified by the request id the
+/// backend generated when it emitted the request event.
+#[tauri::command]
+pub async fn resolve_frontend_request(
+    injector: State<'_, Arc<Injector>>,
+    request_id: Uuid,
+    response: String,
+) -> Result<(), ApiError> {
+    let scope = injector.start_scope();
+    let bridge = scope.resolve::<RequestBridge<crate::AppRuntime>>().await;
+    bridge.resolve(request_id, response);
+    Ok(())
+}

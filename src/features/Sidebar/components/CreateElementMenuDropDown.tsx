@@ -32,6 +32,7 @@ function useCreateHandlers(
 					meta: {
 						name: defaultElementName("Folder"),
 						parent: elementId,
+						origin: { type: "custom" },
 					},
 				}),
 			),
@@ -42,6 +43,7 @@ function useCreateHandlers(
 					meta: {
 						name: defaultElementName("Reading"),
 						parent: elementId,
+						origin: { type: "custom" },
 					},
 					// A new reading is a single empty split (seq 0) so it can be
 					// edited immediately.
@@ -55,6 +57,7 @@ function useCreateHandlers(
 					meta: {
 						name: defaultElementName("Extract"),
 						parent: elementId,
+						origin: { type: "custom" },
 					},
 					content: "",
 				}),
@@ -66,6 +69,7 @@ function useCreateHandlers(
 					meta: {
 						name: defaultElementName("Card"),
 						parent: elementId,
+						origin: { type: "custom" },
 					},
 					front: "",
 					back: "",

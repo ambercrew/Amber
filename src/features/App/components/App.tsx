@@ -42,6 +42,7 @@ import {
 } from "../../../utils/safeArea.ts";
 import useBackButtonPress from "../../../hooks/useBackButtonPress.ts";
 import { BackButtonPriority } from "../../../managers/backButtonManager.ts";
+import { useLexicalConversionBridge } from "../hooks/useLexicalConversionBridge.ts";
 
 // Must be defined manually otherwise hiding header or footer when scrolling won't work.
 export const HEADER_AND_FOOTER_HEIGHT = 56;
@@ -78,7 +79,7 @@ function App() {
 			{
 				defaultSize: `${ASIDE_DEFAULT}px`,
 				min: "160px",
-				max: "30%",
+				max: "35%",
 				collapsible: true,
 			},
 		],
@@ -108,6 +109,7 @@ function App() {
 	useCurrentElementSync();
 	useStudySessionGuard();
 	useStudySessionSummaryToast();
+	useLexicalConversionBridge();
 
 	const navbarWidth =
 		parseFloat(String(splitter.sizes[0])) || SIDEBAR_DEFAULT;

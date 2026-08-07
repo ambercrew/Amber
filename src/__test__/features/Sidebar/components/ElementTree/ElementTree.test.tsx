@@ -1,15 +1,16 @@
 import { MantineProvider } from "@mantine/core";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { listen } from "@tauri-apps/api/event";
 import { NodeDto } from "../../../../../api/elements/dto/nodeDto";
 import ElementTree from "../../../../../features/Sidebar/components/ElementTree/ElementTree";
 import { ElementId } from "../../../../../types/elements/elementId";
-import { ELEMENT_CREATED } from "../../../../../types/events/elementCreatedEvent";
 import {
 	LOCATION_DISPLAY_TEST_ID,
 	renderWithProviders,
 } from "../../../../test-utils/renderWithProviders";
 
+vi.mock(import("@tauri-apps/api/event"));
 vi.mock(
 	import("../../../../../features/Sidebar/components/ElementTree/ElementTreeMenuItems"),
 	() => ({ default: () => <></> }),
@@ -67,7 +68,12 @@ const TREE: NodeDto[] = [
 ];
 
 describe("ElementTree search", () => {
-	beforeEach(() => window.localStorage.clear());
+	beforeEach(() => {
+		window.localStorage.clear();
+		vi.mocked(listen).mockResolvedValue(() => {
+			/* Empty */
+		});
+	});
 
 	function render() {
 		return renderWithProviders(
@@ -231,15 +237,17 @@ describe("ElementTree search", () => {
 
 		expect(screen.queryByTitle("Biology Basics")).not.toBeInTheDocument();
 
-		// Act — simulate an extract/cloze being created under Science while
-		// the tree is collapsed.
+		// Act — simulate the backend's `elementCreated` event firing for an
+		// extract/cloze created under Science while the tree is collapsed.
 
-		fireEvent(
-			window,
-			new CustomEvent(ELEMENT_CREATED, {
-				detail: { parentId: "folder-science" },
-			}),
-		);
+		const handler = vi.mocked(listen).mock.calls[0][1];
+		act(() => {
+			handler({
+				event: "elementCreated",
+				id: 0,
+				payload: { parentId: "folder-science" },
+			});
+		});
 
 		// Assert — Science is expanded, revealing its child
 

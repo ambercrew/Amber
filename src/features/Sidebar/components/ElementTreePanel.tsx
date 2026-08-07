@@ -1,4 +1,4 @@
-import { ActionIcon, Alert, Menu, Stack } from "@mantine/core";
+import { Alert, Stack } from "@mantine/core";
 import { HouseIcon, PlusSquareIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
 import useAppDispatch from "../../../hooks/useAppDispatch";
@@ -20,7 +20,7 @@ function ElementTreePanel() {
 	const error = useAppSelector(selectElementTreeError);
 
 	return (
-		<Stack p="md" gap="xs">
+		<Stack gap="xs">
 			{error && (
 				<Alert
 					color="red"
@@ -29,26 +29,21 @@ function ElementTreePanel() {
 					onClose={() => dispatch(clearTreeError())}
 				/>
 			)}
-			<PanelHeader title="Elements">
-				<ActionIcon
-					variant="subtle"
-					size="md"
-					title="Home"
-					onClick={() => void navigate(paths.root())}>
-					<HouseIcon size={20} />
-				</ActionIcon>
-				<Menu position="bottom-end">
-					<Menu.Target>
-						<ActionIcon
-							variant="subtle"
-							size="md"
-							title="New element">
-							<PlusSquareIcon size={20} />
-						</ActionIcon>
-					</Menu.Target>
-					<CreateElementDropDown elementId={null} />
-				</Menu>
-			</PanelHeader>
+			<PanelHeader
+				title="Elements"
+				actions={[
+					{
+						icon: <HouseIcon />,
+						label: "Home",
+						onClick: () => void navigate(paths.root()),
+					},
+					{
+						icon: <PlusSquareIcon />,
+						label: "New element",
+						menu: <CreateElementDropDown elementId={null} />,
+					},
+				]}
+			/>
 			<ElementTree tree={tree} />
 		</Stack>
 	);

@@ -5,13 +5,17 @@ import {
 	TextInput,
 	Tree,
 } from "@mantine/core";
-import { useWindowEvent } from "@mantine/hooks";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { MoveElementDto } from "../../../../api/elements/api/elementsApi";
 import { NodeDto } from "../../../../api/elements/dto/nodeDto";
+import {
+	ELEMENT_CREATED_EVENT,
+	ElementCreatedEventDto,
+} from "../../../../api/elements/events/elementCreatedEvent";
 import { useElementParams } from "../../../../hooks/useElementParams";
+import { useTauriEvent } from "../../../../hooks/useTauriEvent";
 import { paths } from "../../../../paths";
 import { ElementId } from "../../../../types/elements/elementId";
 import { ElementNodeType } from "../../../../types/elements/elementNodeType";
@@ -25,8 +29,10 @@ import TrashElementModal from "../TrashElementModal";
 import ElementTreeMenuItems from "./ElementTreeMenuItems";
 import ElementTreeNode from "./ElementTreeNode";
 import useAppDispatch from "../../../../hooks/useAppDispatch";
-import { moveElementAction } from "../../../../stores/elements/elementsActions";
-import { ELEMENT_CREATED } from "../../../../types/events/elementCreatedEvent";
+import {
+	loadElementTree,
+	moveElementAction,
+} from "../../../../stores/elements/elementsActions";
 
 interface ElementTreeProps {
 	tree: NodeDto[];
@@ -49,8 +55,9 @@ function ElementTree({ tree }: ElementTreeProps) {
 	const { treeController, filteredData, search, handleSearchChange } =
 		useElementTreeExpansion(data, selected?.id ?? null);
 
-	useWindowEvent(ELEMENT_CREATED, event => {
-		treeController.expand(event.detail.parentId);
+	useTauriEvent<ElementCreatedEventDto>(ELEMENT_CREATED_EVENT, payload => {
+		void dispatch(loadElementTree());
+		if (payload.parentId) treeController.expand(payload.parentId);
 	});
 
 	function renderNode(payload: RenderTreeNodePayload) {

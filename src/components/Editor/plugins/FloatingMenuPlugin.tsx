@@ -23,6 +23,7 @@ import {
 	Group,
 	MantineColor,
 	Paper,
+	Tooltip,
 } from "@mantine/core";
 import { useIsCoarsePointer } from "../../../hooks/useIsCoarsePointer";
 import styles from "../Editor.module.css";
@@ -35,7 +36,11 @@ export interface FloatingMenuButton {
 	showLabel?: boolean;
 	color?: MantineColor;
 	Icon: React.ComponentType<{ size?: number }>;
-	onClick: (editor: LexicalEditor, isActive: boolean) => void;
+	onClick: (
+		editor: LexicalEditor,
+		isActive: boolean,
+		closeMenu: () => void,
+	) => void;
 	isActive: (selection: RangeSelection) => boolean;
 	isVisible?: (selection: RangeSelection) => boolean;
 }
@@ -243,6 +248,11 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 		);
 	}, [editor, coords]);
 
+	const closeMenu = useCallback(() => {
+		escapedRef.current = true;
+		setCoords(null);
+	}, []);
+
 	const shouldShow = (isEditorFocused || isMenuFocused) && coords !== null;
 
 	// Only render a divider when it has a visible button on both sides,
@@ -293,49 +303,51 @@ export function FloatingMenuPlugin({ buttons }: Props) {
 					isFloatingMenuDivider(btn) ? (
 						<Divider key={btn.name} mx={4} orientation="vertical" />
 					) : btn.showLabel ? (
-						<Button
-							key={btn.name}
-							variant={
-								activeState[btn.name] ? "filled" : "subtle"
-							}
-							color={btn.color}
-							size="sm"
-							px="xs"
-							leftSection={<btn.Icon size={22} />}
-							title={btn.title}
-							aria-label={btn.title}
-							onMouseDown={(e: React.MouseEvent) =>
-								e.preventDefault()
-							}
-							onClick={() =>
-								btn.onClick(
-									editor,
-									activeState[btn.name] ?? false,
-								)
-							}>
-							{btn.label ?? btn.title}
-						</Button>
+						<Tooltip key={btn.name} label={btn.title}>
+							<Button
+								variant={
+									activeState[btn.name] ? "filled" : "subtle"
+								}
+								color={btn.color}
+								size="sm"
+								px="xs"
+								leftSection={<btn.Icon size={22} />}
+								aria-label={btn.title}
+								onMouseDown={(e: React.MouseEvent) =>
+									e.preventDefault()
+								}
+								onClick={() =>
+									btn.onClick(
+										editor,
+										activeState[btn.name] ?? false,
+										closeMenu,
+									)
+								}>
+								{btn.label ?? btn.title}
+							</Button>
+						</Tooltip>
 					) : (
-						<ActionIcon
-							key={btn.name}
-							variant={
-								activeState[btn.name] ? "filled" : "subtle"
-							}
-							color={btn.color}
-							size="lg"
-							title={btn.title}
-							aria-label={btn.title}
-							onMouseDown={(e: React.MouseEvent) =>
-								e.preventDefault()
-							}
-							onClick={() =>
-								btn.onClick(
-									editor,
-									activeState[btn.name] ?? false,
-								)
-							}>
-							<btn.Icon size={22} />
-						</ActionIcon>
+						<Tooltip key={btn.name} label={btn.title}>
+							<ActionIcon
+								variant={
+									activeState[btn.name] ? "filled" : "subtle"
+								}
+								color={btn.color}
+								size="lg"
+								aria-label={btn.title}
+								onMouseDown={(e: React.MouseEvent) =>
+									e.preventDefault()
+								}
+								onClick={() =>
+									btn.onClick(
+										editor,
+										activeState[btn.name] ?? false,
+										closeMenu,
+									)
+								}>
+								<btn.Icon size={22} />
+							</ActionIcon>
+						</Tooltip>
 					),
 				)}
 			</Group>

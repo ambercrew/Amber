@@ -35,7 +35,11 @@ describe("createImportedReading", () => {
 
 		const dto = vi.mocked(createReadingAction).mock.calls[0][0];
 		expect(typeof dto.id).toBe("string");
-		expect(dto.meta).toEqual({ name: "My Title", parent });
+		expect(dto.meta).toEqual({
+			name: "My Title",
+			parent,
+			origin: { type: "custom" },
+		});
 		expect(htmlToLexicalJson).toHaveBeenCalledWith("<p>content</p>");
 		expect(dto.splits).toEqual(['{"root":"json"}']);
 		expect(dispatch).toHaveBeenCalledWith(thunk);
