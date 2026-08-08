@@ -113,7 +113,11 @@ function ElementTreeNode({
 					/>
 				) : (
 					<Tooltip label={label} openDelay={500}>
-						<Highlight highlight={search} flex={1} truncate="end">
+						<Highlight
+							highlight={search}
+							flex={1}
+							truncate="end"
+							aria-label={label}>
 							{`${label} (${childrenCount})`}
 						</Highlight>
 					</Tooltip>

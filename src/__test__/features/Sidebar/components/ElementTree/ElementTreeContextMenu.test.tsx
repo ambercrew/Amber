@@ -33,7 +33,7 @@ describe("ElementTree context menu", () => {
 		// Act
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 
@@ -53,7 +53,7 @@ describe("ElementTree context menu", () => {
 
 		// Act
 
-		await user.hover(screen.getByTitle("Science"));
+		await user.hover(screen.getByLabelText("Science"));
 		await user.click(
 			screen.getByRole("button", { name: "Open actions menu" }),
 		);
@@ -75,7 +75,7 @@ describe("ElementTree context menu", () => {
 		// Act — right-click Science twice in a row
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
@@ -83,7 +83,7 @@ describe("ElementTree context menu", () => {
 			{ timeout: 2000 },
 		);
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 

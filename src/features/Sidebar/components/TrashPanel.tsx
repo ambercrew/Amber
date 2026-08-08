@@ -181,6 +181,7 @@ function TrashPanel() {
 								<Tooltip label="Restore">
 									<ActionIcon
 										variant="subtle"
+										aria-label="Restore"
 										onClick={withoutOpening(() => {
 											void dispatch(
 												restoreElementAction(elementId),
@@ -193,6 +194,7 @@ function TrashPanel() {
 									<ActionIcon
 										variant="subtle"
 										color="red"
+										aria-label="Delete permanently"
 										onClick={withoutOpening(() =>
 											setPendingDeletion({
 												scope: "element",

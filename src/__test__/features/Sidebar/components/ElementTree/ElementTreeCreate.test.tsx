@@ -69,7 +69,7 @@ describe("ElementTree create child", () => {
 		// Act — right-click Science to open the context menu, then navigate New > Folder
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
@@ -103,7 +103,7 @@ describe("ElementTree create child", () => {
 
 		await user.click(screen.getByRole("button", { name: "Expand" }));
 		await user.pointer({
-			target: screen.getByTitle("Biology Basics"),
+			target: screen.getByLabelText("Biology Basics"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
@@ -139,7 +139,7 @@ describe("ElementTree create child", () => {
 		// Act
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
@@ -172,12 +172,12 @@ describe("ElementTree create child", () => {
 		render();
 
 		// Science is collapsed by default — Biology Basics is not visible.
-		expect(screen.queryByTitle("Biology Basics")).toBeNull();
+		expect(screen.queryByLabelText("Biology Basics")).toBeNull();
 
 		// Act — right-click Science to open the context menu, then create a child folder
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(
@@ -191,7 +191,7 @@ describe("ElementTree create child", () => {
 		// Assert — Science is now expanded, revealing Biology Basics.
 
 		await waitFor(() => {
-			expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+			expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 		});
 	});
 });
