@@ -7,6 +7,7 @@ use crate::elements::value_objects::element_id::ElementId;
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Origin {
     Inherited,
+    #[serde(rename_all = "camelCase")]
     Custom {
         #[serde(default)]
         derived_from: Option<ElementId>,
