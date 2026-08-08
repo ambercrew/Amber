@@ -1,0 +1,29 @@
+import { Spotlight } from "@mantine/spotlight";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import GlobalHotkeys from "./GlobalHotkeys";
+import { useSpotlightActions } from "./useSpotlightActions";
+import { SPOTLIGHT_SHORTCUT } from "./commands";
+
+function CommandPalette() {
+	const { actions, refresh } = useSpotlightActions();
+
+	return (
+		<>
+			<GlobalHotkeys />
+			<Spotlight
+				actions={actions}
+				onSpotlightOpen={refresh}
+				shortcut={SPOTLIGHT_SHORTCUT}
+				nothingFound="No matching commands"
+				searchProps={{
+					leftSection: <MagnifyingGlassIcon size={18} />,
+					placeholder: "Search commands...",
+				}}
+				tagsToIgnore={[]}
+				triggerOnContentEditable
+			/>
+		</>
+	);
+}
+
+export default CommandPalette;

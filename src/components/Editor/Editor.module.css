@@ -1,0 +1,55 @@
+.table-scrollable-wrapper {
+	overflow-x: auto;
+	overflow-y: hidden;
+	max-width: 100%;
+	-webkit-overflow-scrolling: touch;
+}
+
+.anchor {
+	position: relative;
+	padding: 0;
+}
+
+.content-editable {
+	line-height: var(--mantine-line-height-xl);
+	outline: none;
+}
+
+.inline-code {
+	display: inline-block;
+	background-color: var(--editor-surface-bg) !important;
+}
+
+.code-block {
+	display: block;
+	/* Shiki sets its own inline background-color per theme; override it
+	   so code blocks match the app's warm palette instead of the
+	   'one-light' theme's stark white. */
+	background-color: var(--editor-surface-bg) !important;
+}
+
+.table-cell-header {
+	/* Lexical's TableCellNode bakes a hardcoded #f2f3f5 background-color
+	   into header cells (exportDOM/importDOM in @lexical/table); override
+	   it so headers match the app's warm palette instead. */
+	background-color: var(--editor-surface-bg) !important;
+}
+
+.placeholder {
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	user-select: none;
+}
+
+.slash-menu-option {
+	border-radius: var(--mantine-radius-default);
+}
+
+.floating-menu {
+	position: absolute;
+	transition: opacity 0.1s ease;
+	/* Equals the app shell header. */
+	z-index: 100;
+}

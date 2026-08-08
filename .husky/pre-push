@@ -1,0 +1,18 @@
+#!/bin/sh
+
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/release)
+      version=$(jq -r '.version' src-tauri/tauri.conf.json)
+      recent_tags=$(git tag --list 'v*' --sort=-version:refname | head -5)
+
+      for tag in $recent_tags; do
+        if [ "$tag" = "v$version" ]; then
+          echo "ERROR: tauri.conf.json version ($version) matches an existing tag ($tag)."
+          echo "Bump the version before pushing to release."
+          exit 1
+        fi
+      done
+      ;;
+  esac
+done

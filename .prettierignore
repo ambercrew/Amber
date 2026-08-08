@@ -1,0 +1,8 @@
+# Ignoring rust
+src-tauri
+
+# Ignoring configuration
+tsconfig.*
+
+# Editor
+.vscode

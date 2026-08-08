@@ -1,0 +1,11 @@
+.cloze-hidden {
+	display: inline-block;
+	border-radius: var(--mantine-radius-sm);
+	padding: 0 6px;
+	font-weight: 700;
+	background-color: light-dark(
+		var(--mantine-color-blue-2),
+		var(--mantine-color-blue-8)
+	);
+	color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-6));
+}

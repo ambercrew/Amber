@@ -1,0 +1,25 @@
+{
+  "publisher": "CN=C28D7248-C401-4AED-B098-3A275E83CC62",
+  "publisherDisplayName": "Rami Alkawadri",
+  "capabilities": {
+    "general": [
+      "internetClient"
+    ],
+    "restricted": [
+      "broadFileSystemAccess"
+    ]
+  },
+  "extensions": {
+    "shareTarget": false,
+    "fileAssociations": [],
+    "protocolHandlers": []
+  },
+  "signing": {
+    "pfx": null,
+    "pfxPassword": null
+  },
+  "resourceIndex": {
+    "enabled": false,
+    "keepConfig": false
+  }
+}

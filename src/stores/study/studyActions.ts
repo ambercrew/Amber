@@ -1,0 +1,130 @@
+import { NavigateFunction } from "react-router";
+import {
+	gradeCard,
+	getDueElements,
+	finishReading,
+	nextReading,
+} from "../../api/study/api/studyApi";
+import { paths } from "../../paths";
+import { ElementId } from "../../types/elements/elementId";
+import { Rating } from "../../types/study/rating";
+import { StudySessionLocationState } from "../../types/study/studySessionLocationState";
+import { AppDispatch, RootState } from "../store";
+import {
+	cardGraded,
+	cardRequeued,
+	readingAdvanced,
+	readingFinished,
+	readingSkipped,
+	sessionAdvanced,
+	sessionStarted,
+} from "./studyReducer";
+import { selectStudyIndex } from "./studySelectors";
+
+// A same-day relearning card is re-queued rather than dropped until "later
+// today" only if its new due time still falls within the live session.
+const SESSION_HORIZON_MS = 2 * 60 * 1000;
+
+export function startStudySession(navigate: NavigateFunction) {
+	return async (dispatch: AppDispatch): Promise<boolean> => {
+		const queue = await getDueElements();
+		if (queue.length === 0) return false;
+		dispatch(sessionStarted(queue));
+		navigateToElement(queue[0]?.elementId, navigate);
+		return true;
+	};
+}
+
+export function gradeCardAction(
+	cardId: string,
+	rating: Rating,
+	navigate: NavigateFunction,
+) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const shownAt = getState().study.shownAt;
+		const durationMs = shownAt ? Date.now() - shownAt : null;
+		const elementId: ElementId = { type: "card", id: cardId };
+		const currentIndex = selectStudyIndex(getState());
+
+		const review = await gradeCard(cardId, rating, durationMs);
+		dispatch(cardGraded());
+
+		const dueInMs = new Date(review.due).getTime() - Date.now();
+		const needsRequeue = dueInMs <= SESSION_HORIZON_MS;
+		if (needsRequeue) {
+			dispatch(cardRequeued({ elementId }));
+		}
+
+		advanceSession(
+			dispatch,
+			getState,
+			navigate,
+			needsRequeue ? null : elementId,
+			currentIndex,
+		);
+	};
+}
+
+export function nextReadingAction(
+	elementId: ElementId,
+	navigate: NavigateFunction,
+) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
+		await nextReading(elementId);
+		dispatch(readingAdvanced());
+		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
+	};
+}
+
+export function skipReadingAction(
+	elementId: ElementId,
+	navigate: NavigateFunction,
+) {
+	return (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
+		dispatch(readingSkipped({ elementId }));
+		advanceSession(dispatch, getState, navigate, null, currentIndex);
+	};
+}
+
+export function finishReadingAction(
+	elementId: ElementId,
+	navigate: NavigateFunction,
+) {
+	return async (dispatch: AppDispatch, getState: () => RootState) => {
+		const currentIndex = selectStudyIndex(getState());
+		await finishReading(elementId);
+		dispatch(readingFinished());
+		advanceSession(dispatch, getState, navigate, elementId, currentIndex);
+	};
+}
+
+// Moves forward to whichever pending element now sits where the next one
+// did — only wrapping back to the front of the queue once there's nothing
+// left ahead, cycling through the remaining elements rather than ending
+// the session while some are still unreviewed.
+function advanceSession(
+	dispatch: AppDispatch,
+	getState: () => RootState,
+	navigate: NavigateFunction,
+	completedElementId: ElementId | null,
+	currentIndex: number,
+) {
+	dispatch(sessionAdvanced({ completedElementId }));
+
+	const { queue } = getState().study;
+	if (queue.length === 0) return;
+
+	const nextIndex = currentIndex >= queue.length ? 0 : currentIndex;
+	navigateToElement(queue[nextIndex]?.elementId, navigate);
+}
+
+function navigateToElement(
+	element: ElementId | undefined,
+	navigate: NavigateFunction,
+) {
+	if (!element) return;
+	const state: StudySessionLocationState = { studySessionNav: true };
+	void navigate(paths.element(element.type, element.id), { state });
+}

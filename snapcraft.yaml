@@ -1,0 +1,89 @@
+name: brainy-learn
+base: core24
+title: Brainy Learn
+version: '1.0.0'
+license: AGPL-3.0
+summary: Open-source, AI-integrated learning app built around spaced repetition
+description: |
+  Brainy is an open-source, AI-integrated learning app that combines note-taking and studying in one place. Organize your materials in a notebook-and-folder structure, create flashcards, cloze deletions, true/false questions, and more — or let AI generate a complete card set from any PDF, textbook, or lecture notes instantly. You can also ask the AI questions directly about your uploaded content to deepen your understanding.
+  The FSRS spaced repetition algorithm adapts to your performance and schedules each review at the optimal moment, so knowledge is retained long-term. Sync your progress across devices, with automatic backups to keep your data safe.
+website: https://brainylearn.app
+issues: https://github.com/brainylearn/brainy-app/issues/new
+source-code: https://github.com/brainylearn/brainy-app
+donation: https://ko-fi.com/ramikw
+
+grade: stable
+confinement: strict
+
+layout:
+  /usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/webkit2gtk-4.1:
+    bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/webkit2gtk-4.1
+
+apps:
+  brainy:
+    command: usr/bin/BrainyLearn
+    desktop: "usr/share/applications/Brainy Learn.desktop"
+    extensions: [gnome]
+    plugs:
+      - network
+      - home
+      - removable-media
+      - password-manager-service
+      - single-instance-plug
+    slots:
+      - single-instance
+
+slots:
+  single-instance:
+    interface: dbus
+    bus: session
+    name: org.app_brainylearn.SingleInstance
+
+plugs:
+  single-instance-plug:
+    interface: dbus
+    bus: session
+    name: org.app_brainylearn.SingleInstance
+
+
+parts:
+  build-app:
+    plugin: dump
+    build-snaps:
+      - node/20/stable
+      - rustup/latest/stable
+    build-packages:
+      - libwebkit2gtk-4.1-dev
+      - build-essential
+      - curl
+      - wget
+      - file
+      - libxdo-dev
+      - libssl-dev
+      - libayatana-appindicator3-dev
+      - librsvg2-dev
+      - dpkg
+      - unzip
+      - protobuf-compiler
+      - libprotobuf-dev
+    stage-packages:
+      - libwebkit2gtk-4.1-0
+      - libayatana-appindicator3-1
+    source: .
+    override-build: |
+      # Used for local builds
+      if [ -f $SNAPCRAFT_PROJECT_DIR/.build-secrets ]; then
+        # Add secrets
+        set -a
+        source $SNAPCRAFT_PROJECT_DIR/.build-secrets
+        set +a
+      fi
+
+      # Setup Rust
+      rustup default stable
+
+      set -eu
+      npm install
+      npm run tauri build -- --bundles deb --config '{"bundle":{"createUpdaterArtifacts":false}}' -- --features store
+      dpkg -x src-tauri/target/release/bundle/deb/*.deb $SNAPCRAFT_PART_INSTALL/
+      sed -i -e "s|Icon=BrainyLearn|Icon=/usr/share/icons/hicolor/128x128/apps/BrainyLearn.png|g" "$SNAPCRAFT_PART_INSTALL/usr/share/applications/Brainy Learn.desktop"

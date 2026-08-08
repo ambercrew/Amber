@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "name": "Debug Tauri application",
+        "type": "rust-gdb",
+        "request": "launch",
+        "program": "./src-tauri/target/debug/Brainy",
+        "cwd": "${workspaceFolder}",
+        "stopAtBeginningOfMainSubprogram": false,
+        "preLaunchTask": "build:debug"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StudyProfile {
+    pub id: Uuid,
+    pub created_at: DateTime<Utc>,
+    pub modified_at: DateTime<Utc>,
+    pub name: String,
+    pub is_default: bool,
+    // FSRS (cards)
+    pub desired_retention: f32,
+    pub fsrs_params: Option<Vec<f32>>,
+    // Incremental reading (readings/extracts)
+    pub initial_a_factor: f32,
+    /// Days added to "today" to compute the due date the first time an element is
+    /// scheduled: when it's created, and for its first incremental-reading pass.
+    pub initial_interval_days: f32,
+    pub min_interval_days: f32,
+}

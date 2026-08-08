@@ -1,0 +1,19 @@
+import { ElementId } from "../../../types/elements/elementId";
+
+export interface NodeDto {
+	meta: MetaNodeDto;
+	children: NodeChildrenDto;
+}
+
+export interface MetaNodeDto {
+	elementId: ElementId;
+	name: string;
+	position: string;
+}
+
+export interface NodeChildrenDto {
+	folders: NodeDto[];
+	readings: NodeDto[];
+	extracts: NodeDto[];
+	cards: NodeDto[];
+}

@@ -1,0 +1,284 @@
+name: "publish"
+
+on:
+  push:
+    branches: ["release"]
+
+jobs:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.id }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Get version
+        id: version
+        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
+
+      - name: Create draft release
+        id: create-release
+        run: |
+          id=$(gh api "repos/${{ github.repository }}/releases" \
+            --jq '.[] | select(.tag_name == "v${{ steps.version.outputs.version }}") | .id')
+          if [ -z "$id" ]; then
+            id=$(gh api repos/${{ github.repository }}/releases \
+              -f tag_name="v${{ steps.version.outputs.version }}" \
+              -f name="Brainy v${{ steps.version.outputs.version }}" \
+              -f target_commitish=release \
+              -f body="" \
+              -F draft=true \
+              --jq '.id')
+          fi
+          echo "id=$id" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-tauri:
+    needs: create-release
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: "macos-latest" # for Arm based macs (M1 and above).
+            args: "--target aarch64-apple-darwin"
+          - platform: "macos-latest" # for Intel based macs.
+            args: "--target x86_64-apple-darwin"
+          - platform: "ubuntu-24.04"
+            args: ""
+          - platform: "windows-latest"
+            args: ""
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || matrix.platform == 'windows-latest' && 'aarch64-pc-windows-msvc' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf protobuf-compiler
+
+      - name: install dependencies (macos)
+        if: matrix.platform == 'macos-latest'
+        run: brew install protobuf
+
+      - name: install dependencies (windows)
+        if: matrix.platform == 'windows-latest'
+        run: choco install protoc
+
+      - name: install frontend dependencies
+        run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          args: ${{ matrix.args }}
+
+      # Producing snap file
+      - name: install snapcraft
+        if: matrix.platform == 'ubuntu-24.04'
+        run: sudo snap install snapcraft --classic
+
+      - name: sync snapcraft version
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sed -i "s/^version: .*/version: '${{ needs.create-release.outputs.version }}'/" snapcraft.yaml
+
+      - name: build snap
+        if: matrix.platform == 'ubuntu-24.04'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          STORE_BUILD: "1"
+        run: sudo -E snapcraft pack --destructive-mode
+
+      - name: fix snapcraft permissions
+        if: matrix.platform == 'ubuntu-24.04'
+        run: sudo chown -R $USER:$USER ~/.local/state/snapcraft || true
+
+      # To generate new credentials `snapcraft export-login --snaps brainy-learn --channels stable -`
+      - name: publish snap to store
+        if: matrix.platform == 'ubuntu-24.04'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          output=$(snapcraft upload *.snap --release=stable 2>&1) && echo "$output" || {
+            echo "$output"
+            if echo "$output" | grep -q "review"; then
+              echo "Snap uploaded but pending human review — release to stable will happen after manual approval."
+            else
+              exit 1
+            fi
+          }
+
+      - name: upload snap to release
+        if: matrix.platform == 'ubuntu-24.04'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
+          files: "*.snap"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Producing MSIX bundle
+      - name: install msixbundle-cli
+        if: matrix.platform == 'windows-latest'
+        run: cargo install msixbundle-cli
+
+      - name: install tauri-cli
+        if: matrix.platform == 'windows-latest'
+        run: cargo install tauri-cli
+
+      - name: build MSIX
+        if: matrix.platform == 'windows-latest'
+        run: npm run tauri:windows:build -- --arch x64,arm64
+
+      - name: configure Microsoft Store CLI
+        if: matrix.platform == 'windows-latest'
+        uses: microsoft/store-submission@v1
+        with:
+          command: configure
+          type: msix
+          seller-id: ${{ secrets.MS_STORE_SELLER_ID }}
+          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+          tenant-id: ${{ secrets.MS_STORE_TENANT_ID }}
+          client-id: ${{ secrets.MS_STORE_CLIENT_ID }}
+          client-secret: ${{ secrets.MS_STORE_CLIENT_SECRET }}
+
+      - name: publish MSIX to Microsoft Store
+        if: matrix.platform == 'windows-latest'
+        uses: microsoft/store-submission@v1
+        with:
+          command: publish
+          product-id: ${{ secrets.MS_STORE_PRODUCT_ID }}
+          package-path: src-tauri/target/msix/*.msixbundle
+
+  publish-tauri-android:
+    needs: create-release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+
+      - name: setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: install NDK
+        run: sdkmanager "ndk;27.0.12077973"
+
+      - name: add NDK toolchain to PATH
+        run: |
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.0.12077973" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: install frontend dependencies
+        run: npm ci
+
+      - name: setup Android signing
+        run: |
+          cd src-tauri/gen/android
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" > keystore.properties
+          echo "password=${{ secrets.ANDROID_KEY_PASSWORD }}" >> keystore.properties
+          base64 -d <<< "${{ secrets.ANDROID_KEY_BASE64 }}" > $RUNNER_TEMP/keystore.jks
+          echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
+
+      - name: build Android APK and AAB
+        run: npm run tauri android build -- --apk --aab
+
+      - name: upload Android artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          draft: true
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update-latest-tag:
+    needs: [create-release, publish-tauri, publish-tauri-android]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publish release
+        run: gh release edit "v${{ needs.create-release.outputs.version }}" --draft=false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download latest.json from versioned release
+        run: |
+          gh release download v${{ needs.create-release.outputs.version }} \
+            --pattern "latest.json" \
+            --output latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Move latest tag
+        run: |
+          git tag -f latest
+          git push origin latest --force
+
+      - name: Upload latest.json to latest tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          draft: false
+          prerelease: false
+          files: latest.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

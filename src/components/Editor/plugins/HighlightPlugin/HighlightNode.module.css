@@ -1,0 +1,19 @@
+mark.highlight {
+	background-color: light-dark(
+		var(--highlight-bg-light),
+		var(--highlight-bg-dark)
+	);
+
+	& * {
+		color: var(--mantine-color-black) !important;
+		background-color: transparent !important;
+	}
+
+	& code {
+		/* Making inline code stand out from the rest of highlights. */
+		background-color: light-dark(
+			rgba(0, 0, 0, 0.14),
+			rgba(0, 0, 0, 0.3)
+		) !important;
+	}
+}
