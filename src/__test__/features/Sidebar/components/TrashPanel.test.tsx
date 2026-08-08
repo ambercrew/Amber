@@ -74,7 +74,7 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Restore"));
+		await user.click(screen.getByRole("button", { name: "Restore" }));
 
 		// Assert
 
@@ -115,7 +115,9 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Delete permanently"));
+		await user.click(
+			screen.getByRole("button", { name: "Delete permanently" }),
+		);
 		const confirmation = await openedConfirmation();
 		await user.click(confirmation.getByRole("button", { name: "Delete" }));
 
@@ -134,7 +136,9 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Delete permanently"));
+		await user.click(
+			screen.getByRole("button", { name: "Delete permanently" }),
+		);
 		const confirmation = await openedConfirmation();
 		await user.click(confirmation.getByRole("button", { name: "Cancel" }));
 
@@ -151,7 +155,9 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Delete permanently"));
+		await user.click(
+			screen.getByRole("button", { name: "Delete permanently" }),
+		);
 
 		// Assert
 
@@ -190,7 +196,7 @@ describe("TrashPanel", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Restore"));
+		await user.click(screen.getByRole("button", { name: "Restore" }));
 
 		// Assert
 

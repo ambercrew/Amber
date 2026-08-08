@@ -34,7 +34,7 @@ describe("ElementTree delete", () => {
 		// Act — right-click Science to open the context menu, then trash it
 
 		await user.pointer({
-			target: screen.getByTitle("Science"),
+			target: screen.getByLabelText("Science"),
 			keys: "[MouseRight]",
 		});
 		await waitFor(

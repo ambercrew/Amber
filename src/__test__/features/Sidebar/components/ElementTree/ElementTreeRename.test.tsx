@@ -41,7 +41,7 @@ describe("ElementTree rename", () => {
 
 		// Act
 
-		await user.dblClick(screen.getByTitle("Science"));
+		await user.dblClick(screen.getByLabelText("Science"));
 
 		// Assert
 
@@ -61,7 +61,7 @@ describe("ElementTree rename", () => {
 		const user = userEvent.setup();
 		render();
 
-		await user.dblClick(screen.getByTitle("Science"));
+		await user.dblClick(screen.getByLabelText("Science"));
 		const input = await screen.findByRole("textbox", {
 			name: "Rename element",
 		});

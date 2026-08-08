@@ -92,8 +92,8 @@ describe("ElementTree search", () => {
 
 		// Assert
 
-		expect(screen.getByTitle("Science")).toBeInTheDocument();
-		expect(screen.getByTitle("Art")).toBeInTheDocument();
+		expect(screen.getByLabelText("Science")).toBeInTheDocument();
+		expect(screen.getByLabelText("Art")).toBeInTheDocument();
 	});
 
 	it("Should highlight matching text when search term is typed", async () => {
@@ -135,8 +135,8 @@ describe("ElementTree search", () => {
 		render();
 
 		// Assert pre-condition — both root nodes visible before searching
-		expect(screen.getByTitle("Science")).toBeInTheDocument();
-		expect(screen.getByTitle("Art")).toBeInTheDocument();
+		expect(screen.getByLabelText("Science")).toBeInTheDocument();
+		expect(screen.getByLabelText("Art")).toBeInTheDocument();
 
 		// Act
 
@@ -144,8 +144,8 @@ describe("ElementTree search", () => {
 
 		// Assert — Art does not match and must not be in the DOM at all
 
-		expect(screen.queryByTitle("Art")).not.toBeInTheDocument();
-		expect(screen.getByTitle("Science")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Art")).not.toBeInTheDocument();
+		expect(screen.getByLabelText("Science")).toBeInTheDocument();
 	});
 
 	it("Should restore pre-search expanded state when search is cleared", async () => {
@@ -155,25 +155,27 @@ describe("ElementTree search", () => {
 		render();
 
 		// Verifying that the element is hidden before anything is done.
-		expect(screen.queryByTitle("Biology Basics")).toBeNull();
+		expect(screen.queryByLabelText("Biology Basics")).toBeNull();
 
 		const input = screen.getByPlaceholderText("Search...");
 
 		// Expand Science before searching via its accessible expand button.
 		await user.click(screen.getAllByRole("button", { name: "Expand" })[0]);
 
-		expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+		expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 
 		// Act — search for something that matches neither Science nor Biology Basics,
 		// collapsing the Science folder during the search.
 		await user.type(input, "Art");
 
-		expect(screen.queryByTitle("Biology Basics")).not.toBeInTheDocument();
+		expect(
+			screen.queryByLabelText("Biology Basics"),
+		).not.toBeInTheDocument();
 
 		await user.clear(input);
 
 		// Assert — pre-search expanded state restored: Science still expanded.
-		expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+		expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 	});
 
 	it("Should remove highlight when search is cleared", async () => {
@@ -201,7 +203,7 @@ describe("ElementTree search", () => {
 
 		// Act
 
-		await user.click(screen.getByTitle("Science"));
+		await user.click(screen.getByLabelText("Science"));
 
 		// Assert
 
@@ -217,7 +219,7 @@ describe("ElementTree search", () => {
 		const { unmount } = render();
 
 		await user.click(screen.getAllByRole("button", { name: "Expand" })[0]);
-		expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+		expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 
 		// Act
 
@@ -226,7 +228,7 @@ describe("ElementTree search", () => {
 
 		// Assert — localStorage restores the expanded state on remount.
 		await waitFor(() => {
-			expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+			expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 		});
 	});
 
@@ -235,7 +237,9 @@ describe("ElementTree search", () => {
 
 		render();
 
-		expect(screen.queryByTitle("Biology Basics")).not.toBeInTheDocument();
+		expect(
+			screen.queryByLabelText("Biology Basics"),
+		).not.toBeInTheDocument();
 
 		// Act — simulate the backend's `elementCreated` event firing for an
 		// extract/cloze created under Science while the tree is collapsed.
@@ -251,7 +255,7 @@ describe("ElementTree search", () => {
 
 		// Assert — Science is expanded, revealing its child
 
-		expect(screen.getByTitle("Biology Basics")).toBeInTheDocument();
+		expect(screen.getByLabelText("Biology Basics")).toBeInTheDocument();
 	});
 
 	it("Should show correct child count on a folder label", () => {
@@ -348,7 +352,9 @@ describe("ElementTree sorting", () => {
 
 		const items = screen
 			.getAllByRole("treeitem")
-			.map(li => li.querySelector("[title]")?.getAttribute("title"))
+			.map(li =>
+				li.querySelector("p[aria-label]")?.getAttribute("aria-label"),
+			)
 			.filter(Boolean);
 
 		const childIndex = (name: string) => items.indexOf(name);
@@ -397,7 +403,9 @@ describe("ElementTree sorting", () => {
 
 		const items = screen
 			.getAllByRole("treeitem")
-			.map(li => li.querySelector("[title]")?.getAttribute("title"))
+			.map(li =>
+				li.querySelector("p[aria-label]")?.getAttribute("aria-label"),
+			)
 			.filter(Boolean);
 
 		const idx = (name: string) => items.indexOf(name);
