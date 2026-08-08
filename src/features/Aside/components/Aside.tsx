@@ -29,7 +29,7 @@ function Aside({ onCollapse }: AsideProps) {
 			: []),
 		{
 			value: "info",
-			title: "Info",
+			title: "Element info",
 			icon: <InfoIcon size={16} />,
 			panel: <ElementInfoPanel />,
 		},
