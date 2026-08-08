@@ -6,6 +6,7 @@ import {
 	NavLink,
 	Stack,
 	Text,
+	Tooltip,
 } from "@mantine/core";
 import { ArrowCounterClockwiseIcon, TrashIcon } from "@phosphor-icons/react";
 import { MouseEvent, useEffect, useState } from "react";
@@ -177,28 +178,30 @@ function TrashPanel() {
 						}
 						rightSection={
 							<Group gap={2} wrap="nowrap">
-								<ActionIcon
-									variant="subtle"
-									title="Restore"
-									onClick={withoutOpening(() => {
-										void dispatch(
-											restoreElementAction(elementId),
-										);
-									})}>
-									<ArrowCounterClockwiseIcon size={16} />
-								</ActionIcon>
-								<ActionIcon
-									variant="subtle"
-									color="red"
-									title="Delete permanently"
-									onClick={withoutOpening(() =>
-										setPendingDeletion({
-											scope: "element",
-											element: item,
-										}),
-									)}>
-									<TrashIcon size={16} />
-								</ActionIcon>
+								<Tooltip label="Restore">
+									<ActionIcon
+										variant="subtle"
+										onClick={withoutOpening(() => {
+											void dispatch(
+												restoreElementAction(elementId),
+											);
+										})}>
+										<ArrowCounterClockwiseIcon size={16} />
+									</ActionIcon>
+								</Tooltip>
+								<Tooltip label="Delete permanently">
+									<ActionIcon
+										variant="subtle"
+										color="red"
+										onClick={withoutOpening(() =>
+											setPendingDeletion({
+												scope: "element",
+												element: item,
+											}),
+										)}>
+										<TrashIcon size={16} />
+									</ActionIcon>
+								</Tooltip>
 							</Group>
 						}
 						onClick={() =>
