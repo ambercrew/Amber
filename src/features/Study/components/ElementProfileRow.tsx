@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Select } from "@mantine/core";
+import { ActionIcon, Group, Select, Tooltip } from "@mantine/core";
 import { assignStudyProfile } from "../../../api/study/api/studyProfileApi";
 import { ElementDetailsResponseDto } from "../../../api/elements/dto/elementDetailsDto";
 import useApi from "../../../hooks/useApi";
@@ -75,12 +75,13 @@ function ElementProfileRow({ elementId, details }: ElementProfileRowProps) {
 				nothingFoundMessage="Nothing found..."
 				onChange={handleProfileChange}
 			/>
-			<ActionIcon
-				variant="subtle"
-				title="Manage study profiles"
-				onClick={() => dispatch(openStudyProfileModal())}>
-				{commandIcon("manage-study-profiles")}
-			</ActionIcon>
+			<Tooltip label="Manage study profiles">
+				<ActionIcon
+					variant="subtle"
+					onClick={() => dispatch(openStudyProfileModal())}>
+					{commandIcon("manage-study-profiles")}
+				</ActionIcon>
+			</Tooltip>
 		</Group>
 	);
 }

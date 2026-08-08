@@ -5,6 +5,7 @@ import {
 	Stack,
 	Text,
 	TagsInput,
+	Tooltip,
 } from "@mantine/core";
 import { useEffect, useRef, useState } from "react";
 import { useDebouncedCallback } from "@mantine/hooks";
@@ -128,12 +129,13 @@ function ElementInfoPanel() {
 								? `${details.priority.percentage.toFixed(2)}% (${details.priority.rank}/${details.priority.total})`
 								: "—"}
 						</Text>
-						<ActionIcon
-							variant="subtle"
-							title="Set priority"
-							onClick={() => dispatch(openPriorityModal())}>
-							{commandIcon("open-priority")}
-						</ActionIcon>
+						<Tooltip label="Set priority">
+							<ActionIcon
+								variant="subtle"
+								onClick={() => dispatch(openPriorityModal())}>
+								{commandIcon("open-priority")}
+							</ActionIcon>
+						</Tooltip>
 					</Group>
 				</InfoField>
 			</InfoGroup>

@@ -4,6 +4,7 @@ import {
 	Highlight,
 	Menu,
 	RenderTreeNodePayload,
+	Tooltip,
 } from "@mantine/core";
 import {
 	CaretDownIcon,
@@ -111,13 +112,11 @@ function ElementTreeNode({
 						onClose={onRenameClose}
 					/>
 				) : (
-					<Highlight
-						highlight={search}
-						flex={1}
-						truncate="end"
-						title={label}>
-						{`${label} (${childrenCount})`}
-					</Highlight>
+					<Tooltip label={label} openDelay={500}>
+						<Highlight highlight={search} flex={1} truncate="end">
+							{`${label} (${childrenCount})`}
+						</Highlight>
+					</Tooltip>
 				)}
 				<Menu
 					withinPortal

@@ -9,6 +9,7 @@ import {
 	Select,
 	Stack,
 	Text,
+	Tooltip,
 } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
@@ -206,12 +207,13 @@ function OriginSection({
 									{derivedFromName ?? "…"}
 								</Anchor>
 							</Group>
-							<ActionIcon
-								variant="subtle"
-								title="Clear derived from"
-								onClick={handleClearDerivedFrom}>
-								<XIcon size={18} />
-							</ActionIcon>
+							<Tooltip label="Clear derived from">
+								<ActionIcon
+									variant="subtle"
+									onClick={handleClearDerivedFrom}>
+									<XIcon size={18} />
+								</ActionIcon>
+							</Tooltip>
 						</Group>
 					) : (
 						<Text size="sm" c="dimmed">
@@ -247,13 +249,14 @@ function OriginSection({
 								allowDeselect={false}
 								onChange={handleSourceChange}
 							/>
-							<ActionIcon
-								variant="subtle"
-								color="red"
-								title="Delete source"
-								onClick={handleDeleteSource}>
-								<TrashIcon size={16} />
-							</ActionIcon>
+							<Tooltip label="Delete source">
+								<ActionIcon
+									variant="subtle"
+									color="red"
+									onClick={handleDeleteSource}>
+									<TrashIcon size={16} />
+								</ActionIcon>
+							</Tooltip>
 						</Group>
 					</InfoField>
 
